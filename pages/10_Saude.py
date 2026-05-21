@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html as _html
 from datetime import date
 
 import streamlit as st
@@ -34,7 +35,7 @@ hoje = date.today()
 try:
     profissionais  = prof_repo.list_active()
     sessoes_ano    = session_repo.list_by_year(hoje.year)
-    sessoes_pend   = session_repo.list_pending()
+    sessoes_pend   = session_repo.list_pending(year=hoje.year)
     solicitacoes   = req_repo.list_all()
     db_ok          = True
 except Exception as e:
@@ -173,13 +174,13 @@ with tab_sess:
     else:
         rows_html = ""
         for s in sessoes_filtradas:
-            prof_nome = prof_by_id.get(s.professional_id)
-            prof_label = f"{prof_nome.name}" if prof_nome else "—"
-            spec_label = SPECIALTY_LABELS.get(
-                prof_nome.specialty.value, "") if prof_nome else ""
-            nf_html = f' · NF {s.nf_number}' if s.nf_number else ""
+            prof_nome  = prof_by_id.get(s.professional_id)
+            prof_label = _html.escape(prof_nome.name) if prof_nome else "—"
+            spec_label = _html.escape(SPECIALTY_LABELS.get(
+                prof_nome.specialty.value, "")) if prof_nome else ""
+            nf_html = (f' · NF {_html.escape(s.nf_number)}' if s.nf_number else "")
             nota_html = (
-                f'<div class="k-feed-note" style="margin-top:4px">{s.notes}</div>'
+                f'<div class="k-feed-note" style="margin-top:4px">{_html.escape(s.notes)}</div>'
                 if s.notes else ""
             )
 
@@ -267,20 +268,21 @@ with tab_sol:
             st_val  = req.status.value
             color   = STATUS_COLORS.get(st_val, "var(--ink-3)")
             label   = STATUS_LABELS.get(st_val, st_val)
-            prot_html = (f'<span class="mono" style="color:var(--sea)">#{req.protocol_number}</span>'
-                         if req.protocol_number else
-                         '<span style="color:var(--ink-4);font-size:11px">sem protocolo</span>')
-            recv_html = (fmt_brl(req.amount_received)
-                         if req.amount_received is not None else "—")
-            gap_html  = ""
-            if req.gap > 0:
-                gap_html = (f'<span class="mono warn" style="font-size:11px"> · '
-                            f'gap {fmt_brl(req.gap)}</span>')
-
-            nota_html = ""
-            if req.notes:
-                nota_html = (f'<div style="font-family:var(--font-serif);font-style:italic;'
-                             f'font-size:12px;color:var(--ink-3);margin-top:6px">{req.notes}</div>')
+            prot_html = (
+                f'<span class="mono" style="color:var(--sea)">#{_html.escape(req.protocol_number)}</span>'
+                if req.protocol_number else
+                '<span style="color:var(--ink-4);font-size:11px">sem protocolo</span>'
+            )
+            recv_html = fmt_brl(req.amount_received) if req.amount_received is not None else "—"
+            gap_html  = (
+                f'<span class="mono warn" style="font-size:11px"> · gap {fmt_brl(req.gap)}</span>'
+                if req.gap > 0 else ""
+            )
+            nota_html = (
+                f'<div style="font-family:var(--font-serif);font-style:italic;'
+                f'font-size:12px;color:var(--ink-3);margin-top:6px">{_html.escape(req.notes)}</div>'
+                if req.notes else ""
+            )
 
             st.markdown(f"""
 <div class="k-feed-row" style="grid-template-columns:auto 1fr auto auto;
@@ -426,9 +428,10 @@ with tab_prof:
                     unsafe_allow_html=True)
 
         for p in profissionais:
-            spec_label  = SPECIALTY_LABELS.get(p.specialty.value, p.specialty.value)
+            spec_label  = _html.escape(SPECIALTY_LABELS.get(p.specialty.value, p.specialty.value))
             conselho_html = (
-                f'<span class="mono" style="font-size:11px;color:var(--ink-3)"> · {p.council_number}</span>'
+                f'<span class="mono" style="font-size:11px;color:var(--ink-3)">'
+                f' · {_html.escape(p.council_number)}</span>'
                 if p.council_number else ""
             )
             # Sessões e valores do profissional
@@ -442,10 +445,10 @@ with tab_prof:
     align-items:center;justify-content:center;font-family:var(--font-sans);
     font-size:14px;font-weight:600;background:var(--brass-soft);
     border:1px solid var(--rule-brass);color:var(--brass)">
-    {p.name[0].upper()}
+    {_html.escape(p.name[0].upper())}
   </div>
   <div class="k-feed-body">
-    <div class="k-feed-title">{p.name}{conselho_html}</div>
+    <div class="k-feed-title">{_html.escape(p.name)}{conselho_html}</div>
     <div class="k-feed-meta">{spec_label}</div>
   </div>
   <div style="text-align:right">

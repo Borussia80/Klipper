@@ -85,11 +85,15 @@ class TransactionRepository:
 
     @staticmethod
     def _from_row(row: dict[str, Any]) -> Transaction:
-        row["type"] = TransactionType(row["type"])
-        row["category"] = Category(row["category"])
-        row["payment_method"] = PaymentMethod(row.get("payment_method", "PIX"))
-        row["status"] = TransactionStatus(row.get("status", "PAGO"))
-        return Transaction(**row)
+        return Transaction(
+            **{
+                **row,
+                "type": TransactionType(row["type"]),
+                "category": Category(row["category"]),
+                "payment_method": PaymentMethod(row.get("payment_method", "PIX")),
+                "status": TransactionStatus(row.get("status", "PAGO")),
+            }
+        )
 
 
 class InvestmentRepository:
@@ -137,8 +141,7 @@ class InvestmentRepository:
     @staticmethod
     def _from_row(row: dict[str, Any]) -> Investment:
         from models.investment import InvestmentType
-        row["type"] = InvestmentType(row["type"])
-        return Investment(**row)
+        return Investment(**{**row, "type": InvestmentType(row["type"])})
 
 
 class DecisionRepository:
@@ -200,9 +203,8 @@ class DecisionRepository:
     @staticmethod
     def _from_row(row: dict[str, Any]) -> DecisionRecord:
         from models.decision import DecisionOutcome
-        if row.get("outcome"):
-            row["outcome"] = DecisionOutcome(row["outcome"])
-        return DecisionRecord(**row)
+        outcome = DecisionOutcome(row["outcome"]) if row.get("outcome") else None
+        return DecisionRecord(**{**row, "outcome": outcome})
 
 
 class BankAccountRepository:
@@ -257,9 +259,8 @@ class BankAccountRepository:
 
     @staticmethod
     def _from_row(row: dict[str, Any]) -> BankAccount:
-        row["type"] = AccountType(row["type"])
-        row.pop("created_at", None)
-        return BankAccount(**row)
+        data = {k: v for k, v in row.items() if k != "created_at"}
+        return BankAccount(**{**data, "type": AccountType(data["type"])})
 
 
 class CreditCardRepository:
@@ -306,8 +307,7 @@ class CreditCardRepository:
 
     @staticmethod
     def _from_row(row: dict[str, Any]) -> CreditCard:
-        row.pop("created_at", None)
-        return CreditCard(**row)
+        return CreditCard(**{k: v for k, v in row.items() if k != "created_at"})
 
 
 class InstallmentRepository:
@@ -357,10 +357,10 @@ class InstallmentRepository:
     @staticmethod
     def _from_row(row: dict[str, Any]) -> Installment:
         from datetime import date as Date
-        if isinstance(row.get("start_date"), str):
-            row["start_date"] = Date.fromisoformat(row["start_date"])
-        row.pop("created_at", None)
-        return Installment(**row)
+        data = {k: v for k, v in row.items() if k != "created_at"}
+        if isinstance(data.get("start_date"), str):
+            data["start_date"] = Date.fromisoformat(data["start_date"])
+        return Installment(**data)
 
 
 class BudgetRepository:
@@ -406,5 +406,4 @@ class BudgetRepository:
 
     @staticmethod
     def _from_row(row: dict[str, Any]) -> Budget:
-        row.pop("created_at", None)
-        return Budget(**row)
+        return Budget(**{k: v for k, v in row.items() if k != "created_at"})
