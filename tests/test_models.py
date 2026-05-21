@@ -194,6 +194,14 @@ class TestInstallment:
         inst = self._make(total_amount=1200.0, n_total=12, n_paid=4)
         assert inst.total_remaining == pytest.approx(800.0, abs=0.01)
 
+    def test_total_remaining_preserva_centavos(self):
+        inst = self._make(total_amount=100.0, n_total=3, n_paid=2)
+        assert inst.total_remaining == pytest.approx(33.34)
+
+    def test_n_paid_nao_pode_exceder_n_total(self):
+        with pytest.raises(ValueError):
+            self._make(total_amount=100.0, n_total=3, n_paid=4)
+
     def test_installment_amount_calculado(self):
         inst = self._make(total_amount=1200.0, n_total=4)
         assert inst.installment_amount == pytest.approx(300.0)

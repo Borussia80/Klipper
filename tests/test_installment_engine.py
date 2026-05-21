@@ -32,6 +32,12 @@ class TestGerarParcelas:
         for p in parcelas:
             assert p.amount == pytest.approx(100.0)
 
+    def test_centavos_sao_preservados_no_total_contratado(self):
+        inst = _inst(n_total=3, valor=100.0)
+        parcelas = gerar_parcelas(inst)
+        assert [p.amount for p in parcelas] == [33.33, 33.33, 33.34]
+        assert sum(p.amount for p in parcelas) == pytest.approx(100.0)
+
     def test_parcelas_passadas_sao_pagas(self):
         start = date(2025, 1, 1)
         inst = _inst(n_total=4, start=start)
@@ -118,3 +124,9 @@ class TestCalcularComprometimentoMensal:
         result = calcular_comprometimento_mensal([inst])
         # All dates in 2025 are past (today is 2026-05)
         assert result == {}
+
+    def test_comprometimento_preserva_centavos_por_mes(self):
+        start = date.today()
+        inst = _inst(n_total=3, start=start, valor=100.0)
+        result = calcular_comprometimento_mensal([inst])
+        assert list(result.values()) == [33.33, 33.33, 33.34]

@@ -6,8 +6,13 @@ from core.analytics import calcular_saldo_mensal, calcular_top_categorias
 from models.transaction import Category, Transaction, TransactionType
 
 
-def _make_tx(amount: float, tipo: TransactionType, cat: Category) -> Transaction:
-    return Transaction(date=date.today(), amount=amount, type=tipo, category=cat)
+def _make_tx(
+    amount: float,
+    tipo: TransactionType,
+    cat: Category,
+    tx_date: date | None = None,
+) -> Transaction:
+    return Transaction(date=tx_date or date.today(), amount=amount, type=tipo, category=cat)
 
 
 class TestCalcularSaldoMensal:
@@ -33,6 +38,18 @@ class TestCalcularSaldoMensal:
         saldo = calcular_saldo_mensal([], 2026, 5)
         assert saldo.saldo == 0
         assert saldo.taxa_poupanca == 0
+
+    def test_filtra_transacoes_por_competencia(self):
+        txs = [
+            _make_tx(5000, TransactionType.GANHO, Category.RENDA, date(2026, 5, 10)),
+            _make_tx(1500, TransactionType.GASTO, Category.MORADIA, date(2026, 5, 11)),
+            _make_tx(9999, TransactionType.GANHO, Category.RENDA, date(2026, 4, 30)),
+            _make_tx(9999, TransactionType.GASTO, Category.LAZER, date(2025, 5, 10)),
+        ]
+        saldo = calcular_saldo_mensal(txs, 2026, 5)
+        assert saldo.total_ganhos == 5000
+        assert saldo.total_gastos == 1500
+        assert saldo.saldo == 3500
 
 
 class TestCalcularTopCategorias:

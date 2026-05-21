@@ -34,8 +34,9 @@ class CategoriaResumo:
 
 def calcular_saldo_mensal(transacoes: list[Transaction], ano: int, mes: int) -> SaldoMensal:
     from models.transaction import TransactionType
-    ganhos = sum(t.amount for t in transacoes if t.type == TransactionType.GANHO)
-    gastos = sum(t.amount for t in transacoes if t.type == TransactionType.GASTO)
+    txs_mes = [t for t in transacoes if t.date.year == ano and t.date.month == mes]
+    ganhos = sum(t.amount for t in txs_mes if t.type == TransactionType.GANHO)
+    gastos = sum(t.amount for t in txs_mes if t.type == TransactionType.GASTO)
     return SaldoMensal(ano=ano, mes=mes, total_ganhos=ganhos, total_gastos=gastos)
 
 

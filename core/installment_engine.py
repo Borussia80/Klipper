@@ -19,7 +19,7 @@ def gerar_parcelas(inst: Installment) -> list[Transaction]:
         category = _resolve_category(inst.category)
         tx = Transaction(
             date=due,
-            amount=inst.installment_amount,
+            amount=inst.amount_for_installment(i),
             type=TransactionType.GASTO,
             category=category,
             notes=f"{inst.description} ({i + 1}/{inst.n_total})",
@@ -45,7 +45,7 @@ def calcular_comprometimento_mensal(installments: list[Installment]) -> dict[str
             if due >= hoje:
                 key = due.strftime("%Y-%m")
                 comprometimento[key] = round(
-                    comprometimento.get(key, 0.0) + inst.installment_amount, 2
+                    comprometimento.get(key, 0.0) + inst.amount_for_installment(i), 2
                 )
     return dict(sorted(comprometimento.items()))
 
