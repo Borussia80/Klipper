@@ -87,17 +87,19 @@ class HealthSessionRepository:
             raise
         return [self._from_row(r) for r in res.data]
 
-    def list_pending(self) -> list[HealthSession]:
-        """Sessões sem solicitação de reembolso vinculada."""
+    def list_pending(self, year: int | None = None) -> list[HealthSession]:
+        """Sessões sem solicitação de reembolso vinculada. Filtra por ano se informado."""
         try:
-            res = (
+            query = (
                 get_client()
                 .table(self.TABLE)
                 .select("*")
                 .is_("reimbursement_request_id", "null")
-                .order("session_date", desc=True)
-                .execute()
             )
+            if year is not None:
+                query = query.gte("session_date", date(year, 1, 1).isoformat())
+                query = query.lt("session_date", date(year + 1, 1, 1).isoformat())
+            res = query.order("session_date", desc=True).execute()
         except Exception as e:
             log.error("Erro ao listar sessões pendentes: %s", e)
             raise

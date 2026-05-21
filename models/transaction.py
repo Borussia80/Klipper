@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import date as Date
 from enum import Enum

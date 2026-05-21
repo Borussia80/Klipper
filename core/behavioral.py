@@ -64,49 +64,50 @@ def calcular_score_financeiro(
       - Sem gasto acima da média dos últimos 3 meses: +15
       - Sem parcela atrasada: +10
     """
-    pontos: dict[str, int] = {}
-    hoje = Date.today()
+    sem_estouro   = _cumpriu_orcamento(transacoes, budgets)
+    atingiu_poupa = taxa_poupanca_atual >= meta_poupanca
+    caixa_ok      = caixa_pct >= 20.0
+    sem_acima     = _sem_gasto_acima_media(transacoes, transacoes_3_meses)
+    sem_atraso    = _sem_parcela_atrasada(installments)
 
-    # +30 — Orçamento
-    if budgets:
-        status_list = calcular_uso_orcamento(transacoes, budgets)
-        sem_estouro = all(s.status != "ESTOURO" for s in status_list)
-    else:
-        sem_estouro = True
-    pontos["orcamento"] = 30 if sem_estouro else 0
-
-    # +25 — Meta de poupança
-    atingiu_poupanca = taxa_poupanca_atual >= meta_poupanca
-    pontos["poupanca"] = 25 if atingiu_poupanca else 0
-
-    # +20 — Caixa M2 ≥ 20%
-    caixa_ok = caixa_pct >= 20.0
-    pontos["caixa"] = 20 if caixa_ok else 0
-
-    # +15 — Sem gasto acima da média 3 meses
-    if transacoes_3_meses:
-        alertas = detectar_alertas_padrao(transacoes, transacoes_3_meses)
-        sem_acima = len(alertas) == 0
-    else:
-        sem_acima = True
-    pontos["media"] = 15 if sem_acima else 0
-
-    # +10 — Sem parcela atrasada
-    parcelas_atrasadas = [
-        inst for inst in installments
-        if inst.is_active and inst.next_due_date and inst.next_due_date < hoje
-    ]
-    sem_atraso = len(parcelas_atrasadas) == 0
-    pontos["parcelas"] = 10 if sem_atraso else 0
-
+    pontos = {
+        "orcamento": 30 if sem_estouro   else 0,
+        "poupanca":  25 if atingiu_poupa else 0,
+        "caixa":     20 if caixa_ok      else 0,
+        "media":     15 if sem_acima     else 0,
+        "parcelas":  10 if sem_atraso    else 0,
+    }
     return ScoreFinanceiro(
         total=sum(pontos.values()),
         cumpriu_orcamento=sem_estouro,
-        atingiu_meta_poupanca=atingiu_poupanca,
+        atingiu_meta_poupanca=atingiu_poupa,
         caixa_m2_ok=caixa_ok,
         sem_gasto_acima_media=sem_acima,
         sem_parcela_atrasada=sem_atraso,
         detalhes=pontos,
+    )
+
+
+def _cumpriu_orcamento(transacoes: list[Transaction], budgets: list[Budget]) -> bool:
+    if not budgets:
+        return True
+    return all(s.status != "ESTOURO" for s in calcular_uso_orcamento(transacoes, budgets))
+
+
+def _sem_gasto_acima_media(
+    transacoes: list[Transaction],
+    transacoes_3_meses: list[Transaction] | None,
+) -> bool:
+    if not transacoes_3_meses:
+        return True
+    return len(detectar_alertas_padrao(transacoes, transacoes_3_meses)) == 0
+
+
+def _sem_parcela_atrasada(installments: list[Installment]) -> bool:
+    hoje = Date.today()
+    return not any(
+        inst.is_active and inst.next_due_date and inst.next_due_date < hoje
+        for inst in installments
     )
 
 
