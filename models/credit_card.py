@@ -51,3 +51,12 @@ class CreditCard(BaseModel):
 
     def fatura_atual(self, transactions: list["Transaction"]) -> float:
         return self.limit_used(transactions)
+
+    def fatura_por_vencimento(
+        self,
+        transactions: list["Transaction"],
+        year: int,
+        month: int,
+    ) -> float:
+        from core.credit_card_billing import invoice_by_due_month
+        return invoice_by_due_month(self, transactions, year, month).total
