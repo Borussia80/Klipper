@@ -23,6 +23,22 @@ class Category(str, Enum):
     OUTROS = "Outros"
 
 
+class PaymentMethod(str, Enum):
+    PIX = "PIX"
+    CARTAO_CREDITO = "CARTAO_CREDITO"
+    CARTAO_DEBITO = "CARTAO_DEBITO"
+    DINHEIRO = "DINHEIRO"
+    TED = "TED"
+    BOLETO = "BOLETO"
+    TRANSFERENCIA = "TRANSFERENCIA"
+
+
+class TransactionStatus(str, Enum):
+    PAGO = "PAGO"
+    PENDENTE = "PENDENTE"
+    AGENDADO = "AGENDADO"
+
+
 class Transaction(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     date: Date
@@ -30,6 +46,11 @@ class Transaction(BaseModel):
     type: TransactionType
     category: Category
     notes: str = ""
+    payment_method: PaymentMethod = PaymentMethod.PIX
+    account_id: str | None = None
+    card_id: str | None = None
+    installment_id: str | None = None
+    status: TransactionStatus = TransactionStatus.PAGO
 
     @field_validator("amount")
     @classmethod
@@ -37,10 +58,3 @@ class Transaction(BaseModel):
         if v <= 0:
             raise ValueError(f"Valor deve ser positivo, recebido: {v}")
         return round(v, 2)
-
-    @field_validator("date")
-    @classmethod
-    def date_not_in_future(cls, v: Date) -> Date:
-        if v > Date.today():
-            raise ValueError("Data não pode ser futura")
-        return v
