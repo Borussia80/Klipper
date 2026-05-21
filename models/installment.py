@@ -32,6 +32,13 @@ class Installment(BaseModel):
             raise ValueError("n_total deve ser ≥ 1")
         return v
 
+    @field_validator("n_paid")
+    @classmethod
+    def n_paid_non_negative(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("n_paid não pode ser negativo")
+        return v
+
     @field_validator("total_amount")
     @classmethod
     def amount_positive(cls, v: float) -> float:
@@ -41,9 +48,23 @@ class Installment(BaseModel):
 
     @model_validator(mode="after")
     def set_installment_amount(self) -> "Installment":
+        if self.n_paid > self.n_total:
+            raise ValueError("n_paid não pode ser maior que n_total")
         if self.installment_amount == 0.0 and self.n_total > 0:
-            self.installment_amount = round(self.total_amount / self.n_total, 2)
+            self.installment_amount = self.amount_for_installment(0)
         return self
+
+    def installment_amounts(self) -> list[float]:
+        """Return currency-safe installment amounts whose sum equals total_amount."""
+        total_cents = int(round(self.total_amount * 100))
+        base_cents = total_cents // self.n_total
+        remainder = total_cents - (base_cents * self.n_total)
+        amounts = [base_cents] * self.n_total
+        amounts[-1] += remainder
+        return [round(cents / 100, 2) for cents in amounts]
+
+    def amount_for_installment(self, index: int) -> float:
+        return self.installment_amounts()[index]
 
     @property
     def n_remaining(self) -> int:
@@ -51,7 +72,7 @@ class Installment(BaseModel):
 
     @property
     def total_remaining(self) -> float:
-        return round(self.n_remaining * self.installment_amount, 2)
+        return round(sum(self.installment_amounts()[self.n_paid:]), 2)
 
     @property
     def next_due_date(self) -> Date | None:
