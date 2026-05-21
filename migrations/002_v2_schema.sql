@@ -91,16 +91,21 @@ ALTER TABLE transactions
 -- ──────────────────────────────────────────────────────
 
 ALTER TABLE bank_accounts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_bank_accounts" ON bank_accounts;
 CREATE POLICY "allow_all_bank_accounts" ON bank_accounts FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE credit_cards ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_credit_cards" ON credit_cards;
 CREATE POLICY "allow_all_credit_cards" ON credit_cards FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE installments ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_installments" ON installments;
 CREATE POLICY "allow_all_installments" ON installments FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_budgets" ON budgets;
 CREATE POLICY "allow_all_budgets" ON budgets FOR ALL USING (true) WITH CHECK (true);
 
 ALTER TABLE financial_goals ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "allow_all_financial_goals" ON financial_goals;
 CREATE POLICY "allow_all_financial_goals" ON financial_goals FOR ALL USING (true) WITH CHECK (true);
