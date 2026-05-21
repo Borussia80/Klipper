@@ -1,7 +1,7 @@
 """Klipper — Wealth Operating System"""
 
 import streamlit as st
-from core.styles import inject_css, sidebar_brand, sidebar_engines, sidebar_user, BRAND_SVG, load_page_icon
+from core.styles import BRAND_SVG, inject_css, load_page_icon, sidebar_brand, sidebar_engines, sidebar_user
 
 st.set_page_config(
     page_title="Klipper",
