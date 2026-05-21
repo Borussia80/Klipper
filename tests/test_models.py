@@ -3,8 +3,12 @@ from __future__ import annotations
 import pytest
 from datetime import date, timedelta
 
-from models.transaction import Category, Transaction, TransactionType
+from models.transaction import Category, Transaction, TransactionType, PaymentMethod, TransactionStatus
 from models.investment import Investment, InvestmentType
+from models.bank_account import BankAccount, AccountType
+from models.credit_card import CreditCard
+from models.installment import Installment
+from models.budget import Budget
 
 
 class TestTransaction:
@@ -29,20 +33,43 @@ class TestTransaction:
                 date=date.today(), amount=-50, type=TransactionType.GASTO, category=Category.OUTROS
             )
 
-    def test_data_futura_invalida(self):
-        with pytest.raises(ValueError, match="futura"):
-            Transaction(
-                date=date.today() + timedelta(days=1),
-                amount=100,
-                type=TransactionType.GASTO,
-                category=Category.OUTROS,
-            )
+    def test_data_futura_permitida_status_pendente(self):
+        """Future dates are valid with status PENDENTE (installments need this)."""
+        tx = Transaction(
+            date=date.today() + timedelta(days=30),
+            amount=100,
+            type=TransactionType.GASTO,
+            category=Category.OUTROS,
+            status=TransactionStatus.PENDENTE,
+        )
+        assert tx.status == TransactionStatus.PENDENTE
 
     def test_arredondamento_automatico(self):
         tx = Transaction(
             date=date.today(), amount=100.999, type=TransactionType.GASTO, category=Category.OUTROS
         )
         assert tx.amount == 101.0
+
+    def test_payment_method_default_pix(self):
+        tx = Transaction(
+            date=date.today(), amount=50.0, type=TransactionType.GASTO, category=Category.LAZER
+        )
+        assert tx.payment_method == PaymentMethod.PIX
+
+    def test_status_default_pago(self):
+        tx = Transaction(
+            date=date.today(), amount=50.0, type=TransactionType.GASTO, category=Category.LAZER
+        )
+        assert tx.status == TransactionStatus.PAGO
+
+    def test_cartao_credito_aceita_card_id(self):
+        tx = Transaction(
+            date=date.today(), amount=200.0,
+            type=TransactionType.GASTO, category=Category.LAZER,
+            payment_method=PaymentMethod.CARTAO_CREDITO,
+            card_id="some-uuid",
+        )
+        assert tx.card_id == "some-uuid"
 
 
 class TestInvestment:
@@ -84,3 +111,103 @@ class TestInvestment:
     def test_gain_loss_pct(self):
         inv = self._make(quantity=100, avg_price=10.0, current_price=11.0)
         assert inv.gain_loss_pct == pytest.approx(10.0)
+
+
+class TestBankAccount:
+    def test_cria_conta_valida(self):
+        acc = BankAccount(name="Nubank", bank="Nu Pagamentos", type=AccountType.CORRENTE, balance=1000.0)
+        assert acc.name == "Nubank"
+        assert acc.balance == 1000.0
+
+    def test_nome_vazio_invalido(self):
+        with pytest.raises(ValueError, match="vazio"):
+            BankAccount(name="  ", bank="X")
+
+    def test_saldo_arredondado(self):
+        acc = BankAccount(name="Conta", balance=100.555)
+        assert acc.balance == 100.56
+
+    def test_tipo_default_corrente(self):
+        acc = BankAccount(name="Conta")
+        assert acc.type == AccountType.CORRENTE
+
+
+class TestCreditCard:
+    def test_cria_cartao_valido(self):
+        card = CreditCard(name="Nubank", bank="Nu", limit_total=5000.0, closing_day=15, due_day=22)
+        assert card.limit_total == 5000.0
+
+    def test_nome_vazio_invalido(self):
+        with pytest.raises(ValueError, match="vazio"):
+            CreditCard(name="")
+
+    def test_dia_fechamento_invalido(self):
+        with pytest.raises(ValueError):
+            CreditCard(name="X", closing_day=32)
+
+    def test_limite_negativo_invalido(self):
+        with pytest.raises(ValueError, match="negativo"):
+            CreditCard(name="X", limit_total=-100)
+
+    def test_limit_used_sem_transacoes(self):
+        card = CreditCard(name="X", limit_total=1000.0)
+        assert card.limit_used([]) == 0.0
+
+    def test_limit_available(self):
+        card = CreditCard(name="X", limit_total=1000.0)
+        assert card.limit_available([]) == 1000.0
+
+
+class TestInstallment:
+    def _make(self, **kwargs) -> Installment:
+        defaults = dict(
+            description="Notebook 12x",
+            total_amount=2400.0,
+            n_total=12,
+            start_date=date.today(),
+        )
+        defaults.update(kwargs)
+        return Installment(**defaults)
+
+    def test_cria_parcelamento_valido(self):
+        inst = self._make()
+        assert inst.n_total == 12
+        assert inst.installment_amount == pytest.approx(200.0)
+
+    def test_valor_negativo_invalido(self):
+        with pytest.raises(ValueError, match="positivo"):
+            self._make(total_amount=-100)
+
+    def test_n_total_zero_invalido(self):
+        with pytest.raises(ValueError):
+            self._make(n_total=0)
+
+    def test_descricao_vazia_invalida(self):
+        with pytest.raises(ValueError, match="vazia"):
+            self._make(description="   ")
+
+    def test_n_remaining(self):
+        inst = self._make(n_paid=3)
+        assert inst.n_remaining == 9
+
+    def test_total_remaining(self):
+        inst = self._make(total_amount=1200.0, n_total=12, n_paid=4)
+        assert inst.total_remaining == pytest.approx(800.0, abs=0.01)
+
+    def test_installment_amount_calculado(self):
+        inst = self._make(total_amount=1200.0, n_total=4)
+        assert inst.installment_amount == pytest.approx(300.0)
+
+
+class TestBudget:
+    def test_cria_budget_valido(self):
+        b = Budget(category="Alimentação", monthly_limit=1000.0, year=2026, month=5)
+        assert b.monthly_limit == 1000.0
+
+    def test_limite_negativo_invalido(self):
+        with pytest.raises(ValueError, match="positivo"):
+            Budget(category="X", monthly_limit=-100, year=2026, month=5)
+
+    def test_mes_invalido(self):
+        with pytest.raises(ValueError, match="Mês"):
+            Budget(category="X", monthly_limit=100, year=2026, month=13)
