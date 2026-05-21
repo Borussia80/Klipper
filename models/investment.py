@@ -24,6 +24,7 @@ class Investment(BaseModel):
     dy_12m: float = 0.0        # Dividend Yield 12 meses (%)
     pvp: float = 0.0           # Preço / Valor Patrimonial
     liquidity_daily: float = 0.0  # Liquidez média diária (R$)
+    liquidity_days: int = 0       # Prazo para virar caixa (D+0, D+1, D+30...)
     volatility: float = 0.0    # Volatilidade anualizada (%)
     spread_vs_cdi: float = 0.0 # Spread vs CDI (p.p.)
     sector: str = ""
@@ -48,6 +49,13 @@ class Investment(BaseModel):
         if not 0.0 <= v <= 1.0:
             raise ValueError(f"Fragility score deve estar entre 0 e 1, recebido: {v}")
         return round(v, 4)
+
+    @field_validator("liquidity_days")
+    @classmethod
+    def liquidity_days_non_negative(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError(f"Liquidez em dias não pode ser negativa, recebido: {v}")
+        return v
 
     @property
     def current_value(self) -> float:
