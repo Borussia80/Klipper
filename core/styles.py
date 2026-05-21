@@ -594,13 +594,41 @@ BRAND_SVG = """<svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns
 </svg>"""
 
 
+_BRAND_DIR = None
+
+
+def _brand_path(filename: str):
+    from pathlib import Path
+    return Path(__file__).parent.parent / "design_handoff_klipper" / "brand" / filename
+
+
+@__import__("functools").lru_cache(maxsize=None)
+def _brand_b64(filename: str) -> str:
+    """Base64 data-URI for a brand PNG, loaded once and cached for the process lifetime."""
+    import base64
+    try:
+        data = _brand_path(filename).read_bytes()
+        return "data:image/png;base64," + base64.b64encode(data).decode()
+    except Exception:
+        return ""
+
+
+def brand_icon_img(size: int = 28) -> str:
+    """<img> tag for klipper-icon-dark.png at the given pixel size. Falls back to BRAND_SVG."""
+    uri = _brand_b64("klipper-icon-dark.png")
+    if uri:
+        return (
+            f'<img src="{uri}" width="{size}" height="{size}" '
+            f'style="display:block;border-radius:{size // 5}px" alt="Klipper">'
+        )
+    return BRAND_SVG
+
+
 def load_page_icon():
     """Load klipper-icon-dark.png as PIL Image for st.set_page_config(page_icon=...)."""
-    from pathlib import Path
     try:
         from PIL import Image
-        path = Path(__file__).parent.parent / "design_handoff_klipper/brand/klipper-icon-dark.png"
-        return Image.open(path)
+        return Image.open(_brand_path("klipper-icon-dark.png"))
     except Exception:
         return "⚓"
 
@@ -747,11 +775,9 @@ def parcela_row(title: str, store: str, start: str, end_: str, tag: str,
 def sidebar_brand() -> str:
     return f"""<div style="padding:18px 16px 10px">
   <div style="display:flex;align-items:center;gap:10px">
-    <div style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;
-      background:var(--surface-2);border:1px solid var(--rule);border-radius:12px;
-      box-shadow:0 1px 0 rgba(255,255,255,0.04) inset,0 0 0 1px var(--rule-brass);
-      color:var(--ink);flex-shrink:0">
-      {BRAND_SVG}
+    <div style="width:38px;height:38px;flex-shrink:0;overflow:hidden;border-radius:10px;
+      box-shadow:0 0 0 1px var(--rule-brass)">
+      {brand_icon_img(38)}
     </div>
     <div>
       <div style="font-family:'General Sans','Inter',sans-serif;font-size:20px;font-weight:600;
