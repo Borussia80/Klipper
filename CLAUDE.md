@@ -59,11 +59,16 @@ MOONSHOT_API_KEY=
 - URL: https://obmudpulqzhwtcniyzcj.supabase.co
 - Executar `migrations/001_initial_schema.sql` no SQL Editor do Supabase
 
-## COMO EXECUTAR
+## PRODUÇÃO
+
+URL: https://klipper.streamlit.app/
+GitHub: https://github.com/Borussia80/Klipper
+
+## COMO EXECUTAR (local)
 
 ```bash
 cd /home/rmilet/Trabalho/Projetos/Klipper
-pip install -e ".[dev]"
+export PATH="$HOME/.local/bin:$PATH"
 streamlit run app.py
 ```
 
@@ -85,6 +90,7 @@ streamlit run app.py
 ## LOG DE SESSÕES
 
 ```
+2026-05-21 DEPLOY App em produção: https://klipper.streamlit.app/
 2026-05-21 INIT  Projeto criado. Fases 0-5 implementadas.
                  Stack: Streamlit + Supabase + LiteLLM.
                  Engines M1/M2/M3/Anti-BS/Fragility implementados.
