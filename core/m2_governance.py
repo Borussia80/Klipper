@@ -18,62 +18,67 @@ class GovernanceAlert:
     is_hard_fail: bool = False
 
 
+def _alerta_caixa(caixa_disponivel: float, total: float) -> GovernanceAlert | None:
+    caixa_pct = (caixa_disponivel / total) * 100
+    if caixa_pct < CAIXA_MIN_PCT:
+        return GovernanceAlert(
+            code="M2_CAIXA",
+            message=f"Caixa {caixa_pct:.1f}% < mínimo {CAIXA_MIN_PCT}%. Reforçar caixa antes de comprar.",
+            is_hard_fail=True,
+        )
+    return None
+
+
+def _alertas_concentracao_ativo(portfolio: list[Investment], total: float) -> list[GovernanceAlert]:
+    alertas = []
+    for inv in portfolio:
+        ativo_pct = (inv.current_value / total) * 100
+        if ativo_pct > MAX_ATIVO_PCT:
+            alertas.append(GovernanceAlert(
+                code="M2_CONCENTRACAO_ATIVO",
+                message=f"{inv.ticker}: {ativo_pct:.1f}% > máx {MAX_ATIVO_PCT}% por ativo.",
+                is_hard_fail=True,
+            ))
+    return alertas
+
+
+def _alertas_concentracao_tese(ativos: list[Investment], total: float) -> list[GovernanceAlert]:
+    por_setor: dict[str, float] = {}
+    for inv in ativos:
+        if inv.sector:
+            por_setor[inv.sector] = por_setor.get(inv.sector, 0) + inv.current_value
+    alertas = []
+    for setor, valor in por_setor.items():
+        setor_pct = (valor / total) * 100
+        if setor_pct > MAX_TESE_PCT:
+            alertas.append(GovernanceAlert(
+                code="M2_CONCENTRACAO_TESE",
+                message=f"Setor '{setor}': {setor_pct:.1f}% > máx {MAX_TESE_PCT}% por tese.",
+                is_hard_fail=True,
+            ))
+    return alertas
+
+
 def verificar_limites(
     portfolio: list[Investment],
     caixa_disponivel: float,
     novo_ativo: Investment | None = None,
 ) -> list[GovernanceAlert]:
     """Verifica limites M2. Retorna lista de alertas, incluindo hard fails."""
-    alertas: list[GovernanceAlert] = []
-
     ativos = list(portfolio)
     if novo_ativo:
         ativos.append(novo_ativo)
 
     total = sum(inv.current_value for inv in ativos) + caixa_disponivel
     if total == 0:
-        return alertas
+        return []
 
-    # Caixa mínimo
-    caixa_pct = (caixa_disponivel / total) * 100
-    if caixa_pct < CAIXA_MIN_PCT:
-        alertas.append(
-            GovernanceAlert(
-                code="M2_CAIXA",
-                message=f"Caixa {caixa_pct:.1f}% < mínimo {CAIXA_MIN_PCT}%. Reforçar caixa antes de comprar.",
-                is_hard_fail=True,
-            )
-        )
-
-    # Max por ativo
-    for inv in portfolio:
-        ativo_pct = (inv.current_value / total) * 100
-        if ativo_pct > MAX_ATIVO_PCT:
-            alertas.append(
-                GovernanceAlert(
-                    code="M2_CONCENTRACAO_ATIVO",
-                    message=f"{inv.ticker}: {ativo_pct:.1f}% > máx {MAX_ATIVO_PCT}% por ativo.",
-                    is_hard_fail=True,
-                )
-            )
-
-    # Max por setor/tese
-    por_setor: dict[str, float] = {}
-    for inv in ativos:
-        if inv.sector:
-            por_setor[inv.sector] = por_setor.get(inv.sector, 0) + inv.current_value
-
-    for setor, valor in por_setor.items():
-        setor_pct = (valor / total) * 100
-        if setor_pct > MAX_TESE_PCT:
-            alertas.append(
-                GovernanceAlert(
-                    code="M2_CONCENTRACAO_TESE",
-                    message=f"Setor '{setor}': {setor_pct:.1f}% > máx {MAX_TESE_PCT}% por tese.",
-                    is_hard_fail=True,
-                )
-            )
-
+    alertas: list[GovernanceAlert] = []
+    alerta_caixa = _alerta_caixa(caixa_disponivel, total)
+    if alerta_caixa:
+        alertas.append(alerta_caixa)
+    alertas.extend(_alertas_concentracao_ativo(portfolio, total))
+    alertas.extend(_alertas_concentracao_tese(ativos, total))
     return alertas
 
 
