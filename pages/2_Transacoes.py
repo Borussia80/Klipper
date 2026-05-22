@@ -5,6 +5,7 @@ from __future__ import annotations
 import calendar
 from collections import defaultdict
 from datetime import date
+from decimal import Decimal
 
 import html
 import pandas as pd
@@ -263,7 +264,7 @@ with content_col:
                         st.error(str(e))
 
         with col_right:
-            by_cat: dict[str, float] = defaultdict(float)
+            by_cat: dict[str, Decimal] = defaultdict(lambda: Decimal(0))
             for t in txs:
                 if t.type == TransactionType.GASTO:
                     by_cat[t.category.value] += t.amount
@@ -286,7 +287,7 @@ with content_col:
                     unsafe_allow_html=True,
                 )
 
-            by_pm: dict[str, float] = defaultdict(float)
+            by_pm: dict[str, Decimal] = defaultdict(lambda: Decimal(0))
             for t in txs:
                 by_pm[t.payment_method.value] += t.amount
 
