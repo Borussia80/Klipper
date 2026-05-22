@@ -12,6 +12,7 @@ from core.health_repository import (
     HealthSessionRepository,
     ReimbursementRequestRepository,
 )
+from core.auth import require_auth
 from core.styles import (
     chip, fmt_brl, inject_css, k_card_with_header, load_page_icon,
     section_header, sidebar_brand, sidebar_user, stat_card,
@@ -24,6 +25,7 @@ from models.health import (
 
 st.set_page_config(page_title="Saúde · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
+require_auth()
 
 prof_repo    = HealthProfessionalRepository()
 session_repo = HealthSessionRepository()
@@ -93,7 +95,7 @@ with st.sidebar:
                     except Exception as ex:
                         st.error(str(ex))
 
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 # ── Topbar ─────────────────────────────────────────────────────────────────────
 st.markdown("""

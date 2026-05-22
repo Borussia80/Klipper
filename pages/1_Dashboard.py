@@ -16,6 +16,7 @@ from core.repositories import (
     InvestmentRepository, TransactionRepository,
     InstallmentRepository, BudgetRepository,
 )
+from core.auth import require_auth
 from core.styles import (
     inject_css, fmt_brl, fmt_pct, kicker, k_card, k_card_with_header,
     stat_card, feed_row, mood_chip, chip, bar_track, section_header,
@@ -25,6 +26,7 @@ from models.transaction import TransactionType
 
 st.set_page_config(page_title="Home · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
+require_auth()
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 hoje = date.today()
@@ -92,7 +94,7 @@ with st.sidebar:
     </div>"""
     st.markdown(snap_html, unsafe_allow_html=True)
     st.markdown(sidebar_engines(violations=violations), unsafe_allow_html=True)
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 # ── Anti-BS narrative ──────────────────────────────────────────────────────────
 alertas_pad = detectar_alertas_padrao(transacoes, transacoes_3m) if transacoes_3m else []

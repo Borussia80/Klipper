@@ -574,6 +574,41 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 /* hide streamlit branding */
 #MainMenu, footer { visibility: hidden !important; }
 [data-testid="stToolbar"] { display: none !important; }
+
+/* ── Sidebar logo-above-nav ordering ────────────────────────────────────────── */
+/* Make the sidebar inner div a flex column so we can reorder brand above nav   */
+section[data-testid="stSidebar"] > div > div[data-testid] {
+  display: flex !important;
+  flex-direction: column !important;
+}
+/* Auto-generated nav links → pushed below our brand block */
+section[data-testid="stSidebar"] [data-testid="stSidebarNavItems"],
+section[data-testid="stSidebar"] [data-testid="stSidebarNav"] {
+  order: 2 !important;
+}
+/* Our manual sidebar content → stays at top */
+section[data-testid="stSidebar"] > div > div[data-testid] > div[data-testid="stVerticalBlock"] {
+  order: 1 !important;
+}
+
+/* ── Sidebar collapse/expand button ─────────────────────────────────────────── */
+button[data-testid="stSidebarCollapseButton"],
+button[kind="headerNoPadding"] {
+  color: var(--brass) !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: var(--radius-xs) !important;
+  opacity: 1 !important;
+}
+/* The expand button that appears when sidebar is collapsed */
+[data-testid="stSidebarCollapsedControl"] button {
+  color: var(--brass) !important;
+  background: var(--bg-2) !important;
+  border: 1px solid var(--rule-brass) !important;
+  border-radius: var(--radius-xs) !important;
+  box-shadow: var(--glow-brass) !important;
+  opacity: 1 !important;
+}
 </style>
 """
 
@@ -868,9 +903,11 @@ def payment_badge(method: str) -> str:
     return f'<span class="k-chip">{icons.get(method, "○")} {labels.get(method, method)}</span>'
 
 
-def sidebar_user(scenario: str = "realista") -> str:
-    return f"""<div style="padding:12px 16px;border-top:1px solid var(--rule);
-      background:var(--surface-1);margin-top:8px">
+def sidebar_user(scenario: str | None = None) -> None:
+    """Renders user card + Settings / Logout buttons in the sidebar."""
+    _scenario = scenario or st.session_state.get("klipper_scenario", "realista")
+    st.markdown(f"""<div style="padding:12px 16px 4px;border-top:1px solid var(--rule);
+      background:var(--surface-1);margin-top:8px;border-radius:0 0 var(--radius-sm) var(--radius-sm)">
   <div style="display:flex;align-items:center;gap:10px">
     <div style="width:30px;height:30px;border-radius:50%;
       background:linear-gradient(135deg,var(--brass),#8C6A35);
@@ -879,7 +916,62 @@ def sidebar_user(scenario: str = "realista") -> str:
       box-shadow:0 0 0 1px var(--rule-brass);flex-shrink:0">RM</div>
     <div style="min-width:0;flex:1">
       <div style="font-family:var(--font-sans);font-size:12.5px;color:var(--ink);font-weight:500">Roberto Milet</div>
-      <div style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink-4);letter-spacing:0.04em">cenário · {scenario}</div>
+      <div style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink-4);letter-spacing:0.04em">cenário · {_scenario}</div>
     </div>
   </div>
-</div>"""
+</div>""", unsafe_allow_html=True)
+
+    col_cfg, col_out = st.columns(2)
+    with col_cfg:
+        if st.button("⚙ Config", use_container_width=True, key="btn_settings"):
+            _open_settings_dialog()
+    with col_out:
+        if st.button("↩ Sair", use_container_width=True, key="btn_logout"):
+            try:
+                from core.auth import logout
+                logout()
+            except Exception:
+                pass
+            st.rerun()
+
+
+@st.dialog("Configurações · Klipper")
+def _open_settings_dialog() -> None:
+    """Modal de configurações do usuário."""
+    import html as _html
+
+    st.markdown("**Cenário financeiro**")
+    scenarios = ["realista", "otimista", "pessimista"]
+    current = st.session_state.get("klipper_scenario", "realista")
+    new_scenario = st.selectbox(
+        "Cenário", scenarios, index=scenarios.index(current), label_visibility="collapsed"
+    )
+    if new_scenario != current:
+        st.session_state["klipper_scenario"] = new_scenario
+
+    st.divider()
+    st.markdown("**Autenticação em dois fatores (TOTP)**")
+
+    try:
+        from core.auth import has_totp, start_totp_enrollment, unenroll_totp
+        totp_active = has_totp()
+    except Exception:
+        totp_active = False
+
+    if totp_active:
+        st.success("2FA ativo — Google Authenticator / Authy")
+        if st.button("Desativar 2FA", type="secondary"):
+            try:
+                unenroll_totp()
+                st.success("2FA removido.")
+                st.rerun()
+            except Exception as e:
+                st.error(str(e))
+    else:
+        st.info("2FA não cadastrado. Ative para maior segurança.")
+        if st.button("Ativar 2FA (TOTP)", type="primary"):
+            start_totp_enrollment()
+
+    st.divider()
+    if st.button("Salvar e fechar", use_container_width=True):
+        st.rerun()

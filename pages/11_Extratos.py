@@ -9,6 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from core.statement_reader import ParsedTransaction, StatementResult, read_statement
+from core.auth import require_auth
 from core.styles import (
     fmt_brl, inject_css, load_page_icon, section_header,
     sidebar_brand, sidebar_user, stat_card,
@@ -17,10 +18,11 @@ from models.transaction import Category, PaymentMethod, Transaction, Transaction
 
 st.set_page_config(page_title="Extratos · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
+require_auth()
 
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 # ── Topbar ─────────────────────────────────────────────────────────────────────
 st.markdown("""

@@ -13,6 +13,7 @@ load_dotenv()
 from core.anti_bs import PERGUNTA_OBRIGATORIA
 from core.m3_context import Confidence, MarketRegime
 from core.repositories import InvestmentRepository, DecisionRepository
+from core.auth import require_auth
 from core.styles import (
     inject_css, section_header, k_card_with_header,
     sidebar_brand, sidebar_engines, sidebar_user, chip, load_page_icon,
@@ -20,6 +21,7 @@ from core.styles import (
 
 st.set_page_config(page_title="Consilium · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
+require_auth()
 
 PROVIDERS = {
     "auto (Claude → Gemini → GPT-4o → Qwen)": "auto",
@@ -122,7 +124,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(section_header("Consilium · M4", "auditoria histórica · multi-provider"), unsafe_allow_html=True)
