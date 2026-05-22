@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 from time import perf_counter
 
 import pytest
@@ -53,12 +54,12 @@ def test_sinergia_parcelamento_cartao_orcamento_e_saldo_mensal():
     )
     uso_orcamento = calcular_uso_orcamento(maio, budgets)[0]
 
-    assert sum(p.amount for p in parcelas) == pytest.approx(inst.total_amount)
+    assert sum((p.amount for p in parcelas), Decimal(0)) == inst.total_amount
     assert all(p.payment_method == PaymentMethod.CARTAO_CREDITO for p in parcelas)
-    assert card.fatura_atual(maio) == pytest.approx(33.33)
-    assert uso_orcamento.gasto == pytest.approx(33.33)
-    assert saldo.total_gastos == pytest.approx(33.33)
-    assert saldo.saldo == pytest.approx(4966.67)
+    assert card.fatura_atual(maio) == Decimal("33.33")
+    assert uso_orcamento.gasto == Decimal("33.33")
+    assert saldo.total_gastos == Decimal("33.33")
+    assert saldo.saldo == Decimal("4966.67")
 
 
 def test_analytics_performance_com_volume_de_transacoes():

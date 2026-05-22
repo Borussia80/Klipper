@@ -1,6 +1,9 @@
 """core/styles.py — Klipper nautical theme for Streamlit."""
 
 from __future__ import annotations
+
+from dataclasses import dataclass
+
 import streamlit as st
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -90,36 +93,9 @@ html, body, [data-testid="stApp"] {
   border-bottom: none !important;
 }
 
-/* sidebar */
-section[data-testid="stSidebar"] {
-  background: linear-gradient(180deg, #0E202D 0%, #0C1E2B 100%) !important;
-  border-right: 1px solid var(--rule) !important;
-}
-section[data-testid="stSidebar"] > div {
-  background: transparent !important;
-  padding-top: 12px !important;
-}
+/* hide native sidebar entirely */
+section[data-testid="stSidebar"] { display: none !important; }
 [data-testid="stSidebarNavSeparator"] { display: none !important; }
-[data-testid="stSidebarNavItems"] { padding: 0 !important; }
-[data-testid="stSidebarNavLink"] {
-  color: var(--ink-2) !important;
-  font-family: var(--font-sans) !important;
-  font-size: 13px !important;
-  border-radius: var(--radius-xs) !important;
-  padding: 8px 12px !important;
-  margin: 1px 4px !important;
-  transition: background 160ms, color 160ms !important;
-}
-[data-testid="stSidebarNavLink"]:hover {
-  background: var(--surface-1) !important;
-  color: var(--ink) !important;
-}
-[data-testid="stSidebarNavLink"][aria-current="page"] {
-  background: var(--surface-2) !important;
-  color: var(--ink) !important;
-  border-left: 2px solid var(--brass) !important;
-}
-[data-testid="stSidebarNavLink"] span { font-family: var(--font-sans) !important; }
 
 /* main content area */
 [data-testid="stMainBlockContainer"] {
@@ -699,26 +675,28 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 #MainMenu, footer { visibility: hidden !important; }
 [data-testid="stToolbar"] { display: none !important; }
 
-/* ── Simplifi-style: sidebar page navigation ─────────────────────────────── */
+/* ── Inline page navigation (column-based) ───────────────────────────────── */
 [data-testid="stSidebarNavItems"] {
-  padding: 4px 0 0 !important;
+  display: none !important;
 }
-[data-testid="stSidebarNavLink"] {
+[data-testid="stPageLink-NavLink"] {
   padding: 9px 14px !important;
   border-radius: var(--radius-xs) !important;
   font-family: var(--font-sans) !important;
   font-size: 13px !important;
   color: var(--ink-3) !important;
-  margin: 2px 6px !important;
+  margin: 2px 0 !important;
   transition: background 150ms, color 150ms !important;
   letter-spacing: 0.01em !important;
   border-left: 2px solid transparent !important;
+  display: block !important;
+  width: 100% !important;
 }
-[data-testid="stSidebarNavLink"]:hover {
+[data-testid="stPageLink-NavLink"]:hover {
   background: var(--surface-2) !important;
   color: var(--ink) !important;
 }
-[data-testid="stSidebarNavLink"][aria-current="page"] {
+[data-testid="stPageLink-NavLink"][aria-current="page"] {
   background: var(--brass-soft) !important;
   color: var(--brass) !important;
   border-left: 2px solid var(--brass) !important;
@@ -726,8 +704,29 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 }
 .k-sidenav-section {
   font-family: var(--font-sans); font-size: 9.5px; letter-spacing: 0.18em;
-  text-transform: uppercase; color: var(--ink-4); padding: 8px 14px 4px;
+  text-transform: uppercase; color: var(--ink-4); padding: 8px 4px 4px;
   font-weight: 600;
+}
+
+/* ── Inline nav column container ─────────────────────────────────────────── */
+.k-nav-col {
+  background: linear-gradient(180deg, #0E202D 0%, #0C1E2B 100%);
+  border-right: 1px solid var(--rule);
+  min-height: 100vh;
+  padding: 12px 8px 24px;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+
+/* ── Auth login button — electric blue ───────────────────────────────────── */
+[data-testid="stForm"] .stButton > button[kind="primary"],
+.stButton > button[kind="primary"].k-auth-submit {
+  background: #6366F1 !important;
+  border-color: transparent !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 0 1px rgba(99,102,241,0.3), 0 0 24px rgba(99,102,241,0.18) !important;
 }
 
 /* ── Spending Plan hero ──────────────────────────────────────────────────── */
@@ -1012,6 +1011,28 @@ CAT_COLORS: dict[str, tuple[str, str]] = {
     "Outros":      ("#8F8770", "rgba(143,135,112,0.12)"),
 }
 
+
+@dataclass(frozen=True)
+class SidebarNavItem:
+    path: str
+    icon: str
+    label: str
+
+
+SIDEBAR_NAV_ITEMS: tuple[SidebarNavItem, ...] = (
+    SidebarNavItem("pages/1_Dashboard.py", "⌂", "Dashboard"),
+    SidebarNavItem("pages/2_Transacoes.py", "↕", "Movimento"),
+    SidebarNavItem("pages/6_Contas.py", "⊞", "Contas"),
+    SidebarNavItem("pages/7_Orcamento.py", "◎", "Orçamento"),
+    SidebarNavItem("pages/3_Investimentos.py", "▲", "Investimentos"),
+    SidebarNavItem("pages/8_Posicoes.py", "◐", "Posições"),
+    SidebarNavItem("pages/9_Teses.py", "⌗", "Teses"),
+    SidebarNavItem("pages/4_Journal.py", "◌", "Journal"),
+    SidebarNavItem("pages/5_AI_Consilium.py", "∞", "AI Consilium"),
+    SidebarNavItem("pages/10_Saude.py", "✚", "Saúde"),
+    SidebarNavItem("pages/11_Extratos.py", "⇣", "Extratos"),
+)
+
 BRAND_SVG = """<svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="klp-blade" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1068,25 +1089,25 @@ def inject_css() -> None:
     st.markdown(KLIPPER_CSS, unsafe_allow_html=True)
 
 
-def sidebar_nav() -> None:
-    """Simplifi-style icon+label navigation using Streamlit page links."""
+def render_navigation() -> None:
+    """Inline icon+label navigation using Streamlit page links (column-based layout)."""
+    st.markdown(sidebar_brand(), unsafe_allow_html=True)
     st.markdown(
         '<div class="k-sidenav-section">Navegação</div>',
         unsafe_allow_html=True,
     )
-    pages = [
-        ("pages/1_Dashboard.py",    "⌂",  "Dashboard"),
-        ("pages/2_Transacoes.py",   "↕",  "Movimento"),
-        ("pages/6_Contas.py",       "⊞",  "Contas"),
-        ("pages/7_Orcamento.py",    "◎",  "Orçamento"),
-        ("pages/3_Investimentos.py","▲",  "Investimentos"),
-        ("pages/5_AI_Consilium.py", "∞",  "AI Consilium"),
-    ]
-    for path, icon, label in pages:
-        try:
-            st.page_link(path, label=f"{icon}  {label}")
-        except Exception:
-            pass
+    for item in SIDEBAR_NAV_ITEMS:
+        st.page_link(item.path, label=f"{item.icon}  {item.label}")
+
+
+def sidebar_nav() -> None:
+    """Legacy alias kept for backward compatibility — delegates to render_navigation items."""
+    st.markdown(
+        '<div class="k-sidenav-section">Navegação</div>',
+        unsafe_allow_html=True,
+    )
+    for item in SIDEBAR_NAV_ITEMS:
+        st.page_link(item.path, label=f"{item.icon}  {item.label}")
 
 
 def tx_row_simplifi(

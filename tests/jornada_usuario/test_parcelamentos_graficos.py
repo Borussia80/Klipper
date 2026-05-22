@@ -4,6 +4,7 @@ Parcelamentos, Dados de Gráficos (Plotly-ready) e Invariantes dos Value Objects
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 import pytest
 
@@ -52,7 +53,7 @@ class TestParcelamentos:
         r = self._relatorio()
         nb = next(p for p in r.parcelas if "Notebook" in p.description)
         # 4200/12 = 350
-        assert nb.amount_monthly == pytest.approx(350.0, abs=0.02)
+        assert nb.amount_monthly == Decimal("350")
 
     def test_parcela_tem_total_restante(self):
         r = self._relatorio()
@@ -74,7 +75,7 @@ class TestParcelamentos:
         # In a month where both are active: 350 + 200 = 550
         june = r.comprometimento.get("2026-06")
         if june is not None:
-            assert june == pytest.approx(550.0, abs=0.10)
+            assert june == Decimal("550")
 
 
 class TestDadosGraficos:
@@ -154,15 +155,15 @@ class TestInvariantesEstruturais:
     """WeeklyReport e seus tipos auxiliares respeitam invariantes do sistema."""
 
     def test_monthly_trend_saldo_igual_ganhos_menos_gastos(self):
-        t = MonthlyTrend(ano=2026, mes=5, ganhos=10_000.0, gastos=7_000.0)
-        assert t.saldo == pytest.approx(3_000.0)
+        t = MonthlyTrend(ano=2026, mes=5, ganhos=Decimal("10000"), gastos=Decimal("7000"))
+        assert t.saldo == Decimal("3000")
 
     def test_monthly_trend_taxa_poupanca_correta(self):
-        t = MonthlyTrend(ano=2026, mes=5, ganhos=10_000.0, gastos=7_000.0)
+        t = MonthlyTrend(ano=2026, mes=5, ganhos=Decimal("10000"), gastos=Decimal("7000"))
         assert t.taxa_poupanca == pytest.approx(30.0)
 
     def test_monthly_trend_sem_ganhos_taxa_zero(self):
-        t = MonthlyTrend(ano=2026, mes=5, ganhos=0.0, gastos=0.0)
+        t = MonthlyTrend(ano=2026, mes=5, ganhos=Decimal("0"), gastos=Decimal("0"))
         assert t.taxa_poupanca == 0.0
 
     def test_installment_summary_n_remaining_consistente(self):
@@ -170,8 +171,8 @@ class TestInvariantesEstruturais:
             description="Teste",
             n_total=12,
             n_remaining=8,
-            amount_monthly=350.0,
-            total_remaining=2_800.0,
+            amount_monthly=Decimal("350"),
+            total_remaining=Decimal("2800"),
         )
         assert s.n_remaining <= s.n_total
         assert s.total_remaining > 0

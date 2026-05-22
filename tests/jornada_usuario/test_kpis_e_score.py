@@ -4,6 +4,7 @@ KPIs do Dashboard, Score Financeiro e Tendências Mensais.
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 import pytest
 
@@ -28,21 +29,21 @@ class TestKPIsDashboard:
 
     def test_saldo_ganhos_corretos(self):
         r = self._relatorio()
-        assert r.saldo_mes.total_ganhos == pytest.approx(12_000.0)
+        assert r.saldo_mes.total_ganhos == Decimal("12000")
 
     def test_saldo_gastos_corretos(self):
         r = self._relatorio()
         # 2000+850+200+400+350+150+600+500+180+250+2000 = 7480
-        assert r.saldo_mes.total_gastos == pytest.approx(7_480.0)
+        assert r.saldo_mes.total_gastos == Decimal("7480")
 
     def test_saldo_liquido_correto(self):
         r = self._relatorio()
-        assert r.saldo_mes.saldo == pytest.approx(4_520.0)
+        assert r.saldo_mes.saldo == Decimal("4520")
 
     def test_taxa_poupanca_calculada(self):
         r = self._relatorio()
         # 4520 / 12000 ≈ 37.67%
-        assert r.saldo_mes.taxa_poupanca == pytest.approx(37.7, abs=0.5)
+        assert r.saldo_mes.taxa_poupanca == pytest.approx(37.7)
 
     def test_relatorio_identifica_mes_e_ano(self):
         r = self._relatorio()
@@ -115,9 +116,9 @@ class TestTendenciasMensais:
     def test_tendencias_tem_ganhos_gastos_saldo(self):
         r = self._relatorio()
         maio = next(t for t in r.tendencias if t.mes == 5)
-        assert maio.ganhos == pytest.approx(12_000.0)
-        assert maio.gastos == pytest.approx(7_480.0)
-        assert maio.saldo  == pytest.approx(4_520.0)
+        assert maio.ganhos == Decimal("12000")
+        assert maio.gastos == Decimal("7480")
+        assert maio.saldo  == Decimal("4520")
 
     def test_tendencias_tem_taxa_poupanca(self):
         r = self._relatorio()

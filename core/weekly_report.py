@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from decimal import Decimal
 
 from models.transaction import Transaction, TransactionType
 from models.budget import Budget
@@ -34,18 +35,24 @@ from core.installment_engine import gerar_parcelas, calcular_comprometimento_men
 class MonthlyTrend:
     ano: int
     mes: int
-    ganhos: float
-    gastos: float
+    ganhos: Decimal
+    gastos: Decimal
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.ganhos, Decimal):
+            self.ganhos = Decimal(str(self.ganhos))
+        if not isinstance(self.gastos, Decimal):
+            self.gastos = Decimal(str(self.gastos))
 
     @property
-    def saldo(self) -> float:
-        return round(self.ganhos - self.gastos, 2)
+    def saldo(self) -> Decimal:
+        return self.ganhos - self.gastos
 
     @property
     def taxa_poupanca(self) -> float:
         if self.ganhos == 0:
             return 0.0
-        return round(self.saldo / self.ganhos * 100, 1)
+        return float(round(self.saldo / self.ganhos * 100, 1))
 
 
 @dataclass
@@ -53,8 +60,8 @@ class InstallmentSummary:
     description: str
     n_total: int
     n_remaining: int
-    amount_monthly: float
-    total_remaining: float
+    amount_monthly: Decimal
+    total_remaining: Decimal
 
 
 @dataclass
@@ -85,7 +92,7 @@ class WeeklyReport:
     orcamentos: list[OrcamentoStatus]
     alertas: list[BehavioralAlert]
     parcelas: list[InstallmentSummary]
-    comprometimento: dict[str, float]
+    comprometimento: dict[str, Decimal]
     gerado_em: datetime = field(default_factory=datetime.now)
 
 
@@ -170,9 +177,9 @@ def _calcular_tendencias(
     tendencias: list[MonthlyTrend] = []
     for a, m in sorted(meses_unicos):
         txs_m = [t for t in transacoes if t.date.year == a and t.date.month == m]
-        ganhos = sum(t.amount for t in txs_m if t.type == TransactionType.GANHO)
-        gastos = sum(t.amount for t in txs_m if t.type == TransactionType.GASTO)
-        tendencias.append(MonthlyTrend(ano=a, mes=m, ganhos=round(ganhos, 2), gastos=round(gastos, 2)))
+        ganhos = sum((t.amount for t in txs_m if t.type == TransactionType.GANHO), Decimal(0))
+        gastos = sum((t.amount for t in txs_m if t.type == TransactionType.GASTO), Decimal(0))
+        tendencias.append(MonthlyTrend(ano=a, mes=m, ganhos=ganhos, gastos=gastos))
     return tendencias
 
 
@@ -187,8 +194,8 @@ def _resumir_parcelas(installments: list[Installment]) -> list[InstallmentSummar
         pagas = sum(1 for tx in txs if tx.date <= hoje)
         n_paid = max(inst.n_paid, pagas)
         n_remaining = max(0, inst.n_total - n_paid)
-        total_remaining = round(
-            sum(inst.amount_for_installment(i) for i in range(n_paid, inst.n_total)), 2
+        total_remaining = sum(
+            (inst.amount_for_installment(i) for i in range(n_paid, inst.n_total)), Decimal(0)
         )
         summaries.append(InstallmentSummary(
             description=inst.description,

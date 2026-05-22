@@ -32,7 +32,7 @@ def _alerta_caixa(caixa_disponivel: float, total: float) -> GovernanceAlert | No
 def _alertas_concentracao_ativo(portfolio: list[Investment], total: float) -> list[GovernanceAlert]:
     alertas = []
     for inv in portfolio:
-        ativo_pct = (inv.current_value / total) * 100
+        ativo_pct = (float(inv.current_value) / total) * 100
         if ativo_pct > MAX_ATIVO_PCT:
             alertas.append(GovernanceAlert(
                 code="M2_CONCENTRACAO_ATIVO",
@@ -46,7 +46,7 @@ def _alertas_concentracao_tese(ativos: list[Investment], total: float) -> list[G
     por_setor: dict[str, float] = {}
     for inv in ativos:
         if inv.sector:
-            por_setor[inv.sector] = por_setor.get(inv.sector, 0) + inv.current_value
+            por_setor[inv.sector] = por_setor.get(inv.sector, 0.0) + float(inv.current_value)
     alertas = []
     for setor, valor in por_setor.items():
         setor_pct = (valor / total) * 100
@@ -69,7 +69,7 @@ def verificar_limites(
     if novo_ativo:
         ativos.append(novo_ativo)
 
-    total = sum(inv.current_value for inv in ativos) + caixa_disponivel
+    total = sum(float(inv.current_value) for inv in ativos) + caixa_disponivel
     if total == 0:
         return []
 

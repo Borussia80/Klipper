@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date as Date
+from decimal import Decimal
 from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
@@ -44,7 +45,7 @@ class TransactionStatus(str, Enum):
 class Transaction(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     date: Date
-    amount: float
+    amount: Decimal
     type: TransactionType
     category: Category
     notes: str = ""
@@ -56,7 +57,7 @@ class Transaction(BaseModel):
 
     @field_validator("amount")
     @classmethod
-    def amount_must_be_positive(cls, v: float) -> float:
+    def amount_must_be_positive(cls, v: Decimal) -> Decimal:
         if v <= 0:
             raise ValueError(f"Valor deve ser positivo, recebido: {v}")
         return round(v, 2)

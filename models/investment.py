@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
@@ -18,12 +19,12 @@ class Investment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     ticker: str
     type: InvestmentType
-    quantity: float
-    avg_price: float
-    current_price: float
+    quantity: Decimal
+    avg_price: Decimal
+    current_price: Decimal
     dy_12m: float = 0.0        # Dividend Yield 12 meses (%)
     pvp: float = 0.0           # Preço / Valor Patrimonial
-    liquidity_daily: float = 0.0  # Liquidez média diária (R$)
+    liquidity_daily: Decimal = Decimal("0")  # Liquidez média diária (R$)
     liquidity_days: int = 0       # Prazo para virar caixa (D+0, D+1, D+30...)
     volatility: float = 0.0    # Volatilidade anualizada (%)
     spread_vs_cdi: float = 0.0 # Spread vs CDI (p.p.)
@@ -38,7 +39,7 @@ class Investment(BaseModel):
 
     @field_validator("quantity", "avg_price", "current_price")
     @classmethod
-    def must_be_positive(cls, v: float) -> float:
+    def must_be_positive(cls, v: Decimal) -> Decimal:
         if v <= 0:
             raise ValueError(f"Valor deve ser positivo, recebido: {v}")
         return v
@@ -58,15 +59,15 @@ class Investment(BaseModel):
         return v
 
     @property
-    def current_value(self) -> float:
+    def current_value(self) -> Decimal:
         return round(self.quantity * self.current_price, 2)
 
     @property
-    def gain_loss(self) -> float:
+    def gain_loss(self) -> Decimal:
         return round((self.current_price - self.avg_price) * self.quantity, 2)
 
     @property
     def gain_loss_pct(self) -> float:
         if self.avg_price == 0:
             return 0.0
-        return round((self.current_price / self.avg_price - 1) * 100, 2)
+        return round(float(self.current_price / self.avg_price - 1) * 100, 2)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
+from decimal import Decimal
 from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
@@ -62,14 +63,14 @@ class HealthSession(BaseModel):
     id:                        str       = Field(default_factory=lambda: str(uuid.uuid4()))
     professional_id:           str
     session_date:              date
-    amount_paid:               float
+    amount_paid:               Decimal
     nf_number:                 str | None = None
     notes:                     str | None = None
     reimbursement_request_id:  str | None = None
 
     @field_validator("amount_paid")
     @classmethod
-    def amount_positive(cls, v: float) -> float:
+    def amount_positive(cls, v: Decimal) -> Decimal:
         if v <= 0:
             raise ValueError("amount_paid deve ser positivo")
         return v
@@ -85,23 +86,23 @@ class ReimbursementRequest(BaseModel):
     professional_id:  str
     request_date:     date
     protocol_number:  str | None = None
-    amount_requested: float
-    amount_received:  float | None = None
+    amount_requested: Decimal
+    amount_received:  Decimal | None = None
     status:           ReimbursementStatus = ReimbursementStatus.PENDENTE
     notes:            str | None = None
 
     @field_validator("amount_requested")
     @classmethod
-    def requested_positive(cls, v: float) -> float:
+    def requested_positive(cls, v: Decimal) -> Decimal:
         if v <= 0:
             raise ValueError("amount_requested deve ser positivo")
         return v
 
     @property
-    def gap(self) -> float:
+    def gap(self) -> Decimal:
         """Valor ainda não recebido: requested - received (0 se totalmente reembolsado)."""
         if self.status == ReimbursementStatus.REEMBOLSADO:
-            return 0.0
+            return Decimal("0")
         if self.amount_received is None:
-            return round(self.amount_requested, 2)
-        return round(self.amount_requested - self.amount_received, 2)
+            return self.amount_requested
+        return self.amount_requested - self.amount_received

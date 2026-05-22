@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date as Date
+from decimal import Decimal
 
 from models.transaction import Transaction, TransactionType
 from models.budget import Budget
@@ -11,12 +12,12 @@ from models.installment import Installment
 @dataclass
 class OrcamentoStatus:
     category: str
-    limite: float
-    gasto: float
+    limite: Decimal
+    gasto: Decimal
 
     @property
     def pct(self) -> float:
-        return round((self.gasto / self.limite * 100), 1) if self.limite > 0 else 0.0
+        return float(round(self.gasto / self.limite * 100, 1)) if self.limite > 0 else 0.0
 
     @property
     def status(self) -> str:
@@ -31,8 +32,8 @@ class OrcamentoStatus:
 class BehavioralAlert:
     code: str
     category: str
-    gasto_atual: float
-    media_3m: float
+    gasto_atual: Decimal
+    media_3m: Decimal
     ratio: float
 
 
@@ -122,15 +123,17 @@ def detectar_alertas_padrao(
 
     alertas: list[BehavioralAlert] = []
     for cat, gasto in gastos_atual.items():
-        media = gastos_3m.get(cat, 0.0) / 3.0
-        if media > 0 and gasto > media * threshold:
-            alertas.append(BehavioralAlert(
-                code="GASTO_ACIMA_MEDIA",
-                category=cat,
-                gasto_atual=round(gasto, 2),
-                media_3m=round(media, 2),
-                ratio=round(gasto / media, 2),
-            ))
+        media = gastos_3m.get(cat, Decimal(0)) / 3
+        if media > 0:
+            ratio = float(gasto / media)
+            if ratio > threshold:
+                alertas.append(BehavioralAlert(
+                    code="GASTO_ACIMA_MEDIA",
+                    category=cat,
+                    gasto_atual=round(gasto, 2),
+                    media_3m=round(media, 2),
+                    ratio=round(ratio, 2),
+                ))
     return alertas
 
 
@@ -142,19 +145,19 @@ def calcular_uso_orcamento(
     gastos = _gastos_por_categoria(transacoes)
     result: list[OrcamentoStatus] = []
     for b in budgets:
-        gasto = gastos.get(b.category, 0.0)
+        gasto = gastos.get(b.category, Decimal(0))
         result.append(OrcamentoStatus(
             category=b.category,
             limite=b.monthly_limit,
-            gasto=round(gasto, 2),
+            gasto=gasto,
         ))
     return result
 
 
-def _gastos_por_categoria(transacoes: list[Transaction]) -> dict[str, float]:
-    totais: dict[str, float] = {}
+def _gastos_por_categoria(transacoes: list[Transaction]) -> dict[str, Decimal]:
+    totais: dict[str, Decimal] = {}
     for t in transacoes:
         if t.type == TransactionType.GASTO:
             cat = t.category.value
-            totais[cat] = totais.get(cat, 0.0) + t.amount
+            totais[cat] = totais.get(cat, Decimal(0)) + t.amount
     return totais

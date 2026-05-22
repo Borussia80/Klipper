@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import calendar
+from collections import defaultdict
 from datetime import date
 
 import plotly.express as px
@@ -24,7 +25,7 @@ from core.auth import require_auth
 from core.styles import (
     inject_css, fmt_brl, fmt_pct, kicker, k_card, k_card_with_header,
     stat_card, feed_row, mood_chip, chip, bar_track, section_header,
-    sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav,
+    render_navigation, sidebar_engines, sidebar_user,
     tx_row_simplifi, CAT_COLORS, load_page_icon, sidebar_ai_qa,
 )
 from models.transaction import TransactionType
@@ -33,7 +34,6 @@ st.set_page_config(page_title="Home · Klipper", page_icon=load_page_icon(), lay
 inject_css()
 require_auth()
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
 hoje = date.today()
 ano = hoje.year
 mes = hoje.month
@@ -77,7 +77,6 @@ total_ativos    = saldo.total_ganhos + total_portfolio
 caixa_pct       = (saldo.saldo / total_ativos * 100) if total_ativos > 0 else 0.0
 comp_mes        = calcular_comprometimento_mensal(installments).get(hoje.strftime("%Y-%m"), 0.0)
 
-# M2 violations count
 alertas_m2 = verificar_limites(portfolio, caixa_disponivel=saldo.saldo)
 violations  = sum(1 for a in alertas_m2 if a.is_hard_fail)
 
@@ -89,7 +88,6 @@ score = calcular_score_financeiro(
 
 alertas_pad = detectar_alertas_padrao(transacoes, transacoes_3m) if transacoes_3m else []
 
-# ── AI context — built once, shared across sidebar + rail ─────────────────
 from core.financial_ai import build_financial_context
 _ai_ctx = build_financial_context(
     ano, mes,
@@ -101,23 +99,38 @@ _ai_ctx = build_financial_context(
     parcelas_ativas=[i for i in installments if i.is_active],
 )
 
-# Sidebar content
-with st.sidebar:
-    st.markdown(sidebar_brand(), unsafe_allow_html=True)
-    sidebar_nav()
+# ── Layout ────────────────────────────────────────────────────────────────────
+nav_col, content_col = st.columns([1, 4])
+
+with nav_col:
+    st.markdown("""
+<style>
+section[data-testid="column"]:first-child {
+    padding: 0.5rem 0.25rem !important;
+    min-width: 80px;
+}
+section[data-testid="column"]:first-child button,
+section[data-testid="column"]:first-child a {
+    width: 100%;
+    text-align: left;
+    padding: 0.4rem 0.5rem;
+    margin-bottom: 0.15rem;
+    font-size: 0.82rem;
+}
+</style>
+""", unsafe_allow_html=True)
+    render_navigation()
     total_inv = total_portfolio + saldo.saldo
-    snap_html = f"""<div style="margin:4px 12px 6px;padding:12px 14px;
+    snap_html = f"""<div style="margin:4px 4px 6px;padding:10px 12px;
       background:var(--surface-2);border:1px solid var(--rule);
-      border-radius:var(--radius-sm);position:relative;overflow:hidden;cursor:pointer">
+      border-radius:var(--radius-sm);position:relative;overflow:hidden">
       <div style="position:absolute;inset:-1px;
         background:radial-gradient(circle at top left,var(--brass-soft),transparent 70%);pointer-events:none"></div>
-      <div style="font-size:9.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink-3)">Patrimônio</div>
-      <div class="mono" style="font-size:19px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:4px">{fmt_brl(total_inv, compact=True)}</div>
-      <div style="display:flex;gap:8px;margin-top:4px;font-size:10px;color:var(--ink-3);font-family:var(--font-sans)">
-        <span style="width:4px;height:4px;border-radius:50%;background:var(--moss);display:inline-block;align-self:center"></span>
-        caixa <span class="mono">{caixa_pct:.0f}%</span>
-        <span style="width:4px;height:4px;border-radius:50%;background:var(--brass);display:inline-block;align-self:center;margin-left:6px"></span>
-        <span>{len(portfolio)} posições</span>
+      <div style="font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink-3)">Patrimônio</div>
+      <div class="mono" style="font-size:16px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:4px">{fmt_brl(total_inv, compact=True)}</div>
+      <div style="display:flex;gap:6px;margin-top:4px;font-size:10px;color:var(--ink-3);font-family:var(--font-sans);flex-wrap:wrap">
+        <span>caixa <span class="mono">{caixa_pct:.0f}%</span></span>
+        <span>{len(portfolio)} pos.</span>
       </div>
     </div>"""
     st.markdown(snap_html, unsafe_allow_html=True)
@@ -125,40 +138,56 @@ with st.sidebar:
     sidebar_user()
     sidebar_ai_qa(ctx=_ai_ctx)
 
-# ── Anti-BS narrative ──────────────────────────────────────────────────────────
-impulsos = alertas_pad[:]
+with content_col:
+    # ── Faixa operacional ─────────────────────────────────────────────────────────
+    _patrimonio_total = total_portfolio + saldo.saldo
+    _kpi1, _kpi2, _kpi3, _kpi4, _kpi5 = st.columns(5)
+    with _kpi1:
+        st.metric("Patrimônio", st.session_state.get("patrimonio", fmt_brl(_patrimonio_total, compact=True)))
+    with _kpi2:
+        st.metric("Liquidez", st.session_state.get("liquidez", f"{caixa_pct:.0f}%"))
+    with _kpi3:
+        st.metric("Fragility", st.session_state.get("fragility", "—"))
+    with _kpi4:
+        st.metric("Comprometimento", st.session_state.get("comprometimento", fmt_brl(comp_mes, compact=True)))
+    with _kpi5:
+        _risco = "alto" if violations > 0 else "baixo"
+        st.metric("Risco M2", st.session_state.get("risco", _risco))
 
-antiBs_text = ""
-if impulsos:
-    cats = ", ".join(a.category for a in impulsos[:2])
-    antiBs_text = f"Gastos acima da média em {cats}. Orçamento sob tensão — revise antes do próximo aporte."
-elif saldo.taxa_poupanca >= 20:
-    antiBs_text = "Fluxo equilibrado. Taxa de poupança dentro da meta. Aporte pode ser mantido."
-else:
-    antiBs_text = "Taxa de poupança abaixo de 20%. Reforce caixa antes de novos aportes."
+    # ── Anti-BS narrative ──────────────────────────────────────────────────────────
+    impulsos = alertas_pad[:]
 
-# ── Operating cockpit header ───────────────────────────────────────────────────
-mes_nome = calendar.month_name[mes].capitalize()
-dia_semana = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"][hoje.weekday()]
-_posture = (
-    "estável" if score.total >= 80 else
-    "controlada" if score.total >= 60 else
-    "em atenção" if score.total >= 40 else "sob tensão"
-)
-_posture_tone = "pos" if score.total >= 80 else "brass-c" if score.total >= 60 else "warn" if score.total >= 40 else "neg"
-_brief_main = antiBs_text
-_brief_budget = (
-    f"{alertas_pad[0].category} está {alertas_pad[0].ratio:.1f}x acima da média recente."
-    if alertas_pad else
-    "Sem desvio comportamental relevante nos últimos ciclos."
-)
-_brief_commitment = (
-    f"Compromissos futuros somam {fmt_brl(comp_mes, compact=True)} neste mês."
-    if comp_mes > 0 else
-    "Sem pressão relevante de parcelamentos neste mês."
-)
+    antiBs_text = ""
+    if impulsos:
+        cats = ", ".join(a.category for a in impulsos[:2])
+        antiBs_text = f"Gastos acima da média em {cats}. Orçamento sob tensão — revise antes do próximo aporte."
+    elif saldo.taxa_poupanca >= 20:
+        antiBs_text = "Fluxo equilibrado. Taxa de poupança dentro da meta. Aporte pode ser mantido."
+    else:
+        antiBs_text = "Taxa de poupança abaixo de 20%. Reforce caixa antes de novos aportes."
 
-st.markdown(f"""<div class="k-operating-hero">
+    # ── Operating cockpit header ───────────────────────────────────────────────────
+    mes_nome = calendar.month_name[mes].capitalize()
+    dia_semana = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"][hoje.weekday()]
+    _posture = (
+        "estável" if score.total >= 80 else
+        "controlada" if score.total >= 60 else
+        "em atenção" if score.total >= 40 else "sob tensão"
+    )
+    _posture_tone = "pos" if score.total >= 80 else "brass-c" if score.total >= 60 else "warn" if score.total >= 40 else "neg"
+    _brief_main = antiBs_text
+    _brief_budget = (
+        f"{alertas_pad[0].category} está {alertas_pad[0].ratio:.1f}x acima da média recente."
+        if alertas_pad else
+        "Sem desvio comportamental relevante nos últimos ciclos."
+    )
+    _brief_commitment = (
+        f"Compromissos futuros somam {fmt_brl(comp_mes, compact=True)} neste mês."
+        if comp_mes > 0 else
+        "Sem pressão relevante de parcelamentos neste mês."
+    )
+
+    st.markdown(f"""<div class="k-operating-hero" style="margin:4px 0 16px">
   <div class="k-operating-grid">
     <div>
       <div class="k-auth-kicker">Operating position · {dia_semana}, {hoje.day} {mes_nome[:3].lower()}</div>
@@ -184,23 +213,23 @@ st.markdown(f"""<div class="k-operating-hero">
   </div>
 </div>""", unsafe_allow_html=True)
 
-# ── Spending Plan hero (Simplifi-style) ───────────────────────────────────────
-_dias_no_mes  = calendar.monthrange(ano, mes)[1]
-_dias_restantes = max(_dias_no_mes - hoje.day + 1, 1)
-_disponivel   = max(saldo.total_ganhos - saldo.total_gastos, 0)
-_por_dia      = _disponivel / _dias_restantes
-_pct_mes      = min(hoje.day / _dias_no_mes * 100, 100)
-_pct_gasto    = min(saldo.total_gastos / saldo.total_ganhos * 100, 100) if saldo.total_ganhos > 0 else 0
-_n_bud_ok     = sum(1 for b in budgets if saldo.total_gastos <= b.monthly_limit)
-_disp_color   = "var(--moss)" if _disponivel > 0 else "var(--rust)"
-_fill_color   = "var(--moss)" if _pct_gasto <= _pct_mes + 5 else "var(--rust)"
+    # ── Spending Plan hero (Simplifi-style) ───────────────────────────────────────
+    _dias_no_mes    = calendar.monthrange(ano, mes)[1]
+    _dias_restantes = max(_dias_no_mes - hoje.day + 1, 1)
+    _disponivel     = max(saldo.total_ganhos - saldo.total_gastos, 0)
+    _por_dia        = _disponivel / _dias_restantes
+    _pct_mes        = min(hoje.day / _dias_no_mes * 100, 100)
+    _pct_gasto      = min(saldo.total_gastos / saldo.total_ganhos * 100, 100) if saldo.total_ganhos > 0 else 0
+    _n_bud_ok       = sum(1 for b in budgets if saldo.total_gastos <= b.monthly_limit)
+    _disp_color     = "var(--moss)" if _disponivel > 0 else "var(--rust)"
+    _fill_color     = "var(--moss)" if _pct_gasto <= _pct_mes + 5 else "var(--rust)"
 
-_bud_note = (
-    f'<div style="margin-top:8px;font-size:11px;color:var(--ink-3);font-family:var(--font-sans)">'
-    f'{_n_bud_ok}/{len(budgets)} categorias dentro do orçamento</div>'
-) if budgets else ""
+    _bud_note = (
+        f'<div style="margin-top:8px;font-size:11px;color:var(--ink-3);font-family:var(--font-sans)">'
+        f'{_n_bud_ok}/{len(budgets)} categorias dentro do orçamento</div>'
+    ) if budgets else ""
 
-st.markdown(f"""<div class="k-spending-hero">
+    st.markdown(f"""<div class="k-spending-hero" style="margin-bottom:16px">
   <div style="display:grid;grid-template-columns:1fr auto;gap:24px;align-items:flex-start">
     <div>
       <div style="font-family:var(--font-sans);font-size:10px;letter-spacing:0.18em;
@@ -232,12 +261,12 @@ st.markdown(f"""<div class="k-spending-hero">
   {_bud_note}
 </div>""", unsafe_allow_html=True)
 
-# ── Hero strip ─────────────────────────────────────────────────────────────────
-gastos_hoje  = sum(t.amount for t in transacoes if t.type == TransactionType.GASTO and t.date == hoje)
-ganhos_hoje  = sum(t.amount for t in transacoes if t.type == TransactionType.GANHO and t.date == hoje)
-liquido_hoje = ganhos_hoje - gastos_hoje
+    # ── Hero strip ─────────────────────────────────────────────────────────────────
+    gastos_hoje  = sum(t.amount for t in transacoes if t.type == TransactionType.GASTO and t.date == hoje)
+    ganhos_hoje  = sum(t.amount for t in transacoes if t.type == TransactionType.GANHO and t.date == hoje)
+    liquido_hoje = ganhos_hoje - gastos_hoje
 
-hero_left = f"""
+    hero_left = f"""
 {kicker(f"O dia em dinheiro · {dia_semana}, {hoje.day} {mes_nome[:3].lower()}")}
 <div style="display:flex;align-items:baseline;gap:14px;margin-top:8px">
   <span class="mono" style="font-size:36px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums"
@@ -281,7 +310,7 @@ hero_left = f"""
 </div>
 """
 
-hero_mid = f"""
+    hero_mid = f"""
 {kicker(f"{mes_nome[:3]} · até hoje")}
 <div class="k-grid k-cols-2" style="margin-top:8px;gap:14px">
   <div class="k-metric">
@@ -307,10 +336,9 @@ hero_mid = f"""
 </div>
 """
 
-score_color = "#10B981" if score.total >= 80 else "#F59E0B" if score.total >= 60 else "#D87C6A"
-streak_days = score.total // 10
+    score_color = "#10B981" if score.total >= 80 else "#F59E0B" if score.total >= 60 else "#D87C6A"
 
-hero_right = f"""
+    hero_right = f"""
 {kicker("Comportamento · score")}
 <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
   <div style="position:relative;width:56px;height:56px;flex-shrink:0">
@@ -345,86 +373,83 @@ hero_right = f"""
 </div>
 """
 
-col1, col2, col3 = st.columns([1.4, 1, 1])
-with col1:
-    st.markdown(f'<div class="k-card gilt"><div class="k-card-b">{hero_left}</div></div>',
-                unsafe_allow_html=True)
-with col2:
-    st.markdown(f'<div class="k-card"><div class="k-card-b">{hero_mid}</div></div>',
-                unsafe_allow_html=True)
-with col3:
-    st.markdown(f'<div class="k-card"><div class="k-card-b">{hero_right}</div></div>',
-                unsafe_allow_html=True)
-
-# ── Main grid — feed + rail ────────────────────────────────────────────────────
-st.markdown(section_header("Feed financeiro", "ao vivo · todos os fluxos"), unsafe_allow_html=True)
-
-col_feed, col_rail = st.columns([1.7, 1])
-
-with col_feed:
-    if not transacoes:
-        st.markdown('<div class="k-card"><div class="k-card-b"><span class="muted">Nenhuma transação no período.</span></div></div>',
+    col1, col2, col3 = st.columns([1.4, 1, 1])
+    with col1:
+        st.markdown(f'<div class="k-card gilt"><div class="k-card-b">{hero_left}</div></div>',
                     unsafe_allow_html=True)
-    else:
-        # Group by date
-        from collections import defaultdict
-        by_date: dict = defaultdict(list)
-        for t in transacoes[:40]:
-            by_date[t.date].append(t)
+    with col2:
+        st.markdown(f'<div class="k-card"><div class="k-card-b">{hero_mid}</div></div>',
+                    unsafe_allow_html=True)
+    with col3:
+        st.markdown(f'<div class="k-card"><div class="k-card-b">{hero_right}</div></div>',
+                    unsafe_allow_html=True)
 
-        feed_html = '<div class="k-feed">'
-        for d, txs in sorted(by_date.items(), reverse=True):
-            d_label = "hoje" if d == hoje else "ontem" if (hoje - d).days == 1 else d.strftime("%d/%m")
-            net = sum((t.amount if t.type == TransactionType.GANHO else -t.amount) for t in txs)
-            net_str = fmt_brl(net, compact=True)
-            net_cls = "pos" if net >= 0 else "neg"
-            feed_html += f"""<div class="k-feed-day">
+    # ── Main grid — feed + rail ────────────────────────────────────────────────────
+    st.markdown(section_header("Feed financeiro", "ao vivo · todos os fluxos"), unsafe_allow_html=True)
+
+    col_feed, col_rail = st.columns([1.7, 1])
+
+    with col_feed:
+        if not transacoes:
+            st.markdown('<div class="k-card"><div class="k-card-b"><span class="muted">Nenhuma transação no período.</span></div></div>',
+                        unsafe_allow_html=True)
+        else:
+            by_date: dict = defaultdict(list)
+            for t in transacoes[:40]:
+                by_date[t.date].append(t)
+
+            feed_html = '<div class="k-feed">'
+            for d, txs in sorted(by_date.items(), reverse=True):
+                d_label = "hoje" if d == hoje else "ontem" if (hoje - d).days == 1 else d.strftime("%d/%m")
+                net = sum((t.amount if t.type == TransactionType.GANHO else -t.amount) for t in txs)
+                net_str = fmt_brl(net, compact=True)
+                net_cls = "pos" if net >= 0 else "neg"
+                feed_html += f"""<div class="k-feed-day">
   <div class="k-feed-day-h">{d_label}
     <span class="sub">{len(txs)} lançamento{"s" if len(txs) > 1 else ""}</span>
     <span class="sub mono {net_cls}">{net_str}</span>
   </div>
   <div class="k-feed-list">"""
-            for t in txs:
-                is_in    = t.type == TransactionType.GANHO
-                is_inv   = t.category.value == "Investimento"
-                val_cls  = "pos" if is_in else "invest" if is_inv else ""
-                val_sign = "+" if is_in else "−"
-                cat      = "Renda" if is_in else t.category.value
-                title    = html.escape(t.notes[:42]) if t.notes else t.category.value
-                pm       = t.payment_method.value.lower().replace("_", " ")
-                meta     = f"{t.category.value} · {pm}"
-                feed_html += tx_row_simplifi(
-                    category=cat,
-                    title=title,
-                    meta=meta,
-                    amount_str=f"{val_sign} {fmt_brl(t.amount, compact=True)}",
-                    val_cls=val_cls,
-                )
-            feed_html += "</div></div>"
-        feed_html += "</div>"
-        st.markdown(f'<div class="k-card"><div class="k-card-b">{feed_html}</div></div>',
-                    unsafe_allow_html=True)
+                for t in txs:
+                    is_in    = t.type == TransactionType.GANHO
+                    is_inv   = t.category.value == "Investimento"
+                    val_cls  = "pos" if is_in else "invest" if is_inv else ""
+                    val_sign = "+" if is_in else "−"
+                    cat      = "Renda" if is_in else t.category.value
+                    title    = html.escape(t.notes[:42]) if t.notes else t.category.value
+                    pm       = t.payment_method.value.lower().replace("_", " ")
+                    meta     = f"{t.category.value} · {pm}"
+                    feed_html += tx_row_simplifi(
+                        category=cat,
+                        title=title,
+                        meta=meta,
+                        amount_str=f"{val_sign} {fmt_brl(t.amount, compact=True)}",
+                        val_cls=val_cls,
+                    )
+                feed_html += "</div></div>"
+            feed_html += "</div>"
+            st.markdown(f'<div class="k-card"><div class="k-card-b">{feed_html}</div></div>',
+                        unsafe_allow_html=True)
 
-with col_rail:
-    # Insights
-    top_cat = calcular_top_categorias(transacoes)
-    insights = []
-    if top_cat:
-        biggest = top_cat[0]
-        insights.append(("▲", "neg", biggest.category,
-                         f"{fmt_brl(biggest.total)} · {biggest.percentual:.0f}% dos gastos"))
-    if score.atingiu_meta_poupanca:
-        insights.append(("✓", "pos", "Poupança em dia", f"{saldo.taxa_poupanca:.1f}% · meta ≥ 20%"))
-    if violations > 0:
-        insights.append(("!", "neg", "M2 alerta", f"{violations} violação{'ões' if violations > 1 else ''} detectada(s)"))
-    if alertas_pad:
-        a = alertas_pad[0]
-        insights.append(("↑", "warn", f"{a.category} acima da média",
-                         f"{fmt_brl(a.gasto_atual)} vs média {fmt_brl(a.media_3m)}"))
-    if not insights:
-        insights.append(("◉", "pos", "Tudo dentro do esperado", "Sem alertas no período"))
+    with col_rail:
+        top_cat = calcular_top_categorias(transacoes)
+        insights = []
+        if top_cat:
+            biggest = top_cat[0]
+            insights.append(("▲", "neg", biggest.category,
+                             f"{fmt_brl(biggest.total)} · {biggest.percentual:.0f}% dos gastos"))
+        if score.atingiu_meta_poupanca:
+            insights.append(("✓", "pos", "Poupança em dia", f"{saldo.taxa_poupanca:.1f}% · meta ≥ 20%"))
+        if violations > 0:
+            insights.append(("!", "neg", "M2 alerta", f"{violations} violação{'ões' if violations > 1 else ''} detectada(s)"))
+        if alertas_pad:
+            a = alertas_pad[0]
+            insights.append(("↑", "warn", f"{a.category} acima da média",
+                             f"{fmt_brl(a.gasto_atual)} vs média {fmt_brl(a.media_3m)}"))
+        if not insights:
+            insights.append(("◉", "pos", "Tudo dentro do esperado", "Sem alertas no período"))
 
-    brief_rows = f"""<div class="k-decision-brief">
+        brief_rows = f"""<div class="k-decision-brief">
   <div class="k-brief-item"><div class="k-brief-dot"></div><div>
     <div class="k-brief-title">Disciplina operacional</div>
     <div class="k-brief-copy">{_brief_main}</div>
@@ -439,19 +464,19 @@ with col_rail:
   </div></div>
 </div>"""
 
-    st.markdown(k_card_with_header(
-        "Decision brief",
-        brief_rows,
-        hint="contexto antes de ação",
-        gilt=True,
-    ), unsafe_allow_html=True)
+        st.markdown(k_card_with_header(
+            "Decision brief",
+            brief_rows,
+            hint="contexto antes de ação",
+            gilt=True,
+        ), unsafe_allow_html=True)
 
-    ins_rows = ""
-    for icon, tone, title, body in insights[:4]:
-        color = {"pos": "var(--moss)", "neg": "var(--rust)", "warn": "var(--lantern)"}.get(tone, "var(--sea)")
-        bg    = {"pos": "rgba(123,198,138,0.08)", "neg": "rgba(216,124,106,0.08)",
-                 "warn": "rgba(244,213,141,0.08)"}.get(tone, "rgba(127,179,200,0.08)")
-        ins_rows += f"""<div style="display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:flex-start">
+        ins_rows = ""
+        for icon, tone, title, body in insights[:4]:
+            color = {"pos": "var(--moss)", "neg": "var(--rust)", "warn": "var(--lantern)"}.get(tone, "var(--sea)")
+            bg    = {"pos": "rgba(123,198,138,0.08)", "neg": "rgba(216,124,106,0.08)",
+                     "warn": "rgba(244,213,141,0.08)"}.get(tone, "rgba(127,179,200,0.08)")
+            ins_rows += f"""<div style="display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:flex-start">
   <div style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-family:var(--font-mono);font-size:13px;font-weight:600;color:{color};background:{bg};border:1px solid {color}">
     {icon}</div>
@@ -461,135 +486,134 @@ with col_rail:
   </div>
 </div>"""
 
-    st.markdown(k_card_with_header(
-        "Sinais", f'<div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">{ins_rows}</div>',
-        hint="anomalias e disciplina",
-    ), unsafe_allow_html=True)
+        st.markdown(k_card_with_header(
+            "Sinais", f'<div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">{ins_rows}</div>',
+            hint="anomalias e disciplina",
+        ), unsafe_allow_html=True)
 
-    # ── Accounts rail (Simplifi-style) ────────────────────────────────────────
-    _HEX_RE = re.compile(r"^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?$")
+        # ── Accounts rail (Simplifi-style) ────────────────────────────────────────
+        _HEX_RE = re.compile(r"^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?$")
 
-    def _dot(color: str, fb: str = "var(--brass)") -> str:
-        return color if _HEX_RE.match(color or "") else fb
+        def _dot(color: str, fb: str = "var(--brass)") -> str:
+            return color if _HEX_RE.match(color or "") else fb
 
-    acc_rows = ""
-    saldo_total_contas = 0.0
-    for c in contas:
-        bal_color = "var(--moss)" if c.balance >= 0 else "var(--rust)"
-        acc_rows += (
-            f'<div class="k-acc-row">'
-            f'<div class="k-acc-dot" style="background:{_dot(c.color)}"></div>'
-            f'<div style="flex:1;min-width:0">'
-            f'<div class="k-acc-name">{html.escape(c.name)}</div>'
-            f'<div class="k-acc-sub">{html.escape(c.bank or "")} · {c.type.value}</div>'
-            f'</div>'
-            f'<div class="k-acc-val" style="color:{bal_color}">{fmt_brl(c.balance, compact=True)}</div>'
-            f'</div>'
-        )
-        saldo_total_contas += c.balance
+        acc_rows = ""
+        saldo_total_contas = 0.0
+        for c in contas:
+            bal_color = "var(--moss)" if c.balance >= 0 else "var(--rust)"
+            acc_rows += (
+                f'<div class="k-acc-row">'
+                f'<div class="k-acc-dot" style="background:{_dot(c.color)}"></div>'
+                f'<div style="flex:1;min-width:0">'
+                f'<div class="k-acc-name">{html.escape(c.name)}</div>'
+                f'<div class="k-acc-sub">{html.escape(c.bank or "")} · {c.type.value}</div>'
+                f'</div>'
+                f'<div class="k-acc-val" style="color:{bal_color}">{fmt_brl(c.balance, compact=True)}</div>'
+                f'</div>'
+            )
+            saldo_total_contas += c.balance
 
-    card_rows = ""
-    for cd in cartoes:
-        fatura = cd.fatura_atual([t for t in transacoes if t.card_id == cd.id])
-        disponivel_card = max(cd.limit_total - fatura, 0)
-        pct = (fatura / cd.limit_total * 100) if cd.limit_total > 0 else 0
-        pct_color = "var(--rust)" if pct >= 80 else "var(--lantern)" if pct >= 50 else "var(--ink-3)"
-        card_rows += (
-            f'<div class="k-acc-row">'
-            f'<div class="k-acc-dot" style="background:{_dot(cd.color, "var(--sea)")}"></div>'
-            f'<div style="flex:1;min-width:0">'
-            f'<div class="k-acc-name">{html.escape(cd.name)}</div>'
-            f'<div class="k-acc-sub">fatura {fmt_brl(fatura, compact=True)} · vence dia {cd.due_day}</div>'
-            f'</div>'
-            f'<div class="k-acc-val" style="color:{pct_color}">{fmt_brl(disponivel_card, compact=True)}</div>'
-            f'</div>'
-        )
+        card_rows = ""
+        for cd in cartoes:
+            fatura = cd.fatura_atual([t for t in transacoes if t.card_id == cd.id])
+            disponivel_card = max(cd.limit_total - fatura, 0)
+            pct = (fatura / cd.limit_total * 100) if cd.limit_total > 0 else 0
+            pct_color = "var(--rust)" if pct >= 80 else "var(--lantern)" if pct >= 50 else "var(--ink-3)"
+            card_rows += (
+                f'<div class="k-acc-row">'
+                f'<div class="k-acc-dot" style="background:{_dot(cd.color, "var(--sea)")}"></div>'
+                f'<div style="flex:1;min-width:0">'
+                f'<div class="k-acc-name">{html.escape(cd.name)}</div>'
+                f'<div class="k-acc-sub">fatura {fmt_brl(fatura, compact=True)} · vence dia {cd.due_day}</div>'
+                f'</div>'
+                f'<div class="k-acc-val" style="color:{pct_color}">{fmt_brl(disponivel_card, compact=True)}</div>'
+                f'</div>'
+            )
 
-    all_rows = acc_rows + card_rows
-    patrimonio_total = total_portfolio + saldo_total_contas
-    if all_rows:
-        acc_content = (
-            f'<div style="margin-top:4px">{all_rows}</div>'
-            f'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);'
-            f'display:flex;justify-content:space-between;align-items:center">'
-            f'<span style="font-size:10px;color:var(--ink-4);font-family:var(--font-sans);'
-            f'letter-spacing:0.1em;text-transform:uppercase">Patrimônio total</span>'
-            f'<span class="mono" style="font-size:14px;color:var(--brass)">{fmt_brl(patrimonio_total, compact=True)}</span>'
-            f'</div>'
-        )
-    else:
-        acc_content = (
-            f'<div class="mono" style="font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums">'
-            f'{fmt_brl(patrimonio_total, compact=True)}</div>'
-            f'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">'
-            f'{chip(f"FII {fmt_brl(total_portfolio, compact=True)}", "brass")}'
-            f'{chip(f"Caixa {caixa_pct:.0f}%", "pos" if caixa_pct >= 20 else "neg")}'
-            f'</div>'
-        )
+        all_rows = acc_rows + card_rows
+        patrimonio_total = total_portfolio + saldo_total_contas
+        if all_rows:
+            acc_content = (
+                f'<div style="margin-top:4px">{all_rows}</div>'
+                f'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);'
+                f'display:flex;justify-content:space-between;align-items:center">'
+                f'<span style="font-size:10px;color:var(--ink-4);font-family:var(--font-sans);'
+                f'letter-spacing:0.1em;text-transform:uppercase">Patrimônio total</span>'
+                f'<span class="mono" style="font-size:14px;color:var(--brass)">{fmt_brl(patrimonio_total, compact=True)}</span>'
+                f'</div>'
+            )
+        else:
+            acc_content = (
+                f'<div class="mono" style="font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums">'
+                f'{fmt_brl(patrimonio_total, compact=True)}</div>'
+                f'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">'
+                f'{chip(f"FII {fmt_brl(total_portfolio, compact=True)}", "brass")}'
+                f'{chip(f"Caixa {caixa_pct:.0f}%", "pos" if caixa_pct >= 20 else "neg")}'
+                f'</div>'
+            )
 
-    st.markdown(k_card_with_header(
-        "Contas & Cartões", acc_content,
-        hint="saldo disponível →",
-    ), unsafe_allow_html=True)
+        st.markdown(k_card_with_header(
+            "Contas & Cartões", acc_content,
+            hint="saldo disponível →",
+        ), unsafe_allow_html=True)
 
-    # Parcelamentos
-    if installments:
-        comp_map = calcular_comprometimento_mensal(installments)
-        next_months = sorted(comp_map.keys())[:3]
-        if next_months:
-            rows_parc = ""
-            for mk in next_months:
-                rows_parc += f"""<div style="display:flex;justify-content:space-between;padding:8px 0;
-                  border-top:1px solid var(--rule)">
-                  <span class="mono muted" style="font-size:11px">{mk}</span>
-                  <span class="mono brass-c" style="font-size:13px">{fmt_brl(comp_map[mk])}</span>
-                </div>"""
-            st.markdown(k_card_with_header(
-                "Comprometimento futuro",
-                f'<div style="margin-top:4px">{rows_parc}</div>',
-                hint="parcelas ativas",
-            ), unsafe_allow_html=True)
+        if installments:
+            comp_map = calcular_comprometimento_mensal(installments)
+            next_months = sorted(comp_map.keys())[:3]
+            if next_months:
+                rows_parc = ""
+                for mk in next_months:
+                    rows_parc += f"""<div style="display:flex;justify-content:space-between;padding:8px 0;
+                      border-top:1px solid var(--rule)">
+                      <span class="mono muted" style="font-size:11px">{mk}</span>
+                      <span class="mono brass-c" style="font-size:13px">{fmt_brl(comp_map[mk])}</span>
+                    </div>"""
+                st.markdown(k_card_with_header(
+                    "Comprometimento futuro",
+                    f'<div style="margin-top:4px">{rows_parc}</div>',
+                    hint="parcelas ativas",
+                ), unsafe_allow_html=True)
 
-    # ── Kira · Briefing IA ────────────────────────────────────────────────────
-    briefing_key = f"kira_briefing_{ano}_{mes}"
-    if briefing_key not in st.session_state:
-        st.session_state[briefing_key] = None
+        # ── Kira · Briefing IA ────────────────────────────────────────────────────
+        briefing_key = f"kira_briefing_{ano}_{mes}"
+        if briefing_key not in st.session_state:
+            st.session_state[briefing_key] = None
 
-    briefing_text: str | None = st.session_state[briefing_key]
+        briefing_text: str | None = st.session_state[briefing_key]
 
-    briefing_inner = ""
-    if briefing_text:
-        import html as _html_br
-        briefing_inner = (
-            f'<div class="k-kira-bubble" style="margin-top:6px">'
-            f'{_html_br.escape(briefing_text)}'
-            f'</div>'
-        )
-    else:
-        briefing_inner = (
-            '<div style="font-family:var(--font-sans);font-size:12px;'
-            'color:var(--ink-4);font-style:italic;padding:8px 0">'
-            'Clique em "Gerar" para o briefing do dia.</div>'
-        )
+        briefing_inner = ""
+        if briefing_text:
+            import html as _html_br
+            briefing_inner = (
+                f'<div class="k-kira-bubble" style="margin-top:6px">'
+                f'{_html_br.escape(briefing_text)}'
+                f'</div>'
+            )
+        else:
+            briefing_inner = (
+                '<div style="font-family:var(--font-sans);font-size:12px;'
+                'color:var(--ink-4);font-style:italic;padding:8px 0">'
+                'Clique em "Gerar" para o briefing do dia.</div>'
+            )
 
-    st.markdown(k_card_with_header(
-        "Kira · Briefing",
-        f'<div class="k-kira-header" style="padding:0 0 8px">'
-        f'<div class="k-kira-dot"></div>'
-        f'<span class="k-kira-label">IA Financeira · NVIDIA NIM</span>'
-        f'</div>{briefing_inner}',
-        hint="análise do mês gerada por IA",
-        gilt=True,
-    ), unsafe_allow_html=True)
+        st.markdown(k_card_with_header(
+            "Kira · Briefing",
+            f'<div class="k-kira-header" style="padding:0 0 8px">'
+            f'<div class="k-kira-dot"></div>'
+            f'<span class="k-kira-label">IA Financeira · NVIDIA NIM</span>'
+            f'</div>{briefing_inner}',
+            hint="análise do mês gerada por IA",
+            gilt=True,
+        ), unsafe_allow_html=True)
 
-    if st.button("↻ Gerar briefing", width="stretch", key="btn_kira_briefing"):
-        try:
-            from core.financial_ai import auto_briefing
-            with st.spinner("Kira está analisando seus dados…"):
-                result = auto_briefing(_ai_ctx)
-            st.session_state[briefing_key] = result
-            st.rerun()
-        except RuntimeError as e:
-            st.warning(f"Kira indisponível: {e}")
-        except Exception:
-            st.error("Erro ao gerar briefing. Configure NVIDIA_API_KEY.")
+        if st.button("Gerar briefing", width="stretch", key="btn_kira_briefing"):
+            try:
+                from core.financial_ai import auto_briefing
+                with st.spinner("Kira está analisando seus dados…"):
+                    result = auto_briefing(_ai_ctx)
+                st.session_state[briefing_key] = result
+                st.rerun()
+            except RuntimeError as e:
+                st.warning(f"Kira indisponível: {e}")
+            except Exception:
+                st.error("Erro ao gerar briefing. Configure NVIDIA_API_KEY.")
