@@ -57,6 +57,62 @@ _PM_LABEL = {
     "TRANSFERENCIA": "transfer.",
 }
 
+@st.dialog("Editar lançamento")
+def _edit_dialog(tx: Transaction) -> None:
+    with st.form("form_edit_tx"):
+        fc1, fc2 = st.columns(2)
+        with fc1:
+            tipo = st.selectbox(
+                "Tipo", [t.value for t in TransactionType],
+                index=[t.value for t in TransactionType].index(tx.type.value),
+            )
+            valor = st.number_input(
+                "Valor (R$)", min_value=0.01, step=0.01, format="%.2f",
+                value=float(tx.amount),
+            )
+            categoria = st.selectbox(
+                "Categoria", [c.value for c in Category],
+                index=[c.value for c in Category].index(tx.category.value),
+            )
+            pagamento = st.selectbox(
+                "Pagamento", [p.value for p in PaymentMethod],
+                index=[p.value for p in PaymentMethod].index(tx.payment_method.value),
+            )
+        with fc2:
+            data_tx = st.date_input("Data", value=tx.date)
+            status_tx = st.selectbox(
+                "Status", [s.value for s in TransactionStatus],
+                index=[s.value for s in TransactionStatus].index(tx.status.value),
+            )
+            conta_opts = ["—"] + list(conta_map.keys())
+            conta_atual = next((k for k, v in conta_map.items() if v == tx.account_id), "—")
+            conta_sel = st.selectbox("Conta", conta_opts, index=conta_opts.index(conta_atual))
+            cartao_opts = ["—"] + list(cartao_map.keys())
+            cartao_atual = next((k for k, v in cartao_map.items() if v == tx.card_id), "—")
+            cartao_sel = st.selectbox("Cartão", cartao_opts, index=cartao_opts.index(cartao_atual))
+        notas = st.text_input("Notas", value=tx.notes or "")
+        if st.form_submit_button("Salvar alterações", type="primary", use_container_width=True):
+            try:
+                updated = Transaction(
+                    id=tx.id,
+                    date=data_tx,
+                    amount=float(valor),
+                    type=TransactionType(tipo),
+                    category=Category(categoria),
+                    notes=notas or None,
+                    payment_method=PaymentMethod(pagamento),
+                    account_id=conta_map.get(conta_sel) if conta_sel != "—" else None,
+                    card_id=cartao_map.get(cartao_sel) if cartao_sel != "—" else None,
+                    status=TransactionStatus(status_tx),
+                    installment_id=tx.installment_id,
+                )
+                tx_repo.update(updated)
+                st.success("Salvo.")
+                st.rerun()
+            except Exception as e:
+                st.error(str(e))
+
+
 # ── Layout ────────────────────────────────────────────────────────────────────
 nav_col, content_col = st.columns([1, 4])
 
@@ -249,19 +305,29 @@ with content_col:
                 k_card_with_header("Ledger", ledger_html, f"{len(txs)} lançamentos"),
                 unsafe_allow_html=True,
             )
-            with st.expander("Ações"):
+            with st.expander("Editar · Excluir"):
                 opts = {
-                    f"{t.date} · {t.category.value} · {fmt_brl(t.amount)}": t.id
-                    for t in txs
+                    f"{t.date.strftime('%d/%m')} · {t.category.value} · {fmt_brl(t.amount)}": t
+                    for t in sorted(txs, key=lambda x: x.date, reverse=True)
                 }
-                sel = st.selectbox("Selecionar", list(opts.keys()), label_visibility="collapsed")
-                if st.button("Deletar selecionada", type="secondary"):
-                    try:
-                        TransactionRepository().delete(opts[sel])
-                        st.success("Deletada.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(str(e))
+                sel_key = st.selectbox(
+                    "Selecionar lançamento",
+                    list(opts.keys()),
+                    label_visibility="collapsed",
+                )
+                sel_tx = opts[sel_key]
+                col_e, col_d = st.columns(2)
+                with col_e:
+                    if st.button("✏ Editar", use_container_width=True, key=f"edit_btn_{sel_tx.id}"):
+                        _edit_dialog(sel_tx)
+                with col_d:
+                    if st.button("🗑 Excluir", type="secondary", use_container_width=True, key=f"del_btn_{sel_tx.id}"):
+                        try:
+                            tx_repo.delete(sel_tx.id)
+                            st.success("Excluído.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(str(e))
 
         with col_right:
             by_cat: dict[str, Decimal] = defaultdict(lambda: Decimal(0))

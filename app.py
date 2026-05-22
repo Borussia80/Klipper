@@ -141,8 +141,3 @@ with content_col:
 </div>
 """, unsafe_allow_html=True)
 
-    st.markdown(
-        '<div class="mono muted" style="font-size:10px;text-align:center;padding:8px 0 16px">'
-        'WikiAgent Financeiro v2.0 · Klipper · Roberto Milet</div>',
-        unsafe_allow_html=True,
-    )

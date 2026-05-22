@@ -1,12 +1,12 @@
 """
-TDD Red→Green: _to_db() deve converter Decimal para str e garantir que
-model_dump() produz um dict serializável em JSON antes de ir ao Supabase.
+TDD: _to_db(), serialização Decimal, TransactionRepository.update().
 """
 from __future__ import annotations
 
 import json
 from datetime import date
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -105,3 +105,72 @@ class TestOutrosModelos:
         data = _to_db(budget.model_dump())
         assert isinstance(data["monthly_limit"], str)
         assert json.dumps(data) is not None
+
+
+class TestTransactionUpdate:
+    """TransactionRepository.update() deve serializar Decimal e chamar Supabase."""
+
+    def _make_tx(self, amount: str = "150.00") -> "Transaction":
+        from models.transaction import Transaction, TransactionType, Category
+        return Transaction(
+            date=date(2026, 5, 22),
+            amount=Decimal(amount),
+            type=TransactionType.GASTO,
+            category=Category.ALIMENTACAO,
+            notes="almoço",
+        )
+
+    def test_update_existe_no_repositorio(self):
+        from core.repositories import TransactionRepository
+        assert hasattr(TransactionRepository, "update")
+        assert callable(TransactionRepository.update)
+
+    def test_update_retorna_transaction(self):
+        from core.repositories import TransactionRepository
+        tx = self._make_tx()
+        mock_client = MagicMock()
+        mock_client.table.return_value.update.return_value.eq.return_value.execute.return_value = MagicMock()
+        with patch("core.repositories.get_client", return_value=mock_client):
+            repo = TransactionRepository()
+            result = repo.update(tx)
+        assert result.id == tx.id
+        assert result.amount == tx.amount
+
+    def test_update_serializa_decimal_para_supabase(self):
+        from core.repositories import TransactionRepository
+        tx = self._make_tx("45.90")
+        called_with = {}
+
+        def fake_update(data):
+            called_with.update(data)
+            m = MagicMock()
+            m.eq.return_value.execute.return_value = MagicMock()
+            return m
+
+        mock_client = MagicMock()
+        mock_client.table.return_value.update.side_effect = fake_update
+        with patch("core.repositories.get_client", return_value=mock_client):
+            TransactionRepository().update(tx)
+
+        assert "amount" in called_with
+        assert isinstance(called_with["amount"], str), "Decimal deve ser str para JSON"
+        assert called_with["amount"] == "45.90"
+
+    def test_update_payload_e_json_serializavel(self):
+        from core.repositories import TransactionRepository
+        tx = self._make_tx("33.33")
+        captured = {}
+
+        def fake_update(data):
+            captured.update(data)
+            m = MagicMock()
+            m.eq.return_value.execute.return_value = MagicMock()
+            return m
+
+        mock_client = MagicMock()
+        mock_client.table.return_value.update.side_effect = fake_update
+        with patch("core.repositories.get_client", return_value=mock_client):
+            TransactionRepository().update(tx)
+
+        # Não deve lançar TypeError
+        json.dumps(captured)
