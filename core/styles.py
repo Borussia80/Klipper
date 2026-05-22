@@ -575,22 +575,6 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 #MainMenu, footer { visibility: hidden !important; }
 [data-testid="stToolbar"] { display: none !important; }
 
-/* ── Sidebar logo-above-nav ordering ────────────────────────────────────────── */
-/* Make the sidebar inner div a flex column so we can reorder brand above nav   */
-section[data-testid="stSidebar"] > div > div[data-testid] {
-  display: flex !important;
-  flex-direction: column !important;
-}
-/* Auto-generated nav links → pushed below our brand block */
-section[data-testid="stSidebar"] [data-testid="stSidebarNavItems"],
-section[data-testid="stSidebar"] [data-testid="stSidebarNav"] {
-  order: 2 !important;
-}
-/* Our manual sidebar content → stays at top */
-section[data-testid="stSidebar"] > div > div[data-testid] > div[data-testid="stVerticalBlock"] {
-  order: 1 !important;
-}
-
 /* ── Sidebar collapse/expand button ─────────────────────────────────────────── */
 button[data-testid="stSidebarCollapseButton"],
 button[kind="headerNoPadding"] {
