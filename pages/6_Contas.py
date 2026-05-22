@@ -14,6 +14,7 @@ from core.repositories import (
     BankAccountRepository, CreditCardRepository,
     InstallmentRepository, TransactionRepository,
 )
+from core.auth import require_auth
 from core.styles import (
     bar_track, fmt_brl, inject_css, k_card_with_header,
     parcela_row, section_header, sidebar_brand, sidebar_engines, sidebar_user,
@@ -25,6 +26,7 @@ from models.transaction import Category, TransactionType
 
 st.set_page_config(page_title="Cartões · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
+require_auth()
 
 acc_repo  = BankAccountRepository()
 card_repo = CreditCardRepository()
@@ -93,7 +95,7 @@ with st.sidebar:
                         st.error(str(e))
 
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab_cards, tab_parc, tab_contas = st.tabs(["Cartões", "Parcelas", "Contas"])

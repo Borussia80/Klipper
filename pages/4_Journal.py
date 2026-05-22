@@ -8,6 +8,7 @@ import streamlit as st
 
 from core.formatters import formatar_data_br
 from core.repositories import DecisionRepository, InvestmentRepository
+from core.auth import require_auth
 from core.styles import (
     inject_css, fmt_brl, k_card_with_header, section_header,
     sidebar_brand, sidebar_engines, sidebar_user, stat_card, chip,
@@ -17,6 +18,7 @@ from models.decision import DecisionOutcome, DecisionRecord
 
 st.set_page_config(page_title="Journal · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
+require_auth()
 
 repo     = DecisionRepository()
 inv_repo = InvestmentRepository()
@@ -25,7 +27,7 @@ inv_repo = InvestmentRepository()
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(section_header("Journal", "decision template · auditável"), unsafe_allow_html=True)

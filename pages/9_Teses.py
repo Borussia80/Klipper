@@ -11,6 +11,7 @@ from core.m1_quant import calcular_score_m1, classificar_score, Decisao
 from core.m2_governance import verificar_limites
 from core.m3_context import Confidence, MarketRegime, ajustar_prudencia
 from core.repositories import InvestmentRepository
+from core.auth import require_auth
 from core.styles import (
     bar_track, chip, fmt_brl, inject_css, k_card_with_header, section_header,
     sidebar_brand, sidebar_engines, sidebar_user, stat_card, load_page_icon,
@@ -18,6 +19,7 @@ from core.styles import (
 
 st.set_page_config(page_title="Teses · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
+require_auth()
 
 repo = InvestmentRepository()
 
@@ -45,7 +47,7 @@ with st.sidebar:
     )
 
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 # ── Load data ─────────────────────────────────────────────────────────────────
 try:

@@ -21,6 +21,7 @@ from core.repositories import (
     BudgetRepository, InstallmentRepository,
     InvestmentRepository, TransactionRepository,
 )
+from core.auth import require_auth
 from core.styles import (
     bar_track, budget_bar, fmt_brl, inject_css, k_card_with_header,
     metric_card, score_circle, section_header,
@@ -31,6 +32,7 @@ from models.transaction import Category
 
 st.set_page_config(page_title="Orçamento · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
+require_auth()
 
 tx_repo   = TransactionRepository()
 inst_repo = InstallmentRepository()
@@ -62,7 +64,7 @@ with st.sidebar:
                     st.error(str(e))
 
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(section_header("Orçamento & Score", "comportamento financeiro"), unsafe_allow_html=True)

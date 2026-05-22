@@ -1,6 +1,7 @@
 """Klipper — Wealth Operating System"""
 
 import streamlit as st
+from core.auth import require_auth
 from core.styles import (
     _brand_b64,
     brand_icon_img,
@@ -18,11 +19,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 inject_css()
+require_auth()
 
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
-    st.markdown(sidebar_user(), unsafe_allow_html=True)
+    sidebar_user()
 
 NAV_ITEMS = [
     ("↹",  "Movimento",  "Ledger de transações, parcelamentos e análise de gastos"),
