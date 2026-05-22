@@ -19,13 +19,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 inject_css()
-require_auth()
 
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
     sidebar_user()
 
+
+
+require_auth()
 NAV_ITEMS = [
     ("↹",  "Movimento",  "Ledger de transações, parcelamentos e análise de gastos"),
     ("▤",  "Cartões",    "Wallet de cartões, faturas e comprometimento futuro"),
