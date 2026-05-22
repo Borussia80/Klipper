@@ -887,22 +887,24 @@ def sidebar_user(scenario: str | None = None) -> None:
 
     col_cfg, col_out = st.columns(2)
     with col_cfg:
-        if st.button("⚙ Config", use_container_width=True, key="btn_settings"):
+        if st.button("⚙ Config", width="stretch", key="btn_settings"):
             _open_settings_dialog()
     with col_out:
-        if st.button("↩ Sair", use_container_width=True, key="btn_logout"):
+        if st.button("↩ Sair", width="stretch", key="btn_logout"):
             try:
                 from core.auth import logout
                 logout()
-            except Exception:
-                pass
+            except Exception as e:
+                import logging as _log
+                _log.getLogger(__name__).warning("Erro inesperado no logout: %s", e)
             st.rerun()
 
 
 @st.dialog("Configurações · Klipper")
 def _open_settings_dialog() -> None:
     """Modal de configurações do usuário."""
-    import html as _html
+    import logging as _log
+    _logger = _log.getLogger(__name__)
 
     st.markdown("**Cenário financeiro**")
     scenarios = ["realista", "otimista", "pessimista"]
@@ -917,12 +919,20 @@ def _open_settings_dialog() -> None:
     st.markdown("**Autenticação em dois fatores (TOTP)**")
 
     try:
-        from core.auth import has_totp, start_totp_enrollment, unenroll_totp
+        from core.auth import (
+            has_totp, start_totp_enrollment,
+            confirm_totp_enrollment, cancel_totp_enrollment, unenroll_totp,
+        )
         totp_active = has_totp()
-    except Exception:
+    except Exception as e:
+        _logger.warning("Erro ao verificar TOTP: %s", e)
         totp_active = False
 
-    if totp_active:
+    enrolling = bool(st.session_state.get("settings_enroll_factor_id"))
+
+    if enrolling:
+        _render_inline_enroll()
+    elif totp_active:
         st.success("2FA ativo — Google Authenticator / Authy")
         if st.button("Desativar 2FA", type="secondary"):
             try:
@@ -936,6 +946,50 @@ def _open_settings_dialog() -> None:
         if st.button("Ativar 2FA (TOTP)", type="primary"):
             start_totp_enrollment()
 
-    st.divider()
-    if st.button("Salvar e fechar", use_container_width=True):
-        st.rerun()
+    if not enrolling:
+        st.divider()
+        if st.button("Salvar e fechar", width="stretch"):
+            st.rerun()
+
+
+def _render_inline_enroll() -> None:
+    """Renderiza o fluxo de enrollment TOTP inline no settings dialog."""
+    import html as _html
+    from core.auth import confirm_totp_enrollment, cancel_totp_enrollment
+
+    qr_b64 = st.session_state.get("settings_enroll_qr", "")
+    secret  = st.session_state.get("settings_enroll_secret", "")
+
+    st.markdown("Escaneie o QR code com Google Authenticator, Authy ou similar.")
+
+    if qr_b64:
+        st.markdown(
+            f'<div style="text-align:center;margin:12px 0">'
+            f'<img src="data:image/png;base64,{qr_b64}" width="180" '
+            f'style="border-radius:8px;border:4px solid white" alt="QR Code TOTP"></div>',
+            unsafe_allow_html=True,
+        )
+    if secret:
+        st.markdown(
+            f'<div style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);'
+            f'text-align:center;margin-bottom:12px">Chave: <strong>{_html.escape(secret)}</strong></div>',
+            unsafe_allow_html=True,
+        )
+
+    code = st.text_input("Código TOTP (6 dígitos)", max_chars=6, placeholder="000000")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Confirmar 2FA", type="primary", width="stretch"):
+            if not code or len(code) < 6:
+                st.error("Código deve ter 6 dígitos.")
+            else:
+                ok, err = confirm_totp_enrollment(code.strip())
+                if ok:
+                    st.success("2FA ativado com sucesso!")
+                    st.rerun()
+                else:
+                    st.error(err)
+    with col2:
+        if st.button("Cancelar", width="stretch"):
+            cancel_totp_enrollment()
+            st.rerun()

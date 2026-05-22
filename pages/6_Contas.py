@@ -5,6 +5,8 @@ from __future__ import annotations
 import calendar
 from collections import defaultdict
 from datetime import date
+import html
+import re
 
 import plotly.graph_objects as go
 import streamlit as st
@@ -49,6 +51,14 @@ _CAT_ICON = {
     "Saúde": "◎", "Educação": "◇", "Lazer": "◈",
     "Investimento": "▣", "Renda": "↑", "Freelance": "∞", "Outros": "○",
 }
+
+_HEX_COLOR_RE = re.compile(r"^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?$")
+
+
+def _safe_color(color: str, fallback: str = "#4A5568") -> str:
+    """Valida cor hex antes de injetar em CSS. Retorna fallback se inválida."""
+    return color if _HEX_COLOR_RE.match(color or "") else fallback
+
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -135,17 +145,18 @@ with tab_cards:
         # Wallet row — all cards as HTML
         card_items = []
         for c in cartoes:
-            last4    = c.id[-4:].upper()
-            bank_abbr = (c.bank or "")[:5].upper() or "CARD"
+            last4     = c.id[-4:].upper()
+            bank_abbr = html.escape((c.bank or "")[:5].upper() or "CARD")
+            safe_col  = _safe_color(c.color)
             card_items.append(f"""<div class="k-cardobj" style="
-              background: linear-gradient(135deg, {c.color} 0%, #0a0a0a 100%);
+              background: linear-gradient(135deg, {safe_col} 0%, #0a0a0a 100%);
               color: white; border: 1px solid rgba(255,255,255,0.12);
               cursor: default;
             ">
               <div style="display:flex;justify-content:space-between;align-items:flex-start">
                 <div>
-                  <div style="font-family:var(--font-sans);font-size:13px;font-weight:600;opacity:0.95">{c.bank or c.name}</div>
-                  <div style="font-family:var(--font-sans);font-size:11px;opacity:0.55;margin-top:2px">{c.name}</div>
+                  <div style="font-family:var(--font-sans);font-size:13px;font-weight:600;opacity:0.95">{html.escape(c.bank or c.name)}</div>
+                  <div style="font-family:var(--font-sans);font-size:11px;opacity:0.55;margin-top:2px">{html.escape(c.name)}</div>
                 </div>
                 <div style="font-family:var(--font-serif);font-size:14px;opacity:0.7;letter-spacing:0.04em">{bank_abbr}</div>
               </div>
@@ -237,7 +248,7 @@ with tab_cards:
                 feed_rows = []
                 for t in sorted(card_txs, key=lambda x: x.date, reverse=True):
                     icon = _CAT_ICON.get(t.category.value, "○")
-                    title = t.notes if t.notes else t.category.value
+                    title = html.escape(t.notes) if t.notes else t.category.value
                     meta  = f"{t.category.value} · {t.date.strftime('%d/%m')}"
                     feed_rows.append(f"""<div class="k-feed-row">
   <div class="k-feed-icon out">{icon}</div>
@@ -416,13 +427,14 @@ with tab_contas:
         account_cards = []
         tipo_labels = {"CORRENTE": "Corrente", "POUPANCA": "Poupança", "INVESTIMENTO": "Investimento"}
         for c in contas:
-            tipo  = tipo_labels.get(c.type.value, c.type.value)
-            color = "var(--moss)" if c.balance >= 0 else "var(--rust)"
-            account_cards.append(f"""<div class="k-stat-card" style="border-left:3px solid {c.color}">
+            tipo      = tipo_labels.get(c.type.value, c.type.value)
+            color     = "var(--moss)" if c.balance >= 0 else "var(--rust)"
+            safe_col  = _safe_color(c.color)
+            account_cards.append(f"""<div class="k-stat-card" style="border-left:3px solid {safe_col}">
   <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
     <div>
-      <div style="font-family:var(--font-sans);font-size:14px;color:var(--ink);font-weight:500">{c.name}</div>
-      <div style="font-family:var(--font-sans);font-size:11px;color:var(--ink-3);margin-top:2px">{c.bank} · {tipo}</div>
+      <div style="font-family:var(--font-sans);font-size:14px;color:var(--ink);font-weight:500">{html.escape(c.name)}</div>
+      <div style="font-family:var(--font-sans);font-size:11px;color:var(--ink-3);margin-top:2px">{html.escape(c.bank or "")} · {tipo}</div>
     </div>
     <div class="mono" style="font-size:22px;color:{color};font-variant-numeric:tabular-nums;flex-shrink:0">
       {fmt_brl(c.balance, compact=True)}

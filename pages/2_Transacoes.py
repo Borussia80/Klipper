@@ -6,6 +6,7 @@ import calendar
 from collections import defaultdict
 from datetime import date
 
+import html
 import pandas as pd
 import streamlit as st
 
@@ -195,7 +196,7 @@ def _build_feed_html(txs: list) -> str:
             icon_cls  = "in" if is_income else ("invest" if is_invest else "out")
             val_cls   = "pos" if is_income else ("invest" if is_invest else "")
             icon      = _CAT_ICON.get(t.category.value, "○")
-            title     = t.notes if t.notes else t.category.value
+            title     = html.escape(t.notes) if t.notes else t.category.value
             pm_label  = _PM_LABEL.get(t.payment_method.value, t.payment_method.value)
             pending   = ' · <span class="warn">pendente</span>' if t.status != TransactionStatus.PAGO else ""
             meta      = f'{t.category.value} · {pm_label}{pending}'
