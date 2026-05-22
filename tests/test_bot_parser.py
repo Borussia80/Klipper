@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
 from bot.parser import ParsedCapture, parse_message
@@ -10,19 +12,19 @@ class TestParseMessage:
     def test_gasto_simples(self):
         r = parse_message("gastei 50 no mercado")
         assert r is not None
-        assert r.amount == pytest.approx(50.0)
+        assert r.amount == Decimal("50.00")
         assert r.type == TransactionType.GASTO
         assert r.category == Category.ALIMENTACAO
 
     def test_gasto_com_centavos(self):
         r = parse_message("paguei 45,90 ifood")
         assert r is not None
-        assert r.amount == pytest.approx(45.90)
+        assert r.amount == Decimal("45.90")
 
     def test_gasto_valor_brl_com_ponto_milhar(self):
         r = parse_message("paguei R$ 1.500,00 aluguel")
         assert r is not None
-        assert r.amount == pytest.approx(1500.0)
+        assert r.amount == Decimal("1500.00")
         assert r.category == Category.MORADIA
 
     def test_ganho_detectado(self):
@@ -72,14 +74,14 @@ class TestStatementReader:
         from core.statement_reader import _parse_line
         tx = _parse_line("14/05/2026  PIX ENVIADO - JOAO SILVA    -150,00")
         assert tx is not None
-        assert tx.amount == pytest.approx(150.0)
+        assert tx.amount == Decimal("150.00")
         assert tx.tx_type == TransactionType.GASTO
 
     def test_parse_line_credito(self):
         from core.statement_reader import _parse_line
         tx = _parse_line("15/05/2026  TED RECEBIDA - EMPRESA SA   +5.000,00")
         assert tx is not None
-        assert tx.amount == pytest.approx(5000.0)
+        assert tx.amount == Decimal("5000.00")
         assert tx.tx_type == TransactionType.GANHO
 
     def test_parse_line_sem_data_retorna_none(self):
