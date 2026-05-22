@@ -1123,7 +1123,12 @@ def render_navigation() -> None:
         unsafe_allow_html=True,
     )
     for item in SIDEBAR_NAV_ITEMS:
-        st.page_link(item.path, label=f"{item.icon}  {item.label}")
+        try:
+            st.page_link(item.path, label=f"{item.icon}  {item.label}")
+        except Exception:
+            # Streamlit Cloud may not have registered a newly deployed page yet;
+            # silently skip rather than crash the entire navigation rail.
+            pass
 
 
 def sidebar_nav() -> None:
