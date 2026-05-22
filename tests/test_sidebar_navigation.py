@@ -68,6 +68,23 @@ def test_sidebar_nav_fails_loudly_when_streamlit_rejects_path(monkeypatch):
         styles.sidebar_nav()
 
 
+def test_render_navigation_resilient_to_page_not_found(monkeypatch):
+    """render_navigation must not crash if Streamlit rejects a page path."""
+    call_count = {"n": 0}
+
+    def flaky_page_link(path: str, label: str) -> None:
+        call_count["n"] += 1
+        raise RuntimeError(f"page not registered: {path}")
+
+    monkeypatch.setattr(styles.st, "markdown", Mock())
+    monkeypatch.setattr(styles.st, "page_link", flaky_page_link)
+
+    styles.render_navigation()  # must not raise
+
+    # every item was attempted despite errors
+    assert call_count["n"] == len(styles.SIDEBAR_NAV_ITEMS)
+
+
 def test_pages_require_auth_before_rendering_sidebar():
     repo_root = Path(styles.__file__).resolve().parents[1]
     offenders: list[str] = []
