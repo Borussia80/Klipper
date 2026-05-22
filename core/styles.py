@@ -81,9 +81,7 @@ html, body, [data-testid="stApp"] {
 
 /* sidebar */
 section[data-testid="stSidebar"] {
-  background: linear-gradient(180deg,
-    color-mix(in oklab, #08161F 96%, white 4%) 0%,
-    #0C1E2B 100%) !important;
+  background: linear-gradient(180deg, #0E202D 0%, #0C1E2B 100%) !important;
   border-right: 1px solid var(--rule) !important;
 }
 section[data-testid="stSidebar"] > div {
@@ -477,7 +475,7 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 .k-parcela:hover { background: var(--surface-2); border-color: var(--rule-2); }
 .k-parcela-fill {
   height: 8px;
-  background: linear-gradient(90deg, color-mix(in oklab, var(--brass), black 30%), var(--brass));
+  background: linear-gradient(90deg, #987D4E, var(--brass));
   border-radius: var(--radius-pill);
   box-shadow: 0 0 8px var(--brass-glow);
 }
@@ -520,7 +518,7 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 }
 .k-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, color-mix(in oklab, var(--brass), black 20%), var(--brass));
+  background: linear-gradient(90deg, #AE8E59, var(--brass));
   border-radius: var(--radius-pill);
   box-shadow: 0 0 8px var(--brass-glow);
 }
@@ -575,24 +573,6 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 #MainMenu, footer { visibility: hidden !important; }
 [data-testid="stToolbar"] { display: none !important; }
 
-/* ── Sidebar collapse/expand button ─────────────────────────────────────────── */
-button[data-testid="stSidebarCollapseButton"],
-button[kind="headerNoPadding"] {
-  color: var(--brass) !important;
-  background: var(--surface-2) !important;
-  border: 1px solid var(--rule) !important;
-  border-radius: var(--radius-xs) !important;
-  opacity: 1 !important;
-}
-/* The expand button that appears when sidebar is collapsed */
-[data-testid="stSidebarCollapsedControl"] button {
-  color: var(--brass) !important;
-  background: var(--bg-2) !important;
-  border: 1px solid var(--rule-brass) !important;
-  border-radius: var(--radius-xs) !important;
-  box-shadow: var(--glow-brass) !important;
-  opacity: 1 !important;
-}
 </style>
 """
 
