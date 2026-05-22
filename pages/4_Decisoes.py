@@ -1,4 +1,4 @@
-"""Decision Journal · Klipper — Decision Template auditável."""
+"""Decisões · Klipper — Decision Template auditável."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from core.styles import (
 )
 from models.decision import DecisionOutcome, DecisionRecord
 
-st.set_page_config(page_title="Journal · Klipper", page_icon=load_page_icon(), layout="wide")
+st.set_page_config(page_title="Decisões · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
 require_auth()
 
@@ -50,7 +50,7 @@ section[data-testid="column"]:first-child a {
 
 with content_col:
     # ── Header ────────────────────────────────────────────────────────────────
-    st.markdown(section_header("Journal", "decision template · auditável"), unsafe_allow_html=True)
+    st.markdown(section_header("Decisões", "decision template · auditável"), unsafe_allow_html=True)
 
     # ── KPI strip ─────────────────────────────────────────────────────────────
     try:
