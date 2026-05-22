@@ -9,6 +9,7 @@ from core.styles import (
     load_page_icon,
     sidebar_brand,
     sidebar_engines,
+    sidebar_nav,
     sidebar_user,
 )
 
@@ -22,6 +23,7 @@ inject_css()
 
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    sidebar_nav()
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
     sidebar_user()
 

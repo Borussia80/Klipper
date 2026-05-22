@@ -19,7 +19,7 @@ from core.repositories import (
 from core.auth import require_auth
 from core.styles import (
     bar_track, fmt_brl, inject_css, k_card_with_header,
-    parcela_row, section_header, sidebar_brand, sidebar_engines, sidebar_user,
+    parcela_row, section_header, sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav,
     stat_card, load_page_icon,
 )
 from models.bank_account import AccountType, BankAccount
@@ -63,6 +63,7 @@ def _safe_color(color: str, fallback: str = "#4A5568") -> str:
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    sidebar_nav()
 
     with st.expander("+ Novo cartão"):
         with st.form("form_cartao"):

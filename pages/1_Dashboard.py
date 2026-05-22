@@ -12,15 +12,19 @@ from core.analytics import calcular_saldo_mensal, calcular_top_categorias
 from core.behavioral import calcular_score_financeiro, detectar_alertas_padrao
 from core.installment_engine import calcular_comprometimento_mensal
 from core.m2_governance import verificar_limites, hard_fail, CAIXA_MIN_PCT
+import html
+
 from core.repositories import (
     InvestmentRepository, TransactionRepository,
     InstallmentRepository, BudgetRepository,
+    BankAccountRepository, CreditCardRepository,
 )
 from core.auth import require_auth
 from core.styles import (
     inject_css, fmt_brl, fmt_pct, kicker, k_card, k_card_with_header,
     stat_card, feed_row, mood_chip, chip, bar_track, section_header,
-    sidebar_brand, sidebar_engines, sidebar_user, load_page_icon,
+    sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav,
+    tx_row_simplifi, CAT_COLORS, load_page_icon,
 )
 from models.transaction import TransactionType
 
@@ -37,6 +41,8 @@ tx_repo   = TransactionRepository()
 inv_repo  = InvestmentRepository()
 inst_repo = InstallmentRepository()
 bud_repo  = BudgetRepository()
+acc_repo  = BankAccountRepository()
+card_repo = CreditCardRepository()
 
 with st.spinner(""):
     try:
@@ -47,6 +53,12 @@ with st.spinner(""):
     except Exception as e:
         st.error(f"Erro ao conectar ao banco: {e}")
         st.stop()
+
+try:
+    contas  = acc_repo.list_active()
+    cartoes = card_repo.list_active()
+except Exception:
+    contas, cartoes = [], []
 
 transacoes_3m: list = []
 for delta in range(1, 4):
@@ -77,6 +89,7 @@ score = calcular_score_financeiro(
 # Sidebar content
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    sidebar_nav()
     total_inv = total_portfolio + saldo.saldo
     snap_html = f"""<div style="margin:4px 12px 6px;padding:12px 14px;
       background:var(--surface-2);border:1px solid var(--rule);
@@ -125,6 +138,54 @@ st.markdown(f"""<div style="display:flex;align-items:flex-start;justify-content:
       box-shadow:0 0 8px var(--brass-glow);display:inline-block"></span>
     22°54′S · 43°10′W · {hoje.strftime("%d/%m/%Y")}
   </div>
+</div>""", unsafe_allow_html=True)
+
+# ── Spending Plan hero (Simplifi-style) ───────────────────────────────────────
+_dias_no_mes  = calendar.monthrange(ano, mes)[1]
+_dias_restantes = max(_dias_no_mes - hoje.day + 1, 1)
+_disponivel   = max(saldo.total_ganhos - saldo.total_gastos, 0)
+_por_dia      = _disponivel / _dias_restantes
+_pct_mes      = min(hoje.day / _dias_no_mes * 100, 100)
+_pct_gasto    = min(saldo.total_gastos / saldo.total_ganhos * 100, 100) if saldo.total_ganhos > 0 else 0
+_n_bud_ok     = sum(1 for b in budgets if saldo.total_gastos <= b.monthly_limit)
+_disp_color   = "var(--moss)" if _disponivel > 0 else "var(--rust)"
+_fill_color   = "var(--moss)" if _pct_gasto <= _pct_mes + 5 else "var(--rust)"
+
+_bud_note = (
+    f'<div style="margin-top:8px;font-size:11px;color:var(--ink-3);font-family:var(--font-sans)">'
+    f'{_n_bud_ok}/{len(budgets)} categorias dentro do orçamento</div>'
+) if budgets else ""
+
+st.markdown(f"""<div class="k-spending-hero">
+  <div style="display:grid;grid-template-columns:1fr auto;gap:24px;align-items:flex-start">
+    <div>
+      <div style="font-family:var(--font-sans);font-size:10px;letter-spacing:0.18em;
+        text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:6px">
+        Plano de gastos · {mes_nome[:3].lower()}
+      </div>
+      <div class="k-spending-amount" style="color:{_disp_color}">{fmt_brl(_disponivel)}</div>
+      <div class="k-spending-rate">{fmt_brl(_por_dia)}/dia · {_dias_restantes}d restantes</div>
+    </div>
+    <div style="text-align:right;min-width:130px">
+      <div style="font-size:9.5px;color:var(--ink-4);letter-spacing:0.14em;text-transform:uppercase;font-weight:600">Renda</div>
+      <div class="mono pos" style="font-size:17px">{fmt_brl(saldo.total_ganhos, compact=True)}</div>
+      <div style="height:1px;background:var(--rule);margin:6px 0"></div>
+      <div style="font-size:9.5px;color:var(--ink-4);letter-spacing:0.14em;text-transform:uppercase;font-weight:600">Gastos</div>
+      <div class="mono neg" style="font-size:17px">{fmt_brl(saldo.total_gastos, compact=True)}</div>
+    </div>
+  </div>
+  <div class="k-spend-track">
+    <div style="position:absolute;height:100%;width:{_pct_mes:.1f}%;
+      background:var(--rule-2);border-radius:var(--radius-pill)"></div>
+    <div style="position:absolute;height:100%;width:{_pct_gasto:.1f}%;
+      background:{_fill_color};border-radius:var(--radius-pill);opacity:0.85"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-top:6px;
+    font-size:10px;font-family:var(--font-sans);color:var(--ink-4)">
+    <span>dia {hoje.day} de {_dias_no_mes}</span>
+    <span class="mono">{_pct_gasto:.0f}% gasto · {_pct_mes:.0f}% do mês decorrido</span>
+  </div>
+  {_bud_note}
 </div>""", unsafe_allow_html=True)
 
 # ── Hero strip ─────────────────────────────────────────────────────────────────
@@ -280,27 +341,19 @@ with col_feed:
   </div>
   <div class="k-feed-list">"""
             for t in txs:
-                is_in = t.type == TransactionType.GANHO
-                icon_map = {
-                    "Alimentação": "◉", "Transporte": "➜", "Saúde": "♥",
-                    "Lazer": "✦", "Moradia": "⌂", "Educação": "✎",
-                    "Investimento": "◈", "Renda": "↗", "Freelance": "⌘", "Outros": "·",
-                }
-                icon = "↗" if is_in else icon_map.get(t.category.value, "·")
-                icon_cls = "in" if is_in else "invest" if t.category.value == "Investimento" else "out"
-                val_cls  = "pos" if is_in else "invest" if t.category.value == "Investimento" else ""
+                is_in    = t.type == TransactionType.GANHO
+                is_inv   = t.category.value == "Investimento"
+                val_cls  = "pos" if is_in else "invest" if is_inv else ""
                 val_sign = "+" if is_in else "−"
-                meta_parts = [
-                    f'<span class="mono" style="font-size:10.5px">{t.date.strftime("%H:%M") if hasattr(t.date, "strftime") else ""}</span>',
-                    f'<span class="dot" style="width:3px;height:3px;background:var(--ink-4);border-radius:50%;display:inline-block"></span>',
-                    f"<span>{t.category.value}</span>",
-                    f'<span class="k-chip" style="padding:1px 6px;font-size:9px">{t.payment_method.value}</span>',
-                ]
-                feed_html += feed_row(
-                    icon=icon, icon_cls=icon_cls,
-                    title=t.notes[:40] if t.notes else t.category.value,
-                    meta=" ".join(meta_parts),
-                    value=f"{val_sign} {fmt_brl(t.amount, compact=True)}",
+                cat      = "Renda" if is_in else t.category.value
+                title    = html.escape(t.notes[:42]) if t.notes else t.category.value
+                pm       = t.payment_method.value.lower().replace("_", " ")
+                meta     = f"{t.category.value} · {pm}"
+                feed_html += tx_row_simplifi(
+                    category=cat,
+                    title=title,
+                    meta=meta,
+                    amount_str=f"{val_sign} {fmt_brl(t.amount, compact=True)}",
                     val_cls=val_cls,
                 )
             feed_html += "</div></div>"
@@ -347,22 +400,70 @@ with col_rail:
         hint="comportamento · 7d", gilt=True,
     ), unsafe_allow_html=True)
 
-    # Patrimônio glance
-    total_str = fmt_brl(total_portfolio + saldo.saldo, compact=True)
+    # ── Accounts rail (Simplifi-style) ────────────────────────────────────────
+    _HEX_RE = __import__("re").compile(r"^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?$")
+
+    def _dot(color: str, fb: str = "var(--brass)") -> str:
+        return color if _HEX_RE.match(color or "") else fb
+
+    acc_rows = ""
+    saldo_total_contas = 0.0
+    for c in contas:
+        bal_color = "var(--moss)" if c.balance >= 0 else "var(--rust)"
+        acc_rows += (
+            f'<div class="k-acc-row">'
+            f'<div class="k-acc-dot" style="background:{_dot(c.color)}"></div>'
+            f'<div style="flex:1;min-width:0">'
+            f'<div class="k-acc-name">{html.escape(c.name)}</div>'
+            f'<div class="k-acc-sub">{html.escape(c.bank or "")} · {c.type.value}</div>'
+            f'</div>'
+            f'<div class="k-acc-val" style="color:{bal_color}">{fmt_brl(c.balance, compact=True)}</div>'
+            f'</div>'
+        )
+        saldo_total_contas += c.balance
+
+    card_rows = ""
+    for cd in cartoes:
+        fatura = cd.fatura_atual([t for t in transacoes if t.card_id == cd.id])
+        disponivel_card = max(cd.limit_total - fatura, 0)
+        pct = (fatura / cd.limit_total * 100) if cd.limit_total > 0 else 0
+        pct_color = "var(--rust)" if pct >= 80 else "var(--lantern)" if pct >= 50 else "var(--ink-3)"
+        card_rows += (
+            f'<div class="k-acc-row">'
+            f'<div class="k-acc-dot" style="background:{_dot(cd.color, "var(--sea)")}"></div>'
+            f'<div style="flex:1;min-width:0">'
+            f'<div class="k-acc-name">{html.escape(cd.name)}</div>'
+            f'<div class="k-acc-sub">fatura {fmt_brl(fatura, compact=True)} · vence dia {cd.due_day}</div>'
+            f'</div>'
+            f'<div class="k-acc-val" style="color:{pct_color}">{fmt_brl(disponivel_card, compact=True)}</div>'
+            f'</div>'
+        )
+
+    all_rows = acc_rows + card_rows
+    patrimonio_total = total_portfolio + saldo_total_contas
+    if all_rows:
+        acc_content = (
+            f'<div style="margin-top:4px">{all_rows}</div>'
+            f'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);'
+            f'display:flex;justify-content:space-between;align-items:center">'
+            f'<span style="font-size:10px;color:var(--ink-4);font-family:var(--font-sans);'
+            f'letter-spacing:0.1em;text-transform:uppercase">Patrimônio total</span>'
+            f'<span class="mono" style="font-size:14px;color:var(--brass)">{fmt_brl(patrimonio_total, compact=True)}</span>'
+            f'</div>'
+        )
+    else:
+        acc_content = (
+            f'<div class="mono" style="font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums">'
+            f'{fmt_brl(patrimonio_total, compact=True)}</div>'
+            f'<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">'
+            f'{chip(f"FII {fmt_brl(total_portfolio, compact=True)}", "brass")}'
+            f'{chip(f"Caixa {caixa_pct:.0f}%", "pos" if caixa_pct >= 20 else "neg")}'
+            f'</div>'
+        )
+
     st.markdown(k_card_with_header(
-        "Patrimônio",
-        f"""<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
-  <div>
-    <div class="mono" style="font-size:26px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums">{total_str}</div>
-    <div class="mono" style="font-size:11px;color:var(--ink-3);margin-top:4px">{len(portfolio)} posições ativas</div>
-  </div>
-</div>
-<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-  {chip(f"FII {fmt_brl(total_portfolio, compact=True)}", "brass")}
-  {chip(f"Caixa {caixa_pct:.0f}%", "pos" if caixa_pct >= 20 else "neg")}
-  {chip(f"Score {score.total}", "pos" if score.total >= 60 else "warn")}
-</div>""",
-        hint="snapshot · ver completo →",
+        "Contas & Cartões", acc_content,
+        hint="saldo disponível →",
     ), unsafe_allow_html=True)
 
     # Parcelamentos

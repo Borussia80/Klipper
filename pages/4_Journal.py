@@ -11,7 +11,7 @@ from core.repositories import DecisionRepository, InvestmentRepository
 from core.auth import require_auth
 from core.styles import (
     inject_css, fmt_brl, k_card_with_header, section_header,
-    sidebar_brand, sidebar_engines, sidebar_user, stat_card, chip,
+    sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav, stat_card, chip,
     load_page_icon,
 )
 from models.decision import DecisionOutcome, DecisionRecord
@@ -26,6 +26,7 @@ inv_repo = InvestmentRepository()
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    sidebar_nav()
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
     sidebar_user()
 
