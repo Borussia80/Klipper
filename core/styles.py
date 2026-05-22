@@ -61,6 +61,29 @@ KLIPPER_CSS = """
   --ease:         cubic-bezier(0.2,0.7,0.2,1);
 }
 
+/* ── Light mode overrides ───────────────────────────────────────────────────── */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:           #F5F0E8;
+    --bg-deep:      #EDE8DF;
+    --bg-2:         #EAE4DA;
+    --surface-1:    rgba(0,0,0,0.03);
+    --surface-2:    rgba(0,0,0,0.055);
+    --surface-3:    rgba(0,0,0,0.085);
+    --surface-tint: rgba(180,140,70,0.05);
+    --ink:          #1C160E;
+    --ink-2:        #3A3028;
+    --ink-3:        #6A5F52;
+    --ink-4:        #9B9185;
+    --rule:         rgba(0,0,0,0.07);
+    --rule-2:       rgba(0,0,0,0.12);
+    --rule-brass:   rgba(180,140,70,0.25);
+    --shadow-1:     0 1px 0 rgba(255,255,255,0.70) inset, 0 4px 14px rgba(0,0,0,0.10);
+    --shadow-2:     0 1px 0 rgba(255,255,255,0.60) inset, 0 8px 28px rgba(0,0,0,0.14);
+    --glow-brass:   0 0 0 1px rgba(180,140,70,0.20), 0 0 24px rgba(180,140,70,0.08);
+  }
+}
+
 @keyframes k-fade-up {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
