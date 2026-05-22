@@ -758,7 +758,10 @@ def sidebar_nav() -> None:
         ("pages/5_AI_Consilium.py", "∞",  "AI Consilium"),
     ]
     for path, icon, label in pages:
-        st.page_link(path, label=f"{icon}  {label}")
+        try:
+            st.page_link(path, label=f"{icon}  {label}")
+        except Exception:
+            pass
 
 
 def tx_row_simplifi(
