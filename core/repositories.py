@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 from models.transaction import Category, Transaction, TransactionType, PaymentMethod, TransactionStatus
@@ -17,11 +18,16 @@ from .database import get_client
 log = logging.getLogger(__name__)
 
 
+def _to_db(data: dict) -> dict:
+    """Converte Decimal → str para serialização JSON do cliente Supabase."""
+    return {k: str(v) if isinstance(v, Decimal) else v for k, v in data.items()}
+
+
 class TransactionRepository:
     TABLE = "transactions"
 
     def create(self, tx: Transaction) -> Transaction:
-        data = tx.model_dump()
+        data = _to_db(tx.model_dump())
         data["date"] = data["date"].isoformat()
         data["type"] = data["type"].value
         data["category"] = data["category"].value
@@ -100,7 +106,7 @@ class InvestmentRepository:
     TABLE = "investments"
 
     def upsert(self, inv: Investment) -> Investment:
-        data = inv.model_dump()
+        data = _to_db(inv.model_dump())
         data["type"] = data["type"].value
         try:
             get_client().table(self.TABLE).upsert(data, on_conflict="ticker").execute()
@@ -148,7 +154,7 @@ class DecisionRepository:
     TABLE = "decisions"
 
     def create(self, rec: DecisionRecord) -> DecisionRecord:
-        data = rec.model_dump()
+        data = _to_db(rec.model_dump())
         data["date"] = data["date"].isoformat()
         if data["outcome"]:
             data["outcome"] = data["outcome"].value
@@ -160,7 +166,7 @@ class DecisionRepository:
         return rec
 
     def update(self, rec: DecisionRecord) -> DecisionRecord:
-        data = rec.model_dump()
+        data = _to_db(rec.model_dump())
         data["date"] = data["date"].isoformat()
         if data["outcome"]:
             data["outcome"] = data["outcome"].value
@@ -211,7 +217,7 @@ class BankAccountRepository:
     TABLE = "bank_accounts"
 
     def create(self, account: BankAccount) -> BankAccount:
-        data = account.model_dump()
+        data = _to_db(account.model_dump())
         data["type"] = data["type"].value
         try:
             get_client().table(self.TABLE).insert(data).execute()
@@ -267,7 +273,7 @@ class CreditCardRepository:
     TABLE = "credit_cards"
 
     def create(self, card: CreditCard) -> CreditCard:
-        data = card.model_dump()
+        data = _to_db(card.model_dump())
         try:
             get_client().table(self.TABLE).insert(data).execute()
         except Exception as e:
@@ -314,7 +320,7 @@ class InstallmentRepository:
     TABLE = "installments"
 
     def create(self, inst: Installment) -> Installment:
-        data = inst.model_dump()
+        data = _to_db(inst.model_dump())
         data["start_date"] = data["start_date"].isoformat()
         try:
             get_client().table(self.TABLE).insert(data).execute()
@@ -367,7 +373,7 @@ class BudgetRepository:
     TABLE = "budgets"
 
     def upsert(self, budget: Budget) -> Budget:
-        data = budget.model_dump()
+        data = _to_db(budget.model_dump())
         try:
             get_client().table(self.TABLE).upsert(
                 data, on_conflict="category,year,month"
