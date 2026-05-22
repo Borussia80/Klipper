@@ -1,9 +1,8 @@
 """
 TDD — Jornada do Usuário: Abertura de Conta → Relatório Semanal
 
-RED phase: todos os testes falham porque core/weekly_report.py ainda não existe.
-Cada teste é independente (F.I.R.S.T.-I): cria seus próprios dados, sem estado
-compartilhado entre testes.
+Cada teste é independente (F.I.R.S.T.-I): cria seus próprios dados via
+scenario_builders, sem estado compartilhado entre testes.
 """
 from __future__ import annotations
 
@@ -11,9 +10,7 @@ from datetime import date, datetime
 
 import pytest
 
-from models.transaction import Transaction, TransactionType, Category, PaymentMethod, TransactionStatus
-from models.budget import Budget
-from models.installment import Installment
+from models.transaction import Category
 from core.weekly_report import (
     gerar_relatorio_semanal,
     dados_grafico_tendencia,
@@ -26,107 +23,15 @@ from core.weekly_report import (
     ChartSeries,
     ChartData,
 )
-
-
-# ── Helpers de construção de dados ───────────────────────────────────────────
-
-def _tx(
-    d: date,
-    amount: float,
-    type_: TransactionType,
-    cat: Category,
-    *,
-    notes: str = "",
-    method: PaymentMethod = PaymentMethod.PIX,
-    status: TransactionStatus = TransactionStatus.PAGO,
-) -> Transaction:
-    return Transaction(
-        date=d,
-        amount=amount,
-        type=type_,
-        category=cat,
-        notes=notes,
-        payment_method=method,
-        status=status,
-    )
-
-
-def _ganho(d: date, amount: float, cat: Category = Category.RENDA) -> Transaction:
-    return _tx(d, amount, TransactionType.GANHO, cat)
-
-
-def _gasto(d: date, amount: float, cat: Category, **kw) -> Transaction:
-    return _tx(d, amount, TransactionType.GASTO, cat, **kw)
-
-
-def _budget(cat: Category, limite: float, ano: int = 2026, mes: int = 5) -> Budget:
-    return Budget(category=cat.value, monthly_limit=limite, year=ano, month=mes)
-
-
-def _installment(desc: str, total: float, n: int, start: date) -> Installment:
-    return Installment(description=desc, total_amount=total, n_total=n, start_date=start)
-
-
-# ── Fixture: cenário base realista ─────────────────────────────────────────
-#
-# Roberto · R$ 12.000/mês · maio 2026
-# Histórico: fev-abr para tendência e alertas
-# Parcelamentos: Notebook 12×R$350, TV 6×R$200
-
-
-def _build_historico() -> list[Transaction]:
-    """Três meses de histórico (fev/mar/abr) para alimentar tendências e alertas."""
-    txs: list[Transaction] = []
-    for mes, sal in [(2, 12_000), (3, 12_000), (4, 12_000)]:
-        txs += [
-            _ganho(date(2026, mes, 5), sal),
-            _gasto(date(2026, mes, 5),  2_000.0, Category.MORADIA),
-            _gasto(date(2026, mes, 10),   800.0, Category.ALIMENTACAO),
-            _gasto(date(2026, mes, 12),   300.0, Category.TRANSPORTE),
-            _gasto(date(2026, mes, 15),   200.0, Category.SAUDE),
-            _gasto(date(2026, mes, 20),   250.0, Category.LAZER),
-        ]
-    return txs
-
-
-def _build_maio() -> list[Transaction]:
-    """Transações de maio/2026: inclui estouro em Alimentação."""
-    return [
-        # Semana 1
-        _ganho(date(2026, 5, 5), 12_000.0),
-        _gasto(date(2026, 5, 5),   2_000.0, Category.MORADIA),
-        _gasto(date(2026, 5, 7),     850.0, Category.ALIMENTACAO),
-        _gasto(date(2026, 5, 7),     200.0, Category.TRANSPORTE),
-        # Semana 2
-        _gasto(date(2026, 5, 10),    400.0, Category.ALIMENTACAO),
-        _gasto(date(2026, 5, 12),    350.0, Category.SAUDE),
-        _gasto(date(2026, 5, 14),    150.0, Category.OUTROS),
-        # Semana 3
-        _gasto(date(2026, 5, 18),    600.0, Category.ALIMENTACAO),
-        _gasto(date(2026, 5, 20),    500.0, Category.LAZER),
-        # Semana 4
-        _gasto(date(2026, 5, 25),    180.0, Category.MORADIA),
-        _gasto(date(2026, 5, 28),    250.0, Category.TRANSPORTE),
-        # Investimento do mês
-        _gasto(date(2026, 5, 10), 2_000.0, Category.INVESTIMENTO),
-    ]
-
-
-def _build_parcelas() -> list[Installment]:
-    return [
-        _installment("Notebook Dell", 4_200.0, 12, date(2026, 1, 1)),
-        _installment("Smart TV Samsung", 1_200.0,  6, date(2026, 2, 1)),
-    ]
-
-
-def _build_budgets() -> list[Budget]:
-    return [
-        _budget(Category.MORADIA,      2_200.0),
-        _budget(Category.ALIMENTACAO,  1_200.0),  # vai estourar (total ~1850)
-        _budget(Category.TRANSPORTE,     500.0),
-        _budget(Category.SAUDE,          400.0),
-        _budget(Category.LAZER,          400.0),   # vai alertar (500 > 400)
-    ]
+from tests.jornada_usuario.scenario_builders import (
+    ganho as _ganho,
+    gasto as _gasto,
+    budget as _budget,
+    build_historico as _build_historico,
+    build_maio as _build_maio,
+    build_parcelas as _build_parcelas,
+    build_budgets as _build_budgets,
+)
 
 
 # ── Fase 1: Saldo Mensal e KPIs do Dashboard ──────────────────────────────
