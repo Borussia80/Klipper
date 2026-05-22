@@ -13,6 +13,7 @@ from core.behavioral import calcular_score_financeiro, detectar_alertas_padrao
 from core.installment_engine import calcular_comprometimento_mensal
 from core.m2_governance import verificar_limites, hard_fail, CAIXA_MIN_PCT
 import html
+import re
 
 from core.repositories import (
     InvestmentRepository, TransactionRepository,
@@ -401,7 +402,7 @@ with col_rail:
     ), unsafe_allow_html=True)
 
     # ── Accounts rail (Simplifi-style) ────────────────────────────────────────
-    _HEX_RE = __import__("re").compile(r"^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?$")
+    _HEX_RE = re.compile(r"^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?$")
 
     def _dot(color: str, fb: str = "var(--brass)") -> str:
         return color if _HEX_RE.match(color or "") else fb
