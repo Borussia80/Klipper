@@ -47,15 +47,17 @@ class TestFallbackBehavior:
         assert q is None
 
     def test_circuit_aberto_usa_fallback_sem_chamar_api(self, svc, cache):
+        # 1. Prime the _fallback store for VALE3
         with patch("core.market_data._yf_batch", return_value={"VALE3.SA": _stock_raw(67.0)}):
             svc.get_stock("VALE3")
         cache.invalidate("stock:VALE3")
 
-        svc._cb_yf.reset()
-        for _ in range(5):
-            with pytest.raises(RuntimeError):
-                svc._cb_yf.call(MagicMock(side_effect=RuntimeError("x")))
+        # 2. Open the circuit via 5 consecutive public-API failures (failure_threshold=5)
+        with patch("core.market_data._yf_batch", side_effect=RuntimeError("x")):
+            for i in range(5):
+                svc.get_stock(f"OPEN_CB_{i:04d}")
 
+        # 3. Circuit is OPEN — must serve fallback without calling yfinance
         fetch_mock = MagicMock()
         with patch("core.market_data._yf_batch", fetch_mock):
             q = svc.get_stock("VALE3")
@@ -64,19 +66,23 @@ class TestFallbackBehavior:
         assert q is not None
         assert q.is_fallback is True
 
-    def test_tesouro_usa_fallback_quando_circuit_aberto(self, svc):
+    def test_tesouro_usa_fallback_quando_circuit_aberto(self, svc, cache):
         raw = [{"TrsrBd": {
             "nm": "Tesouro Selic 2029", "anulInvstmtRate": "12.0",
             "untrInvstmtVal": "14000.0", "mtrtyDt": "2029-03-01T00:00:00",
             "minInvstmtAmt": "40.0",
         }}]
+        # 1. Prime the _fallback store
         with patch("core.market_data._fetch_tesouro_raw", return_value=raw):
             svc.get_tesouro_bonds()
+        cache.invalidate("tesouro:bonds")
 
-        for _ in range(3):
-            with pytest.raises(RuntimeError):
-                svc._cb_tesouro.call(MagicMock(side_effect=RuntimeError("timeout")))
+        # 2. Open the circuit via 3 consecutive failures (failure_threshold=3)
+        with patch("core.market_data._fetch_tesouro_raw", side_effect=RuntimeError("timeout")):
+            for _ in range(3):
+                svc.get_tesouro_bonds()
 
+        # 3. Circuit is OPEN — must serve _fallback store
         bonds = svc.get_tesouro_bonds()
         assert len(bonds) == 1
         assert bonds[0].name == "Tesouro Selic 2029"

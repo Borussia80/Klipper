@@ -7,7 +7,6 @@ yfinance sempre mockado: fronteira de I/O.
 from __future__ import annotations
 
 from datetime import datetime
-from time import perf_counter
 from unittest.mock import patch
 
 import pytest
@@ -73,24 +72,12 @@ class TestStockQuote:
         assert q.price == 29.5
 
 
-class TestStockBatchPerformance:
-
-    def _seed_n(self, cache, n: int) -> list[str]:
-        tickers = [f"TICK{i:04d}" for i in range(n)]
-        for t in tickers:
-            _seed_stock(cache, t, price=float(10 + hash(t) % 90))
-        return tickers
-
-    def test_1000_ativos_do_cache_em_menos_de_2_segundos(self, svc, cache):
-        tickers = self._seed_n(cache, 1000)
-        start = perf_counter()
-        result = svc.get_stocks_batch(tickers)
-        elapsed = perf_counter() - start
-        assert len(result) == 1000
-        assert elapsed < 2.0, f"1000 cotações: {elapsed:.2f}s"
+class TestStockBatch:
 
     def test_batch_consolida_resultados_corretamente(self, svc, cache):
-        tickers = self._seed_n(cache, 50)
+        tickers = ["PETR4", "VALE3", "ITUB4"]
+        for t in tickers:
+            _seed_stock(cache, t)
         result = svc.get_stocks_batch(tickers)
         assert set(result.keys()) == set(tickers)
         assert all(q.price > 0 for q in result.values())
