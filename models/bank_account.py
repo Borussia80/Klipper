@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
@@ -15,13 +16,13 @@ class BankAccount(BaseModel):
     name: str
     bank: str = ""
     type: AccountType = AccountType.CORRENTE
-    balance: float = 0.0
+    balance: Decimal = Decimal("0")
     color: str = "#6366F1"
     is_active: bool = True
 
     @field_validator("balance")
     @classmethod
-    def balance_two_decimals(cls, v: float) -> float:
+    def balance_two_decimals(cls, v: Decimal) -> Decimal:
         return round(v, 2)
 
     @field_validator("name")

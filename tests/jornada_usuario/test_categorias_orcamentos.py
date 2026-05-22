@@ -4,6 +4,7 @@ Top Categorias, Orçamentos vs. Real e Alertas Comportamentais.
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 import pytest
 
@@ -69,7 +70,7 @@ class TestOrcamentosVsReal:
         r = self._relatorio()
         alim = next(o for o in r.orcamentos if o.category == "Alimentação")
         # Gasto: 850+400+600=1850 > limite 1200
-        assert alim.gasto == pytest.approx(1_850.0)
+        assert alim.gasto == Decimal("1850")
         assert alim.status == "ESTOURO"
 
     def test_moradia_dentro_do_limite(self):

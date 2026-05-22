@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 from datetime import date
+from decimal import Decimal
 
 from models.transaction import Transaction, TransactionType, Category
 from models.budget import Budget
@@ -145,16 +146,16 @@ class TestCalcularUsoOrcamento:
         budgets = [_budget("Alimentação", 1000)]
         status = calcular_uso_orcamento(txs, budgets)
         assert status[0].status == "ESTOURO"
-        assert status[0].pct == pytest.approx(120.0)
+        assert status[0].pct == 120.0
 
     def test_sem_gastos_na_categoria(self):
         budgets = [_budget("Lazer", 500)]
         status = calcular_uso_orcamento([], budgets)
-        assert status[0].gasto == 0.0
+        assert status[0].gasto == Decimal("0")
         assert status[0].pct == 0.0
 
     def test_ganhos_ignorados_no_orcamento(self):
         txs = [_ganho(1000), _gasto("Outros", 200)]
         budgets = [_budget("Outros", 500)]
         status = calcular_uso_orcamento(txs, budgets)
-        assert status[0].gasto == 200.0
+        assert status[0].gasto == Decimal("200")

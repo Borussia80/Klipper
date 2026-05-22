@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 from datetime import date
+from decimal import Decimal
 
 from models.installment import Installment
 from models.transaction import TransactionStatus, TransactionType
@@ -40,13 +41,13 @@ class TestGerarParcelas:
         inst = _inst(n_total=3, valor=300.0)
         parcelas = gerar_parcelas(inst)
         for p in parcelas:
-            assert p.amount == pytest.approx(100.0)
+            assert p.amount == Decimal("100")
 
     def test_centavos_sao_preservados_no_total_contratado(self):
         inst = _inst(n_total=3, valor=100.0)
         parcelas = gerar_parcelas(inst)
-        assert [p.amount for p in parcelas] == [33.33, 33.33, 33.34]
-        assert sum(p.amount for p in parcelas) == pytest.approx(100.0)
+        assert [p.amount for p in parcelas] == [Decimal("33.33"), Decimal("33.33"), Decimal("33.34")]
+        assert sum((p.amount for p in parcelas), Decimal(0)) == Decimal("100")
 
     def test_parcelas_passadas_sao_pagas(self):
         inst = _inst(n_total=4, start=_PAST_START)
@@ -102,7 +103,7 @@ class TestCalcularComprometimentoMensal:
         result = calcular_comprometimento_mensal([inst])
         assert len(result) == 3
         for v in result.values():
-            assert v == pytest.approx(200.0)
+            assert v == Decimal("200")
 
     def test_installment_inativo_ignorado(self):
         inst = Installment(
@@ -126,7 +127,7 @@ class TestCalcularComprometimentoMensal:
     def test_comprometimento_preserva_centavos_por_mes(self):
         inst = _inst(n_total=3, start=_FUTURE_START, valor=100.0)
         result = calcular_comprometimento_mensal([inst])
-        assert list(result.values()) == [33.33, 33.33, 33.34]
+        assert list(result.values()) == [Decimal("33.33"), Decimal("33.33"), Decimal("33.34")]
 
     def test_comprometimento_mensal_soma_correta(self):
         """Todos os 12 meses de 2030 são futuros — comprometimento uniforme."""
@@ -139,4 +140,4 @@ class TestCalcularComprometimentoMensal:
         comp = calcular_comprometimento_mensal([inst])
         assert len(comp) == 12
         for v in comp.values():
-            assert v == pytest.approx(100.0)
+            assert v == Decimal("100")

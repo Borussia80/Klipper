@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal
 
 import pytest
 
@@ -90,25 +91,25 @@ class TestReimbursementRequest:
 
     def test_gap_pendente_e_valor_total(self):
         req = self._req(status=ReimbursementStatus.PENDENTE)
-        assert req.gap == pytest.approx(500.0)
+        assert req.gap == Decimal("500")
 
     def test_gap_parcial_e_diferenca(self):
         req = self._req(
             status=ReimbursementStatus.PARCIAL,
             amount_received=350.0,
         )
-        assert req.gap == pytest.approx(150.0)
+        assert req.gap == Decimal("150")
 
     def test_gap_reembolsado_e_zero(self):
         req = self._req(
             status=ReimbursementStatus.REEMBOLSADO,
             amount_received=500.0,
         )
-        assert req.gap == pytest.approx(0.0)
+        assert req.gap == Decimal("0")
 
     def test_gap_negado_e_valor_total(self):
         req = self._req(status=ReimbursementStatus.NEGADO)
-        assert req.gap == pytest.approx(500.0)
+        assert req.gap == Decimal("500")
 
     def test_status_padrao_e_pendente(self):
         req = self._req()
@@ -128,4 +129,4 @@ class TestReimbursementRequest:
             amount_received=33.33,
             status=ReimbursementStatus.PARCIAL,
         )
-        assert req.gap == pytest.approx(66.67)
+        assert req.gap == Decimal("66.67")

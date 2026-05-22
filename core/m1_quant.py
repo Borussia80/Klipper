@@ -30,6 +30,8 @@ def calcular_score_m1(
     DY alto exige validação de risco (Anti-BS).
     P/VP sozinho não valida ativo (M2).
     """
+    # Scoring engine — inputs may arrive as Decimal from models; convert at boundary.
+    liquidez = float(liquidez)
     score_dy = min(dy / 15.0, 1.0)                      # 15% DY = score máximo
     score_pvp = max(0.0, min(1.0, (1.2 - pvp) / 0.7))  # P/VP < 0.5 = máximo, > 1.2 = zero
     score_liq = min(liquidez / 1_000_000, 1.0)           # R$1M diário = máximo

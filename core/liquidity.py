@@ -47,7 +47,7 @@ def calculate_emergency_reserve(
         LiquidityBucket.TRAVADA: 0.0,
     }
     for inv in investments:
-        totals[classify_liquidity(inv)] += inv.current_value
+        totals[classify_liquidity(inv)] += float(inv.current_value)
 
     immediate = round(totals[LiquidityBucket.IMEDIATA], 2)
     short_term = round(totals[LiquidityBucket.CURTA], 2)

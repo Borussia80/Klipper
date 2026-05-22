@@ -7,6 +7,7 @@ e gerando o relatório de maio com todas as seções preenchidas.
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 
 import pytest
 
@@ -93,5 +94,5 @@ class TestJornadaCompletaSemanaASemana:
         """Ganhos de fev-mai são todos 12k — linha plana esperada."""
         t = relatorio_maio.tendencias
         ganhos = [m.ganhos for m in t]
-        # Todos devem ser ≈ 12000 (fev-mai mesma renda)
-        assert all(g == pytest.approx(12_000.0) for g in ganhos)
+        # Todos devem ser 12000 (fev-mai mesma renda)
+        assert all(g == Decimal("12000") for g in ganhos)

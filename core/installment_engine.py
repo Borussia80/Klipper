@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date as Date
+from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 
@@ -33,10 +34,10 @@ def gerar_parcelas(inst: Installment) -> list[Transaction]:
     return txs
 
 
-def calcular_comprometimento_mensal(installments: list[Installment]) -> dict[str, float]:
+def calcular_comprometimento_mensal(installments: list[Installment]) -> dict[str, Decimal]:
     """Returns monthly total commitment for active installments (key: YYYY-MM)."""
     hoje = Date.today()
-    comprometimento: dict[str, float] = {}
+    comprometimento: dict[str, Decimal] = {}
     for inst in installments:
         if not inst.is_active:
             continue
@@ -44,9 +45,7 @@ def calcular_comprometimento_mensal(installments: list[Installment]) -> dict[str
             due = inst.start_date + relativedelta(months=i)
             if due >= hoje:
                 key = due.strftime("%Y-%m")
-                comprometimento[key] = round(
-                    comprometimento.get(key, 0.0) + inst.amount_for_installment(i), 2
-                )
+                comprometimento[key] = comprometimento.get(key, Decimal(0)) + inst.amount_for_installment(i)
     return dict(sorted(comprometimento.items()))
 
 

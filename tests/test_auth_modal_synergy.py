@@ -115,6 +115,29 @@ class TestIsAuthenticated:
         assert _is_authenticated() is False
 
 
+class TestE2EAuthBypass:
+
+    def test_bypass_desligado_por_padrao(self, monkeypatch):
+        from core.auth import _e2e_auth_enabled
+        monkeypatch.delenv("KLIPPER_E2E_AUTH", raising=False)
+        assert _e2e_auth_enabled() is False
+
+    def test_bypass_ativo_somente_com_flag_explicita(self, monkeypatch):
+        from core.auth import _e2e_auth_enabled
+        monkeypatch.setenv("KLIPPER_E2E_AUTH", "1")
+        assert _e2e_auth_enabled() is True
+
+    def test_bypass_popula_usuario_de_teste(self, session, monkeypatch):
+        from core.auth import _ensure_e2e_auth_user
+        monkeypatch.setenv("KLIPPER_E2E_AUTH", "1")
+        assert _ensure_e2e_auth_user() is True
+        assert session["auth_user"] == {
+            "id": "e2e-user",
+            "email": "e2e@klipper.local",
+        }
+        assert "auth_mfa_step" not in session
+
+
 # ── cancel_totp_enrollment ────────────────────────────────────────────────────
 
 class TestCancelTotpEnrollment:

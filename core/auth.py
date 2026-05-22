@@ -36,7 +36,7 @@ def require_auth() -> None:
     renderiza formulário de login na área principal e interrompe (st.stop()).
     Se autenticado: retorna imediatamente.
     """
-    if _is_authenticated():
+    if _ensure_e2e_auth_user() or _is_authenticated():
         return
 
     if st.session_state.get("auth_mfa_step") == "verify":
@@ -48,6 +48,23 @@ def require_auth() -> None:
 
 def _is_authenticated() -> bool:
     return bool(st.session_state.get("auth_user")) and not st.session_state.get("auth_mfa_step")
+
+
+def _e2e_auth_enabled() -> bool:
+    return os.environ.get("KLIPPER_E2E_AUTH") == "1"
+
+
+def _ensure_e2e_auth_user() -> bool:
+    if not _e2e_auth_enabled():
+        return False
+    st.session_state["auth_user"] = {
+        "id": "e2e-user",
+        "email": "e2e@klipper.local",
+    }
+    st.session_state.pop("auth_mfa_step", None)
+    st.session_state.pop("auth_factor_id", None)
+    st.session_state.pop("auth_challenge_id", None)
+    return True
 
 
 # ── Login ──────────────────────────────────────────────────────────────────────
@@ -68,7 +85,6 @@ def _login_container() -> None:
 
     st.markdown(f"""
 <style>
-section[data-testid="stSidebar"] {{ display:none !important; }}
 [data-testid="stMainBlockContainer"] {{
   max-width:none !important;
   padding:0 !important;
@@ -181,7 +197,6 @@ def _do_login(email: str, password: str) -> None:
 def _render_totp_verify() -> None:
     st.markdown("""
 <style>
-section[data-testid="stSidebar"] { display:none !important; }
 [data-testid="stMainBlockContainer"] { max-width:460px !important; padding-top:96px !important; }
 </style>
 <div class="k-auth-mfa">

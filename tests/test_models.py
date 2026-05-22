@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 from datetime import date
+from decimal import Decimal
 
 from models.transaction import Category, Transaction, TransactionType, PaymentMethod, TransactionStatus
 from models.investment import Investment, InvestmentType
@@ -129,7 +130,7 @@ class TestBankAccount:
 
     def test_saldo_arredondado(self):
         acc = BankAccount(name="Conta", balance=100.555)
-        assert acc.balance == 100.56
+        assert acc.balance == Decimal("100.56")
 
     def test_tipo_default_corrente(self):
         acc = BankAccount(name="Conta")
@@ -176,7 +177,7 @@ class TestInstallment:
     def test_cria_parcelamento_valido(self):
         inst = self._make()
         assert inst.n_total == 12
-        assert inst.installment_amount == pytest.approx(200.0)
+        assert inst.installment_amount == Decimal("200")
 
     def test_valor_negativo_invalido(self):
         with pytest.raises(ValueError, match="positivo"):
@@ -196,11 +197,11 @@ class TestInstallment:
 
     def test_total_remaining(self):
         inst = self._make(total_amount=1200.0, n_total=12, n_paid=4)
-        assert inst.total_remaining == pytest.approx(800.0, abs=0.01)
+        assert inst.total_remaining == Decimal("800")
 
     def test_total_remaining_preserva_centavos(self):
         inst = self._make(total_amount=100.0, n_total=3, n_paid=2)
-        assert inst.total_remaining == pytest.approx(33.34)
+        assert inst.total_remaining == Decimal("33.34")
 
     def test_n_paid_nao_pode_exceder_n_total(self):
         with pytest.raises(ValueError):
@@ -208,7 +209,7 @@ class TestInstallment:
 
     def test_installment_amount_calculado(self):
         inst = self._make(total_amount=1200.0, n_total=4)
-        assert inst.installment_amount == pytest.approx(300.0)
+        assert inst.installment_amount == Decimal("300")
 
 
 class TestBudget:

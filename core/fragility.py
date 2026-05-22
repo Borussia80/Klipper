@@ -32,8 +32,8 @@ def calcular_fragility_score(
 
     Parâmetros subjetivos (0.0–1.0) devem ser estimados pelo usuário.
     """
-    # Liquidez: baixa liquidez = alta fragilidade
-    score_liquidez = max(0.0, 1.0 - inv.liquidity_daily / 1_000_000)
+    # Scoring engine — liquidity_daily may be Decimal; convert at boundary.
+    score_liquidez = max(0.0, 1.0 - float(inv.liquidity_daily) / 1_000_000)
 
     # Concentração no portfólio
     score_concentracao = min(peso_portfolio_pct / 10.0, 1.0)
