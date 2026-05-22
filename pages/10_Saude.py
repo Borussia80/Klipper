@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html as _html
 from datetime import date
+from decimal import Decimal
 
 import streamlit as st
 
@@ -57,7 +58,7 @@ def _prof_label(pid: str) -> str:
 # ── KPIs ───────────────────────────────────────────────────────────────────────
 total_pago_ano   = sum(s.amount_paid for s in sessoes_ano)
 total_reembolsado = sum(
-    (r.amount_received or 0.0)
+    (r.amount_received or Decimal(0))
     for r in solicitacoes
     if r.status in (ReimbursementStatus.REEMBOLSADO, ReimbursementStatus.PARCIAL)
 )

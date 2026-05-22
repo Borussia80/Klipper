@@ -5,6 +5,7 @@ from __future__ import annotations
 import calendar
 from collections import defaultdict
 from datetime import date
+from decimal import Decimal
 import html
 import re
 
@@ -241,7 +242,7 @@ with content_col:
                 st.markdown(k_card_with_header("Fatura", fatura_html), unsafe_allow_html=True)
 
                 # Health card
-                by_cat: dict[str, float] = defaultdict(float)
+                by_cat: dict[str, Decimal] = defaultdict(lambda: Decimal(0))
                 for t in card_txs:
                     by_cat[t.category.value] += t.amount
                 top_cat = max(by_cat, key=by_cat.get) if by_cat else "—"

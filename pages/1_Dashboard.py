@@ -5,6 +5,7 @@ from __future__ import annotations
 import calendar
 from collections import defaultdict
 from datetime import date
+from decimal import Decimal
 
 import plotly.express as px
 import streamlit as st
@@ -498,7 +499,7 @@ with content_col:
             return color if _HEX_RE.match(color or "") else fb
 
         acc_rows = ""
-        saldo_total_contas = 0.0
+        saldo_total_contas = Decimal(0)
         for c in contas:
             bal_color = "var(--moss)" if c.balance >= 0 else "var(--rust)"
             acc_rows += (
