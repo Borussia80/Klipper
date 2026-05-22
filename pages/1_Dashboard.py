@@ -25,7 +25,7 @@ from core.styles import (
     inject_css, fmt_brl, fmt_pct, kicker, k_card, k_card_with_header,
     stat_card, feed_row, mood_chip, chip, bar_track, section_header,
     sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav,
-    tx_row_simplifi, CAT_COLORS, load_page_icon,
+    tx_row_simplifi, CAT_COLORS, load_page_icon, sidebar_ai_qa,
 )
 from models.transaction import TransactionType
 
@@ -87,6 +87,20 @@ score = calcular_score_financeiro(
     caixa_pct=caixa_pct, transacoes_3_meses=transacoes_3m,
 )
 
+alertas_pad = detectar_alertas_padrao(transacoes, transacoes_3m) if transacoes_3m else []
+
+# ── AI context — built once, shared across sidebar + rail ─────────────────
+from core.financial_ai import build_financial_context
+_ai_ctx = build_financial_context(
+    ano, mes,
+    saldo=saldo,
+    score=score,
+    alertas_padrao=alertas_pad,
+    top_categorias=calcular_top_categorias(transacoes),
+    contas=contas,
+    parcelas_ativas=[i for i in installments if i.is_active],
+)
+
 # Sidebar content
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
@@ -109,10 +123,10 @@ with st.sidebar:
     st.markdown(snap_html, unsafe_allow_html=True)
     st.markdown(sidebar_engines(violations=violations), unsafe_allow_html=True)
     sidebar_user()
+    sidebar_ai_qa(ctx=_ai_ctx)
 
 # ── Anti-BS narrative ──────────────────────────────────────────────────────────
-alertas_pad = detectar_alertas_padrao(transacoes, transacoes_3m) if transacoes_3m else []
-impulsos    = [a for a in alertas_pad]
+impulsos = alertas_pad[:]
 
 antiBs_text = ""
 if impulsos:
@@ -123,21 +137,50 @@ elif saldo.taxa_poupanca >= 20:
 else:
     antiBs_text = "Taxa de poupança abaixo de 20%. Reforce caixa antes de novos aportes."
 
-# ── Topbar ─────────────────────────────────────────────────────────────────────
+# ── Operating cockpit header ───────────────────────────────────────────────────
 mes_nome = calendar.month_name[mes].capitalize()
 dia_semana = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"][hoje.weekday()]
-st.markdown(f"""<div style="display:flex;align-items:flex-start;justify-content:space-between;
-  margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--rule)">
-  <div>
-    <div style="font-family:var(--font-sans);font-size:22px;font-weight:600;color:var(--ink)">Home</div>
-    <div style="font-family:var(--font-sans);font-size:11px;letter-spacing:0.10em;
-      text-transform:uppercase;color:var(--ink-3);margin-top:2px">{dia_semana}, {hoje.day} {mes_nome[:3].lower()}</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px;font-family:var(--font-mono);
-    font-size:11px;color:var(--ink-3)">
-    <span style="width:5px;height:5px;border-radius:50%;background:var(--brass);
-      box-shadow:0 0 8px var(--brass-glow);display:inline-block"></span>
-    22°54′S · 43°10′W · {hoje.strftime("%d/%m/%Y")}
+_posture = (
+    "estável" if score.total >= 80 else
+    "controlada" if score.total >= 60 else
+    "em atenção" if score.total >= 40 else "sob tensão"
+)
+_posture_tone = "pos" if score.total >= 80 else "brass-c" if score.total >= 60 else "warn" if score.total >= 40 else "neg"
+_brief_main = antiBs_text
+_brief_budget = (
+    f"{alertas_pad[0].category} está {alertas_pad[0].ratio:.1f}x acima da média recente."
+    if alertas_pad else
+    "Sem desvio comportamental relevante nos últimos ciclos."
+)
+_brief_commitment = (
+    f"Compromissos futuros somam {fmt_brl(comp_mes, compact=True)} neste mês."
+    if comp_mes > 0 else
+    "Sem pressão relevante de parcelamentos neste mês."
+)
+
+st.markdown(f"""<div class="k-operating-hero">
+  <div class="k-operating-grid">
+    <div>
+      <div class="k-auth-kicker">Operating position · {dia_semana}, {hoje.day} {mes_nome[:3].lower()}</div>
+      <div class="k-operating-title">Sua posição financeira está <span class="{_posture_tone}">{_posture}</span>.</div>
+      <p class="k-operating-copy">
+        {_brief_main} O cockpit abaixo resume liquidez, disciplina e compromissos para decisões sem ruído.
+      </p>
+    </div>
+    <div class="k-operating-signals">
+      <div class="k-signal">
+        <div class="k-signal-label">Poupança</div>
+        <div class="k-signal-value {'pos' if saldo.taxa_poupanca >= 20 else 'neg'}">{fmt_pct(saldo.taxa_poupanca)}</div>
+      </div>
+      <div class="k-signal">
+        <div class="k-signal-label">Caixa M2</div>
+        <div class="k-signal-value {'pos' if caixa_pct >= CAIXA_MIN_PCT else 'warn'}">{caixa_pct:.0f}%</div>
+      </div>
+      <div class="k-signal">
+        <div class="k-signal-label">Score</div>
+        <div class="k-signal-value {_posture_tone}">{score.total}/100</div>
+      </div>
+    </div>
   </div>
 </div>""", unsafe_allow_html=True)
 
@@ -381,6 +424,28 @@ with col_rail:
     if not insights:
         insights.append(("◉", "pos", "Tudo dentro do esperado", "Sem alertas no período"))
 
+    brief_rows = f"""<div class="k-decision-brief">
+  <div class="k-brief-item"><div class="k-brief-dot"></div><div>
+    <div class="k-brief-title">Disciplina operacional</div>
+    <div class="k-brief-copy">{_brief_main}</div>
+  </div></div>
+  <div class="k-brief-item"><div class="k-brief-dot"></div><div>
+    <div class="k-brief-title">Comportamento de gastos</div>
+    <div class="k-brief-copy">{_brief_budget}</div>
+  </div></div>
+  <div class="k-brief-item"><div class="k-brief-dot"></div><div>
+    <div class="k-brief-title">Compromissos futuros</div>
+    <div class="k-brief-copy">{_brief_commitment}</div>
+  </div></div>
+</div>"""
+
+    st.markdown(k_card_with_header(
+        "Decision brief",
+        brief_rows,
+        hint="contexto antes de ação",
+        gilt=True,
+    ), unsafe_allow_html=True)
+
     ins_rows = ""
     for icon, tone, title, body in insights[:4]:
         color = {"pos": "var(--moss)", "neg": "var(--rust)", "warn": "var(--lantern)"}.get(tone, "var(--sea)")
@@ -397,8 +462,8 @@ with col_rail:
 </div>"""
 
     st.markdown(k_card_with_header(
-        "Insights", f'<div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">{ins_rows}</div>',
-        hint="comportamento · 7d", gilt=True,
+        "Sinais", f'<div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">{ins_rows}</div>',
+        hint="anomalias e disciplina",
     ), unsafe_allow_html=True)
 
     # ── Accounts rail (Simplifi-style) ────────────────────────────────────────
@@ -484,3 +549,47 @@ with col_rail:
                 f'<div style="margin-top:4px">{rows_parc}</div>',
                 hint="parcelas ativas",
             ), unsafe_allow_html=True)
+
+    # ── Kira · Briefing IA ────────────────────────────────────────────────────
+    briefing_key = f"kira_briefing_{ano}_{mes}"
+    if briefing_key not in st.session_state:
+        st.session_state[briefing_key] = None
+
+    briefing_text: str | None = st.session_state[briefing_key]
+
+    briefing_inner = ""
+    if briefing_text:
+        import html as _html_br
+        briefing_inner = (
+            f'<div class="k-kira-bubble" style="margin-top:6px">'
+            f'{_html_br.escape(briefing_text)}'
+            f'</div>'
+        )
+    else:
+        briefing_inner = (
+            '<div style="font-family:var(--font-sans);font-size:12px;'
+            'color:var(--ink-4);font-style:italic;padding:8px 0">'
+            'Clique em "Gerar" para o briefing do dia.</div>'
+        )
+
+    st.markdown(k_card_with_header(
+        "Kira · Briefing",
+        f'<div class="k-kira-header" style="padding:0 0 8px">'
+        f'<div class="k-kira-dot"></div>'
+        f'<span class="k-kira-label">IA Financeira · NVIDIA NIM</span>'
+        f'</div>{briefing_inner}',
+        hint="análise do mês gerada por IA",
+        gilt=True,
+    ), unsafe_allow_html=True)
+
+    if st.button("↻ Gerar briefing", width="stretch", key="btn_kira_briefing"):
+        try:
+            from core.financial_ai import auto_briefing
+            with st.spinner("Kira está analisando seus dados…"):
+                result = auto_briefing(_ai_ctx)
+            st.session_state[briefing_key] = result
+            st.rerun()
+        except RuntimeError as e:
+            st.warning(f"Kira indisponível: {e}")
+        except Exception:
+            st.error("Erro ao gerar briefing. Configure NVIDIA_API_KEY.")

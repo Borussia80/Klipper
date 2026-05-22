@@ -39,13 +39,6 @@ def require_auth() -> None:
     if _is_authenticated():
         return
 
-    # Sidebar deve aparecer mesmo na tela de login — importa localmente para
-    # evitar import circular (styles.py usa core.auth internamente em funções)
-    from core.styles import sidebar_brand, sidebar_engines
-    with st.sidebar:
-        st.markdown(sidebar_brand(), unsafe_allow_html=True)
-        st.markdown(sidebar_engines(), unsafe_allow_html=True)
-
     if st.session_state.get("auth_mfa_step") == "verify":
         _render_totp_verify()
     else:
@@ -64,22 +57,85 @@ def _render_login() -> None:
 
 
 def _login_container() -> None:
-    st.markdown("""
-<div style="max-width:380px;margin:64px auto 0">
-  <div style="text-align:center;margin-bottom:32px">
-    <div style="font-family:var(--font-sans);font-size:22px;font-weight:600;color:var(--ink)">
-      Klipper
+    from core.styles import _brand_b64, brand_icon_img
+
+    lockup_uri = _brand_b64("klipper-lockup-dark.png")
+    brand_html = (
+        f'<img src="{lockup_uri}" class="k-auth-lockup" alt="Klipper">'
+        if lockup_uri else
+        f'<div class="k-auth-mark">{brand_icon_img(42)}<span>Klipper</span></div>'
+    )
+
+    st.markdown(f"""
+<style>
+section[data-testid="stSidebar"] {{ display:none !important; }}
+[data-testid="stMainBlockContainer"] {{
+  max-width:none !important;
+  padding:0 !important;
+}}
+[data-testid="stAppViewContainer"] > .main {{
+  background:var(--bg) !important;
+}}
+[data-testid="stForm"]:has([data-testid="stTextInput"]) {{
+  width:min(100%, 390px);
+  margin:-50vh 72px 0 auto;
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}}
+@media (max-width: 980px) {{
+  [data-testid="stForm"]:has([data-testid="stTextInput"]) {{
+    width:auto;
+    margin:-8px 28px 0;
+  }}
+}}
+</style>
+<div class="k-auth-shell">
+  <section class="k-auth-brand">
+    <div class="k-auth-ambient"></div>
+    <div class="k-auth-brand-inner">
+      {brand_html}
+      <div class="k-auth-kicker">Private wealth operating system</div>
+      <h1>Discipline compounds wealth.</h1>
+      <p>
+        Mathematics anchors decisions. Context shapes risk. Klipper turns capital,
+        commitments and behavior into one calm operating layer.
+      </p>
+      <div class="k-auth-proof">
+        <span>Quant</span><span>Governance</span><span>Anti-BS</span><span>Fragility</span>
+      </div>
     </div>
-    <div style="font-family:var(--font-sans);font-size:12px;color:var(--ink-3);margin-top:4px;
-      letter-spacing:0.12em;text-transform:uppercase">Wealth · operating system</div>
-  </div>
+    <div class="k-auth-footer">
+      <span>Clarity over noise</span>
+      <span>43°10'W</span>
+    </div>
+  </section>
+  <section class="k-auth-panel">
+    <div class="k-auth-form-head">
+      <div class="k-auth-kicker">Access layer</div>
+      <h2>Enter Klipper</h2>
+      <p>Your financial command center for capital, risk and discipline.</p>
+    </div>
+  </section>
 </div>
 """, unsafe_allow_html=True)
 
     with st.form("login_form"):
         email = st.text_input("E-mail", placeholder="seu@email.com")
         password = st.text_input("Senha", type="password", placeholder="••••••••")
-        submitted = st.form_submit_button("Entrar", type="primary", use_container_width=True)
+        submitted = st.form_submit_button(
+            "Access Wealth OS",
+            type="primary",
+            use_container_width=True,
+        )
+
+    st.markdown("""
+<div class="k-auth-after">
+  <span>Protected access</span>
+  <span>Minimal surface. Maximum signal.</span>
+</div>
+""", unsafe_allow_html=True)
 
     if submitted:
         if not email or not password:
@@ -124,12 +180,14 @@ def _do_login(email: str, password: str) -> None:
 
 def _render_totp_verify() -> None:
     st.markdown("""
-<div style="max-width:380px;margin:64px auto 0;text-align:center">
-  <div style="font-family:var(--font-sans);font-size:18px;font-weight:600;color:var(--ink);
-    margin-bottom:8px">Verificação em dois fatores</div>
-  <div style="font-family:var(--font-sans);font-size:12px;color:var(--ink-3);margin-bottom:24px">
-    Abra o aplicativo autenticador e informe o código de 6 dígitos.
-  </div>
+<style>
+section[data-testid="stSidebar"] { display:none !important; }
+[data-testid="stMainBlockContainer"] { max-width:460px !important; padding-top:96px !important; }
+</style>
+<div class="k-auth-mfa">
+  <div class="k-auth-kicker">Second factor</div>
+  <h2>Verify access</h2>
+  <p>Abra o aplicativo autenticador e informe o código de 6 dígitos.</p>
 </div>
 """, unsafe_allow_html=True)
 

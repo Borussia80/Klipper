@@ -25,7 +25,7 @@ from core.auth import require_auth
 from core.styles import (
     bar_track, budget_bar, fmt_brl, inject_css, k_card_with_header,
     metric_card, score_circle, section_header,
-    sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav, stat_card, load_page_icon,
+    sidebar_brand, sidebar_engines, sidebar_user, sidebar_ai_qa, sidebar_nav, stat_card, load_page_icon,
 )
 from models.budget import Budget
 from models.transaction import Category
@@ -66,6 +66,7 @@ with st.sidebar:
 
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
     sidebar_user()
+    sidebar_ai_qa()
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(section_header("Orçamento & Score", "comportamento financeiro"), unsafe_allow_html=True)
