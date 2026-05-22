@@ -82,6 +82,20 @@ class TransactionRepository:
             raise
         return [self._from_row(r) for r in res.data]
 
+    def update(self, tx: Transaction) -> Transaction:
+        data = _to_db(tx.model_dump())
+        data["date"] = data["date"].isoformat()
+        data["type"] = data["type"].value
+        data["category"] = data["category"].value
+        data["payment_method"] = data["payment_method"].value
+        data["status"] = data["status"].value
+        try:
+            get_client().table(self.TABLE).update(data).eq("id", tx.id).execute()
+        except Exception as e:
+            log.error("Erro ao atualizar transação %s: %s", tx.id, e)
+            raise
+        return tx
+
     def delete(self, transaction_id: str) -> None:
         try:
             get_client().table(self.TABLE).delete().eq("id", transaction_id).execute()
