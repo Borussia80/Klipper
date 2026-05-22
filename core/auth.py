@@ -31,23 +31,28 @@ def require_auth() -> None:
     """
     Verifica autenticação. Deve ser chamada após st.set_page_config() e inject_css().
 
-    Se não autenticado: renderiza formulário de login e interrompe a página (st.stop()).
-    Se aguardando TOTP: renderiza verificação e interrompe.
-    Se autenticado: retorna imediatamente (sem overhead).
+    Se não autenticado: popula o sidebar com brand (para ficar sempre visível),
+    renderiza formulário de login na área principal e interrompe (st.stop()).
+    Se autenticado: retorna imediatamente.
     """
     if _is_authenticated():
         return
 
+    # Sidebar deve aparecer mesmo na tela de login — importa localmente para
+    # evitar import circular (styles.py usa core.auth internamente em funções)
+    from core.styles import sidebar_brand, sidebar_engines
+    with st.sidebar:
+        st.markdown(sidebar_brand(), unsafe_allow_html=True)
+        st.markdown(sidebar_engines(), unsafe_allow_html=True)
+
     mfa_step = st.session_state.get("auth_mfa_step")
     if mfa_step == "verify":
         _render_totp_verify()
-        st.stop()
     elif mfa_step == "enroll":
         _render_totp_enroll()
-        st.stop()
     else:
         _render_login()
-        st.stop()
+    st.stop()
 
 
 def _is_authenticated() -> bool:

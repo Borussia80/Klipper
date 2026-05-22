@@ -18,12 +18,14 @@ from models.transaction import Category, PaymentMethod, Transaction, Transaction
 
 st.set_page_config(page_title="Extratos · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
-require_auth()
 
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
     sidebar_user()
 
+
+
+require_auth()
 # ── Topbar ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:4px">
