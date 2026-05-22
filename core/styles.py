@@ -573,12 +573,119 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 #MainMenu, footer { visibility: hidden !important; }
 [data-testid="stToolbar"] { display: none !important; }
 
+/* ── Simplifi-style: sidebar page navigation ─────────────────────────────── */
+[data-testid="stSidebarNavItems"] {
+  padding: 4px 0 0 !important;
+}
+[data-testid="stSidebarNavLink"] {
+  padding: 9px 14px !important;
+  border-radius: var(--radius-xs) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  color: var(--ink-3) !important;
+  margin: 2px 6px !important;
+  transition: background 150ms, color 150ms !important;
+  letter-spacing: 0.01em !important;
+  border-left: 2px solid transparent !important;
+}
+[data-testid="stSidebarNavLink"]:hover {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+}
+[data-testid="stSidebarNavLink"][aria-current="page"] {
+  background: var(--brass-soft) !important;
+  color: var(--brass) !important;
+  border-left: 2px solid var(--brass) !important;
+  font-weight: 600 !important;
+}
+.k-sidenav-section {
+  font-family: var(--font-sans); font-size: 9.5px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--ink-4); padding: 8px 14px 4px;
+  font-weight: 600;
+}
+
+/* ── Spending Plan hero ──────────────────────────────────────────────────── */
+.k-spending-hero {
+  background: var(--surface-1);
+  border: 1px solid var(--rule-brass);
+  border-radius: var(--radius);
+  padding: 20px 24px 18px;
+  position: relative; overflow: hidden;
+  margin-bottom: 20px;
+}
+.k-spending-hero::before {
+  content: '';
+  position: absolute; inset: -1px;
+  background: radial-gradient(circle at top left, var(--brass-soft), transparent 60%);
+  pointer-events: none;
+}
+.k-spending-amount {
+  font-family: var(--font-mono);
+  font-size: 40px; line-height: 1;
+  font-variant-numeric: tabular-nums; font-weight: 600;
+}
+.k-spending-rate {
+  font-family: var(--font-sans); font-size: 12px;
+  color: var(--brass); margin-top: 4px;
+  letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600;
+}
+.k-spend-track {
+  height: 6px; background: var(--surface-2);
+  border-radius: var(--radius-pill); overflow: hidden;
+  position: relative; margin-top: 14px;
+}
+
+/* ── Category badge (Simplifi-style colored circle) ─────────────────────── */
+.k-cat-badge {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── Accounts rail ───────────────────────────────────────────────────────── */
+.k-acc-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid var(--rule);
+}
+.k-acc-row:last-child { border-bottom: none; }
+.k-acc-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.k-acc-name {
+  font-family: var(--font-sans); font-size: 12.5px; color: var(--ink); font-weight: 500;
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.k-acc-sub {
+  font-family: var(--font-sans); font-size: 10px; color: var(--ink-4);
+  margin-top: 1px;
+}
+.k-acc-val {
+  font-family: var(--font-mono); font-size: 13px;
+  color: var(--ink); font-variant-numeric: tabular-nums;
+  white-space: nowrap; font-weight: 500;
+}
+
 </style>
 """
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Python helpers
 # ──────────────────────────────────────────────────────────────────────────────
+
+# Simplifi-style category color palette: (text_color, background_color)
+CAT_COLORS: dict[str, tuple[str, str]] = {
+    "Alimentação": ("#F59E0B", "rgba(245,158,11,0.14)"),
+    "Transporte":  ("#3B82F6", "rgba(59,130,246,0.14)"),
+    "Saúde":       ("#EF4444", "rgba(239,68,68,0.14)"),
+    "Lazer":       ("#8B5CF6", "rgba(139,92,246,0.14)"),
+    "Moradia":     ("#10B981", "rgba(16,185,129,0.14)"),
+    "Educação":    ("#0EA5E9", "rgba(14,165,233,0.14)"),
+    "Investimento":("#D9B26F", "rgba(217,178,111,0.18)"),
+    "Renda":       ("#22C55E", "rgba(34,197,94,0.14)"),
+    "Freelance":   ("#F97316", "rgba(249,115,22,0.14)"),
+    "Outros":      ("#8F8770", "rgba(143,135,112,0.12)"),
+}
 
 BRAND_SVG = """<svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
@@ -634,6 +741,46 @@ def load_page_icon():
 
 def inject_css() -> None:
     st.markdown(KLIPPER_CSS, unsafe_allow_html=True)
+
+
+def sidebar_nav() -> None:
+    """Simplifi-style icon+label navigation using Streamlit page links."""
+    st.markdown(
+        '<div class="k-sidenav-section">Navegação</div>',
+        unsafe_allow_html=True,
+    )
+    pages = [
+        ("pages/1_Dashboard.py",    "⌂",  "Dashboard"),
+        ("pages/2_Transacoes.py",   "↕",  "Movimento"),
+        ("pages/6_Contas.py",       "⊞",  "Contas"),
+        ("pages/7_Orcamento.py",    "◎",  "Orçamento"),
+        ("pages/3_Investimentos.py","▲",  "Investimentos"),
+        ("pages/5_AI_Consilium.py", "∞",  "AI Consilium"),
+    ]
+    for path, icon, label in pages:
+        st.page_link(path, label=f"{icon}  {label}")
+
+
+def tx_row_simplifi(
+    category: str,
+    title: str,
+    meta: str,
+    amount_str: str,
+    val_cls: str = "",
+) -> str:
+    """Simplifi-style transaction row: colored category badge + title + amount."""
+    color, bg = CAT_COLORS.get(category, ("#8F8770", "rgba(143,135,112,0.12)"))
+    initial = category[0].upper() if category else "?"
+    return (
+        f'<div class="k-feed-row">'
+        f'<div class="k-cat-badge" style="background:{bg};color:{color}">{initial}</div>'
+        f'<div class="k-feed-body">'
+        f'<div class="k-feed-title">{title}</div>'
+        f'<div class="k-feed-meta">{meta}</div>'
+        f'</div>'
+        f'<div class="k-feed-val {val_cls}">{amount_str}</div>'
+        f'</div>'
+    )
 
 
 def fmt_brl(v: float, compact: bool = False) -> str:

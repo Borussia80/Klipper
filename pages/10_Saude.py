@@ -15,7 +15,7 @@ from core.health_repository import (
 from core.auth import require_auth
 from core.styles import (
     chip, fmt_brl, inject_css, k_card_with_header, load_page_icon,
-    section_header, sidebar_brand, sidebar_user, stat_card,
+    section_header, sidebar_brand, sidebar_user, sidebar_nav, stat_card,
 )
 from models.health import (
     SPECIALTY_LABELS, STATUS_COLORS, STATUS_LABELS,
@@ -72,6 +72,7 @@ n_sem_solicitacao = len(sessoes_pend)
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    sidebar_nav()
     st.markdown('<div style="margin:16px 0 8px"></div>', unsafe_allow_html=True)
 
     with st.expander("+ Novo profissional"):

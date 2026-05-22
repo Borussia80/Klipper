@@ -12,7 +12,7 @@ from core.statement_reader import ParsedTransaction, StatementResult, read_state
 from core.auth import require_auth
 from core.styles import (
     fmt_brl, inject_css, load_page_icon, section_header,
-    sidebar_brand, sidebar_user, stat_card,
+    sidebar_brand, sidebar_user, sidebar_nav, stat_card,
 )
 from models.transaction import Category, PaymentMethod, Transaction, TransactionType
 
@@ -21,6 +21,7 @@ inject_css()
 
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    sidebar_nav()
     sidebar_user()
 
 

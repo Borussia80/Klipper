@@ -16,7 +16,7 @@ from core.repositories import InvestmentRepository, DecisionRepository
 from core.auth import require_auth
 from core.styles import (
     inject_css, section_header, k_card_with_header,
-    sidebar_brand, sidebar_engines, sidebar_user, chip, load_page_icon,
+    sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav, chip, load_page_icon,
 )
 
 st.set_page_config(page_title="Consilium · Klipper", page_icon=load_page_icon(), layout="wide")
@@ -103,6 +103,7 @@ def _chamar_litellm(model: str, mensagem: str) -> str:
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    sidebar_nav()
 
     st.markdown(
         '<div style="padding:6px 12px 2px;font-family:var(--font-sans);font-size:9.5px;'

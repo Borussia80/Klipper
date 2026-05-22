@@ -18,8 +18,8 @@ from core.repositories import (
 from core.auth import require_auth
 from core.styles import (
     bar_track, fmt_brl, inject_css, k_card_with_header,
-    section_header, sidebar_brand, sidebar_engines, sidebar_user,
-    stat_card, load_page_icon,
+    section_header, sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav,
+    stat_card, tx_row_simplifi, load_page_icon,
 )
 from models.installment import Installment
 from models.transaction import (
@@ -59,6 +59,7 @@ _PM_LABEL = {
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
+    sidebar_nav()
 
     with st.expander("+ Lançar transação", expanded=False):
         with st.form("form_tx", clear_on_submit=True):
@@ -193,23 +194,15 @@ def _build_feed_html(txs: list) -> str:
         for t in day_txs:
             is_income = t.type == TransactionType.GANHO
             is_invest = t.category == Category.INVESTIMENTO
-            icon_cls  = "in" if is_income else ("invest" if is_invest else "out")
             val_cls   = "pos" if is_income else ("invest" if is_invest else "")
-            icon      = _CAT_ICON.get(t.category.value, "○")
+            cat       = "Renda" if is_income else t.category.value
             title     = html.escape(t.notes) if t.notes else t.category.value
             pm_label  = _PM_LABEL.get(t.payment_method.value, t.payment_method.value)
             pending   = ' · <span class="warn">pendente</span>' if t.status != TransactionStatus.PAGO else ""
             meta      = f'{t.category.value} · {pm_label}{pending}'
             prefix    = "+" if is_income else "−"
             value     = f'{prefix}{fmt_brl(t.amount, compact=True)}'
-            feed_rows.append(f"""<div class="k-feed-row">
-  <div class="k-feed-icon {icon_cls}">{icon}</div>
-  <div class="k-feed-body">
-    <div class="k-feed-title">{title}</div>
-    <div class="k-feed-meta">{meta}</div>
-  </div>
-  <div class="k-feed-val {val_cls}">{value}</div>
-</div>""")
+            feed_rows.append(tx_row_simplifi(cat, title, meta, value, val_cls))
 
         rows_html.append(f"""<div class="k-feed-day">
   <div class="k-feed-day-h">{day}<span class="sub">{total_span} · {len(day_txs)} lanc.</span></div>
