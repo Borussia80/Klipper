@@ -55,6 +55,9 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
+markers = [
+    "slow: testes com I/O real (Redis, APIs, sleep) — excluídos do ciclo local",
+]
 
 [tool.coverage.run]
 omit = ["tests/*", "bot/*", "pages/*", "migrations/*"]
