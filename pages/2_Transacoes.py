@@ -78,7 +78,7 @@ with st.sidebar:
             if eh_parcelado:
                 n_parcelas = st.number_input("Nº parcelas", min_value=2, max_value=120, value=12, step=1)
 
-            if st.form_submit_button("Salvar", type="primary", use_container_width=True):
+            if st.form_submit_button("Salvar", type="primary", width='stretch'):
                 try:
                     account_id = conta_map.get(conta_sel) if conta_sel != "—" else None
                     card_id    = cartao_map.get(cartao_sel) if cartao_sel != "—" else None
@@ -310,7 +310,7 @@ def _render_tab(txs: list) -> None:
         csv = pd.DataFrame(rows_csv).to_csv(index=False).encode("utf-8")
         st.download_button(
             "⬇ Exportar CSV", csv, "transacoes.csv", "text/csv",
-            use_container_width=True,
+            width='stretch',
         )
 
 

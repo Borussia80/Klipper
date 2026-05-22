@@ -52,7 +52,7 @@ with st.sidebar:
             ano_bud    = st.number_input("Ano", min_value=2020, max_value=2030, value=hoje.year)
             mes_bud    = st.selectbox("Mês", range(1, 13), index=hoje.month - 1,
                                        format_func=lambda m: calendar.month_abbr[m], key="mes_bud")
-            if st.form_submit_button("Salvar", type="primary", use_container_width=True):
+            if st.form_submit_button("Salvar", type="primary", width='stretch'):
                 try:
                     bud_repo.upsert(Budget(
                         category=cat_bud, monthly_limit=limite_bud,
@@ -263,7 +263,7 @@ with tab_meta:
                 font={"color": "#C9BC9E"},
             )
             st.markdown(k_card_with_header("Histórico 6 meses", "", "evolução da poupança"), unsafe_allow_html=True)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — Score Financeiro
@@ -357,7 +357,7 @@ with tab_score_tab:
                        tickfont=dict(family="Geist Mono, monospace", color="#5C5746", size=10)),
             font={"color": "#C9BC9E"},
         )
-        st.plotly_chart(fig_sc, use_container_width=True)
+        st.plotly_chart(fig_sc, width='stretch')
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 4 — Alertas de Padrão
@@ -427,4 +427,4 @@ with tab_alertas:
                 legend=dict(font=dict(family="General Sans, sans-serif", color="#8F8770", size=11)),
                 font={"color": "#C9BC9E"},
             )
-            st.plotly_chart(fig_comp, use_container_width=True)
+            st.plotly_chart(fig_comp, width='stretch')

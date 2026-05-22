@@ -62,7 +62,7 @@ with st.sidebar:
             fecha_dia  = st.number_input("Fecha dia", min_value=1, max_value=31, value=1)
             vence_dia  = st.number_input("Vence dia", min_value=1, max_value=31, value=10)
             cor_cart   = st.color_picker("Cor", "#1E3A5F")
-            if st.form_submit_button("Criar cartão", type="primary", use_container_width=True):
+            if st.form_submit_button("Criar cartão", type="primary", width='stretch'):
                 if nome_cart.strip():
                     try:
                         card_repo.create(CreditCard(
@@ -82,7 +82,7 @@ with st.sidebar:
             tipo_c     = st.selectbox("Tipo", [t.value for t in AccountType])
             saldo_ini  = st.number_input("Saldo inicial (R$)", step=0.01, format="%.2f")
             cor_conta  = st.color_picker("Cor", "#0F766E")
-            if st.form_submit_button("Criar conta", type="primary", use_container_width=True):
+            if st.form_submit_button("Criar conta", type="primary", width='stretch'):
                 if nome_conta.strip():
                     try:
                         acc_repo.create(BankAccount(
@@ -396,7 +396,7 @@ with tab_parc:
                            tickfont=dict(family="Geist Mono, monospace", color="#5C5746", size=10)),
                 showlegend=False,
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — Contas Bancárias

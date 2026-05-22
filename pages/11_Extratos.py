@@ -133,7 +133,7 @@ df = pd.DataFrame([{
 
 edited = st.data_editor(
     df.drop(columns=["_raw"]),
-    use_container_width=True,
+    width='stretch',
     num_rows="dynamic",
     column_config={
         "Data":       st.column_config.DateColumn("Data", format="DD/MM/YYYY"),
@@ -150,7 +150,7 @@ st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 col_btn, col_info = st.columns([1, 3])
 
 with col_btn:
-    importar = st.button("⬆️ Importar para Klipper", type="primary", use_container_width=True)
+    importar = st.button("⬆️ Importar para Klipper", type="primary", width='stretch')
 
 with col_info:
     st.markdown(

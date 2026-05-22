@@ -80,7 +80,7 @@ with st.sidebar:
             espec_p   = st.selectbox("Especialidade*", options=list(SPECIALTY_LABELS.keys()),
                                      format_func=lambda k: SPECIALTY_LABELS[k])
             conselho_p = st.text_input("N.º conselho (CRP / CREFITO / CRM…)")
-            if st.form_submit_button("Cadastrar", use_container_width=True):
+            if st.form_submit_button("Cadastrar", width='stretch'):
                 if not nome_p:
                     st.error("Nome obrigatório")
                 elif db_ok:
@@ -236,7 +236,7 @@ with tab_sess:
                     valor_sess = st.number_input("Valor pago (R$)*", min_value=0.01, step=10.0, format="%.2f")
                     nf_sess    = st.text_input("N.º NF / recibo")
                 obs_sess = st.text_area("Observações", height=68)
-                if st.form_submit_button("Registrar sessão", use_container_width=True):
+                if st.form_submit_button("Registrar sessão", width='stretch'):
                     if not prof_sel or valor_sess <= 0:
                         st.error("Profissional e valor são obrigatórios.")
                     elif db_ok:
@@ -333,7 +333,7 @@ with tab_sol:
                 valor_recebido = st.number_input("Valor recebido (R$)", min_value=0.0,
                                                   step=10.0, format="%.2f")
             obs_u = st.text_area("Glosa / observações", height=68)
-            if st.form_submit_button("Atualizar", use_container_width=True):
+            if st.form_submit_button("Atualizar", width='stretch'):
                 if db_ok:
                     try:
                         req_repo.update_status(
@@ -393,7 +393,7 @@ with tab_sol:
                 f'<span class="mono" style="color:var(--ink)">{fmt_brl(total_sol)}</span></div>',
                 unsafe_allow_html=True,
             )
-            if st.form_submit_button("Criar solicitação", use_container_width=True):
+            if st.form_submit_button("Criar solicitação", width='stretch'):
                 if not sel_sess_ids:
                     st.error("Selecione ao menos uma sessão.")
                 elif db_ok:

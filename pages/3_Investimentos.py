@@ -65,7 +65,7 @@ with st.sidebar:
             volatilidade = st.slider("Volatilidade anual (%)", 0.0, 60.0, 10.0, 0.5)
             spread_cdi  = st.slider("Spread vs CDI (p.p.)", -5.0, 10.0, 2.0, 0.25)
             notas_inv   = st.text_area("Notas")
-            if st.form_submit_button("Salvar ativo", type="primary", use_container_width=True):
+            if st.form_submit_button("Salvar ativo", type="primary", width='stretch'):
                 if not ticker:
                     st.error("Ticker obrigatório.")
                 else:
@@ -204,7 +204,7 @@ with col_left:
     # Positions table
     df = pd.DataFrame(rows)
     st.markdown(k_card_with_header("Posições", "", f"{len(portfolio)} ativos"), unsafe_allow_html=True)
-    st.dataframe(df, use_container_width=True, hide_index=True, height=400)
+    st.dataframe(df, width='stretch', hide_index=True, height=400)
 
 with col_right:
     # Allocation by type
@@ -243,7 +243,7 @@ with col_right:
     )
 
     st.markdown(k_card_with_header("Alocação por classe", "", "snapshot · hoje"), unsafe_allow_html=True)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Legend
     leg_rows = "".join(
