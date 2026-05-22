@@ -1,4 +1,4 @@
-"""Teses · Klipper — master/detail por tese de investimento."""
+"""Portfólio · Klipper — master/detail por tese de investimento."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from core.styles import (
     sidebar_engines, sidebar_user, sidebar_ai_qa, render_navigation, stat_card, load_page_icon,
 )
 
-st.set_page_config(page_title="Teses · Klipper", page_icon=load_page_icon(), layout="wide")
+st.set_page_config(page_title="Portfólio · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
 require_auth()
 
@@ -74,7 +74,7 @@ with content_col:
         st.error(f"Erro ao carregar portfólio: {e}")
         st.stop()
 
-    st.markdown(section_header("Teses", "agrupamento por setor · conviction · âncora quant"), unsafe_allow_html=True)
+    st.markdown(section_header("Portfólio", "agrupamento por setor · conviction · âncora quant"), unsafe_allow_html=True)
 
     if not portfolio:
         st.markdown(
@@ -156,7 +156,7 @@ with content_col:
 
     st.markdown(f"""
 <div class="k-grid k-cols-4" style="margin-bottom:22px">
-  {stat_card("Teses ativas", str(len(theses)), f"{total_portfolio/1e6:.2f}M total")}
+  {stat_card("Portfólio ativo", str(len(theses)), f"{total_portfolio/1e6:.2f}M total")}
   {stat_card("On-track", str(n_ok), f"{n_watch} em atenção", "pos")}
   {stat_card("Em breach", str(n_breach), "violação de limite ou perda", "neg" if n_breach else "pos")}
   {stat_card("Conviction médio", f"{avg_conv:.1f}/5", "score M1 médio do portfólio", "brass")}
@@ -167,7 +167,7 @@ with content_col:
     col_list, col_detail = st.columns([1, 2], gap="large")
 
     with col_list:
-        st.markdown(section_header("Teses", f"{len(theses)} grupos"), unsafe_allow_html=True)
+        st.markdown(section_header("Portfólio", f"{len(theses)} grupos"), unsafe_allow_html=True)
 
         thesis_sel_idx = None
         for i, t in enumerate(theses):

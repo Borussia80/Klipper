@@ -34,6 +34,7 @@ NAV_ITEMS = [
     ("⌗",  "Orçamento",  "Orçamentos por categoria, score financeiro e alertas"),
     ("◈",  "Consilium",  "M4 AI — Claude · Gemini · GPT-4o · Qwen multi-provider"),
     ("◎",  "Saúde",      "Atendimentos Pedro · solicitações de reembolso · operadora"),
+    ("ℹ",  "Sobre",      "Arquitetura, versão, engines e créditos do sistema"),
 ]
 
 nav_col, content_col = st.columns([1, 4])
