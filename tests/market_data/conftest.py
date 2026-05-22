@@ -19,9 +19,9 @@ def cache(fake_redis) -> MarketCache:
 
 
 @pytest.fixture()
-def svc(cache) -> MarketDataService:
-    s = MarketDataService(cache=cache, batch_size=50, max_workers=4)
-    s._cb_yf.reset()
-    s._cb_tesouro.reset()
-    s._cb_bcb.reset()
-    return s
+def svc(cache, monkeypatch) -> MarketDataService:
+    # Isolate each test with a fresh circuit-breaker registry so shared state
+    # from the global get_breaker() singleton never leaks between tests.
+    from core import circuit_breaker as _cb_mod
+    monkeypatch.setattr(_cb_mod, "_registry", {})
+    return MarketDataService(cache=cache, batch_size=50, max_workers=4)
