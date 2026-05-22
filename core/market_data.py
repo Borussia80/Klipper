@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import logging
 import re
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_EXCEPTION
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -734,7 +735,7 @@ class MarketDataService:
 
 # Singleton de conveniência
 _service: MarketDataService | None = None
-_service_lock = __import__("threading").Lock()
+_service_lock = threading.Lock()
 
 
 def get_market_service(cache=None) -> MarketDataService:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import functools
+import re
 from dataclasses import dataclass
 
 import streamlit as st
@@ -1054,7 +1056,7 @@ def _brand_path(filename: str):
     return Path(__file__).parent.parent / "design_handoff_klipper" / "brand" / filename
 
 
-@__import__("functools").lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=None)
 def _brand_b64(filename: str) -> str:
     """Base64 data-URI for a brand PNG, loaded once and cached for the process lifetime."""
     import base64
