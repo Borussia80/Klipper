@@ -9,3 +9,8 @@ litellm>=1.55.0
 anthropic>=0.40.0
 openai>=1.55.0
 google-generativeai>=0.8.0
+# Fase 6 — Telegram Bot
+python-telegram-bot[webhooks]>=21.0
+# Extratos PDF
+pymupdf>=1.24.0
+paddleocr>=2.7.0
