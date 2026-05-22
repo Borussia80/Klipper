@@ -25,7 +25,7 @@ from core.styles import (
 from models.installment import Installment
 from models.transaction import (
     Category, PaymentMethod, Transaction,
-    TransactionStatus, TransactionType,
+    TransactionStatus, TransactionType, categories_for_type,
 )
 
 st.set_page_config(page_title="Movimento · Klipper", page_icon=load_page_icon(), layout="wide")
@@ -166,59 +166,108 @@ with content_col:
     if filtro_status != "Todos":
         txs_all = [t for t in txs_all if t.status.value == filtro_status]
 
-    # ── Quick form — lançar transação ─────────────────────────────────────────────
+    # ── Quick form — lançar transação (2 etapas) ──────────────────────────────────
     with st.expander("+ Lançar transação", expanded=False):
-        with st.form("form_tx", clear_on_submit=True):
+        _step = st.session_state.get("_tx_step", 1)
+        if _step == 2 and "_tx_tipo" not in st.session_state:
+            _step = 1
+
+        if _step == 1:
+            st.markdown(
+                '<div style="font-size:11px;color:var(--ink-4);margin-bottom:8px">'
+                'Etapa 1 de 2 · tipo · valor · data</div>',
+                unsafe_allow_html=True,
+            )
+            s1c1, s1c2, s1c3 = st.columns([1, 1, 1])
+            with s1c1:
+                _tipo_1 = st.radio(
+                    "Tipo", [t.value for t in TransactionType],
+                    horizontal=True, label_visibility="collapsed",
+                )
+            with s1c2:
+                _valor_1 = st.number_input(
+                    "Valor (R$)", min_value=0.01, step=0.01, format="%.2f",
+                    label_visibility="collapsed",
+                )
+            with s1c3:
+                _data_1 = st.date_input("Data", label_visibility="collapsed")
+            if st.button("Continuar →", type="primary", use_container_width=True):
+                st.session_state["_tx_step"]  = 2
+                st.session_state["_tx_tipo"]  = _tipo_1
+                st.session_state["_tx_valor"] = float(_valor_1)
+                st.session_state["_tx_data"]  = _data_1
+                st.rerun()
+
+        else:
+            _tipo_s  = st.session_state["_tx_tipo"]
+            _valor_s = st.session_state["_tx_valor"]
+            _data_s  = st.session_state["_tx_data"]
+            st.markdown(
+                f'<div class="mono muted" style="font-size:11px;padding:6px 0 10px;'
+                f'border-bottom:1px solid var(--rule);margin-bottom:10px">'
+                f'{_tipo_s} · {fmt_brl(_valor_s, compact=True)} · {_data_s.strftime("%d/%m/%Y")}'
+                f' &nbsp;<span style="color:var(--ink-4)">— etapa 2 de 2</span></div>',
+                unsafe_allow_html=True,
+            )
             fc1, fc2 = st.columns(2)
             with fc1:
-                tipo      = st.selectbox("Tipo", [t.value for t in TransactionType])
-                valor     = st.number_input("Valor (R$)", min_value=0.01, step=0.01, format="%.2f")
-                categoria = st.selectbox("Categoria", [c.value for c in Category])
+                _cats    = categories_for_type(TransactionType(_tipo_s))
+                _cat_opts = [c.value for c in _cats]
+                _def_cat  = "Renda" if _tipo_s == "GANHO" else "Alimentação"
+                _cat_idx  = _cat_opts.index(_def_cat) if _def_cat in _cat_opts else 0
+                categoria = st.selectbox("Categoria", _cat_opts, index=_cat_idx)
                 pagamento = st.selectbox("Pagamento", [p.value for p in PaymentMethod])
             with fc2:
-                data_tx   = st.date_input("Data")
                 status_tx = st.selectbox("Status", [s.value for s in TransactionStatus])
                 conta_sel = st.selectbox("Conta", ["—"] + list(conta_map.keys()))
-                eh_cartao = pagamento in ("CARTAO_CREDITO", "CARTAO_DEBITO")
-                cartao_sel = "—"
-                if eh_cartao and cartoes:
-                    cartao_sel = st.selectbox("Cartão", ["—"] + list(cartao_map.keys()))
+            eh_cartao = pagamento in ("CARTAO_CREDITO", "CARTAO_DEBITO")
+            cartao_sel = "—"
+            if eh_cartao and cartoes:
+                cartao_sel = st.selectbox("Cartão", ["—"] + list(cartao_map.keys()))
             notas        = st.text_input("Notas")
             eh_parcelado = st.toggle("É parcelado?")
             n_parcelas   = 1
             if eh_parcelado:
                 n_parcelas = st.number_input("Nº parcelas", min_value=2, max_value=120, value=12, step=1)
 
-            if st.form_submit_button("Salvar", type="primary", use_container_width=True):
-                try:
-                    account_id = conta_map.get(conta_sel) if conta_sel != "—" else None
-                    card_id    = cartao_map.get(cartao_sel) if cartao_sel != "—" else None
-                    if eh_parcelado:
-                        inst = Installment(
-                            description=notas or categoria,
-                            total_amount=float(valor),
-                            n_total=int(n_parcelas),
-                            start_date=data_tx,
-                            card_id=card_id,
-                            account_id=account_id,
-                            category=categoria,
-                        )
-                        inst_repo.create(inst)
-                        for p in gerar_parcelas(inst):
-                            tx_repo.create(p)
-                        st.success(f"{int(n_parcelas)}× de {fmt_brl(inst.installment_amount)}")
-                    else:
-                        tx_repo.create(Transaction(
-                            date=data_tx, amount=float(valor),
-                            type=TransactionType(tipo), category=Category(categoria),
-                            notes=notas, payment_method=PaymentMethod(pagamento),
-                            account_id=account_id, card_id=card_id,
-                            status=TransactionStatus(status_tx),
-                        ))
-                        st.success(f"Salvo · {fmt_brl(float(valor))}")
+            col_back, col_save = st.columns([1, 3])
+            with col_back:
+                if st.button("← Voltar", use_container_width=True):
+                    st.session_state["_tx_step"] = 1
                     st.rerun()
-                except Exception as e:
-                    st.error(str(e))
+            with col_save:
+                if st.button("Salvar", type="primary", use_container_width=True):
+                    try:
+                        account_id = conta_map.get(conta_sel) if conta_sel != "—" else None
+                        card_id    = cartao_map.get(cartao_sel) if cartao_sel != "—" else None
+                        if eh_parcelado:
+                            inst = Installment(
+                                description=notas or categoria,
+                                total_amount=_valor_s,
+                                n_total=int(n_parcelas),
+                                start_date=_data_s,
+                                card_id=card_id,
+                                account_id=account_id,
+                                category=categoria,
+                            )
+                            inst_repo.create(inst)
+                            for p in gerar_parcelas(inst):
+                                tx_repo.create(p)
+                            st.success(f"{int(n_parcelas)}× de {fmt_brl(inst.installment_amount)}")
+                        else:
+                            tx_repo.create(Transaction(
+                                date=_data_s, amount=_valor_s,
+                                type=TransactionType(_tipo_s), category=Category(categoria),
+                                notes=notas, payment_method=PaymentMethod(pagamento),
+                                account_id=account_id, card_id=card_id,
+                                status=TransactionStatus(status_tx),
+                            ))
+                            st.success(f"Salvo · {fmt_brl(_valor_s)}")
+                        for _k in ("_tx_step", "_tx_tipo", "_tx_valor", "_tx_data"):
+                            st.session_state.pop(_k, None)
+                        st.rerun()
+                    except Exception as e:
+                        st.error(str(e))
 
     # ── KPI strip ────────────────────────────────────────────────────────────────
     ganhos   = sum(t.amount for t in txs_all if t.type == TransactionType.GANHO)
