@@ -28,7 +28,7 @@ from core.styles import (
     sidebar_engines, sidebar_user, sidebar_ai_qa, render_navigation, stat_card, load_page_icon,
 )
 from models.budget import Budget
-from models.transaction import Category
+from models.transaction import Category, EXPENSE_CATEGORIES
 
 st.set_page_config(page_title="Orçamento · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
@@ -40,6 +40,59 @@ bud_repo  = BudgetRepository()
 inv_repo  = InvestmentRepository()
 
 hoje = date.today()
+
+_BUD_CAT_OPTS = [c.value for c in EXPENSE_CATEGORIES]
+
+
+@st.dialog("Orçamento")
+def _bud_dialog() -> None:
+    _cat_pre   = st.session_state.get("_bud_cat")
+    _limit_pre = float(st.session_state.get("_bud_limit", 500.0))
+    _bud_id    = st.session_state.get("_bud_id")
+    is_edit    = _bud_id is not None
+
+    cat_idx = _BUD_CAT_OPTS.index(_cat_pre) if _cat_pre in _BUD_CAT_OPTS else 0
+
+    with st.form("form_bud_modal"):
+        cat_bud    = st.selectbox("Categoria", _BUD_CAT_OPTS, index=cat_idx,
+                                  disabled=is_edit)
+        limite_bud = st.number_input("Limite mensal (R$)", min_value=0.01,
+                                     step=10.0, format="%.2f", value=_limit_pre)
+        bf1, bf2 = st.columns(2)
+        with bf1:
+            ano_bud = st.number_input("Ano", min_value=2020, max_value=2030,
+                                      value=hoje.year, step=1)
+        with bf2:
+            mes_bud = st.selectbox("Mês", range(1, 13), index=hoje.month - 1,
+                                   format_func=lambda m: calendar.month_abbr[m])
+        b_save = st.form_submit_button("Salvar", type="primary", use_container_width=True)
+
+    if b_save:
+        try:
+            bud_repo.upsert(Budget(
+                category=_cat_pre if is_edit else cat_bud,
+                monthly_limit=limite_bud,
+                year=int(ano_bud), month=int(mes_bud),
+            ))
+            st.success("Salvo.")
+            for k in ("_bud_cat", "_bud_limit", "_bud_id"):
+                st.session_state.pop(k, None)
+            st.rerun()
+        except Exception as e:
+            st.error(str(e))
+
+    if is_edit:
+        st.markdown('<div style="margin-top:4px;border-top:1px solid var(--rule)"></div>',
+                    unsafe_allow_html=True)
+        if st.button("Remover orçamento", type="secondary", use_container_width=True):
+            try:
+                bud_repo.delete(_bud_id)
+                for k in ("_bud_cat", "_bud_limit", "_bud_id"):
+                    st.session_state.pop(k, None)
+                st.rerun()
+            except Exception as e:
+                st.error(str(e))
+
 
 # ── Layout ────────────────────────────────────────────────────────────────────
 nav_col, content_col = st.columns([1, 4])
@@ -67,28 +120,6 @@ section[data-testid="column"]:first-child a {
     sidebar_ai_qa()
 
 with content_col:
-    # ── Budget form inline ────────────────────────────────────────────────────
-    with st.expander("+ Configurar orçamento"):
-        with st.form("form_budget"):
-            bf1, bf2 = st.columns(2)
-            with bf1:
-                cat_bud    = st.selectbox("Categoria", [c.value for c in Category])
-                limite_bud = st.number_input("Limite mensal (R$)", min_value=0.01, step=10.0, format="%.2f")
-            with bf2:
-                ano_bud    = st.number_input("Ano", min_value=2020, max_value=2030, value=hoje.year)
-                mes_bud    = st.selectbox("Mês", range(1, 13), index=hoje.month - 1,
-                                           format_func=lambda m: calendar.month_abbr[m], key="mes_bud")
-            if st.form_submit_button("Salvar", type="primary", use_container_width=True):
-                try:
-                    bud_repo.upsert(Budget(
-                        category=cat_bud, monthly_limit=limite_bud,
-                        year=int(ano_bud), month=int(mes_bud),
-                    ))
-                    st.success("Orçamento salvo.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(str(e))
-
     # ── Header ────────────────────────────────────────────────────────────────
     st.markdown(section_header("Orçamento & Score", "comportamento financeiro"), unsafe_allow_html=True)
 
@@ -170,16 +201,24 @@ with content_col:
     # TAB 1 — Orçamentos
     # ══════════════════════════════════════════════════════════════════════════
     with tab_orc:
+        # "＋ Novo orçamento" always visible — opens modal with empty form
+        if st.button("＋ Novo orçamento", key="btn_bud_novo"):
+            for k in ("_bud_cat", "_bud_limit", "_bud_id"):
+                st.session_state.pop(k, None)
+            _bud_dialog()
+
         if budgets:
             col_bars, col_summary = st.columns([2, 1], gap="large")
 
             with col_bars:
                 st.markdown(k_card_with_header("Controle de gastos", "", "mês corrente"), unsafe_allow_html=True)
+                # build a lookup: category → Budget (for edit modal pre-fill)
+                _bud_by_cat = {b.category: b for b in budgets}
                 for s in status_list:
                     tone  = "neg" if s.status == "ESTOURO" else "warn" if s.status == "ALERTA" else "pos"
                     sc    = "var(--rust)" if s.status == "ESTOURO" else "var(--lantern)" if s.status == "ALERTA" else "var(--moss)"
                     lbl   = s.status
-                    st.markdown(f"""<div style="margin-bottom:16px">
+                    st.markdown(f"""<div style="margin-bottom:4px">
   <div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:13px;margin-bottom:6px">
     <span style="color:var(--ink);font-weight:500">{s.category}</span>
     <span style="display:flex;align-items:center;gap:8px">
@@ -188,8 +227,16 @@ with content_col:
     </span>
   </div>
   {bar_track(s.gasto, s.limite, tone)}
-  <div style="text-align:right;margin-top:4px;font-family:var(--font-mono);font-size:10px;color:{sc}">{s.pct:.1f}%</div>
+  <div style="text-align:right;margin-top:2px;font-family:var(--font-mono);font-size:10px;color:{sc}">{s.pct:.1f}%</div>
 </div>""", unsafe_allow_html=True)
+                    _b = _bud_by_cat.get(s.category)
+                    if _b and st.button("✏ editar", key=f"edit_bud_{_b.id}",
+                                        use_container_width=False):
+                        st.session_state["_bud_cat"]   = _b.category
+                        st.session_state["_bud_limit"] = float(_b.monthly_limit)
+                        st.session_state["_bud_id"]    = _b.id
+                        _bud_dialog()
+                    st.markdown('<div style="margin-bottom:12px"></div>', unsafe_allow_html=True)
 
             with col_summary:
                 total_limite_bud = sum(b.monthly_limit for b in budgets)
@@ -211,21 +258,10 @@ with content_col:
 {bar_track(total_gasto_bud, total_limite_bud, tone_overall)}
 """
                 st.markdown(k_card_with_header("Resumo", summary_html), unsafe_allow_html=True)
-
-                with st.expander("Remover orçamento"):
-                    opts = {f"{b.category} ({calendar.month_abbr[b.month]}/{b.year})": b.id for b in budgets}
-                    sel  = st.selectbox("Selecione", list(opts.keys()), key="del_bud",
-                                         label_visibility="collapsed")
-                    if st.button("Remover", key="btn_del_bud"):
-                        try:
-                            bud_repo.delete(opts[sel])
-                            st.success("Orçamento removido.")
-                            st.rerun()
-                        except Exception as e:
-                            st.error(str(e))
         else:
             st.markdown(
-                '<div style="padding:48px 0;text-align:center;color:var(--ink-4)">nenhum orçamento configurado · use o formulário acima</div>',
+                '<div style="padding:48px 0;text-align:center;color:var(--ink-4)">'
+                'nenhum orçamento configurado · clique em <strong>＋ Novo orçamento</strong></div>',
                 unsafe_allow_html=True,
             )
 
