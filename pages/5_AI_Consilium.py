@@ -16,7 +16,7 @@ from core.repositories import InvestmentRepository, DecisionRepository
 from core.auth import require_auth
 from core.styles import (
     inject_css, section_header, k_card_with_header,
-    sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav, chip, load_page_icon,
+    sidebar_brand, sidebar_engines, sidebar_user, sidebar_ai_qa, sidebar_nav, chip, load_page_icon,
 )
 
 st.set_page_config(page_title="Consilium · Klipper", page_icon=load_page_icon(), layout="wide")
@@ -126,6 +126,7 @@ with st.sidebar:
     )
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
     sidebar_user()
+    sidebar_ai_qa()
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown(section_header("Consilium · M4", "auditoria histórica · multi-provider"), unsafe_allow_html=True)

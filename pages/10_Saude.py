@@ -15,7 +15,7 @@ from core.health_repository import (
 from core.auth import require_auth
 from core.styles import (
     chip, fmt_brl, inject_css, k_card_with_header, load_page_icon,
-    section_header, sidebar_brand, sidebar_user, sidebar_nav, stat_card,
+    section_header, sidebar_brand, sidebar_user, sidebar_ai_qa, sidebar_nav, stat_card,
 )
 from models.health import (
     SPECIALTY_LABELS, STATUS_COLORS, STATUS_LABELS,
@@ -97,6 +97,7 @@ with st.sidebar:
                         st.error(str(ex))
 
     sidebar_user()
+    sidebar_ai_qa()
 
 # ── Topbar ─────────────────────────────────────────────────────────────────────
 st.markdown("""

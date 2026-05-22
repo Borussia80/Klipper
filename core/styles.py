@@ -16,6 +16,7 @@ KLIPPER_CSS = """
 /* ── Tokens ─────────────────────────────────────────────────────────────────── */
 :root {
   --bg:           #08161F;
+  --bg-deep:      #050B12;
   --bg-2:         #0C1E2B;
   --surface-1:    rgba(255,255,255,0.025);
   --surface-2:    rgba(255,255,255,0.045);
@@ -32,6 +33,7 @@ KLIPPER_CSS = """
   --brass-soft:   rgba(217,178,111,0.18);
   --brass-glow:   rgba(217,178,111,0.35);
   --sea:          #7FB3C8;
+  --electric:     #4D8DFF;
   --copper:       #E08855;
   --moss:         #7BC68A;
   --rust:         #D87C6A;
@@ -49,9 +51,18 @@ KLIPPER_CSS = """
   --radius-xs:    6px;
   --radius-sm:    10px;
   --radius:       16px;
-  --radius-lg:    20px;
+  --radius-lg:    24px;
   --radius-pill:  999px;
   --ease:         cubic-bezier(0.2,0.7,0.2,1);
+}
+
+@keyframes k-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes k-gradient-drift {
+  0%, 100% { transform: translate3d(-2%, -1%, 0) scale(1); opacity: 0.72; }
+  50% { transform: translate3d(3%, 2%, 0) scale(1.06); opacity: 0.95; }
 }
 
 /* ── Streamlit global overrides ─────────────────────────────────────────────── */
@@ -294,6 +305,7 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
   -webkit-backdrop-filter: blur(8px) saturate(140%);
   backdrop-filter: blur(8px) saturate(140%);
   margin-bottom: 16px;
+  animation: k-fade-up 220ms var(--ease) both;
 }
 .k-card.gilt::before {
   content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: 1px;
@@ -430,6 +442,120 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
   box-shadow: var(--shadow-1);
   padding: 16px 18px;
   display: flex; flex-direction: column; gap: 4px;
+  transition: border-color 160ms var(--ease), background 160ms var(--ease), transform 160ms var(--ease);
+}
+.k-stat-card:hover {
+  background: var(--surface-3);
+  border-color: var(--rule-2);
+  transform: translateY(-1px);
+}
+
+.k-operating-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(77,141,255,0.10), transparent 36%),
+    radial-gradient(circle at 92% 18%, rgba(217,178,111,0.09), transparent 34%),
+    linear-gradient(135deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+  padding: 28px 32px;
+  margin: 8px 0 24px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 18px 48px rgba(0,0,0,0.22);
+  animation: k-fade-up 220ms var(--ease) both;
+}
+.k-operating-hero::before {
+  content: '';
+  position: absolute;
+  left: 32px; right: 32px; top: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(77,141,255,0.42), rgba(217,178,111,0.34), transparent);
+}
+.k-operating-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 32px;
+  align-items: end;
+  position: relative;
+  z-index: 1;
+}
+.k-operating-title {
+  margin: 10px 0 10px;
+  font-family: var(--font-sans);
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  color: var(--ink);
+}
+.k-operating-copy {
+  max-width: 680px;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.k-operating-signals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(116px, 1fr));
+  gap: 10px;
+  min-width: 420px;
+}
+.k-signal {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.025);
+  padding: 12px 13px;
+}
+.k-signal-label {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  font-weight: 600;
+}
+.k-signal-value {
+  margin-top: 7px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.k-decision-brief {
+  display: grid;
+  gap: 10px;
+}
+.k-brief-item {
+  display: grid;
+  grid-template-columns: 7px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+.k-brief-item:first-child { border-top: none; padding-top: 0; }
+.k-brief-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-top: 6px;
+  background: var(--brass);
+  box-shadow: 0 0 10px var(--brass-glow);
+}
+.k-brief-title {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.k-brief-copy {
+  margin-top: 3px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-3);
 }
 
 .k-wallet {
@@ -643,6 +769,36 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
   flex-shrink: 0;
 }
 
+/* ── Kira AI widget ─────────────────────────────────────────────────────── */
+.k-kira-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.k-kira-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--brass); box-shadow: 0 0 6px var(--brass-glow);
+  animation: k-pulse 2s infinite;
+}
+@keyframes k-pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+}
+.k-kira-label {
+  font-family: var(--font-sans); font-size: 11px;
+  color: var(--brass); font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.k-kira-bubble {
+  background: var(--surface-2); border: 1px solid var(--rule);
+  border-radius: var(--radius-sm); padding: 10px 12px;
+  font-family: var(--font-sans); font-size: 12.5px;
+  color: var(--ink-2); line-height: 1.55; white-space: pre-wrap;
+}
+.k-kira-bubble.user {
+  background: var(--brass-soft); border-color: var(--rule-brass);
+  color: var(--ink); text-align: right;
+}
+
 /* ── Accounts rail ───────────────────────────────────────────────────────── */
 .k-acc-row {
   display: flex; align-items: center; gap: 10px;
@@ -664,6 +820,175 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
   font-family: var(--font-mono); font-size: 13px;
   color: var(--ink); font-variant-numeric: tabular-nums;
   white-space: nowrap; font-weight: 500;
+}
+
+/* ── Premium auth shell ──────────────────────────────────────────────────── */
+.k-auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(420px, 0.9fr);
+  background:
+    radial-gradient(circle at 20% 18%, rgba(77,141,255,0.12), transparent 34%),
+    radial-gradient(circle at 0% 100%, rgba(217,178,111,0.10), transparent 40%),
+    linear-gradient(135deg, var(--bg-deep), var(--bg) 54%, #0A1827);
+  overflow: hidden;
+}
+.k-auth-brand {
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 72px 72px 48px;
+  border-right: 1px solid var(--rule);
+}
+.k-auth-ambient {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at 28% 34%, rgba(77,141,255,0.16), transparent 28%),
+    radial-gradient(circle at 56% 70%, rgba(217,178,111,0.10), transparent 34%);
+  filter: blur(32px);
+  animation: k-gradient-drift 12s var(--ease) infinite;
+  pointer-events: none;
+}
+.k-auth-brand-inner,
+.k-auth-footer {
+  position: relative;
+  z-index: 1;
+}
+.k-auth-lockup {
+  height: 56px;
+  width: auto;
+  display: block;
+  margin-bottom: 88px;
+}
+.k-auth-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 88px;
+  font-family: var(--font-sans);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.k-auth-kicker {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brass);
+  font-weight: 600;
+}
+.k-auth-brand h1 {
+  max-width: 620px;
+  margin: 16px 0 18px;
+  font-family: var(--font-sans);
+  font-size: clamp(42px, 5vw, 72px);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+  font-weight: 600;
+}
+.k-auth-brand p {
+  max-width: 540px;
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+.k-auth-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+}
+.k-auth-proof span {
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--rule);
+  background: rgba(255,255,255,0.03);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.k-auth-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.k-auth-panel {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px;
+}
+.k-auth-form-head {
+  width: min(100%, 390px);
+  margin-bottom: 24px;
+}
+.k-auth-form-head h2,
+.k-auth-mfa h2 {
+  margin: 10px 0 8px;
+  font-family: var(--font-sans);
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  font-weight: 600;
+}
+.k-auth-form-head p,
+.k-auth-mfa p {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+.k-auth-after {
+  width: min(100%, 390px);
+  margin: 16px 72px 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.k-auth-mfa {
+  text-align: left;
+  margin-bottom: 24px;
+}
+@media (max-width: 980px) {
+  .k-auth-shell { grid-template-columns: 1fr; }
+  .k-auth-brand {
+    min-height: auto;
+    padding: 44px 28px 32px;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+  }
+  .k-auth-lockup, .k-auth-mark { margin-bottom: 48px; }
+  .k-auth-panel {
+    min-height: auto;
+    justify-content: flex-start;
+    padding: 32px 28px 24px;
+  }
+  .k-auth-after {
+    width: auto;
+    margin: 16px 28px 40px;
+    flex-direction: column;
+  }
 }
 
 </style>
@@ -1143,3 +1468,59 @@ def _render_inline_enroll() -> None:
         if st.button("Cancelar", width="stretch"):
             cancel_totp_enrollment()
             st.rerun()
+
+
+def sidebar_ai_qa(ctx=None) -> None:
+    """Kira — persistent AI Q&A sidebar widget. ctx is an optional FinancialContext."""
+    import logging as _log
+    _logger = _log.getLogger(__name__)
+
+    with st.expander("◈ Kira · IA Financeira", expanded=False):
+        hist_key = "kira_history"
+        if hist_key not in st.session_state:
+            st.session_state[hist_key] = []
+
+        history: list[dict] = st.session_state[hist_key]
+
+        if history:
+            msgs_html = ""
+            for m in history[-6:]:
+                cls = "user" if m["role"] == "user" else ""
+                import html as _html_mod
+                msgs_html += (
+                    f'<div class="k-kira-bubble {cls}" style="margin-bottom:6px">'
+                    f'{_html_mod.escape(m["content"])}'
+                    f'</div>'
+                )
+            st.markdown(msgs_html, unsafe_allow_html=True)
+
+        q = st.text_input(
+            "Pergunta", placeholder="ex: estou dentro do orçamento?",
+            label_visibility="collapsed", key="kira_input",
+        )
+        col_ask, col_clear = st.columns([3, 1])
+        with col_ask:
+            ask_clicked = st.button("Perguntar", type="primary", width="stretch", key="kira_ask")
+        with col_clear:
+            if st.button("↺", width="stretch", key="kira_clear"):
+                st.session_state[hist_key] = []
+                st.rerun()
+
+        if ask_clicked and q.strip():
+            try:
+                from core.financial_ai import ask as _ask
+                history.append({"role": "user", "content": q.strip()})
+                with st.spinner("Kira está pensando…"):
+                    resp = _ask(
+                        q.strip(),
+                        ctx=ctx,
+                        history=[m for m in history[:-1]],
+                    )
+                history.append({"role": "assistant", "content": resp})
+                st.session_state[hist_key] = history
+                st.rerun()
+            except RuntimeError as e:
+                st.warning(f"Kira indisponível: {e}")
+            except Exception as e:
+                _logger.error("Kira error: %s", e)
+                st.error("Erro ao contatar a IA. Tente novamente.")

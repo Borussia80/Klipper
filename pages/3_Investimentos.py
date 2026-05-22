@@ -16,7 +16,7 @@ from core.repositories import InvestmentRepository
 from core.auth import require_auth
 from core.styles import (
     bar_track, fmt_brl, inject_css, k_card_with_header,
-    section_header, sidebar_brand, sidebar_engines, sidebar_user, sidebar_nav,
+    section_header, sidebar_brand, sidebar_engines, sidebar_user, sidebar_ai_qa, sidebar_nav,
     stat_card, load_page_icon,
 )
 from models.investment import Investment, InvestmentType
@@ -85,6 +85,7 @@ with st.sidebar:
 
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
     sidebar_user()
+    sidebar_ai_qa()
 
 # ── Load portfolio ─────────────────────────────────────────────────────────────
 try:
