@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from datetime import date, timedelta
+from datetime import date
 
 from models.transaction import Category, Transaction, TransactionType, PaymentMethod, TransactionStatus
 from models.investment import Investment, InvestmentType
@@ -10,11 +10,15 @@ from models.credit_card import CreditCard
 from models.installment import Installment
 from models.budget import Budget
 
+_FIXED_DATE = date(2026, 5, 15)
+_FUTURE_DATE = date(2030, 6, 1)    # para transações pendentes / parcelas futuras
+_PAST_START  = date(2026, 1, 1)    # start_date de parcelamentos já iniciados
+
 
 class TestTransaction:
     def test_cria_transacao_valida(self):
         tx = Transaction(
-            date=date.today(),
+            date=_FIXED_DATE,
             amount=100.0,
             type=TransactionType.GASTO,
             category=Category.ALIMENTACAO,
@@ -24,19 +28,19 @@ class TestTransaction:
     def test_valor_zero_invalido(self):
         with pytest.raises(ValueError, match="positivo"):
             Transaction(
-                date=date.today(), amount=0, type=TransactionType.GANHO, category=Category.RENDA
+                date=_FIXED_DATE, amount=0, type=TransactionType.GANHO, category=Category.RENDA
             )
 
     def test_valor_negativo_invalido(self):
         with pytest.raises(ValueError):
             Transaction(
-                date=date.today(), amount=-50, type=TransactionType.GASTO, category=Category.OUTROS
+                date=_FIXED_DATE, amount=-50, type=TransactionType.GASTO, category=Category.OUTROS
             )
 
     def test_data_futura_permitida_status_pendente(self):
         """Future dates are valid with status PENDENTE (installments need this)."""
         tx = Transaction(
-            date=date.today() + timedelta(days=30),
+            date=_FUTURE_DATE,
             amount=100,
             type=TransactionType.GASTO,
             category=Category.OUTROS,
@@ -46,25 +50,25 @@ class TestTransaction:
 
     def test_arredondamento_automatico(self):
         tx = Transaction(
-            date=date.today(), amount=100.999, type=TransactionType.GASTO, category=Category.OUTROS
+            date=_FIXED_DATE, amount=100.999, type=TransactionType.GASTO, category=Category.OUTROS
         )
         assert tx.amount == 101.0
 
     def test_payment_method_default_pix(self):
         tx = Transaction(
-            date=date.today(), amount=50.0, type=TransactionType.GASTO, category=Category.LAZER
+            date=_FIXED_DATE, amount=50.0, type=TransactionType.GASTO, category=Category.LAZER
         )
         assert tx.payment_method == PaymentMethod.PIX
 
     def test_status_default_pago(self):
         tx = Transaction(
-            date=date.today(), amount=50.0, type=TransactionType.GASTO, category=Category.LAZER
+            date=_FIXED_DATE, amount=50.0, type=TransactionType.GASTO, category=Category.LAZER
         )
         assert tx.status == TransactionStatus.PAGO
 
     def test_cartao_credito_aceita_card_id(self):
         tx = Transaction(
-            date=date.today(), amount=200.0,
+            date=_FIXED_DATE, amount=200.0,
             type=TransactionType.GASTO, category=Category.LAZER,
             payment_method=PaymentMethod.CARTAO_CREDITO,
             card_id="some-uuid",
@@ -164,7 +168,7 @@ class TestInstallment:
             description="Notebook 12x",
             total_amount=2400.0,
             n_total=12,
-            start_date=date.today(),
+            start_date=_PAST_START,
         )
         defaults.update(kwargs)
         return Installment(**defaults)

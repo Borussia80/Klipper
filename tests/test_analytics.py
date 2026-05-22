@@ -6,13 +6,16 @@ from core.analytics import calcular_saldo_mensal, calcular_top_categorias
 from models.transaction import Category, Transaction, TransactionType
 
 
+_FIXED_DATE = date(2026, 5, 15)
+
+
 def _make_tx(
     amount: float,
     tipo: TransactionType,
     cat: Category,
     tx_date: date | None = None,
 ) -> Transaction:
-    return Transaction(date=tx_date or date.today(), amount=amount, type=tipo, category=cat)
+    return Transaction(date=tx_date or _FIXED_DATE, amount=amount, type=tipo, category=cat)
 
 
 class TestCalcularSaldoMensal:

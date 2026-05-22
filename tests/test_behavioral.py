@@ -11,10 +11,13 @@ from core.behavioral import (
     calcular_uso_orcamento, OrcamentoStatus,
 )
 
+_FIXED_DATE = date(2026, 5, 15)
+_FUTURE_START = date(2030, 1, 1)   # start_date de parcelas: sempre no futuro
 
-def _gasto(categoria: str, valor: float, dias_atras: int = 0) -> Transaction:
+
+def _gasto(categoria: str, valor: float) -> Transaction:
     return Transaction(
-        date=date.today(),
+        date=_FIXED_DATE,
         amount=valor,
         type=TransactionType.GASTO,
         category=Category(categoria),
@@ -23,7 +26,7 @@ def _gasto(categoria: str, valor: float, dias_atras: int = 0) -> Transaction:
 
 def _ganho(valor: float) -> Transaction:
     return Transaction(
-        date=date.today(), amount=valor,
+        date=_FIXED_DATE, amount=valor,
         type=TransactionType.GANHO, category=Category.RENDA,
     )
 
@@ -35,7 +38,7 @@ def _budget(categoria: str, limite: float) -> Budget:
 def _installment(n_total: int = 12, n_paid: int = 0) -> Installment:
     return Installment(
         description="Test", total_amount=1200.0,
-        n_total=n_total, n_paid=n_paid, start_date=date.today(),
+        n_total=n_total, n_paid=n_paid, start_date=_FUTURE_START,
     )
 
 
@@ -66,12 +69,13 @@ class TestCalcularScoreFinanceiro:
         assert score.detalhes["poupanca"] == 0
         assert score.total < 100
 
-    def test_score_zero_nenhum_criterio(self):
-        txs = [_ganho(1000), _gasto("Alimentação", 1500)]  # estouro + sem poupança
+    def test_score_com_criterios_negativos(self):
+        """Parcela atrasada, estouro de orçamento e caixa insuficiente."""
+        txs = [_ganho(1000), _gasto("Alimentação", 1500)]  # estouro
         budgets = [_budget("Alimentação", 500)]
         inst_atrasado = Installment(
             description="Atrasado", total_amount=600.0, n_total=6, n_paid=0,
-            start_date=date(2025, 1, 1),  # vencida no passado
+            start_date=date(2025, 1, 1),  # vencida em 2025, hoje 2026
         )
         score = calcular_score_financeiro(
             transacoes=txs, budgets=budgets,

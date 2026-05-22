@@ -7,15 +7,25 @@ from models.installment import Installment
 from models.transaction import TransactionStatus, TransactionType
 from core.installment_engine import gerar_parcelas, calcular_comprometimento_mensal
 
+# Datas fixas: nunca dependem do dia em que o teste roda.
+_PAST_START   = date(2025, 1, 1)   # passado — todas as parcelas serão PAGO
+_FIXED_START  = date(2026, 1, 1)   # início de 2026 — parcelas já vencidas em relação a 2026-05
+_FUTURE_START = date(2030, 1, 1)   # 2030 — todas as parcelas no futuro
 
-def _inst(n_total: int = 12, n_paid: int = 0, start: date | None = None,
-          valor: float = 1200.0, card_id: str | None = None) -> Installment:
+
+def _inst(
+    n_total: int = 12,
+    n_paid: int = 0,
+    start: date = _FUTURE_START,
+    valor: float = 1200.0,
+    card_id: str | None = None,
+) -> Installment:
     return Installment(
         description="Notebook",
         total_amount=valor,
         n_total=n_total,
         n_paid=n_paid,
-        start_date=start or date.today(),
+        start_date=start,
         card_id=card_id,
     )
 
@@ -39,25 +49,19 @@ class TestGerarParcelas:
         assert sum(p.amount for p in parcelas) == pytest.approx(100.0)
 
     def test_parcelas_passadas_sao_pagas(self):
-        start = date(2025, 1, 1)
-        inst = _inst(n_total=4, start=start)
+        inst = _inst(n_total=4, start=_PAST_START)
         parcelas = gerar_parcelas(inst)
-        # All dates in 2025 are in the past as of 2026
         pagas = [p for p in parcelas if p.status == TransactionStatus.PAGO]
-        assert len(pagas) == 4
+        assert len(pagas) == 4   # jan–abr 2025, todos no passado em 2026
 
     def test_parcelas_futuras_sao_pendentes(self):
-        from dateutil.relativedelta import relativedelta
-        start = date.today() + relativedelta(months=1)
-        inst = _inst(n_total=3, start=start)
+        inst = _inst(n_total=3, start=_FUTURE_START)
         parcelas = gerar_parcelas(inst)
         pendentes = [p for p in parcelas if p.status == TransactionStatus.PENDENTE]
         assert len(pendentes) == 3
 
     def test_datas_incrementadas_mensalmente(self):
-        from dateutil.relativedelta import relativedelta
-        start = date(2026, 1, 1)
-        inst = _inst(n_total=3, start=start)
+        inst = _inst(n_total=3, start=_FIXED_START)
         parcelas = gerar_parcelas(inst)
         assert parcelas[0].date == date(2026, 1, 1)
         assert parcelas[1].date == date(2026, 2, 1)
@@ -91,11 +95,9 @@ class TestCalcularComprometimentoMensal:
         assert result == {}
 
     def test_comprometimento_mensal_correto(self):
-        from dateutil.relativedelta import relativedelta
-        start = date.today()
         inst = Installment(
             description="Test", total_amount=600.0, n_total=3,
-            start_date=start,
+            start_date=_FUTURE_START,
         )
         result = calcular_comprometimento_mensal([inst])
         assert len(result) == 3
@@ -105,28 +107,36 @@ class TestCalcularComprometimentoMensal:
     def test_installment_inativo_ignorado(self):
         inst = Installment(
             description="Inativo", total_amount=600.0, n_total=3,
-            start_date=date.today(), is_active=False,
+            start_date=_FUTURE_START, is_active=False,
         )
         result = calcular_comprometimento_mensal([inst])
         assert result == {}
 
     def test_chaves_ordenadas_por_data(self):
-        from dateutil.relativedelta import relativedelta
-        start = date.today()
-        inst = _inst(n_total=3, start=start)
+        inst = _inst(n_total=3, start=_FUTURE_START)
         result = calcular_comprometimento_mensal([inst])
         chaves = list(result.keys())
         assert chaves == sorted(chaves)
 
     def test_parcelas_passadas_excluidas(self):
-        start = date(2025, 1, 1)  # all in the past
-        inst = _inst(n_total=3, start=start)
+        inst = _inst(n_total=3, start=_PAST_START)
         result = calcular_comprometimento_mensal([inst])
-        # All dates in 2025 are past (today is 2026-05)
-        assert result == {}
+        assert result == {}   # jan–mar 2025 são passado em 2026-05
 
     def test_comprometimento_preserva_centavos_por_mes(self):
-        start = date.today()
-        inst = _inst(n_total=3, start=start, valor=100.0)
+        inst = _inst(n_total=3, start=_FUTURE_START, valor=100.0)
         result = calcular_comprometimento_mensal([inst])
         assert list(result.values()) == [33.33, 33.33, 33.34]
+
+    def test_comprometimento_mensal_soma_correta(self):
+        """Todos os 12 meses de 2030 são futuros — comprometimento uniforme."""
+        inst = Installment(
+            description="Teste fixo",
+            total_amount=1200.0,
+            n_total=12,
+            start_date=_FUTURE_START,
+        )
+        comp = calcular_comprometimento_mensal([inst])
+        assert len(comp) == 12
+        for v in comp.values():
+            assert v == pytest.approx(100.0)
