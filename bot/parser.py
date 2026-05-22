@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from decimal import Decimal
 
 from models.transaction import Category, TransactionType
 
@@ -69,7 +70,7 @@ _AMOUNT_RE = re.compile(
 
 @dataclass
 class ParsedCapture:
-    amount: float
+    amount: Decimal
     type: TransactionType
     category: Category
     description: str
@@ -103,7 +104,7 @@ def parse_message(text: str) -> ParsedCapture | None:
     )
 
 
-def _parse_amount(text: str) -> float | None:
+def _parse_amount(text: str) -> Decimal | None:
     m = _AMOUNT_RE.search(text)
     if not m:
         return None
@@ -114,8 +115,8 @@ def _parse_amount(text: str) -> float | None:
     else:
         raw = raw.replace(",", ".")
     try:
-        return round(float(raw), 2)
-    except ValueError:
+        return Decimal(raw).quantize(Decimal("0.01"))
+    except Exception:
         return None
 
 
