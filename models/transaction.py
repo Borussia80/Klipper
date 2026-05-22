@@ -26,6 +26,21 @@ class Category(str, Enum):
     OUTROS = "Outros"
 
 
+EXPENSE_CATEGORIES: list[Category] = [
+    Category.MORADIA, Category.ALIMENTACAO, Category.TRANSPORTE,
+    Category.SAUDE, Category.EDUCACAO, Category.LAZER,
+    Category.INVESTIMENTO, Category.OUTROS,
+]
+
+INCOME_CATEGORIES: list[Category] = [
+    Category.RENDA, Category.FREELANCE, Category.OUTROS,
+]
+
+
+def categories_for_type(tx_type: TransactionType) -> list[Category]:
+    return INCOME_CATEGORIES if tx_type == TransactionType.GANHO else EXPENSE_CATEGORIES
+
+
 class PaymentMethod(str, Enum):
     PIX = "PIX"
     CARTAO_CREDITO = "CARTAO_CREDITO"

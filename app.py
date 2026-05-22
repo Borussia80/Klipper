@@ -1,15 +1,20 @@
 """Klipper — Wealth Operating System"""
 
+from datetime import date
+from decimal import Decimal
+
 import streamlit as st
 from core.auth import require_auth
 from core.styles import (
     _brand_b64,
     brand_icon_img,
+    fmt_brl,
     inject_css,
     load_page_icon,
     render_navigation,
     sidebar_engines,
     sidebar_user,
+    stat_card,
 )
 
 st.set_page_config(
@@ -88,6 +93,34 @@ with content_col:
   </div>
 </div>
 """, unsafe_allow_html=True)
+
+    # ── Daily briefing ────────────────────────────────────────────────────────────
+    _hoje = date.today()
+    try:
+        from core.repositories import TransactionRepository, BankAccountRepository
+        from models.transaction import TransactionType as _TT
+        _txs   = TransactionRepository().list_by_month(_hoje.year, _hoje.month)
+        _contas = BankAccountRepository().list_active()
+        _ganhos = sum((t.amount for t in _txs if t.type == _TT.GANHO), Decimal(0))
+        _gastos = sum((t.amount for t in _txs if t.type == _TT.GASTO), Decimal(0))
+        _saldo  = _ganhos - _gastos
+        _caixa  = sum((c.balance for c in _contas), Decimal(0))
+        _n_pend = sum(1 for t in _txs if t.status.value == "PENDENTE")
+        st.markdown(f"""
+<div class="k-grid k-cols-4" style="margin-bottom:24px">
+  {stat_card("Entradas · mês", fmt_brl(_ganhos, compact=True),
+             f"{sum(1 for t in _txs if t.type == _TT.GANHO)} fontes", "pos")}
+  {stat_card("Saídas · mês", fmt_brl(_gastos, compact=True),
+             f"{sum(1 for t in _txs if t.type == _TT.GASTO)} lançamentos")}
+  {stat_card("Saldo líquido", fmt_brl(_saldo, compact=True),
+             f"mês de {_hoje.strftime('%b/%Y').lower()}",
+             "pos" if _saldo >= 0 else "neg")}
+  {stat_card("Caixa disponível", fmt_brl(_caixa, compact=True),
+             f"{_n_pend} pendentes" if _n_pend else "sem pendências", "brass")}
+</div>
+""", unsafe_allow_html=True)
+    except Exception:
+        pass  # briefing degrada silenciosamente — não bloqueia a landing page
 
     # ── Nav cards ──────────────────────────────────────────────────────────────────
     cards_html = "".join(
