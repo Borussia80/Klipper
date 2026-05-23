@@ -1057,6 +1057,7 @@ SIDEBAR_NAV_ITEMS: tuple[SidebarNavItem, ...] = (
     SidebarNavItem("pages/5_AI_Consilium.py", "∞", "AI Consilium"),
     SidebarNavItem("pages/10_Saude.py", "✚", "Saúde"),
     SidebarNavItem("pages/11_Extratos.py", "⇣", "Extratos"),
+    SidebarNavItem("pages/13_Cotacoes.py", "◈", "Cotações"),
 )
 
 BRAND_SVG = """<svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1175,6 +1176,11 @@ def fmt_brl(v: float, compact: bool = False) -> str:
 def fmt_pct(v: float, sign: bool = False) -> str:
     s = "+" if sign and v >= 0 else ""
     return f"{s}{v:.1f}%"
+
+
+def fmt_change(pct: float) -> str:
+    sign = "+" if pct >= 0 else ""
+    return f"{sign}{pct:.2f}%"
 
 
 def kicker(text: str) -> str:

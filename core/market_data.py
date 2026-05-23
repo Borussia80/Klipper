@@ -39,6 +39,10 @@ log = logging.getLogger(__name__)
 _TICKER_RE = re.compile(r"^[A-Z0-9]{4,6}(11|3|4|5|6)?$")
 
 
+def is_fii(ticker: str) -> bool:
+    return bool(ticker) and ticker.endswith("11") and ticker == ticker.upper()
+
+
 # ── Value objects ─────────────────────────────────────────────────────────────
 
 @dataclass(frozen=True)
