@@ -12,10 +12,11 @@ from core.fragility import calcular_fragility_score, reduzir_exposicao_por_fragi
 from core.m1_quant import calcular_score_m1, classificar_score, Decisao
 from core.m2_governance import verificar_limites, hard_fail
 from core.m3_context import Confidence, MarketRegime, ajustar_prudencia
+from core.market_data import MarketDataService, is_fii
 from core.repositories import InvestmentRepository
 from core.auth import require_auth
 from core.styles import (
-    bar_track, fmt_brl, inject_css, k_card_with_header,
+    bar_track, fmt_brl, fmt_change, inject_css, k_card_with_header,
     section_header, render_navigation, sidebar_engines, sidebar_user, sidebar_ai_qa,
     stat_card, load_page_icon,
 )
@@ -69,6 +70,72 @@ with content_col:
         caixa_disponivel = st.number_input(
             "Caixa disponível (R$)", min_value=0.0, step=100.0, value=0.0,
         )
+
+    # ── Cotações em tempo real ─────────────────────────────────────────────────
+    with st.expander("◈ Cotações em tempo real", expanded=False):
+        _svc = MarketDataService()
+        _col_refresh, _ = st.columns([1, 4])
+        with _col_refresh:
+            _force = st.button("↺ Atualizar", key="cotacoes_refresh", use_container_width=True)
+
+        _header_row = (
+            '<div style="display:grid;grid-template-columns:80px 100px 70px 70px 70px 80px;'
+            'gap:10px;padding-bottom:4px">'
+            '<span style="font-size:10px;color:var(--ink-4)">Ticker</span>'
+            '<span style="font-size:10px;color:var(--ink-4);text-align:right">Preço</span>'
+            '<span style="font-size:10px;color:var(--ink-4);text-align:right">Var.%</span>'
+            '<span style="font-size:10px;color:var(--ink-4);text-align:right">DY 12M</span>'
+            '<span style="font-size:10px;color:var(--ink-4);text-align:right">P/VP</span>'
+            '<span style="font-size:10px;color:var(--ink-4);text-align:right">Ult. Rend.</span>'
+            '</div>'
+        )
+
+        _portfolio_tickers = [inv.ticker for inv in repo.get_portfolio()] if True else []
+        _bench = ["BOVA11", "SMAL11", "IVVB11"]
+        _all = list(dict.fromkeys(_portfolio_tickers + _bench))
+        _fiis = [t for t in _all if is_fii(t)]
+        _stocks = [t for t in _all if not is_fii(t)]
+
+        def _quote_row(ticker: str, q, fii_q=None) -> str:
+            if q is None and fii_q is None:
+                return (
+                    f'<div style="display:grid;grid-template-columns:80px 100px 70px 70px 70px 80px;'
+                    f'gap:10px;padding:8px 0;border-top:1px solid var(--rule)">'
+                    f'<span style="font-family:var(--font-mono);font-size:12px;color:var(--brass)">{ticker}</span>'
+                    f'<span style="font-size:11px;color:var(--ink-4)" colspan="5">indisponível</span></div>'
+                )
+            item = fii_q or q
+            chg_color = "var(--moss)" if item.change_pct >= 0 else "var(--rust)"
+            dy = f"{fii_q.dy_12m:.2f}%" if fii_q else "—"
+            pvp = f"{fii_q.pvp:.3f}" if fii_q else "—"
+            rend = fmt_brl(fii_q.last_income) if fii_q else "—"
+            return (
+                f'<div style="display:grid;grid-template-columns:80px 100px 70px 70px 70px 80px;'
+                f'align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--rule)">'
+                f'<span style="font-family:var(--font-mono);font-size:12px;color:var(--brass)">{ticker}</span>'
+                f'<span style="font-family:var(--font-mono);font-size:13px;color:var(--ink);text-align:right">{fmt_brl(item.price)}</span>'
+                f'<span style="font-family:var(--font-mono);font-size:12px;color:{chg_color};text-align:right">{fmt_change(item.change_pct)}</span>'
+                f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--sea);text-align:right">{dy}</span>'
+                f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-align:right">{pvp}</span>'
+                f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-align:right">{rend}</span>'
+                f'</div>'
+            )
+
+        try:
+            _stock_quotes = _svc.get_stocks_batch(_stocks, force_refresh=_force) if _stocks else {}
+            _fii_quotes = _svc.get_fiis_batch(_fiis, force_refresh=_force) if _fiis else {}
+            _rows = ""
+            for t in _all:
+                if is_fii(t):
+                    _rows += _quote_row(t, None, _fii_quotes.get(t))
+                else:
+                    _rows += _quote_row(t, _stock_quotes.get(t))
+            st.markdown(
+                k_card_with_header("Portfólio + Benchmarks", _header_row + _rows, f"{len(_all)} ativos"),
+                unsafe_allow_html=True,
+            )
+        except Exception:
+            st.info("Cotações indisponíveis no momento.")
 
     # ── Quick form — adicionar ativo ───────────────────────────────────────────
     with st.expander("+ Adicionar / Atualizar ativo"):

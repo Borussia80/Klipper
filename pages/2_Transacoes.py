@@ -14,7 +14,7 @@ import streamlit as st
 from core.installment_engine import gerar_parcelas
 from core.repositories import (
     BankAccountRepository, CreditCardRepository,
-    InstallmentRepository, TransactionRepository,
+    InstallmentRepository, TransactionRepository, tx_balance_delta,
 )
 from core.auth import require_auth
 from core.styles import (
@@ -93,6 +93,8 @@ def _edit_dialog(tx: Transaction) -> None:
         notas = st.text_input("Notas", value=tx.notes or "")
         if st.form_submit_button("Salvar alterações", type="primary", use_container_width=True):
             try:
+                old_account_id = tx.account_id
+                old_delta = tx_balance_delta(float(tx.amount), tx.type)
                 updated = Transaction(
                     id=tx.id,
                     date=data_tx,
@@ -107,6 +109,11 @@ def _edit_dialog(tx: Transaction) -> None:
                     installment_id=tx.installment_id,
                 )
                 tx_repo.update(updated)
+                if old_account_id:
+                    acc_repo.adjust_balance(old_account_id, -old_delta)
+                new_account_id = updated.account_id
+                if new_account_id:
+                    acc_repo.adjust_balance(new_account_id, tx_balance_delta(float(updated.amount), updated.type))
                 st.success("Salvo.")
                 st.rerun()
             except Exception as e:
@@ -262,6 +269,8 @@ with content_col:
                                 account_id=account_id, card_id=card_id,
                                 status=TransactionStatus(status_tx),
                             ))
+                            if account_id:
+                                acc_repo.adjust_balance(account_id, tx_balance_delta(float(_valor_s), TransactionType(_tipo_s)))
                             st.success(f"Salvo · {fmt_brl(_valor_s)}")
                         for _k in ("_tx_step", "_tx_tipo", "_tx_valor", "_tx_data"):
                             st.session_state.pop(_k, None)
@@ -372,6 +381,8 @@ with content_col:
                 with col_d:
                     if st.button("🗑 Excluir", type="secondary", use_container_width=True, key=f"del_btn_{sel_tx.id}"):
                         try:
+                            if sel_tx.account_id:
+                                acc_repo.adjust_balance(sel_tx.account_id, -tx_balance_delta(float(sel_tx.amount), sel_tx.type))
                             tx_repo.delete(sel_tx.id)
                             st.success("Excluído.")
                             st.rerun()

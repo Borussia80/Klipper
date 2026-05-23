@@ -1057,7 +1057,6 @@ SIDEBAR_NAV_ITEMS: tuple[SidebarNavItem, ...] = (
     SidebarNavItem("pages/5_AI_Consilium.py", "∞", "AI Consilium"),
     SidebarNavItem("pages/10_Saude.py", "✚", "Saúde"),
     SidebarNavItem("pages/11_Extratos.py", "⇣", "Extratos"),
-    SidebarNavItem("pages/13_Cotacoes.py", "◈", "Cotações"),
 )
 
 BRAND_SVG = """<svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">

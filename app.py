@@ -27,14 +27,13 @@ inject_css()
 
 require_auth()
 
-NAV_ITEMS = [
-    ("↹",  "Movimento",  "Ledger de transações, parcelamentos e análise de gastos"),
-    ("▤",  "Cartões",    "Wallet de cartões, faturas e comprometimento futuro"),
-    ("◐",  "Patrimônio", "Portfólio com WikiAgent M1/M2/M3, Anti-BS e Fragility"),
-    ("⌗",  "Orçamento",  "Orçamentos por categoria, score financeiro e alertas"),
-    ("◈",  "Consilium",  "M4 AI — Claude · Gemini · GPT-4o · Qwen multi-provider"),
-    ("◎",  "Saúde",      "Atendimentos Pedro · solicitações de reembolso · operadora"),
-    ("ℹ",  "Sobre",      "Arquitetura, versão, engines e créditos do sistema"),
+_NAV_LINKS = [
+    ("pages/2_Transacoes.py",   "↹", "Movimento",    "Ledger de transações e parcelamentos"),
+    ("pages/6_Contas.py",       "⊞", "Contas",       "Contas bancárias e cartões de crédito"),
+    ("pages/3_Investimentos.py","▲", "Patrimônio",   "Portfólio WikiAgent M1/M2/M3"),
+    ("pages/7_Orcamento.py",    "◎", "Orçamento",    "Orçamentos, score financeiro, alertas"),
+    ("pages/5_AI_Consilium.py", "∞", "AI Consilium", "Claude · Gemini · GPT-4o · Qwen"),
+    ("pages/10_Saude.py",       "✚", "Saúde",        "Pedro · reembolsos · operadora"),
 ]
 
 nav_col, content_col = st.columns([1, 4])
@@ -123,23 +122,17 @@ with content_col:
     except Exception:
         pass  # briefing degrada silenciosamente — não bloqueia a landing page
 
-    # ── Nav cards ──────────────────────────────────────────────────────────────────
-    cards_html = "".join(
-        f"""<div class="k-stat-card" style="display:flex;flex-direction:column;gap:8px">
-  <div style="display:flex;align-items:center;gap:10px">
-    <span style="font-family:var(--font-mono);font-size:18px;color:var(--brass)">{mark}</span>
-    <span style="font-family:var(--font-sans);font-size:14px;color:var(--ink);font-weight:500">{title}</span>
-  </div>
-  <div style="font-family:var(--font-sans);font-size:12px;color:var(--ink-3);line-height:1.5">{desc}</div>
-</div>"""
-        for mark, title, desc in NAV_ITEMS
-    )
-
-    st.markdown(
-        f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));'
-        f'gap:16px;margin-bottom:32px">{cards_html}</div>',
-        unsafe_allow_html=True,
-    )
+    # ── Nav cards — links funcionais ───────────────────────────────────────────────
+    c1, c2, c3 = st.columns(3)
+    for i, (path, icon, title, desc) in enumerate(_NAV_LINKS):
+        col = [c1, c2, c3][i % 3]
+        with col:
+            try:
+                st.page_link(path, label=f"{icon}  {title}")
+            except Exception:
+                st.markdown(f"**{icon} {title}**")
+            st.caption(desc)
+    st.markdown('<div style="margin-bottom:24px"></div>', unsafe_allow_html=True)
 
     # ── WikiAgent modules ──────────────────────────────────────────────────────────
     engine_items = [
