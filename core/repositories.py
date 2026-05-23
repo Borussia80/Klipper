@@ -18,6 +18,11 @@ from .database import get_client
 log = logging.getLogger(__name__)
 
 
+def tx_balance_delta(amount: float, tx_type: TransactionType) -> float:
+    """Signed balance change a transaction causes: GASTO → negative, GANHO → positive."""
+    return -amount if tx_type == TransactionType.GASTO else amount
+
+
 def _to_db(data: dict) -> dict:
     """Converte Decimal → str para serialização JSON do cliente Supabase."""
     return {k: str(v) if isinstance(v, Decimal) else v for k, v in data.items()}
@@ -269,6 +274,13 @@ class BankAccountRepository:
         except Exception as e:
             log.error("Erro ao atualizar saldo %s: %s", account_id, e)
             raise
+
+    def adjust_balance(self, account_id: str, delta: float) -> None:
+        """Applies a signed delta to the account balance (negative = debit, positive = credit)."""
+        account = self.get_by_id(account_id)
+        if account is None:
+            raise ValueError(f"Conta {account_id} não encontrada.")
+        self.update_balance(account_id, float(account.balance) + delta)
 
     def delete(self, account_id: str) -> None:
         try:
