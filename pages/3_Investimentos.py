@@ -71,106 +71,164 @@ with content_col:
             "Caixa disponível (R$)", min_value=0.0, step=100.0, value=0.0,
         )
 
-    # ── Cotações em tempo real ─────────────────────────────────────────────────
-    with st.expander("◈ Cotações em tempo real", expanded=False):
-        _svc = MarketDataService()
-        _col_refresh, _ = st.columns([1, 4])
-        with _col_refresh:
-            _force = st.button("↺ Atualizar", key="cotacoes_refresh", use_container_width=True)
+    # ── Modal de Investimentos — form + cotações ───────────────────────────────
+    with st.expander("+ Adicionar / Atualizar ativo"):
+        _tab_form, _tab_cotacoes = st.tabs(["✎ Adicionar / Atualizar", "◈ Cotações do portfólio"])
 
-        _header_row = (
-            '<div style="display:grid;grid-template-columns:80px 100px 70px 70px 70px 80px;'
-            'gap:10px;padding-bottom:4px">'
-            '<span style="font-size:10px;color:var(--ink-4)">Ticker</span>'
-            '<span style="font-size:10px;color:var(--ink-4);text-align:right">Preço</span>'
-            '<span style="font-size:10px;color:var(--ink-4);text-align:right">Var.%</span>'
-            '<span style="font-size:10px;color:var(--ink-4);text-align:right">DY 12M</span>'
-            '<span style="font-size:10px;color:var(--ink-4);text-align:right">P/VP</span>'
-            '<span style="font-size:10px;color:var(--ink-4);text-align:right">Ult. Rend.</span>'
-            '</div>'
-        )
+        with _tab_form:
+            # ── Ticker lookup — fora do st.form para reatividade ───────────────
+            _lk_c1, _lk_c2, _lk_c3 = st.columns([2, 1, 2])
+            with _lk_c1:
+                _lk_ticker = st.text_input(
+                    "Buscar cotação", key="inv_lk_ticker",
+                    placeholder="ex: MXRF11, PETR4",
+                ).upper().strip()
+            with _lk_c2:
+                st.markdown('<div style="height:1.75rem"></div>', unsafe_allow_html=True)
+                _lk_force = st.button("◈ Buscar", key="inv_lk_btn", use_container_width=True)
 
-        _portfolio_tickers = [inv.ticker for inv in repo.get_portfolio()] if True else []
-        _bench = ["BOVA11", "SMAL11", "IVVB11"]
-        _all = list(dict.fromkeys(_portfolio_tickers + _bench))
-        _fiis = [t for t in _all if is_fii(t)]
-        _stocks = [t for t in _all if not is_fii(t)]
+            _lk_price: float = 0.01
+            _lk_dy: float    = 0.0
+            _lk_pvp: float   = 0.0
 
-        def _quote_row(ticker: str, q, fii_q=None) -> str:
-            if q is None and fii_q is None:
+            if _lk_ticker:
+                try:
+                    _svc_lk = MarketDataService()
+                    if is_fii(_lk_ticker):
+                        _fq_lk = _svc_lk.get_fiis_batch(
+                            [_lk_ticker], force_refresh=_lk_force
+                        ).get(_lk_ticker)
+                        if _fq_lk:
+                            _lk_price = float(_fq_lk.price)
+                            _lk_dy    = float(_fq_lk.dy_12m)
+                            _lk_pvp   = float(_fq_lk.pvp)
+                            _cc = "var(--moss)" if _fq_lk.change_pct >= 0 else "var(--rust)"
+                            st.markdown(f"""
+<div style="display:flex;gap:20px;align-items:center;padding:10px 14px;margin-bottom:10px;
+  background:rgba(217,178,111,0.05);border:1px solid var(--rule-brass);border-radius:var(--radius-xs)">
+  <span class="mono" style="font-size:13px;color:var(--brass);font-weight:600">{_lk_ticker}</span>
+  <span class="mono" style="font-size:15px;color:var(--ink)">{fmt_brl(_fq_lk.price)}</span>
+  <span class="mono" style="font-size:12px;color:{_cc}">{fmt_change(_fq_lk.change_pct)}</span>
+  <span style="font-size:11px;color:var(--ink-4)">DY {_lk_dy:.2f}% · P/VP {_lk_pvp:.3f} · Rend. {fmt_brl(_fq_lk.last_income)}</span>
+</div>""", unsafe_allow_html=True)
+                    else:
+                        _sq_lk = _svc_lk.get_stocks_batch(
+                            [_lk_ticker], force_refresh=_lk_force
+                        ).get(_lk_ticker)
+                        if _sq_lk:
+                            _lk_price = float(_sq_lk.price)
+                            _cc = "var(--moss)" if _sq_lk.change_pct >= 0 else "var(--rust)"
+                            st.markdown(f"""
+<div style="display:flex;gap:20px;align-items:center;padding:10px 14px;margin-bottom:10px;
+  background:rgba(217,178,111,0.05);border:1px solid var(--rule-brass);border-radius:var(--radius-xs)">
+  <span class="mono" style="font-size:13px;color:var(--brass);font-weight:600">{_lk_ticker}</span>
+  <span class="mono" style="font-size:15px;color:var(--ink)">{fmt_brl(_sq_lk.price)}</span>
+  <span class="mono" style="font-size:12px;color:{_cc}">{fmt_change(_sq_lk.change_pct)}</span>
+</div>""", unsafe_allow_html=True)
+                except Exception:
+                    st.caption("Cotação indisponível — preencha o preço manualmente.")
+
+            # ── Formulário ────────────────────────────────────────────────────────
+            with st.form("form_investimento", clear_on_submit=True):
+                fi1, fi2 = st.columns(2)
+                with fi1:
+                    ticker      = st.text_input("Ticker (ex: MXRF11)").upper()
+                    tipo        = st.selectbox("Tipo", [t.value for t in InvestmentType])
+                    setor       = st.text_input("Setor")
+                    quantidade  = st.number_input("Cotas", min_value=0.01, step=1.0)
+                    preco_medio = st.number_input("Preço médio (R$)", min_value=0.01, step=0.01, format="%.2f")
+                    preco_atual = st.number_input(
+                        "Preço atual (R$)", value=_lk_price, min_value=0.01, step=0.01, format="%.2f",
+                    )
+                with fi2:
+                    dy_12m       = st.number_input("DY 12m (%)", value=_lk_dy, min_value=0.0, step=0.1, format="%.2f")
+                    pvp          = st.number_input("P/VP", value=_lk_pvp, min_value=0.0, step=0.01, format="%.4f")
+                    liquidez     = st.number_input("Liquidez diária (R$)", min_value=0.0, step=1000.0)
+                    volatilidade = st.slider("Volatilidade anual (%)", 0.0, 60.0, 10.0, 0.5)
+                    spread_cdi   = st.slider("Spread vs CDI (p.p.)", -5.0, 10.0, 2.0, 0.25)
+                    notas_inv    = st.text_area("Notas")
+                if st.form_submit_button("Salvar ativo", type="primary", use_container_width=True):
+                    if not ticker:
+                        st.error("Ticker obrigatório.")
+                    else:
+                        try:
+                            repo.upsert(Investment(
+                                ticker=ticker, type=InvestmentType(tipo),
+                                quantity=quantidade, avg_price=preco_medio, current_price=preco_atual,
+                                dy_12m=dy_12m, pvp=pvp, liquidity_daily=liquidez,
+                                volatility=volatilidade, spread_vs_cdi=spread_cdi,
+                                sector=setor, notes=notas_inv,
+                            ))
+                            st.success(f"{ticker} salvo.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(str(e))
+
+        with _tab_cotacoes:
+            # ── Cotações portfólio + benchmarks ───────────────────────────────────
+            _svc_pt = MarketDataService()
+            _pt_col, _ = st.columns([1, 4])
+            with _pt_col:
+                _pt_force = st.button("↺ Atualizar", key="cotacoes_pt_refresh", use_container_width=True)
+
+            _pt_tickers = [inv.ticker for inv in repo.get_portfolio()]
+            _bench = ["BOVA11", "SMAL11", "IVVB11"]
+            _pt_all = list(dict.fromkeys(_pt_tickers + _bench))
+            _pt_fiis   = [t for t in _pt_all if is_fii(t)]
+            _pt_stocks = [t for t in _pt_all if not is_fii(t)]
+
+            def _quote_row(ticker: str, q, fii_q=None) -> str:
+                if q is None and fii_q is None:
+                    return (
+                        f'<div style="display:grid;grid-template-columns:80px 100px 70px 70px 70px 80px;'
+                        f'gap:10px;padding:8px 0;border-top:1px solid var(--rule)">'
+                        f'<span style="font-family:var(--font-mono);font-size:12px;color:var(--brass)">{ticker}</span>'
+                        f'<span style="font-size:11px;color:var(--ink-4)">indisponível</span></div>'
+                    )
+                item = fii_q or q
+                chg_color = "var(--moss)" if item.change_pct >= 0 else "var(--rust)"
+                dy   = f"{fii_q.dy_12m:.2f}%" if fii_q else "—"
+                pvp  = f"{fii_q.pvp:.3f}" if fii_q else "—"
+                rend = fmt_brl(fii_q.last_income) if fii_q else "—"
                 return (
                     f'<div style="display:grid;grid-template-columns:80px 100px 70px 70px 70px 80px;'
-                    f'gap:10px;padding:8px 0;border-top:1px solid var(--rule)">'
+                    f'align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--rule)">'
                     f'<span style="font-family:var(--font-mono);font-size:12px;color:var(--brass)">{ticker}</span>'
-                    f'<span style="font-size:11px;color:var(--ink-4)" colspan="5">indisponível</span></div>'
+                    f'<span style="font-family:var(--font-mono);font-size:13px;color:var(--ink);text-align:right">{fmt_brl(item.price)}</span>'
+                    f'<span style="font-family:var(--font-mono);font-size:12px;color:{chg_color};text-align:right">{fmt_change(item.change_pct)}</span>'
+                    f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--sea);text-align:right">{dy}</span>'
+                    f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-align:right">{pvp}</span>'
+                    f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-align:right">{rend}</span>'
+                    f'</div>'
                 )
-            item = fii_q or q
-            chg_color = "var(--moss)" if item.change_pct >= 0 else "var(--rust)"
-            dy = f"{fii_q.dy_12m:.2f}%" if fii_q else "—"
-            pvp = f"{fii_q.pvp:.3f}" if fii_q else "—"
-            rend = fmt_brl(fii_q.last_income) if fii_q else "—"
-            return (
-                f'<div style="display:grid;grid-template-columns:80px 100px 70px 70px 70px 80px;'
-                f'align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--rule)">'
-                f'<span style="font-family:var(--font-mono);font-size:12px;color:var(--brass)">{ticker}</span>'
-                f'<span style="font-family:var(--font-mono);font-size:13px;color:var(--ink);text-align:right">{fmt_brl(item.price)}</span>'
-                f'<span style="font-family:var(--font-mono);font-size:12px;color:{chg_color};text-align:right">{fmt_change(item.change_pct)}</span>'
-                f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--sea);text-align:right">{dy}</span>'
-                f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-align:right">{pvp}</span>'
-                f'<span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-3);text-align:right">{rend}</span>'
-                f'</div>'
+
+            _pt_header = (
+                '<div style="display:grid;grid-template-columns:80px 100px 70px 70px 70px 80px;'
+                'gap:10px;padding-bottom:4px">'
+                '<span style="font-size:10px;color:var(--ink-4)">Ticker</span>'
+                '<span style="font-size:10px;color:var(--ink-4);text-align:right">Preço</span>'
+                '<span style="font-size:10px;color:var(--ink-4);text-align:right">Var.%</span>'
+                '<span style="font-size:10px;color:var(--ink-4);text-align:right">DY 12M</span>'
+                '<span style="font-size:10px;color:var(--ink-4);text-align:right">P/VP</span>'
+                '<span style="font-size:10px;color:var(--ink-4);text-align:right">Ult. Rend.</span>'
+                '</div>'
             )
 
-        try:
-            _stock_quotes = _svc.get_stocks_batch(_stocks, force_refresh=_force) if _stocks else {}
-            _fii_quotes = _svc.get_fiis_batch(_fiis, force_refresh=_force) if _fiis else {}
-            _rows = ""
-            for t in _all:
-                if is_fii(t):
-                    _rows += _quote_row(t, None, _fii_quotes.get(t))
-                else:
-                    _rows += _quote_row(t, _stock_quotes.get(t))
-            st.markdown(
-                k_card_with_header("Portfólio + Benchmarks", _header_row + _rows, f"{len(_all)} ativos"),
-                unsafe_allow_html=True,
-            )
-        except Exception:
-            st.info("Cotações indisponíveis no momento.")
-
-    # ── Quick form — adicionar ativo ───────────────────────────────────────────
-    with st.expander("+ Adicionar / Atualizar ativo"):
-        with st.form("form_investimento", clear_on_submit=True):
-            fi1, fi2 = st.columns(2)
-            with fi1:
-                ticker      = st.text_input("Ticker (ex: MXRF11)").upper()
-                tipo        = st.selectbox("Tipo", [t.value for t in InvestmentType])
-                setor       = st.text_input("Setor")
-                quantidade  = st.number_input("Cotas", min_value=0.01, step=1.0)
-                preco_medio = st.number_input("Preço médio (R$)", min_value=0.01, step=0.01, format="%.2f")
-                preco_atual = st.number_input("Preço atual (R$)", min_value=0.01, step=0.01, format="%.2f")
-            with fi2:
-                dy_12m       = st.number_input("DY 12m (%)", min_value=0.0, step=0.1, format="%.2f")
-                pvp          = st.number_input("P/VP", min_value=0.0, step=0.01, format="%.4f")
-                liquidez     = st.number_input("Liquidez diária (R$)", min_value=0.0, step=1000.0)
-                volatilidade = st.slider("Volatilidade anual (%)", 0.0, 60.0, 10.0, 0.5)
-                spread_cdi   = st.slider("Spread vs CDI (p.p.)", -5.0, 10.0, 2.0, 0.25)
-                notas_inv    = st.text_area("Notas")
-            if st.form_submit_button("Salvar ativo", type="primary", use_container_width=True):
-                if not ticker:
-                    st.error("Ticker obrigatório.")
-                else:
-                    try:
-                        repo.upsert(Investment(
-                            ticker=ticker, type=InvestmentType(tipo),
-                            quantity=quantidade, avg_price=preco_medio, current_price=preco_atual,
-                            dy_12m=dy_12m, pvp=pvp, liquidity_daily=liquidez,
-                            volatility=volatilidade, spread_vs_cdi=spread_cdi,
-                            sector=setor, notes=notas_inv,
-                        ))
-                        st.success(f"{ticker} salvo.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(str(e))
+            try:
+                _pt_sq = _svc_pt.get_stocks_batch(_pt_stocks, force_refresh=_pt_force) if _pt_stocks else {}
+                _pt_fq = _svc_pt.get_fiis_batch(_pt_fiis, force_refresh=_pt_force) if _pt_fiis else {}
+                _pt_rows = ""
+                for t in _pt_all:
+                    if is_fii(t):
+                        _pt_rows += _quote_row(t, None, _pt_fq.get(t))
+                    else:
+                        _pt_rows += _quote_row(t, _pt_sq.get(t))
+                st.markdown(
+                    k_card_with_header("Portfólio + Benchmarks", _pt_header + _pt_rows, f"{len(_pt_all)} ativos"),
+                    unsafe_allow_html=True,
+                )
+            except Exception:
+                st.info("Cotações indisponíveis no momento.")
 
     # ── Load portfolio ─────────────────────────────────────────────────────────
     try:
