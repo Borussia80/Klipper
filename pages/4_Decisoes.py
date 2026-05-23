@@ -123,7 +123,7 @@ with content_col:
             learning = st.text_area("Aprendizado", height=60)
             bias     = st.text_area("Viés identificado", height=60)
 
-            submitted = st.form_submit_button("Salvar decisão", type="primary", width='stretch')
+            submitted = st.form_submit_button("Salvar decisão", type="primary", use_container_width=True)
 
         if submitted:
             if not ticker:

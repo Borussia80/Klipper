@@ -151,10 +151,11 @@ with content_col:
     cat_options   = [c.value for c in Category]
     type_options  = [t.value for t in TransactionType]
 
+    import datetime as _dt
     df = pd.DataFrame([{
-        "Data":        t.date.isoformat(),
+        "Data":        pd.Timestamp(t.date),
         "Descrição":   t.description,
-        "Valor (R$)":  t.amount,
+        "Valor (R$)":  float(t.amount),
         "Tipo":        t.tx_type.value,
         "Categoria":   t.category.value,
         "Confiança":   f"{t.confidence:.0%}",
@@ -163,7 +164,7 @@ with content_col:
 
     edited = st.data_editor(
         df.drop(columns=["_raw"]),
-        width='stretch',
+        use_container_width=True,
         num_rows="dynamic",
         column_config={
             "Data":       st.column_config.DateColumn("Data", format="DD/MM/YYYY"),
@@ -180,7 +181,7 @@ with content_col:
     col_btn, col_info = st.columns([1, 3])
 
     with col_btn:
-        importar = st.button("Importar para Klipper", type="primary", width='stretch')
+        importar = st.button("Importar para Klipper", type="primary", use_container_width=True)
 
     with col_info:
         st.markdown(
@@ -203,8 +204,13 @@ with content_col:
 
         for _, row in df.iterrows():
             try:
-                tx_date = date.fromisoformat(str(row["Data"])) if isinstance(row["Data"], str) \
-                          else row["Data"]
+                _raw_date = row["Data"]
+                if isinstance(_raw_date, str):
+                    tx_date = date.fromisoformat(_raw_date)
+                elif hasattr(_raw_date, "date"):
+                    tx_date = _raw_date.date()
+                else:
+                    tx_date = _raw_date
                 tx = Transaction(
                     date=tx_date,
                     amount=float(row["Valor (R$)"]),

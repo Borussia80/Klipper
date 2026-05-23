@@ -607,7 +607,7 @@ with content_col:
             gilt=True,
         ), unsafe_allow_html=True)
 
-        if st.button("Gerar briefing", width="stretch", key="btn_kira_briefing"):
+        if st.button("Gerar briefing", use_container_width=True, key="btn_kira_briefing"):
             try:
                 from core.financial_ai import auto_briefing
                 with st.spinner("Kira está analisando seus dados…"):
