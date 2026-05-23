@@ -225,11 +225,27 @@ Esquema X.Y.Z:
 
 - [ ] Fase 6: Telegram Bot (`bot/bot.py`) — captura zero-fricção
 - [ ] Adicionar API keys de IA no `.env`
-- [ ] Página de Cotações usando `MarketDataService`
 
 ## LOG DE SESSÕES
 
 ```
+2026-05-22 FIX   Cotações movidas para dentro do modal de Investimentos (tabs).
+                 Ticker lookup com pre-fill de Preço atual / DY / P/VP no form.
+2026-05-22 FIX   PDF statement reader: Itaú extrato detectado corretamente.
+                 PyMuPDF get_text("words") + Y-bucket para reconstruir linhas de tabela.
+                 Filtro _SKIP_RE para "SALDO DO DIA" e cabeçalhos.
+                 Default GANHO para valores sem sinal (convenção Itaú: débitos têm "-").
+                 20 novos testes TDD (TestParseItauLine, TestParseAmountAndType, TestParseTransactions).
+2026-05-22 FIX   Balance auto-adjustment: tx_balance_delta + BankAccountRepository.adjust_balance.
+                 Edição/criação/exclusão de transação atualiza saldo da conta automaticamente.
+                 8 novos testes TDD (TestTxBalanceDelta, TestBankAccountAdjustBalance).
+2026-05-22 FEAT  Cotações helpers: fmt_change (core/styles.py), is_fii (core/market_data.py).
+                 16 novos testes TDD.
+2026-05-22 FIX   Homepage: removidos cards decorativos sem função.
+                 Mantidos: hero logo, briefing diário (4 KPIs), WikiAgent engines.
+2026-05-22 FIX   Sidebar navigation: adicionado link "⌂ Klipper" (app.py) como primeiro item.
+                 "Extratos" renomeado para "Importar" (ícone ⬆) — mais descritivo.
+                 render_navigation() protegida com try/except por item.
 2026-05-22 FEAT  Market data: B3, Tesouro Direto, PTAX, câmbio.
                  Cache Redis + fakeredis. Circuit breaker CLOSED/OPEN/HALF_OPEN.
                  63 novos testes. Total: 269 testes.
