@@ -12,6 +12,7 @@ def test_sidebar_nav_items_cover_all_product_pages():
     paths = [item.path for item in styles.SIDEBAR_NAV_ITEMS]
 
     assert paths == [
+        "app.py",
         "pages/1_Dashboard.py",
         "pages/2_Transacoes.py",
         "pages/6_Contas.py",

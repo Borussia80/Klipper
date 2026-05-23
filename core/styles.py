@@ -1045,7 +1045,8 @@ class SidebarNavItem:
 
 
 SIDEBAR_NAV_ITEMS: tuple[SidebarNavItem, ...] = (
-    SidebarNavItem("pages/1_Dashboard.py", "⌂", "Dashboard"),
+    SidebarNavItem("app.py", "⌂", "Klipper"),
+    SidebarNavItem("pages/1_Dashboard.py", "◉", "Dashboard"),
     SidebarNavItem("pages/2_Transacoes.py", "↕", "Movimento"),
     SidebarNavItem("pages/6_Contas.py", "⊞", "Contas"),
     SidebarNavItem("pages/7_Orcamento.py", "◎", "Orçamento"),
@@ -1056,7 +1057,7 @@ SIDEBAR_NAV_ITEMS: tuple[SidebarNavItem, ...] = (
     SidebarNavItem("pages/12_Sobre.py", "ℹ", "Sobre"),
     SidebarNavItem("pages/5_AI_Consilium.py", "∞", "AI Consilium"),
     SidebarNavItem("pages/10_Saude.py", "✚", "Saúde"),
-    SidebarNavItem("pages/11_Extratos.py", "⇣", "Extratos"),
+    SidebarNavItem("pages/11_Extratos.py", "⬆", "Importar"),
 )
 
 BRAND_SVG = """<svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
