@@ -1112,8 +1112,52 @@ def load_page_icon():
         return "⚓"
 
 
+# ── Forced-theme overrides injected after KLIPPER_CSS ─────────────────────────
+# Late :root declarations beat earlier ones — same specificity, last writer wins.
+
+_FORCE_LIGHT_CSS = """<style>:root {
+  --bg:#F5F0E8 !important;--bg-deep:#EDE8DF !important;--bg-2:#EAE4DA !important;
+  --surface-1:rgba(0,0,0,0.03) !important;--surface-2:rgba(0,0,0,0.055) !important;
+  --surface-3:rgba(0,0,0,0.085) !important;--surface-tint:rgba(180,140,70,0.05) !important;
+  --ink:#1C160E !important;--ink-2:#3A3028 !important;
+  --ink-3:#6A5F52 !important;--ink-4:#9B9185 !important;
+  --rule:rgba(0,0,0,0.07) !important;--rule-2:rgba(0,0,0,0.12) !important;
+  --rule-brass:rgba(180,140,70,0.25) !important;
+  --shadow-1:0 1px 0 rgba(255,255,255,0.70) inset,0 4px 14px rgba(0,0,0,0.10) !important;
+  --shadow-2:0 1px 0 rgba(255,255,255,0.60) inset,0 8px 28px rgba(0,0,0,0.14) !important;
+  --glow-brass:0 0 0 1px rgba(180,140,70,0.20),0 0 24px rgba(180,140,70,0.08) !important;
+}</style>"""
+
+_FORCE_DARK_CSS = """<style>:root {
+  --bg:#08161F !important;--bg-deep:#050B12 !important;--bg-2:#0C1E2B !important;
+  --surface-1:rgba(255,255,255,0.025) !important;--surface-2:rgba(255,255,255,0.045) !important;
+  --surface-3:rgba(255,255,255,0.07) !important;--surface-tint:rgba(200,163,100,0.04) !important;
+  --ink:#F2EAD3 !important;--ink-2:#C9BC9E !important;
+  --ink-3:#8F8770 !important;--ink-4:#5C5746 !important;
+  --rule:rgba(255,255,255,0.06) !important;--rule-2:rgba(255,255,255,0.10) !important;
+  --rule-brass:rgba(200,163,100,0.22) !important;
+  --shadow-1:0 1px 0 rgba(255,255,255,0.04) inset,0 6px 18px rgba(0,0,0,0.35) !important;
+  --shadow-2:0 1px 0 rgba(255,255,255,0.05) inset,0 12px 32px rgba(0,0,0,0.42) !important;
+  --glow-brass:0 0 0 1px rgba(217,178,111,0.15),0 0 32px rgba(217,178,111,0.10) !important;
+}</style>"""
+
+
 def inject_css() -> None:
     st.markdown(KLIPPER_CSS, unsafe_allow_html=True)
+    theme = st.session_state.get("klipper_theme", "dark")
+    if theme == "light":
+        st.markdown(_FORCE_LIGHT_CSS, unsafe_allow_html=True)
+    else:
+        st.markdown(_FORCE_DARK_CSS, unsafe_allow_html=True)
+
+
+def theme_toggle_btn() -> None:
+    """Renderiza botão de toggle claro/escuro — inclua em render_navigation()."""
+    theme = st.session_state.get("klipper_theme", "dark")
+    label = "☀  Claro" if theme == "dark" else "☽  Escuro"
+    if st.button(label, key="klipper_theme_toggle", use_container_width=True):
+        st.session_state["klipper_theme"] = "light" if theme == "dark" else "dark"
+        st.rerun()
 
 
 def render_navigation() -> None:
@@ -1130,6 +1174,8 @@ def render_navigation() -> None:
             # Streamlit Cloud may not have registered a newly deployed page yet;
             # silently skip rather than crash the entire navigation rail.
             pass
+    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+    theme_toggle_btn()
 
 
 def sidebar_nav() -> None:
