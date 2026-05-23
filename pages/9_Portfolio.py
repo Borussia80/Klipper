@@ -197,7 +197,7 @@ with content_col:
                 unsafe_allow_html=True,
             )
             if st.button(f"Ver {t['sector']}", key=f"tese_btn_{i}",
-                         width='stretch', type="secondary"):
+                         use_container_width=True, type="secondary"):
                 st.session_state["tese_sel"] = t["sector"]
                 st.rerun()
 

@@ -434,7 +434,7 @@ with content_col:
                                tickfont=dict(family="Geist Mono, monospace", color="#5C5746", size=10)),
                     showlegend=False,
                 )
-                st.plotly_chart(fig, width='stretch')
+                st.plotly_chart(fig, use_container_width=True)
 
     # ══════════════════════════════════════════════════════════════════════════
     # TAB 3 — Contas Bancárias

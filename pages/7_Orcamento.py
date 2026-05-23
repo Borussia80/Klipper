@@ -322,7 +322,7 @@ with content_col:
                     font={"color": "#C9BC9E"},
                 )
                 st.markdown(k_card_with_header("Histórico 6 meses", "", "evolução da poupança"), unsafe_allow_html=True)
-                st.plotly_chart(fig, width='stretch')
+                st.plotly_chart(fig, use_container_width=True)
 
     # ══════════════════════════════════════════════════════════════════════════
     # TAB 3 — Score Financeiro
@@ -416,7 +416,7 @@ with content_col:
                            tickfont=dict(family="Geist Mono, monospace", color="#5C5746", size=10)),
                 font={"color": "#C9BC9E"},
             )
-            st.plotly_chart(fig_sc, width='stretch')
+            st.plotly_chart(fig_sc, use_container_width=True)
 
     # ══════════════════════════════════════════════════════════════════════════
     # TAB 4 — Alertas de Padrão
@@ -486,4 +486,4 @@ with content_col:
                     legend=dict(font=dict(family="General Sans, sans-serif", color="#8F8770", size=11)),
                     font={"color": "#C9BC9E"},
                 )
-                st.plotly_chart(fig_comp, width='stretch')
+                st.plotly_chart(fig_comp, use_container_width=True)
