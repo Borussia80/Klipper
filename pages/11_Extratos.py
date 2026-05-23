@@ -8,7 +8,9 @@ from datetime import date
 import pandas as pd
 import streamlit as st
 
-from core.statement_reader import ParsedTransaction, StatementResult, read_statement
+from core.statement_reader import (
+    ParsedTransaction, StatementResult, read_statement, read_statement_image,
+)
 from core.auth import require_auth
 from core.styles import (
     fmt_brl, inject_css, load_page_icon, section_header,
@@ -49,13 +51,14 @@ with content_col:
     st.markdown("""
 <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:4px">
   <span style="font-family:var(--font-sans);font-size:26px;font-weight:600;
-    color:var(--ink);letter-spacing:-0.02em">Extratos</span>
+    color:var(--ink);letter-spacing:-0.02em">Importar Extrato</span>
   <span style="font-family:var(--font-sans);font-size:11px;letter-spacing:0.16em;
-    text-transform:uppercase;color:var(--ink-3);font-weight:500">PDF · banco e cartão</span>
+    text-transform:uppercase;color:var(--ink-3);font-weight:500">PDF · PNG · JPG</span>
 </div>
 <div style="font-family:var(--font-sans);font-size:12px;color:var(--ink-3);
   margin-bottom:24px">
-  Faça upload do extrato em PDF — o sistema detecta texto ou OCR automaticamente
+  Faça upload do extrato em PDF ou de um print do app do banco (PNG/JPG).<br>
+  Detecta automaticamente Itaú (PDF) e BTG Pactual (print de tela).
 </div>
 """, unsafe_allow_html=True)
 
@@ -67,8 +70,8 @@ with content_col:
 
     # ── Upload ─────────────────────────────────────────────────────────────────────
     uploaded = st.file_uploader(
-        "Selecione o PDF do extrato ou fatura",
-        type=["pdf"],
+        "Selecione o arquivo",
+        type=["pdf", "png", "jpg", "jpeg"],
         accept_multiple_files=False,
         label_visibility="collapsed",
     )
@@ -78,22 +81,28 @@ with content_col:
 <div class="k-card" style="margin-top:24px;text-align:center;padding:40px 20px">
   <div style="font-size:32px;margin-bottom:12px">📄</div>
   <div style="font-family:var(--font-sans);font-size:14px;color:var(--ink-2)">
-    Arraste o PDF ou clique em Browse files acima
+    Arraste o arquivo ou clique em Browse files acima
   </div>
   <div style="font-family:var(--font-sans);font-size:12px;color:var(--ink-3);margin-top:8px">
-    Funciona com extratos de Nubank, Bradesco, Itaú, BB, Santander e outros.<br>
-    PDFs com texto nativo são lidos diretamente. Faturas digitalizadas usam OCR.
+    <strong>PDF</strong>: extratos Itaú, Nubank, Bradesco, BB, Santander e outros.<br>
+    <strong>PNG / JPG</strong>: print do app BTG Pactual — atividade de rendimentos.
   </div>
 </div>
 """, unsafe_allow_html=True)
         st.stop()
 
-    # ── Processar PDF ──────────────────────────────────────────────────────────────
-    with st.spinner("Lendo PDF…"):
+    # ── Processar arquivo ──────────────────────────────────────────────────────────
+    _ext = uploaded.name.rsplit(".", 1)[-1].lower()
+    _is_image = _ext in ("png", "jpg", "jpeg")
+
+    with st.spinner("Lendo arquivo…"):
         try:
-            result: StatementResult = read_statement(uploaded.getvalue())
+            if _is_image:
+                result: StatementResult = read_statement_image(uploaded.getvalue())
+            else:
+                result: StatementResult = read_statement(uploaded.getvalue())
         except Exception as e:
-            st.error(f"Erro ao processar PDF: {e}")
+            st.error(f"Erro ao processar arquivo: {e}")
             st.stop()
 
     # Aviso sobre warnings de OCR
@@ -109,8 +118,9 @@ with content_col:
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
+        _type_label = result.pdf_type.upper().replace("_", " ")
         st.markdown(stat_card("Transações", str(len(txs)),
-                               sub=f"{result.page_count} pág · {result.pdf_type.upper()}"),
+                               sub=f"{result.page_count} pág · {_type_label}"),
                     unsafe_allow_html=True)
     with c2:
         st.markdown(stat_card("Gastos detectados", fmt_brl(total_gastos),
