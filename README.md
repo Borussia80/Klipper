@@ -71,7 +71,7 @@ core/                      ← engines + utilitários
 models/                    ← Pydantic (Transaction, Investment, BankAccount…)
 pages/                     ← páginas Streamlit (1_Dashboard … 11_Extratos)
 migrations/                ← SQL Supabase
-tests/                     ← pytest ≥ 269 testes
+tests/                     ← pytest ≥ 448 testes
 ```
 
 ---
@@ -169,8 +169,22 @@ O tempo entre "escrever código" e "saber se funciona" é minimizado em todas as
 
 ---
 
+## Funcionalidades
+
+| Área | O que faz |
+| ---- | --------- |
+| **Dashboard** | KPIs do mês, briefing diário, WikiAgent engines |
+| **Transações** | CRUD com auto-ajuste de saldo da conta bancária |
+| **Investimentos (modal)** | Dashboard ao vivo (preços, performance, feed de rendimentos), lookup de cotação com pre-fill no form, cotações do portfólio + benchmarks |
+| **Contas & Cartões** | Saldo por conta, fatura, limites, parcelamentos |
+| **Orçamento** | Limites por categoria, meta de poupança, score financeiro 0–100 |
+| **Importar extrato** | PDF (Itaú e outros) + **print de tela PNG/JPG (BTG Pactual)** — OCR automático, revisão antes de importar |
+| **AI Consilium** | Multi-provider: Claude, Gemini, GPT-4o, Qwen, Kimi |
+| **Kira** | IA financeira pessoal via NVIDIA NIM (Llama 3.3-70B) |
+| **Market Data** | Cotações B3, Tesouro Direto, PTAX, câmbio em tempo real |
+| **Tema** | Toggle claro/escuro na barra de navegação, persiste por sessão |
+
 ## Pendências
 
 - [ ] Fase 6: Telegram Bot (`bot/bot.py`) — captura zero-fricção
 - [ ] Adicionar API keys de IA no `.env`
-- [ ] Adicionar página de Cotações usando `MarketDataService`

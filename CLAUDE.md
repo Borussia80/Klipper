@@ -229,6 +229,19 @@ Esquema X.Y.Z:
 ## LOG DE SESSÕES
 
 ```
+2026-05-22 FEAT  Toggle claro/escuro na barra de navegação.
+                 _FORCE_LIGHT_CSS / _FORCE_DARK_CSS sobrescrevem prefers-color-scheme.
+                 Persiste por sessão via st.session_state["klipper_theme"].
+2026-05-22 FEAT  Dashboard ao vivo no modal de Investimentos (tab "◉ Dashboard ao vivo").
+                 Performance strip: portfólio hoje vs BOVA11, IFIX, IVVB11.
+                 Posições ao vivo: preço, var.%, valor atual e G/L por ativo.
+                 Feed de rendimentos: últimos 60 dias (Category.RENDA).
+2026-05-22 FEAT  Parser BTG Pactual: lê prints PNG/JPG do app mobile.
+                 _parse_btg_date_line, _parse_btg_amount_line, parse_btg_statement.
+                 _is_btg_format detecta automaticamente o banco pelo texto OCR.
+                 read_statement_image: OCR de imagem com roteamento Itaú/BTG.
+                 Importar aceita PNG/JPG além de PDF.
+                 23 novos testes TDD. Total: 448 testes.
 2026-05-22 FIX   Cotações movidas para dentro do modal de Investimentos (tabs).
                  Ticker lookup com pre-fill de Preço atual / DY / P/VP no form.
 2026-05-22 FIX   PDF statement reader: Itaú extrato detectado corretamente.
