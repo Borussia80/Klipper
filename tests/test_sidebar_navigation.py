@@ -24,6 +24,7 @@ def test_sidebar_nav_items_cover_all_product_pages():
         "pages/5_AI_Consilium.py",
         "pages/10_Saude.py",
         "pages/11_Extratos.py",
+        "pages/13_Cotacoes.py",
     ]
 
 
