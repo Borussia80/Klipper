@@ -27,14 +27,6 @@ inject_css()
 
 require_auth()
 
-_NAV_LINKS = [
-    ("pages/2_Transacoes.py",   "↹", "Movimento",    "Ledger de transações e parcelamentos"),
-    ("pages/6_Contas.py",       "⊞", "Contas",       "Contas bancárias e cartões de crédito"),
-    ("pages/3_Investimentos.py","▲", "Patrimônio",   "Portfólio WikiAgent M1/M2/M3"),
-    ("pages/7_Orcamento.py",    "◎", "Orçamento",    "Orçamentos, score financeiro, alertas"),
-    ("pages/5_AI_Consilium.py", "∞", "AI Consilium", "Claude · Gemini · GPT-4o · Qwen"),
-    ("pages/10_Saude.py",       "✚", "Saúde",        "Pedro · reembolsos · operadora"),
-]
 
 nav_col, content_col = st.columns([1, 4])
 
@@ -121,18 +113,6 @@ with content_col:
 """, unsafe_allow_html=True)
     except Exception:
         pass  # briefing degrada silenciosamente — não bloqueia a landing page
-
-    # ── Nav cards — links funcionais ───────────────────────────────────────────────
-    c1, c2, c3 = st.columns(3)
-    for i, (path, icon, title, desc) in enumerate(_NAV_LINKS):
-        col = [c1, c2, c3][i % 3]
-        with col:
-            try:
-                st.page_link(path, label=f"{icon}  {title}")
-            except Exception:
-                st.markdown(f"**{icon} {title}**")
-            st.caption(desc)
-    st.markdown('<div style="margin-bottom:24px"></div>', unsafe_allow_html=True)
 
     # ── WikiAgent modules ──────────────────────────────────────────────────────────
     engine_items = [

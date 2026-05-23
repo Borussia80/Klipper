@@ -35,6 +35,12 @@ _MONTH_MAP = {
 _AMOUNT_RE = re.compile(r"([+-]?\d{1,3}(?:\.\d{3})*,\d{2})")
 # Indicadores de débito/crédito no final da linha (Itaú, BB)
 _DC_SUFFIX = re.compile(r"\b([CD]|DB|CR|Deb|Cred)\b\.?$", re.IGNORECASE)
+# Linhas de saldo/cabeçalho que não são transações
+_SKIP_RE = re.compile(
+    r"saldo\s+do\s+dia|per[ií]odo\s+de\s+visualiza|emitido\s+em|"
+    r"data\s+lan[çc]amentos|aviso!|limite\s+da\s+conta|extrato\s+conta",
+    re.IGNORECASE,
+)
 
 # ── Categorização por palavras-chave ───────────────────────────────────────────
 _CATEGORY_KEYWORDS: list[tuple[str, Category]] = [
@@ -121,10 +127,22 @@ def _detect_pdf_type(doc: fitz.Document) -> str:
 # ── Extração de texto ──────────────────────────────────────────────────────────
 
 def _extract_text(doc: fitz.Document) -> str:
-    pages = []
+    """Extrai texto preservando linhas de tabela via coordenadas de palavras."""
+    lines = []
     for page in doc:
-        pages.append(page.get_text("text"))
-    return "\n".join(pages)
+        words = page.get_text("words")  # (x0, y0, x1, y1, word, block, line, word_no)
+        if not words:
+            lines.append(page.get_text("text"))
+            continue
+        rows: dict[int, list[tuple[float, str]]] = {}
+        for item in words:
+            x0, y0, word = item[0], item[1], item[4]
+            y_bucket = round(y0 / 3) * 3
+            rows.setdefault(y_bucket, []).append((x0, word))
+        for y_key in sorted(rows):
+            row_words = sorted(rows[y_key], key=lambda w: w[0])
+            lines.append(" ".join(w[1] for w in row_words))
+    return "\n".join(lines)
 
 
 def _extract_ocr(doc: fitz.Document) -> tuple[str, list[str]]:
@@ -174,6 +192,8 @@ def _parse_transactions(text: str) -> list[ParsedTransaction]:
 
 def _parse_line(line: str) -> ParsedTransaction | None:
     if len(line) < 8:
+        return None
+    if _SKIP_RE.search(line):
         return None
 
     tx_date = _extract_date(line)
@@ -232,17 +252,25 @@ def _parse_amount_and_type(raw: str, line: str) -> tuple[float | None, Transacti
     except ValueError:
         return None, TransactionType.GASTO
 
-    dc = _DC_SUFFIX.search(line)
-    if value < 0 or (dc and dc.group(1).upper() in {"D", "DB", "Deb"}):
+    # Sinal negativo explícito → débito (Itaú e maioria dos bancos)
+    if raw.startswith("-") or value < 0:
         return abs(value), TransactionType.GASTO
-    if value > 0 and raw.startswith("+"):
+
+    # Sufixo D/C (Bradesco, BB)
+    dc = _DC_SUFFIX.search(line)
+    if dc:
+        letter = dc.group(1).upper()
+        if letter in {"D", "DB", "DEB"}:
+            return value, TransactionType.GASTO
+        if letter in {"C", "CR", "CRED"}:
+            return value, TransactionType.GANHO
+
+    # Sinal positivo explícito → crédito
+    if raw.startswith("+"):
         return value, TransactionType.GANHO
-    if dc and dc.group(1).upper() in {"C", "CR", "Cred"}:
-        return value, TransactionType.GANHO
-    # Heurística: crédito se keywords como TED/PIX recebido
-    if re.search(r"\b(receb|credit|ted\s+rec|pix\s+rec)", line, re.IGNORECASE):
-        return value, TransactionType.GANHO
-    return value, TransactionType.GASTO
+
+    # Valor positivo sem sinal → crédito (padrão Itaú: débitos sempre têm "-")
+    return value, TransactionType.GANHO
 
 
 def _extract_description(line: str, amount_str: str) -> str:
