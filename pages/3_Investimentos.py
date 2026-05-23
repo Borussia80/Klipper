@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import html as _html_mod
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+
+def _html_esc(s: str) -> str:
+    return _html_mod.escape(str(s))
 
 from core.anti_bs import verificar_alertas, PERGUNTA_OBRIGATORIA
 from core.formatters import formatar_moeda_brl, formatar_percentual
@@ -13,7 +17,7 @@ from core.m1_quant import calcular_score_m1, classificar_score, Decisao
 from core.m2_governance import verificar_limites, hard_fail
 from core.m3_context import Confidence, MarketRegime, ajustar_prudencia
 from core.market_data import MarketDataService, is_fii
-from core.repositories import InvestmentRepository
+from core.repositories import InvestmentRepository, TransactionRepository
 from core.auth import require_auth
 from core.styles import (
     bar_track, fmt_brl, fmt_change, inject_css, k_card_with_header,
@@ -21,6 +25,7 @@ from core.styles import (
     stat_card, load_page_icon,
 )
 from models.investment import Investment, InvestmentType
+from models.transaction import Category
 
 st.set_page_config(page_title="Patrimônio · Klipper", page_icon=load_page_icon(), layout="wide")
 inject_css()
@@ -73,7 +78,192 @@ with content_col:
 
     # ── Modal de Investimentos — form + cotações ───────────────────────────────
     with st.expander("+ Adicionar / Atualizar ativo"):
-        _tab_form, _tab_cotacoes = st.tabs(["✎ Adicionar / Atualizar", "◈ Cotações do portfólio"])
+        _tab_dash, _tab_form, _tab_cotacoes = st.tabs([
+            "◉ Dashboard ao vivo", "✎ Adicionar / Atualizar", "◈ Cotações do portfólio",
+        ])
+
+        with _tab_dash:
+            # ── Dashboard ao vivo ─────────────────────────────────────────────────
+            _dash_svc = MarketDataService()
+            _dash_portfolio = repo.get_portfolio()
+
+            _dash_refresh_col, _ = st.columns([1, 5])
+            with _dash_refresh_col:
+                _dash_force = st.button("↺ Atualizar", key="dash_force_btn", use_container_width=True)
+
+            if not _dash_portfolio:
+                st.info("Portfólio vazio — adicione ativos na aba Adicionar / Atualizar.")
+            else:
+                # ── Performance strip ─────────────────────────────────────────────
+                _dash_tickers_all = [inv.ticker for inv in _dash_portfolio]
+                _dash_fiis_all    = [t for t in _dash_tickers_all if is_fii(t)]
+                _dash_stocks_all  = [t for t in _dash_tickers_all if not is_fii(t)]
+                _bench_tickers    = ["BOVA11", "IFIX11", "IVVB11"]
+
+                try:
+                    _dsq = _dash_svc.get_stocks_batch(
+                        _dash_stocks_all + _bench_tickers, force_refresh=_dash_force
+                    ) if (_dash_stocks_all + _bench_tickers) else {}
+                    _dfq = _dash_svc.get_fiis_batch(
+                        _dash_fiis_all, force_refresh=_dash_force
+                    ) if _dash_fiis_all else {}
+
+                    # Valor do portfólio hoje: sum(qty * price)
+                    _port_value_now  = sum(
+                        inv.quantity * (
+                            _dfq[inv.ticker].price if inv.ticker in _dfq
+                            else _dsq[inv.ticker].price if inv.ticker in _dsq
+                            else float(inv.current_price)
+                        )
+                        for inv in _dash_portfolio
+                    )
+                    # Variação do dia: sum(qty * change_abs)
+                    _port_change_abs = sum(
+                        inv.quantity * (
+                            _dfq[inv.ticker].change_abs if inv.ticker in _dfq
+                            else _dsq[inv.ticker].change_abs if inv.ticker in _dsq
+                            else 0.0
+                        )
+                        for inv in _dash_portfolio
+                    )
+                    _port_value_prev = _port_value_now - _port_change_abs
+                    _port_change_pct = (_port_change_abs / _port_value_prev * 100) if _port_value_prev else 0.0
+
+                    _bova_chg = _dsq.get("BOVA11")
+                    _ifix_chg = _dsq.get("IFIX11")
+                    _ivvb_chg = _dsq.get("IVVB11")
+
+                    _pc = "var(--moss)" if _port_change_pct >= 0 else "var(--rust)"
+                    _bc = "var(--moss)" if (_bova_chg and _bova_chg.change_pct >= 0) else "var(--rust)"
+                    _ic = "var(--moss)" if (_ifix_chg and _ifix_chg.change_pct >= 0) else "var(--rust)"
+                    _vc = "var(--moss)" if (_ivvb_chg and _ivvb_chg.change_pct >= 0) else "var(--rust)"
+
+                    st.markdown(f"""
+<div class="k-grid k-cols-4" style="margin-bottom:20px">
+  {stat_card("Portfólio · hoje", fmt_brl(_port_value_now, compact=True),
+             f"{fmt_change(_port_change_pct)} · {fmt_brl(_port_change_abs, compact=True)}",
+             "pos" if _port_change_pct >= 0 else "neg")}
+  {stat_card("BOVA11 · hoje",
+             fmt_change(_bova_chg.change_pct) if _bova_chg else "—",
+             fmt_brl(_bova_chg.price) if _bova_chg else "indisponível",
+             "pos" if (_bova_chg and _bova_chg.change_pct >= 0) else "neg")}
+  {stat_card("IFIX · hoje",
+             fmt_change(_ifix_chg.change_pct) if _ifix_chg else "—",
+             fmt_brl(_ifix_chg.price) if _ifix_chg else "indisponível",
+             "pos" if (_ifix_chg and _ifix_chg.change_pct >= 0) else "neg")}
+  {stat_card("IVVB11 · hoje",
+             fmt_change(_ivvb_chg.change_pct) if _ivvb_chg else "—",
+             fmt_brl(_ivvb_chg.price) if _ivvb_chg else "indisponível",
+             "pos" if (_ivvb_chg and _ivvb_chg.change_pct >= 0) else "neg")}
+</div>""", unsafe_allow_html=True)
+
+                    # ── Posições ao vivo ───────────────────────────────────────────
+                    _pos_rows = ""
+                    for inv in sorted(_dash_portfolio, key=lambda x: -x.current_value):
+                        _q = _dfq.get(inv.ticker) or _dsq.get(inv.ticker)
+                        if _q:
+                            _live_price = _q.price
+                            _live_val   = inv.quantity * _live_price
+                            _live_gl    = _live_val - float(inv.quantity * inv.avg_price)
+                            _chg_c      = "var(--moss)" if _q.change_pct >= 0 else "var(--rust)"
+                            _gl_c       = "var(--moss)" if _live_gl >= 0 else "var(--rust)"
+                            _gl_sign    = "+" if _live_gl >= 0 else ""
+                        else:
+                            _live_price = float(inv.current_price)
+                            _live_val   = float(inv.current_value)
+                            _live_gl    = float(inv.gain_loss)
+                            _chg_c      = "var(--ink-4)"
+                            _gl_c       = "var(--moss)" if _live_gl >= 0 else "var(--rust)"
+                            _gl_sign    = "+" if _live_gl >= 0 else ""
+
+                        _pos_rows += f"""
+<div style="display:grid;grid-template-columns:72px 90px 60px 100px 90px;
+  align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--rule)">
+  <span class="mono" style="font-size:12px;color:var(--brass)">{inv.ticker}</span>
+  <span class="mono" style="font-size:13px;color:var(--ink);text-align:right">{fmt_brl(_live_price)}</span>
+  <span class="mono" style="font-size:11px;color:{_chg_c};text-align:right">{fmt_change(_q.change_pct) if _q else "—"}</span>
+  <span class="mono" style="font-size:12px;color:var(--ink-2);text-align:right">{fmt_brl(_live_val, compact=True)}</span>
+  <span class="mono" style="font-size:11px;color:{_gl_c};text-align:right">{_gl_sign}{fmt_brl(_live_gl, compact=True)}</span>
+</div>"""
+
+                    _pos_header = (
+                        '<div style="display:grid;grid-template-columns:72px 90px 60px 100px 90px;'
+                        'gap:10px;padding-bottom:4px">'
+                        '<span style="font-size:10px;color:var(--ink-4)">Ticker</span>'
+                        '<span style="font-size:10px;color:var(--ink-4);text-align:right">Preço</span>'
+                        '<span style="font-size:10px;color:var(--ink-4);text-align:right">Var.%</span>'
+                        '<span style="font-size:10px;color:var(--ink-4);text-align:right">Valor</span>'
+                        '<span style="font-size:10px;color:var(--ink-4);text-align:right">G/L total</span>'
+                        '</div>'
+                    )
+                    st.markdown(
+                        k_card_with_header("Posições ao vivo", _pos_header + _pos_rows,
+                                           f"{len(_dash_portfolio)} ativos · {fmt_brl(_port_value_now, compact=True)}"),
+                        unsafe_allow_html=True,
+                    )
+
+                except Exception:
+                    st.info("Cotações ao vivo indisponíveis — verifique a conexão.")
+
+                # ── Feed de rendimentos (últimos 60 dias) ─────────────────────────
+                try:
+                    from datetime import date as _date, timedelta
+                    _today = _date.today()
+                    _tx_repo = TransactionRepository()
+
+                    # Coleta últimos 2 meses
+                    _rend_txs = []
+                    for _mo in [_today.month, (_today.month - 1) or 12]:
+                        _yr = _today.year if _mo <= _today.month else _today.year - 1
+                        try:
+                            _rend_txs += [
+                                t for t in _tx_repo.list_by_month(_yr, _mo)
+                                if t.category == Category.RENDA
+                            ]
+                        except Exception:
+                            pass
+
+                    _rend_txs.sort(key=lambda t: t.date, reverse=True)
+
+                    if _rend_txs:
+                        _rend_rows = ""
+                        _rend_total = sum(float(t.amount) for t in _rend_txs)
+                        for _rt in _rend_txs[:20]:
+                            _rend_rows += f"""
+<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--rule)">
+  <div style="width:32px;height:32px;border-radius:50%;background:rgba(123,198,138,0.12);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0">
+    <span style="font-size:14px">$</span>
+  </div>
+  <div style="flex:1;min-width:0">
+    <div style="font-family:var(--font-sans);font-size:12px;color:var(--ink);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{_html_esc(_rt.notes or _rt.category.value)}</div>
+    <div style="font-family:var(--font-sans);font-size:10px;color:var(--ink-4)">
+      {_rt.date.strftime('%d/%b').lower()}</div>
+  </div>
+  <span class="mono" style="font-size:13px;color:var(--moss);flex-shrink:0">+{fmt_brl(float(_rt.amount))}</span>
+</div>"""
+
+                        st.markdown(
+                            k_card_with_header(
+                                "Feed de rendimentos", _rend_rows,
+                                f"{len(_rend_txs)} pagamentos · {fmt_brl(_rend_total, compact=True)} total",
+                            ),
+                            unsafe_allow_html=True,
+                        )
+                    else:
+                        st.markdown(
+                            k_card_with_header(
+                                "Feed de rendimentos",
+                                '<div style="padding:20px 0;text-align:center;color:var(--ink-4);font-size:12px">'
+                                'Nenhum rendimento nos últimos 60 dias.<br>'
+                                'Importe extratos BTG na página Importar para popular este feed.</div>',
+                                "últimos 60 dias",
+                            ),
+                            unsafe_allow_html=True,
+                        )
+                except Exception:
+                    pass
 
         with _tab_form:
             # ── Ticker lookup — fora do st.form para reatividade ───────────────

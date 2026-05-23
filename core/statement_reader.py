@@ -66,6 +66,7 @@ _CATEGORY_KEYWORDS: list[tuple[str, Category]] = [
     ("cinema", Category.LAZER), ("steam", Category.LAZER),
     ("salario", Category.RENDA), ("salário", Category.RENDA),
     ("holerite", Category.RENDA), ("pro-labore", Category.RENDA),
+    ("rendimento", Category.RENDA), ("rend pago", Category.RENDA),
     ("freelance", Category.FREELANCE), ("freela", Category.FREELANCE),
     ("invest", Category.INVESTIMENTO), ("fii", Category.INVESTIMENTO),
     ("cdb", Category.INVESTIMENTO), ("tesouro", Category.INVESTIMENTO),
@@ -287,3 +288,171 @@ def _categorize(description: str) -> Category:
         if keyword in lower:
             return category
     return Category.OUTROS
+
+
+# ── BTG Pactual — parser de prints do app mobile ──────────────────────────────
+
+_BTG_WEEKDAY_RE = re.compile(
+    r"^(?:segunda|terça|quarta|quinta|sexta|sábado|domingo)"
+    r"(?:-feira)?\s+(\d{1,2})/(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)",
+    re.IGNORECASE,
+)
+_BTG_SHORT_DATE_RE = re.compile(
+    r"^(\d{1,2})/(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)$",
+    re.IGNORECASE,
+)
+_BTG_AMOUNT_RE = re.compile(
+    r"^([+-])?\s*R\$\s*([\d.]+,\d{2})",
+    re.IGNORECASE,
+)
+_BTG_SKIP_RE = re.compile(
+    r"^(atividade|lançamentos futuros|conta corrente|conta investimento"
+    r"|\d+\s+operaç|menu|manage app|conferir)",
+    re.IGNORECASE,
+)
+
+
+def _parse_btg_date_line(line: str) -> date | None:
+    """Retorna date se a linha for um cabeçalho de data do BTG, None caso contrário."""
+    today = date.today()
+    m = _BTG_WEEKDAY_RE.match(line.strip())
+    if m:
+        try:
+            return date(today.year, _MONTH_MAP[m.group(2).lower()], int(m.group(1)))
+        except (ValueError, KeyError):
+            return None
+    m2 = _BTG_SHORT_DATE_RE.match(line.strip())
+    if m2:
+        try:
+            return date(today.year, _MONTH_MAP[m2.group(2).lower()], int(m2.group(1)))
+        except (ValueError, KeyError):
+            return None
+    return None
+
+
+def _parse_btg_amount_line(line: str) -> tuple[float, TransactionType] | None:
+    """Retorna (amount, tipo) se a linha for um valor BTG (+/- R$ X), None caso contrário."""
+    m = _BTG_AMOUNT_RE.match(line.strip())
+    if not m:
+        return None
+    sign_char = m.group(1) or "+"
+    raw = m.group(2).replace(".", "").replace(",", ".")
+    try:
+        value = float(raw)
+    except ValueError:
+        return None
+    if value <= 0:
+        return None
+    tx_type = TransactionType.GASTO if sign_char == "-" else TransactionType.GANHO
+    return value, tx_type
+
+
+def _is_btg_format(text: str) -> bool:
+    """Heurística: retorna True se o texto tem marcadores característicos do BTG."""
+    markers = ("atividade", "lançamentos futuros", "conta corrente", "conta investimento")
+    lower = text.lower()
+    return any(m in lower for m in markers)
+
+
+def parse_btg_statement(text: str) -> list[ParsedTransaction]:
+    """
+    Parseia texto extraído de print do app BTG Pactual.
+
+    Formato esperado (state machine):
+      [data]
+      [descrição]
+      [+ R$ valor | - R$ valor | R$ valor]
+      [Conta corrente]  ← linha ignorada
+    """
+    results: list[ParsedTransaction] = []
+    current_date: date = date.today()
+    current_desc: str = ""
+
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        # data → atualiza estado
+        d = _parse_btg_date_line(line)
+        if d is not None:
+            current_date = d
+            current_desc = ""
+            continue
+
+        # linhas para ignorar
+        if _BTG_SKIP_RE.match(line):
+            current_desc = ""
+            continue
+
+        # valor → fecha transação com a descrição anterior
+        amount_result = _parse_btg_amount_line(line)
+        if amount_result is not None and current_desc:
+            amount, tx_type = amount_result
+            category = _categorize(current_desc)
+            confidence = 0.9 if category != Category.OUTROS else 0.6
+            results.append(ParsedTransaction(
+                date=current_date,
+                description=current_desc[:120],
+                amount=amount,
+                tx_type=tx_type,
+                category=category,
+                confidence=confidence,
+                raw_line=line,
+            ))
+            current_desc = ""
+            continue
+
+        # linha de descrição → acumula
+        if not _parse_btg_amount_line(line):
+            current_desc = line
+
+    return results
+
+
+# ── Leitura de imagens (PNG/JPG) ───────────────────────────────────────────────
+
+def read_statement_image(image_bytes: bytes) -> StatementResult:
+    """
+    Lê print de extrato bancário (PNG/JPG) via OCR e retorna transações parseadas.
+    Detecta automaticamente o formato BTG ou usa parser genérico.
+    """
+    try:
+        import io
+        import numpy as np
+        from PIL import Image
+    except ImportError as e:
+        return StatementResult([], "ocr", 1, "", [f"Pillow indisponível: {e}. Instale pillow."])
+
+    try:
+        img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        img_array = np.array(img)
+    except Exception as e:
+        return StatementResult([], "ocr", 1, "", [f"Erro ao abrir imagem: {e}"])
+
+    ocr = _get_ocr_engine()
+    warnings: list[str] = []
+
+    try:
+        result = ocr.ocr(img_array, cls=False)
+    except Exception as e:
+        return StatementResult([], "ocr", 1, "", [f"OCR falhou: {e}"])
+
+    if not result or not result[0]:
+        return StatementResult([], "ocr", 1, "", ["Nenhum texto detectado na imagem."])
+
+    lines = sorted(result[0], key=lambda x: x[0][0][1])  # ordem por coordenada Y
+    raw_text = "\n".join(item[1][0] for item in lines)
+
+    if _is_btg_format(raw_text):
+        transactions = parse_btg_statement(raw_text)
+    else:
+        transactions = _parse_transactions(raw_text)
+
+    return StatementResult(
+        transactions=transactions,
+        pdf_type="ocr_image",
+        page_count=1,
+        raw_text=raw_text,
+        warnings=warnings,
+    )
