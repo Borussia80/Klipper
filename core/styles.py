@@ -41,12 +41,18 @@ KLIPPER_CSS = """
   --electric:     #4D8DFF;
   --copper:       #E08855;
   --moss:         #7BC68A;
+  --emerald:      #00C896;
+  --emerald-soft: rgba(0,200,150,0.12);
+  --emerald-glow: rgba(0,200,150,0.25);
   --rust:         #D87C6A;
   --lantern:      #F4D58D;
-  --pos:          #7BC68A;
-  --neg:          #D87C6A;
+  --pos:          #00C896;
+  --neg:          #4D8DFF;
+  --neg-expense:  #4D8DFF;
   --warn:         #F4D58D;
   --accent:       #D9B26F;
+  --hero-bg:      linear-gradient(145deg, #0A2318 0%, #071A28 60%, #0C1E2B 100%);
+  --hero-accent:  rgba(0,200,150,0.10);
   --shadow-1:     0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 18px rgba(0,0,0,0.35);
   --shadow-2:     0 1px 0 rgba(255,255,255,0.05) inset, 0 12px 32px rgba(0,0,0,0.42);
   --glow-brass:   0 0 0 1px rgba(217,178,111,0.15), 0 0 32px rgba(217,178,111,0.10);
@@ -118,11 +124,179 @@ html, body, [data-testid="stApp"] {
   border-bottom: none !important;
 }
 
-/* hide native sidebar entirely */
-section[data-testid="stSidebar"] { display: none !important; }
+/* ── Sidebar nativa ──────────────────────────────────────────────────────────── */
 [data-testid="stSidebarNavSeparator"] { display: none !important; }
+section[data-testid="stSidebar"] {
+  background: var(--bg-deep) !important;
+  border-right: 1px solid var(--rule-2) !important;
+  min-width: 220px !important;
+}
+section[data-testid="stSidebar"] > div {
+  background: var(--bg-deep) !important;
+  padding: 0 !important;
+}
+/* botões page_link na sidebar */
+section[data-testid="stSidebar"] a[data-testid="stPageLink"] {
+  color: var(--ink-3) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 12.5px !important;
+  border-radius: var(--radius-xs) !important;
+  padding: 0.35rem 0.5rem !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+section[data-testid="stSidebar"] a[data-testid="stPageLink"]:hover {
+  background: var(--surface-2) !important;
+  color: var(--ink) !important;
+}
+section[data-testid="stSidebar"] a[data-testid="stPageLink"][aria-current="page"] {
+  background: var(--emerald-soft) !important;
+  color: var(--emerald) !important;
+}
 
-/* main content area */
+/* ── Hero section ────────────────────────────────────────────────────────────── */
+.k-hero {
+  background: var(--hero-bg);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px 32px;
+  margin-bottom: 0;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(0,200,150,0.10);
+}
+.k-hero::before {
+  content: '';
+  position: absolute;
+  top: -30%; left: -10%;
+  width: 60%; height: 180%;
+  background: radial-gradient(ellipse, rgba(0,200,150,0.13) 0%, transparent 70%);
+  pointer-events: none;
+}
+.k-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -20%; right: -5%;
+  width: 40%; height: 120%;
+  background: radial-gradient(ellipse, rgba(77,141,255,0.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+.k-hero-balance {
+  font-family: var(--font-serif);
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 16px;
+}
+.k-hero-kicker {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--emerald);
+  font-weight: 600;
+}
+.k-hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.k-hero-stat-label {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--ink-4);
+  letter-spacing: 0.04em;
+}
+.k-hero-stat-val {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+}
+.k-hero-divider {
+  width: 1px;
+  background: rgba(255,255,255,0.08);
+  align-self: stretch;
+  margin: 0 4px;
+}
+.k-hero-progress-track {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 18px;
+}
+.k-hero-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s var(--ease);
+}
+
+/* ── Rising card (conteúdo abaixo do hero) ───────────────────────────────────── */
+.k-rising-card {
+  background: var(--surface-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-top: 12px;
+}
+
+/* ── Transaction row (referencial style) ─────────────────────────────────────── */
+.k-tx-row {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+.k-tx-row:first-child { border-top: none; padding-top: 0; }
+.k-tx-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.k-tx-body { min-width: 0; }
+.k-tx-name {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.k-tx-meta {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  color: var(--emerald);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.k-tx-notes {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  color: var(--ink-4);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.k-tx-amount {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+.k-tx-amount.pos { color: var(--emerald); }
+.k-tx-amount.neg { color: var(--electric); }
+.k-tx-amount.warn { color: var(--warn); }
+
+/* ── main content area ───────────────────────────────────────────────────────── */
 [data-testid="stMainBlockContainer"] {
   padding-top: 16px !important;
   padding-bottom: 80px !important;
@@ -1039,6 +1213,79 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
   }
 }
 
+/* ── Mobile (≤640px) ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+
+  /* Reduz padding lateral do viewport Streamlit */
+  section[data-testid="stAppViewBlockContainer"],
+  div[data-testid="stAppViewBlockContainer"] {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* k-grid — stacked */
+  .k-cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .k-cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .k-cols-2 { grid-template-columns: 1fr; }
+
+  /* Streamlit columns nativas — empilhar verticalmente */
+  div[data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap !important;
+  }
+  div[data-testid="column"] {
+    min-width: 0 !important;
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  /* Hero — fonte e padding reduzidos */
+  .k-hero {
+    padding: 20px 16px !important;
+    border-radius: 12px !important;
+  }
+  .k-hero-balance {
+    font-size: clamp(22px, 7vw, 32px) !important;
+  }
+  .k-hero-stat { font-size: 12px !important; }
+  .k-hero-divider { display: none; }
+
+  /* Section header menor */
+  .k-section-header h2 {
+    font-size: 16px !important;
+  }
+
+  /* Charts — nunca transbordam */
+  div[data-testid="stPlotlyChart"],
+  div[data-testid="stPlotlyChart"] > div {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Dataframe — scroll horizontal */
+  div[data-testid="stDataFrame"] {
+    overflow-x: auto !important;
+    max-width: 100vw !important;
+  }
+
+  /* Sidebar toggle sempre visível */
+  button[data-testid="collapsedControl"],
+  section[data-testid="stSidebarCollapsedControl"] {
+    display: flex !important;
+  }
+
+  /* Expanders — largura total */
+  div[data-testid="stExpander"] {
+    width: 100% !important;
+  }
+
+  /* Tabs — scroll horizontal para não quebrar */
+  div[data-testid="stTabs"] > div:first-child {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    scrollbar-width: none !important;
+  }
+}
+
 </style>
 """
 
@@ -1652,3 +1899,104 @@ def sidebar_ai_qa(ctx=None) -> None:
             except Exception as e:
                 _logger.error("Kira error: %s", e)
                 st.error("Erro ao contatar a IA. Tente novamente.")
+
+
+# ── Novos componentes de layout ────────────────────────────────────────────────
+
+def hero_section(
+    title: str,
+    saldo: str,
+    ganhos: str,
+    gastos: str,
+    subtitle: str = "",
+) -> str:
+    """Renderiza o hero colorido no topo da página.
+
+    Args:
+        title:    Label acima do saldo (ex: 'maio · 2026').
+        saldo:    Saldo líquido formatado (ex: 'R$ 3.500,00').
+        ganhos:   Total de entradas do mês (ex: 'R$ 8.000,00').
+        gastos:   Total de saídas do mês (ex: 'R$ 4.500,00').
+        subtitle: Linha opcional abaixo do título.
+    """
+    sub_html = (
+        f'<div style="font-family:var(--font-sans);font-size:11px;'
+        f'color:var(--ink-4);margin-top:2px">{subtitle}</div>'
+        if subtitle else ""
+    )
+    return f"""<div class="k-hero">
+  <div class="k-hero-kicker">{title}</div>
+  {sub_html}
+  <div class="k-hero-balance">{saldo}</div>
+  <div style="display:flex;align-items:center;gap:20px">
+    <div class="k-hero-stat">
+      <span class="k-hero-stat-label">Entradas</span>
+      <span class="k-hero-stat-val" style="color:var(--emerald)">{ganhos}</span>
+    </div>
+    <div class="k-hero-divider"></div>
+    <div class="k-hero-stat">
+      <span class="k-hero-stat-label">Saídas</span>
+      <span class="k-hero-stat-val" style="color:var(--electric)">{gastos}</span>
+    </div>
+  </div>
+</div>"""
+
+
+def tx_row(
+    category: str,
+    name: str,
+    date_str: str,
+    subcategory: str,
+    amount: str,
+    tone: str = "neg",
+    notes: str = "",
+) -> str:
+    """Renderiza uma linha de transação no estilo do referencial.
+
+    Args:
+        category:    Nome da categoria (ex: 'Alimentação').
+        name:        Descrição da transação.
+        date_str:    Data formatada (ex: '23/Mai').
+        subcategory: Sub-label ou tag de categoria.
+        amount:      Valor formatado (ex: '-R$ 45,00').
+        tone:        'pos', 'neg' ou 'warn' — cor do valor.
+        notes:       Nota opcional exibida abaixo da data.
+    """
+    color, bg = CAT_COLORS.get(category, ("#8F8770", "rgba(143,135,112,0.12)"))
+    initial = category[0].upper() if category else "?"
+    notes_html = (
+        f'<div class="k-tx-notes">{notes}</div>' if notes else ""
+    )
+    return (
+        f'<div class="k-tx-row">'
+        f'<div class="k-tx-icon" style="background:{bg};color:{color}">{initial}</div>'
+        f'<div class="k-tx-body">'
+        f'<div class="k-tx-name">{name}</div>'
+        f'<div class="k-tx-meta">{date_str} · {subcategory}</div>'
+        f'{notes_html}'
+        f'</div>'
+        f'<div class="k-tx-amount {tone}">{amount}</div>'
+        f'</div>'
+    )
+
+
+def setup_sidebar(
+    ctx=None,
+    violations: int = 0,
+    include_ai_qa: bool = True,
+) -> None:
+    """Configura a sidebar nativa do Streamlit com nav, engines, user e Kira Q&A.
+
+    Substitui o padrão legado st.columns([1,4]) em todas as páginas.
+
+    Args:
+        ctx:           Contexto financeiro para o Q&A da Kira (opcional).
+        violations:    Número de violações M2 (colore o badge Governance).
+        include_ai_qa: Se False, omite o widget de Q&A da Kira.
+    """
+    with st.sidebar:
+        render_navigation()
+        st.markdown(sidebar_engines(violations), unsafe_allow_html=True)
+        sidebar_user()
+        if include_ai_qa:
+            sidebar_ai_qa(ctx)
