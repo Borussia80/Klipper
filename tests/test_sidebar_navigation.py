@@ -8,35 +8,68 @@ import pytest
 import core.styles as styles
 
 
+def _nav_items() -> list[styles.SidebarNavItem]:
+    """Return only SidebarNavItem entries (excluding SidebarNavSection separators)."""
+    return [i for i in styles.SIDEBAR_NAV_ITEMS if isinstance(i, styles.SidebarNavItem)]
+
+
 def test_sidebar_nav_items_cover_all_product_pages():
-    paths = [item.path for item in styles.SIDEBAR_NAV_ITEMS]
+    """All product pages appear in nav, in the correct logical order."""
+    paths = [item.path for item in _nav_items()]
 
     assert paths == [
+        # ── visão geral ───────────────────────────────────────────
         "app.py",
         "pages/1_Dashboard.py",
+        # ── finanças (uso diário) ─────────────────────────────────
         "pages/2_Transacoes.py",
         "pages/6_Contas.py",
         "pages/7_Orcamento.py",
+        # ── investimentos ─────────────────────────────────────────
         "pages/3_Investimentos.py",
         "pages/8_Posicoes.py",
         "pages/9_Portfolio.py",
         "pages/4_Decisoes.py",
-        "pages/12_Sobre.py",
+        # ── ferramentas ───────────────────────────────────────────
         "pages/5_AI_Consilium.py",
         "pages/10_Saude.py",
         "pages/11_Extratos.py",
+        # ── informacional (sempre por último) ─────────────────────
+        "pages/12_Sobre.py",
     ]
+
+
+def test_sidebar_nav_sections_present():
+    """SIDEBAR_NAV_ITEMS deve conter exatamente 4 seções com os labels corretos."""
+    sections = [
+        i.label
+        for i in styles.SIDEBAR_NAV_ITEMS
+        if isinstance(i, styles.SidebarNavSection) and i.label
+    ]
+    assert sections == ["Finanças", "Investimentos", "Ferramentas"]
+
+
+def test_sobre_is_last_nav_item():
+    """'Sobre' (informacional) deve ser o último item de navegação."""
+    last = _nav_items()[-1]
+    assert last.path == "pages/12_Sobre.py"
 
 
 def test_sidebar_nav_paths_exist_in_repo():
     repo_root = Path(styles.__file__).resolve().parents[1]
 
     missing = [
-        item.path for item in styles.SIDEBAR_NAV_ITEMS
+        item.path for item in _nav_items()
         if not (repo_root / item.path).exists()
     ]
 
     assert missing == []
+
+
+def test_transacoes_label_matches_page_name():
+    """Label 'Transações' deve coincidir com o nome da página 2_Transacoes.py."""
+    item = next(i for i in _nav_items() if i.path == "pages/2_Transacoes.py")
+    assert item.label == "Transações"
 
 
 def test_sidebar_nav_renders_every_item(monkeypatch):
@@ -53,7 +86,7 @@ def test_sidebar_nav_renders_every_item(monkeypatch):
 
     assert rendered == [
         (item.path, f"{item.icon}  {item.label}")
-        for item in styles.SIDEBAR_NAV_ITEMS
+        for item in _nav_items()
     ]
 
 
@@ -82,8 +115,8 @@ def test_render_navigation_resilient_to_page_not_found(monkeypatch):
 
     styles.render_navigation()  # must not raise
 
-    # every item was attempted despite errors
-    assert call_count["n"] == len(styles.SIDEBAR_NAV_ITEMS)
+    # every SidebarNavItem was attempted despite errors (sections are skipped)
+    assert call_count["n"] == len(_nav_items())
 
 
 def test_pages_require_auth_before_rendering_sidebar():
