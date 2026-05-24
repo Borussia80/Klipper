@@ -31,7 +31,7 @@ from models.transaction import (
     TransactionStatus, TransactionType, categories_for_type,
 )
 
-st.set_page_config(page_title="Movimento · Klipper", page_icon=load_page_icon(), layout="wide")
+st.set_page_config(page_title="Movimento · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
 require_auth()
 

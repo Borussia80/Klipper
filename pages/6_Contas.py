@@ -12,6 +12,7 @@ import re
 import plotly.graph_objects as go
 import streamlit as st
 
+from core.analytics import preparar_dados_gauge_limite
 from core.installment_engine import calcular_comprometimento_mensal
 from core.repositories import (
     BankAccountRepository, CreditCardRepository,
@@ -28,7 +29,7 @@ from models.bank_account import AccountType, BankAccount
 from models.credit_card import CreditCard
 from models.transaction import Category, TransactionType
 
-st.set_page_config(page_title="Cartões · Klipper", page_icon=load_page_icon(), layout="wide")
+st.set_page_config(page_title="Cartões · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
 require_auth()
 
@@ -200,25 +201,67 @@ with tab_cards:
         col_detail, col_feed = st.columns([1, 2], gap="large")
 
         with col_detail:
-            # Fatura card
-            uso_tone = "neg" if uso_pct >= 80 else "warn" if uso_pct >= 50 else ""
-            fatura_html = f"""
-<div class="k-metric" style="margin-bottom:16px">
-  <div class="k-kicker">Próxima fatura</div>
-  <div class="k-metric-v" style="font-size:32px">{fmt_brl(fatura)}</div>
-  <div class="k-metric-d">fecha dia {sel_card.closing_day} · vence dia {sel_card.due_day}</div>
-</div>
-{bar_track(fatura, sel_card.limit_total, uso_tone)}
-<div style="display:flex;justify-content:space-between;margin-top:8px;
-  font-family:var(--font-mono);font-size:10px;color:var(--ink-3)">
-  <span>{fmt_brl(fatura, compact=True)} usado</span>
-  <span>{fmt_brl(sel_card.limit_total, compact=True)} limite</span>
-</div>
-<div style="margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--ink-3)">
-  {fmt_brl(disponivel, compact=True)} disponível · {uso_pct:.0f}% usado
-</div>
-"""
-            st.markdown(k_card_with_header("Fatura", fatura_html), unsafe_allow_html=True)
+            # Gauge Plotly de uso do limite
+            _gauge = preparar_dados_gauge_limite(fatura, sel_card.limit_total)
+            _gauge_color = (
+                "#EF4444" if _gauge["status"] == "estouro"
+                else "#F59E0B" if _gauge["status"] == "alerta"
+                else "#00C896"
+            )
+            _fig_gauge = go.Figure(go.Indicator(
+                mode="gauge+number+delta",
+                value=_gauge["pct_uso"],
+                number=dict(suffix="%", font=dict(size=28, color="#F2EAD3")),
+                delta=dict(
+                    reference=80,
+                    increasing=dict(color="#EF4444"),
+                    decreasing=dict(color="#00C896"),
+                    font=dict(size=12),
+                ),
+                gauge=dict(
+                    axis=dict(
+                        range=[0, 100],
+                        tickwidth=1,
+                        tickcolor="#3A3A3A",
+                        tickfont=dict(size=10, color="#5C5746"),
+                    ),
+                    bar=dict(color=_gauge_color, thickness=0.25),
+                    bgcolor="rgba(0,0,0,0)",
+                    borderwidth=0,
+                    steps=[
+                        dict(range=[0, 50],  color="rgba(0,200,150,0.06)"),
+                        dict(range=[50, 80], color="rgba(245,158,11,0.06)"),
+                        dict(range=[80, 100], color="rgba(239,68,68,0.06)"),
+                    ],
+                    threshold=dict(
+                        line=dict(color="#EF4444", width=2),
+                        thickness=0.75,
+                        value=80,
+                    ),
+                ),
+                title=dict(
+                    text=f"Uso do limite<br><span style='font-size:11px;color:#5C5746'>"
+                         f"{fmt_brl(_gauge['usado'], compact=True)} de {fmt_brl(_gauge['limite'], compact=True)}</span>",
+                    font=dict(size=13, color="#8F8770"),
+                ),
+            ))
+            _fig_gauge.update_layout(
+                height=220,
+                margin=dict(l=20, r=20, t=20, b=0),
+                paper_bgcolor="rgba(0,0,0,0)",
+                font=dict(family="Geist Mono, monospace"),
+            )
+            st.plotly_chart(_fig_gauge, use_container_width=True)
+            st.markdown(
+                f'<div style="display:flex;justify-content:space-between;'
+                f'font-family:var(--font-mono);font-size:10px;color:var(--ink-3);'
+                f'margin:-8px 0 12px">'
+                f'<span>fecha dia {sel_card.closing_day}</span>'
+                f'<span>{fmt_brl(_gauge["disponivel"], compact=True)} disponível</span>'
+                f'<span>vence dia {sel_card.due_day}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
             # Health card
             by_cat: dict[str, Decimal] = defaultdict(lambda: Decimal(0))
