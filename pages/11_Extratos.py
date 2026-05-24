@@ -17,7 +17,7 @@ from core.styles import (
     render_navigation, sidebar_user, sidebar_ai_qa, stat_card,
     setup_sidebar,
 )
-from models.transaction import Category, PaymentMethod, Transaction, TransactionType
+from models.transaction import Category, PaymentMethod, Transaction, TransactionStatus, TransactionType
 
 st.set_page_config(page_title="Extratos · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
@@ -130,6 +130,7 @@ st.markdown(section_header("Revisar e editar", "Ajuste categorias e tipos antes 
 # ── Tabela editável ────────────────────────────────────────────────────────────
 cat_options   = [c.value for c in Category]
 type_options  = [t.value for t in TransactionType]
+pm_options    = [p.value for p in PaymentMethod]
 
 import datetime as _dt
 df = pd.DataFrame([{
@@ -138,6 +139,7 @@ df = pd.DataFrame([{
     "Valor (R$)":  float(t.amount),
     "Tipo":        t.tx_type.value,
     "Categoria":   t.category.value,
+    "Pagamento":   PaymentMethod.PIX.value,
     "Confiança":   f"{t.confidence:.0%}",
     "_raw":        t.raw_line,
 } for t in txs])
@@ -151,6 +153,7 @@ edited = st.data_editor(
         "Valor (R$)": st.column_config.NumberColumn("Valor (R$)", format="%.2f", min_value=0.01),
         "Tipo":       st.column_config.SelectboxColumn("Tipo", options=type_options),
         "Categoria":  st.column_config.SelectboxColumn("Categoria", options=cat_options),
+        "Pagamento":  st.column_config.SelectboxColumn("Pagamento", options=pm_options),
         "Confiança":  st.column_config.TextColumn("Confiança", disabled=True),
     },
     hide_index=True,
@@ -158,6 +161,21 @@ edited = st.data_editor(
 
 # ── Importar ───────────────────────────────────────────────────────────────────
 st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+# Account selector for balance adjustment
+try:
+    from core.repositories import BankAccountRepository as _AccRepo, tx_balance_delta as _tx_bd
+    _contas_imp = _AccRepo().list_active()
+except Exception:
+    _contas_imp = []
+_conta_opts_imp = {"": "Sem conta (não ajustar saldo)"} | {c.id: c.name for c in _contas_imp}
+_imp_account_id = st.selectbox(
+    "Conta bancária (opcional — ajusta saldo automaticamente)",
+    options=list(_conta_opts_imp.keys()),
+    format_func=lambda k: _conta_opts_imp[k],
+    label_visibility="collapsed",
+)
+
 col_btn, col_info = st.columns([1, 3])
 
 with col_btn:
@@ -171,10 +189,11 @@ with col_info:
         unsafe_allow_html=True,
     )
 
-def _import_transactions(df: pd.DataFrame) -> None:
+def _import_transactions(df: pd.DataFrame, account_id: str | None) -> None:
     try:
-        from core.repositories import TransactionRepository
-        repo = TransactionRepository()
+        from core.repositories import TransactionRepository, BankAccountRepository, tx_balance_delta
+        repo     = TransactionRepository()
+        acc_repo = BankAccountRepository()
     except Exception as e:
         st.error(f"Banco de dados indisponível: {e}")
         return
@@ -191,15 +210,20 @@ def _import_transactions(df: pd.DataFrame) -> None:
                 tx_date = _raw_date.date()
             else:
                 tx_date = _raw_date
+            pm_val = row.get("Pagamento", PaymentMethod.PIX.value)
             tx = Transaction(
                 date=tx_date,
                 amount=float(row["Valor (R$)"]),
                 type=TransactionType(row["Tipo"]),
                 category=Category(row["Categoria"]),
                 notes=str(row["Descrição"])[:200],
-                payment_method=PaymentMethod.PIX,
+                payment_method=PaymentMethod(pm_val),
+                account_id=account_id or None,
+                status=TransactionStatus.PAGO,
             )
             repo.create(tx)
+            if account_id:
+                acc_repo.adjust_balance(account_id, tx_balance_delta(float(tx.amount), tx.type))
             ok_count += 1
         except Exception as e:
             errors.append(f"Linha '{row.get('Descrição', '?')}': {e}")
@@ -210,4 +234,4 @@ def _import_transactions(df: pd.DataFrame) -> None:
         st.warning(err)
 
 if importar:
-    _import_transactions(edited)
+    _import_transactions(edited, _imp_account_id or None)

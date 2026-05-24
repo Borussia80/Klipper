@@ -84,12 +84,14 @@ st.markdown(k_card_with_header("WikiAgent Financeiro v2.0", engine_rows,
 link_rows = "".join(
     f"""<div style="padding:8px 0;border-top:1px solid var(--rule);
       font-family:var(--font-sans);font-size:12px;color:var(--ink-3)">
-  <strong style="color:var(--ink-2)">{label}</strong> &nbsp;·&nbsp; {value}
+  <strong style="color:var(--ink-2)">{label}</strong> &nbsp;·&nbsp;
+  <a href="{href}" target="_blank" rel="noopener"
+     style="color:var(--brass);text-decoration:none">{display}</a>
 </div>"""
-    for label, value in [
-        ("Produção",   "klipper.streamlit.app"),
-        ("Repositório","github.com/Borussia80/Klipper"),
-        ("Supabase",   "obmudpulqzhwtcniyzcj.supabase.co"),
+    for label, href, display in [
+        ("Produção",    "https://klipper.streamlit.app",                  "klipper.streamlit.app"),
+        ("Repositório", "https://github.com/Borussia80/Klipper",          "github.com/Borussia80/Klipper"),
+        ("Supabase",    "https://supabase.com/dashboard/project/obmudpulqzhwtcniyzcj", "obmudpulqzhwtcniyzcj.supabase.co"),
     ]
 )
 st.markdown(k_card_with_header("Referências", link_rows, "endpoints e repositório"),

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-import calendar
 from collections import defaultdict
 from datetime import date
 from decimal import Decimal
+
+_MESES_PT = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+             "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
 import html
 import pandas as pd
@@ -94,7 +96,14 @@ def _edit_dialog(tx: Transaction) -> None:
             cartao_atual = next((k for k, v in cartao_map.items() if v == tx.card_id), "—")
             cartao_sel = st.selectbox("Cartão", cartao_opts, index=cartao_opts.index(cartao_atual))
         notas = st.text_input("Notas", value=tx.notes or "")
-        if st.form_submit_button("Salvar alterações", type="primary", use_container_width=True):
+        col_cancel, col_save = st.columns([1, 2])
+        with col_cancel:
+            cancelar = st.form_submit_button("Cancelar", use_container_width=True)
+        with col_save:
+            salvar = st.form_submit_button("Salvar alterações", type="primary", use_container_width=True)
+        if cancelar:
+            st.rerun()
+        if salvar:
             try:
                 old_account_id = tx.account_id
                 old_delta = tx_balance_delta(float(tx.amount), tx.type)
@@ -112,11 +121,12 @@ def _edit_dialog(tx: Transaction) -> None:
                     installment_id=tx.installment_id,
                 )
                 tx_repo.update(updated)
-                if old_account_id:
+                # só reverter saldo original se a tx antiga estava PAGA
+                if old_account_id and tx.status == TransactionStatus.PAGO:
                     acc_repo.adjust_balance(old_account_id, -old_delta)
-                new_account_id = updated.account_id
-                if new_account_id:
-                    acc_repo.adjust_balance(new_account_id, tx_balance_delta(float(updated.amount), updated.type))
+                # só aplicar novo saldo se a tx atualizada está PAGA
+                if updated.account_id and updated.status == TransactionStatus.PAGO:
+                    acc_repo.adjust_balance(updated.account_id, tx_balance_delta(float(updated.amount), updated.type))
                 st.success("Salvo.")
                 st.rerun()
             except Exception as e:
@@ -137,7 +147,7 @@ with f1:
                            label_visibility="collapsed"))
 with f2:
     mes = int(st.selectbox("Mês", range(1, 13), index=hoje.month - 1,
-                           format_func=lambda m: calendar.month_abbr[m],
+                           format_func=lambda m: _MESES_PT[m],
                            label_visibility="collapsed"))
 with f3:
     filtro_status = st.selectbox(
@@ -210,8 +220,11 @@ with st.expander("+ Lançar transação", expanded=False):
             conta_sel = st.selectbox("Conta", ["—"] + list(conta_map.keys()))
         eh_cartao = pagamento in ("CARTAO_CREDITO", "CARTAO_DEBITO")
         cartao_sel = "—"
-        if eh_cartao and cartoes:
-            cartao_sel = st.selectbox("Cartão", ["—"] + list(cartao_map.keys()))
+        if eh_cartao:
+            if cartoes:
+                cartao_sel = st.selectbox("Cartão", ["—"] + list(cartao_map.keys()))
+            else:
+                st.warning("Nenhum cartão cadastrado. Acesse **Contas** para adicionar um cartão antes de usar esse meio de pagamento.")
         notas        = st.text_input("Notas")
         eh_parcelado = st.toggle("É parcelado?")
         n_parcelas   = 1
@@ -241,16 +254,21 @@ with st.expander("+ Lançar transação", expanded=False):
                         inst_repo.create(inst)
                         for p in gerar_parcelas(inst):
                             tx_repo.create(p)
+                            # débita conta apenas para parcelas já vencidas (PAGO)
+                            if p.account_id and p.status == TransactionStatus.PAGO:
+                                acc_repo.adjust_balance(p.account_id, tx_balance_delta(float(p.amount), p.type))
                         st.success(f"{int(n_parcelas)}× de {fmt_brl(inst.installment_amount)}")
                     else:
-                        tx_repo.create(Transaction(
+                        new_tx = Transaction(
                             date=_data_s, amount=_valor_s,
                             type=TransactionType(_tipo_s), category=Category(categoria),
                             notes=notas, payment_method=PaymentMethod(pagamento),
                             account_id=account_id, card_id=card_id,
                             status=TransactionStatus(status_tx),
-                        ))
-                        if account_id:
+                        )
+                        tx_repo.create(new_tx)
+                        # só move saldo quando status = PAGO
+                        if account_id and new_tx.status == TransactionStatus.PAGO:
                             acc_repo.adjust_balance(account_id, tx_balance_delta(float(_valor_s), TransactionType(_tipo_s)))
                         st.success(f"Salvo · {fmt_brl(_valor_s)}")
                     for _k in ("_tx_step", "_tx_tipo", "_tx_valor", "_tx_data"):
@@ -369,7 +387,7 @@ with _tab_comp:
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 tab_tudo, tab_in, tab_out, tab_inv, tab_auto = st.tabs(
-    ["Tudo", "Entradas", "Saídas", "Investimento", "Recorrentes"]
+    ["Tudo", "Entradas", "Saídas", "Investimento", "Parcelas"]
 )
 
 def _build_feed_html(txs: list) -> str:
@@ -442,15 +460,30 @@ def _render_tab(txs: list) -> None:
                 if st.button("✏ Editar", use_container_width=True, key=f"edit_btn_{sel_tx.id}"):
                     _edit_dialog(sel_tx)
             with col_d:
-                if st.button("🗑 Excluir", type="secondary", use_container_width=True, key=f"del_btn_{sel_tx.id}"):
-                    try:
-                        if sel_tx.account_id:
-                            acc_repo.adjust_balance(sel_tx.account_id, -tx_balance_delta(float(sel_tx.amount), sel_tx.type))
-                        tx_repo.delete(sel_tx.id)
-                        st.success("Excluído.")
+                _confirm_key = f"confirm_del_{sel_tx.id}"
+                if st.session_state.get(_confirm_key):
+                    st.warning("Confirmar exclusão?")
+                    cc1, cc2 = st.columns(2)
+                    with cc1:
+                        if st.button("Sim, excluir", type="primary", use_container_width=True, key=f"yes_{sel_tx.id}"):
+                            try:
+                                # só reverter saldo se a tx estava PAGA
+                                if sel_tx.account_id and sel_tx.status == TransactionStatus.PAGO:
+                                    acc_repo.adjust_balance(sel_tx.account_id, -tx_balance_delta(float(sel_tx.amount), sel_tx.type))
+                                tx_repo.delete(sel_tx.id)
+                                st.session_state.pop(_confirm_key, None)
+                                st.success("Excluído.")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(str(e))
+                    with cc2:
+                        if st.button("Cancelar", use_container_width=True, key=f"no_{sel_tx.id}"):
+                            st.session_state.pop(_confirm_key, None)
+                            st.rerun()
+                else:
+                    if st.button("🗑 Excluir", type="secondary", use_container_width=True, key=f"del_btn_{sel_tx.id}"):
+                        st.session_state[_confirm_key] = True
                         st.rerun()
-                    except Exception as e:
-                        st.error(str(e))
 
     with col_right:
         by_cat: dict[str, Decimal] = defaultdict(lambda: Decimal(0))

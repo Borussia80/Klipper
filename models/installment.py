@@ -6,6 +6,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from models.transaction import Category as _Category
+
 
 class Installment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -20,6 +22,14 @@ class Installment(BaseModel):
     category: str = "Outros"
     notes: str = ""
     is_active: bool = True
+
+    @field_validator("category")
+    @classmethod
+    def category_valid(cls, v: str) -> str:
+        valid = {c.value for c in _Category}
+        if v not in valid:
+            return _Category.OUTROS.value
+        return v
 
     @field_validator("description")
     @classmethod

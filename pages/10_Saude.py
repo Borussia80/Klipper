@@ -13,6 +13,14 @@ from core.health_repository import (
     HealthSessionRepository,
     ReimbursementRequestRepository,
 )
+from core.repositories import TransactionRepository as _TxRepo
+from models.transaction import (
+    Category as _TxCat,
+    PaymentMethod as _TxPM,
+    Transaction as _Tx,
+    TransactionStatus as _TxStatus,
+    TransactionType as _TxType,
+)
 from core.auth import require_auth
 from core.styles import (
     chip, fmt_brl, inject_css, k_card_with_header, load_page_icon,
@@ -32,6 +40,7 @@ require_auth()
 prof_repo    = HealthProfessionalRepository()
 session_repo = HealthSessionRepository()
 req_repo     = ReimbursementRequestRepository()
+_tx_repo     = _TxRepo()
 
 hoje = date.today()
 
@@ -244,12 +253,23 @@ with tab_sess:
                         st.error("Profissional e valor são obrigatórios.")
                     elif db_ok:
                         try:
-                            session_repo.create(HealthSession(
+                            sess = HealthSession(
                                 professional_id=prof_sel,
                                 session_date=data_sess,
                                 amount_paid=valor_sess,
                                 nf_number=nf_sess or None,
                                 notes=obs_sess or None,
+                            )
+                            session_repo.create(sess)
+                            prof_name = prof_by_id[prof_sel].name if prof_sel in prof_by_id else "Profissional"
+                            _tx_repo.create(_Tx(
+                                date=data_sess,
+                                amount=valor_sess,
+                                type=_TxType.GASTO,
+                                category=_TxCat.SAUDE,
+                                notes=f"Sessão {prof_name}"[:200],
+                                payment_method=_TxPM.PIX,
+                                status=_TxStatus.PAGO,
                             ))
                             st.success("Sessão registrada.")
                             st.rerun()
@@ -346,6 +366,21 @@ with tab_sol:
                             amount_received=valor_recebido if valor_recebido > 0 else None,
                             notes=obs_u or None,
                         )
+                        # Cria GANHO quando reembolso é recebido (total ou parcial)
+                        if (novo_status in (ReimbursementStatus.REEMBOLSADO.value,
+                                            ReimbursementStatus.PARCIAL.value)
+                                and valor_recebido > 0):
+                            sel_req = next((r for r in sol_abertas if r.id == req_sel_id), None)
+                            prof_lbl = _prof_label(sel_req.professional_id) if sel_req else "Plano de saúde"
+                            _tx_repo.create(_Tx(
+                                date=hoje,
+                                amount=valor_recebido,
+                                type=_TxType.GANHO,
+                                category=_TxCat.OUTROS,
+                                notes=f"Reembolso {prof_lbl}"[:200],
+                                payment_method=_TxPM.PIX,
+                                status=_TxStatus.PAGO,
+                            ))
                         st.success("Solicitação atualizada.")
                         st.rerun()
                     except Exception as ex:

@@ -50,8 +50,17 @@ class CreditCard(BaseModel):
     def limit_available(self, transactions: list["Transaction"]) -> Decimal:
         return self.limit_total - self.limit_used(transactions)
 
-    def fatura_atual(self, transactions: list["Transaction"]) -> Decimal:
-        return self.limit_used(transactions)
+    def fatura_atual(
+        self,
+        transactions: list["Transaction"],
+        year: int | None = None,
+        month: int | None = None,
+    ) -> Decimal:
+        from datetime import date as _date
+        today = _date.today()
+        return Decimal(str(self.fatura_por_vencimento(
+            transactions, year or today.year, month or today.month
+        )))
 
     def fatura_por_vencimento(
         self,

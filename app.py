@@ -112,8 +112,10 @@ with content_col:
              f"{_n_pend} pendentes" if _n_pend else "sem pendências", "brass")}
 </div>
 """, unsafe_allow_html=True)
-    except Exception:
-        pass  # briefing degrada silenciosamente — não bloqueia a landing page
+    except Exception as _e:
+        import logging as _logging
+        _logging.getLogger(__name__).warning("Briefing indisponível: %s", _e)
+        st.caption("⚠ Briefing indisponível — banco de dados inacessível.")
 
     # ── WikiAgent modules ──────────────────────────────────────────────────────────
     engine_items = [

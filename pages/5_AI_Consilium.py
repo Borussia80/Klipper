@@ -120,11 +120,30 @@ with pc3:
     confidence = st.selectbox("Confidence", [c.value for c in Confidence], index=2,
                               label_visibility="collapsed")
 
-st.markdown(
-    '<div style="padding:4px 0 8px;font-family:var(--font-mono);font-size:10px;color:var(--ink-4)">'
-    'Configure API keys no arquivo <code>.env</code></div>',
-    unsafe_allow_html=True,
-)
+_KEY_MAP = {
+    "claude": ("ANTHROPIC_API_KEY", "Claude"),
+    "gemini": ("GOOGLE_API_KEY",    "Gemini"),
+    "gpt4o":  ("OPENAI_API_KEY",    "GPT-4o"),
+    "qwen":   ("DASHSCOPE_API_KEY", "Qwen"),
+    "kimi":   ("MOONSHOT_API_KEY",  "Kimi"),
+}
+_configured   = [label for k, (env, label) in _KEY_MAP.items() if os.environ.get(env)]
+_missing      = [label for k, (env, label) in _KEY_MAP.items() if not os.environ.get(env)]
+if not _configured:
+    st.warning("Nenhuma API key configurada — configure ao menos uma no arquivo `.env` para usar o Consilium.")
+elif _missing:
+    st.markdown(
+        f'<div style="padding:4px 0 8px;font-family:var(--font-mono);font-size:10px;color:var(--ink-4)">'
+        f'Configurados: {", ".join(_configured)} &nbsp;·&nbsp; '
+        f'<span style="color:var(--rust)">Sem key: {", ".join(_missing)}</span></div>',
+        unsafe_allow_html=True,
+    )
+else:
+    st.markdown(
+        '<div style="padding:4px 0 8px;font-family:var(--font-mono);font-size:10px;color:var(--moss)">'
+        'Todos os providers configurados.</div>',
+        unsafe_allow_html=True,
+    )
 
 # Provider pills
 active_key = provider_key if provider_key != "auto" else "claude"

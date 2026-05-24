@@ -107,6 +107,10 @@ with tab_novo:
     if submitted:
         if not ticker:
             st.error("Ticker obrigatório.")
+        elif not thesis.strip():
+            st.error("Tese de investimento é obrigatória.")
+        elif not invalidation.strip():
+            st.error("Condição de saída / invalidação é obrigatória.")
         else:
             try:
                 rec = DecisionRecord(
@@ -128,6 +132,7 @@ with tab_novo:
                 )
                 repo.create(rec)
                 st.success(f"Decision Record salvo: {ticker} — {outcome}")
+                st.rerun()
             except Exception as e:
                 st.error(f"Erro: {e}")
 

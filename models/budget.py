@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field, field_validator
 
+from models.transaction import Category
+
 
 class Budget(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -10,6 +12,14 @@ class Budget(BaseModel):
     monthly_limit: Decimal
     year: int
     month: int
+
+    @field_validator("category")
+    @classmethod
+    def category_valid(cls, v: str) -> str:
+        valid = {c.value for c in Category}
+        if v not in valid:
+            raise ValueError(f"Categoria inválida: '{v}'. Valores aceitos: {sorted(valid)}")
+        return v
 
     @field_validator("monthly_limit")
     @classmethod
