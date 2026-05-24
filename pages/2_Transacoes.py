@@ -217,7 +217,8 @@ with st.expander("+ Lançar transação", expanded=False):
             pagamento = st.selectbox("Pagamento", [p.value for p in PaymentMethod])
         with fc2:
             status_tx = st.selectbox("Status", [s.value for s in TransactionStatus])
-            conta_sel = st.selectbox("Conta", ["—"] + list(conta_map.keys()))
+            _conta_opts = ["—"] + list(conta_map.keys())
+            conta_sel = st.selectbox("Conta", _conta_opts, index=1 if conta_map else 0)
         eh_cartao = pagamento in ("CARTAO_CREDITO", "CARTAO_DEBITO")
         cartao_sel = "—"
         if eh_cartao:

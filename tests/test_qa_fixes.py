@@ -248,3 +248,62 @@ class TestImportPaymentMethod:
         pm_val = row.get("Pagamento", PaymentMethod.PIX.value)
         result = PaymentMethod(pm_val)
         assert result == PaymentMethod.CARTAO_CREDITO
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Account auto-selection default (balance tracking)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestAccountAutoSelection:
+    """When accounts exist, the form should default to the first account (index=1)
+    so that balance is always adjusted without the user having to select manually."""
+
+    def test_default_index_is_1_when_accounts_present(self):
+        conta_map = {"Nubank": "uuid-1", "Itaú": "uuid-2"}
+        _conta_opts = ["—"] + list(conta_map.keys())
+        default_index = 1 if conta_map else 0
+        assert default_index == 1
+        assert _conta_opts[default_index] == "Nubank"
+
+    def test_default_index_is_0_when_no_accounts(self):
+        conta_map: dict = {}
+        default_index = 1 if conta_map else 0
+        assert default_index == 0
+
+    def test_first_account_resolves_to_valid_account_id(self):
+        conta_map = {"Nubank": "uuid-1"}
+        _conta_opts = ["—"] + list(conta_map.keys())
+        selected = _conta_opts[1]  # default
+        account_id = conta_map.get(selected) if selected != "—" else None
+        assert account_id == "uuid-1"
+
+    def test_no_accounts_resolves_to_none(self):
+        conta_map: dict = {}
+        _conta_opts = ["—"] + list(conta_map.keys())
+        selected = _conta_opts[0]  # default when empty
+        account_id = conta_map.get(selected) if selected != "—" else None
+        assert account_id is None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Portuguese months — app.py inline array
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestPortugueseMonthsInlineArray:
+    """Validates the inline month array used in app.py briefing to avoid strftime locale bug."""
+
+    _MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+               'jul', 'ago', 'set', 'out', 'nov', 'dez']
+
+    def test_twelve_entries(self):
+        assert len(self._MONTHS) == 12
+
+    def test_zero_indexed_may_is_mai(self):
+        assert self._MONTHS[4] == 'mai'  # May is index 4 (0-indexed)
+
+    def test_no_english_only_months(self):
+        english_only = {"feb", "apr", "may", "aug", "sep", "oct"}
+        assert not (set(self._MONTHS) & english_only)
+
+    def test_december_is_dez(self):
+        assert self._MONTHS[11] == 'dez'

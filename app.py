@@ -28,6 +28,7 @@ inject_css()
 
 require_auth()
 
+setup_sidebar()
 
 nav_col, content_col = st.columns([1, 4])
 
@@ -45,6 +46,15 @@ section[data-testid="column"]:first-child a {
     padding: 0.4rem 0.5rem;
     margin-bottom: 0.15rem;
     font-size: 0.82rem;
+}
+@media (max-width: 640px) {
+  section[data-testid="column"]:first-child {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -106,7 +116,7 @@ with content_col:
   {stat_card("Saídas · mês", fmt_brl(_gastos, compact=True),
              f"{sum(1 for t in _txs if t.type == _TT.GASTO)} lançamentos")}
   {stat_card("Saldo líquido", fmt_brl(_saldo, compact=True),
-             f"mês de {_hoje.strftime('%b/%Y').lower()}",
+             f"mês de {['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][_hoje.month-1]}/{_hoje.year}",
              "pos" if _saldo >= 0 else "neg")}
   {stat_card("Caixa disponível", fmt_brl(_caixa, compact=True),
              f"{_n_pend} pendentes" if _n_pend else "sem pendências", "brass")}
