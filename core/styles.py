@@ -1329,20 +1329,32 @@ class SidebarNavItem:
     label: str
 
 
-SIDEBAR_NAV_ITEMS: tuple[SidebarNavItem, ...] = (
+@dataclass(frozen=True)
+class SidebarNavSection:
+    """Visual section separator with optional label rendered in the sidebar nav."""
+    label: str
+
+
+# Ordered by usage frequency and logical grouping — standard personal finance app IA:
+#   Visão Geral → Finanças (daily) → Investimentos → Ferramentas → Info (last)
+SIDEBAR_NAV_ITEMS: tuple[SidebarNavItem | SidebarNavSection, ...] = (
     SidebarNavItem("app.py", "⌂", "Klipper"),
     SidebarNavItem("pages/1_Dashboard.py", "◉", "Dashboard"),
-    SidebarNavItem("pages/2_Transacoes.py", "↕", "Movimento"),
+    SidebarNavSection("Finanças"),
+    SidebarNavItem("pages/2_Transacoes.py", "↕", "Transações"),
     SidebarNavItem("pages/6_Contas.py", "⊞", "Contas"),
     SidebarNavItem("pages/7_Orcamento.py", "◎", "Orçamento"),
+    SidebarNavSection("Investimentos"),
     SidebarNavItem("pages/3_Investimentos.py", "▲", "Investimentos"),
     SidebarNavItem("pages/8_Posicoes.py", "◐", "Posições"),
     SidebarNavItem("pages/9_Portfolio.py", "⌗", "Portfólio"),
     SidebarNavItem("pages/4_Decisoes.py", "◌", "Decisões"),
-    SidebarNavItem("pages/12_Sobre.py", "ℹ", "Sobre"),
+    SidebarNavSection("Ferramentas"),
     SidebarNavItem("pages/5_AI_Consilium.py", "∞", "AI Consilium"),
     SidebarNavItem("pages/10_Saude.py", "✚", "Saúde"),
     SidebarNavItem("pages/11_Extratos.py", "⬆", "Importar"),
+    SidebarNavSection(""),
+    SidebarNavItem("pages/12_Sobre.py", "ℹ", "Sobre"),
 )
 
 BRAND_SVG = """<svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1446,31 +1458,46 @@ def theme_toggle_btn() -> None:
 
 
 def render_navigation() -> None:
-    """Inline icon+label navigation using Streamlit page links (column-based layout)."""
+    """Sidebar navigation: Klipper brand + grouped page links + theme toggle.
+
+    Renders SidebarNavSection entries as visual group headers and
+    SidebarNavItem entries as st.page_link buttons. Order follows standard
+    personal-finance IA: overview → daily finances → investments → tools → info.
+    """
     st.markdown(sidebar_brand(), unsafe_allow_html=True)
-    st.markdown(
-        '<div class="k-sidenav-section">Navegação</div>',
-        unsafe_allow_html=True,
-    )
     for item in SIDEBAR_NAV_ITEMS:
-        try:
-            st.page_link(item.path, label=f"{item.icon}  {item.label}")
-        except Exception:
-            # Streamlit Cloud may not have registered a newly deployed page yet;
-            # silently skip rather than crash the entire navigation rail.
-            pass
+        if isinstance(item, SidebarNavSection):
+            label_html = (
+                f'<div class="k-sidenav-section">{item.label}</div>'
+                if item.label
+                else '<div style="height:6px"></div>'
+            )
+            st.markdown(label_html, unsafe_allow_html=True)
+        else:
+            try:
+                st.page_link(item.path, label=f"{item.icon}  {item.label}")
+            except Exception:
+                # Streamlit Cloud may not have registered a newly deployed page yet;
+                # silently skip rather than crash the entire navigation rail.
+                pass
     st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
     theme_toggle_btn()
 
 
 def sidebar_nav() -> None:
-    """Legacy alias kept for backward compatibility — delegates to render_navigation items."""
-    st.markdown(
-        '<div class="k-sidenav-section">Navegação</div>',
-        unsafe_allow_html=True,
-    )
+    """Legacy alias — delegates to render_navigation items with section support.
+
+    Unlike render_navigation(), raises on invalid paths so callers notice bugs.
+    """
     for item in SIDEBAR_NAV_ITEMS:
-        st.page_link(item.path, label=f"{item.icon}  {item.label}")
+        if isinstance(item, SidebarNavSection):
+            if item.label:
+                st.markdown(
+                    f'<div class="k-sidenav-section">{item.label}</div>',
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.page_link(item.path, label=f"{item.icon}  {item.label}")
 
 
 def tx_row_simplifi(
