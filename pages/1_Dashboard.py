@@ -10,7 +10,10 @@ from decimal import Decimal
 import plotly.express as px
 import streamlit as st
 
-from core.analytics import calcular_saldo_mensal, calcular_top_categorias
+from core.analytics import (
+    calcular_saldo_mensal, calcular_top_categorias,
+    preparar_dados_donut_categorias, preparar_dados_barras_mensais,
+)
 from core.behavioral import calcular_score_financeiro, detectar_alertas_padrao
 from core.installment_engine import calcular_comprometimento_mensal
 from core.m2_governance import verificar_limites, hard_fail, CAIXA_MIN_PCT
@@ -63,12 +66,17 @@ except Exception:
     contas, cartoes = [], []
 
 transacoes_3m: list = []
-for delta in range(1, 4):
+_historico_6m: list = []  # (ano, mes, ganhos, gastos) para bar chart
+for delta in range(1, 7):
     m_prev, y_prev = mes - delta, ano
     while m_prev < 1:
         m_prev += 12; y_prev -= 1
     try:
-        transacoes_3m.extend(tx_repo.list_by_month(y_prev, m_prev))
+        txs_prev = tx_repo.list_by_month(y_prev, m_prev)
+        if delta <= 3:
+            transacoes_3m.extend(txs_prev)
+        saldo_prev = calcular_saldo_mensal(txs_prev, y_prev, m_prev)
+        _historico_6m.append((y_prev, m_prev, saldo_prev.total_ganhos, saldo_prev.total_gastos))
     except Exception:
         pass
 
@@ -384,6 +392,96 @@ with content_col:
     with col3:
         st.markdown(f'<div class="k-card"><div class="k-card-b">{hero_right}</div></div>',
                     unsafe_allow_html=True)
+
+    # ── Charts row — donut + bar mensal ──────────────────────────────────────────
+    _PLOTLY_BASE = dict(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#A89F8C", size=10, family="ui-monospace,monospace"),
+        margin=dict(l=0, r=0, t=28, b=0),
+    )
+    _chart_col_left, _chart_col_right = st.columns([1.2, 1])
+
+    with _chart_col_left:
+        _dados_bar = preparar_dados_barras_mensais(_historico_6m)
+        # inclui o mês atual
+        _dados_bar.append({
+            "mes": f"{['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mes-1]}/{str(ano)[-2:]}",
+            "Entradas": float(saldo.total_ganhos),
+            "Saídas": float(saldo.total_gastos),
+        })
+        if _dados_bar:
+            _fig_bar = px.bar(
+                _dados_bar, x="mes", y=["Entradas", "Saídas"],
+                barmode="group",
+                color_discrete_map={"Entradas": "#7BC68A", "Saídas": "#D87C6A"},
+                title="Entradas × Saídas — 6 meses",
+            )
+            _fig_bar.update_traces(hovertemplate="R$ %{y:,.2f}<extra></extra>")
+            _fig_bar.update_layout(
+                **_PLOTLY_BASE,
+                title_font=dict(size=11, color="#7B8B96"),
+                title_x=0,
+                xaxis=dict(showgrid=False, tickfont=dict(color="#7B8B96", size=9)),
+                yaxis=dict(
+                    showgrid=True, gridcolor="rgba(255,255,255,0.04)",
+                    tickprefix="R$ ", tickfont=dict(color="#7B8B96", size=9),
+                    zeroline=False,
+                ),
+                legend=dict(
+                    orientation="h", yanchor="bottom", y=1.02,
+                    xanchor="right", x=1,
+                    font=dict(color="#7B8B96", size=9),
+                    bgcolor="rgba(0,0,0,0)",
+                ),
+            )
+            st.plotly_chart(_fig_bar, use_container_width=True, config={"displayModeBar": False})
+
+    with _chart_col_right:
+        _dados_donut = preparar_dados_donut_categorias(transacoes)
+        if _dados_donut:
+            from core.styles import CAT_COLORS
+            _color_map = {cat: cor for cat, (cor, _) in CAT_COLORS.items()}
+            _fig_donut = px.pie(
+                _dados_donut, values="total", names="categoria",
+                hole=0.62,
+                color="categoria",
+                color_discrete_map=_color_map,
+                title="Gastos por categoria",
+            )
+            _fig_donut.update_traces(
+                textposition="inside",
+                textinfo="percent",
+                hovertemplate="<b>%{label}</b><br>R$ %{value:,.2f}<br>%{percent}<extra></extra>",
+                textfont_size=9,
+            )
+            _total_gastos_donut = sum(d["total"] for d in _dados_donut)
+            _fig_donut.update_layout(
+                **_PLOTLY_BASE,
+                title_font=dict(size=11, color="#7B8B96"),
+                title_x=0,
+                showlegend=True,
+                legend=dict(
+                    font=dict(color="#7B8B96", size=9),
+                    bgcolor="rgba(0,0,0,0)",
+                    orientation="v",
+                    yanchor="middle", y=0.5,
+                    xanchor="left", x=1.0,
+                ),
+                annotations=[dict(
+                    text=f"<b>{fmt_brl(_total_gastos_donut, compact=True)}</b>",
+                    x=0.5, y=0.5, font_size=13, showarrow=False,
+                    font_color="#E8DEC8",
+                )],
+            )
+            st.plotly_chart(_fig_donut, use_container_width=True, config={"displayModeBar": False})
+        else:
+            st.markdown(
+                '<div style="height:200px;display:flex;align-items:center;justify-content:center;'
+                'font-family:var(--font-sans);font-size:12px;color:var(--ink-4)">'
+                'Sem gastos no período</div>',
+                unsafe_allow_html=True,
+            )
 
     # ── Main grid — feed + rail ────────────────────────────────────────────────────
     st.markdown(section_header("Feed financeiro", "ao vivo · todos os fluxos"), unsafe_allow_html=True)

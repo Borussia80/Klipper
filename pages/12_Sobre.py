@@ -67,7 +67,7 @@ with content_col:
             ("NVIDIA NIM",      "Kira · IA financeira pessoal — meta/llama-3.3-70b-instruct"),
             ("yfinance / BCB",  "cotações B3, Tesouro Direto, PTAX, câmbio em tempo real"),
             ("Redis / fakeredis","cache de cotações com TTL — fallback in-memory sem infra"),
-            ("pytest",          "TDD · 370+ testes · cobertura ≥ 80% · suite < 10s"),
+            ("pytest",          "TDD · 466+ testes · cobertura ≥ 80% · suite < 10s"),
             ("GitHub Actions",  "CI/CD — Ruff · mypy · pytest a cada push"),
             ("Streamlit Cloud", "deploy automático em cada merge em main"),
             ("Railway",         "Telegram Bot — captura zero-fricção via mensagem"),

@@ -226,9 +226,80 @@ Esquema X.Y.Z:
 - [ ] Fase 6: Telegram Bot (`bot/bot.py`) — captura zero-fricção
 - [ ] Adicionar API keys de IA no `.env`
 
+---
+
+## ROADMAP UI/UX — Fase 7: Visualização Interativa & Mobile
+
+> Diagnóstico baseado em deep dive com Playwright (27 screenshots, maio/2026) e referência eliftech.com.
+> Princípio central: **"Show rather than explain"** — o Klipper hoje é 100% texto/HTML-CSS, zero charts interativos nas páginas principais.
+
+### Gap map confirmado por inspeção de código
+
+| Página | Plotly importado | Plotly usado | Problema |
+| ------ | ---------------- | ------------ | -------- |
+| `1_Dashboard.py` | ✅ | ❌ zero charts | 100% HTML/CSS, sem nenhum `px.*` ou `go.*` |
+| `2_Transacoes.py` | ❌ | ❌ zero charts | `bar_track()` = barra CSS simples |
+| `3_Investimentos.py` | ✅ `go` importado | ❌ zero charts | nenhum `go.Figure()` chamado |
+| `6_Contas.py` | ✅ `go` importado | a verificar | — |
+| `7_Orcamento.py` | ✅ | ✅ **tem charts** | gauge + line chart (referência de qualidade) |
+
+### Charts a implementar por página
+
+**Dashboard (`1_Dashboard.py`):**
+
+- [ ] Donut de gastos por categoria — mês corrente (Plotly Express `px.pie`)
+- [ ] Barra mensal: últimos 6 meses entradas × saídas (Plotly Express `px.bar`)
+- [ ] Mini sparkline do score financeiro histórico
+
+**Investimentos (`3_Investimentos.py`):**
+
+- [ ] Cotações ao vivo **promovidas** como conteúdo principal da página (sair do expander)
+- [ ] Donut de alocação: FII × Ações × RF × Caixa (Plotly Express `px.pie`)
+- [ ] Line chart: portfólio vs BOVA11/IFIX últimos 30 dias (Plotly Go)
+- [ ] Bubble chart: DY × P/VP × valor da posição — risk/return map
+
+**Transações (`2_Transacoes.py`):**
+
+- [ ] Line chart de gastos diários no mês corrente (substitui barras CSS)
+- [ ] Barra comparativa: este mês vs mês anterior por categoria
+
+**Contas (`6_Contas.py`):**
+
+- [ ] Gauge de uso do limite por cartão (Plotly Indicator)
+- [ ] Barra de comprometimento futuro por mês (parcelas)
+
+### Mobile fix
+
+- [ ] Layout responsivo: `st.columns([1, 4])` em todas as páginas quebra o mobile
+- [ ] Na tela de 390px, Streamlit empilha colunas verticalmente; nav com 14 itens (~840px) preenche o viewport inteiro, conteúdo fica abaixo do fold
+- [ ] Fix: CSS `@media` para ocultar coluna nav em mobile OU migrar para `st.sidebar` nativo
+
+### Referências de design consultadas
+
+- Figma: Finance Management Mobile App UI/UX Kit (Budget Tracker) — padrão mobile: bottom nav, balance hero, cards full-width
+- eliftech.com: Personal Finance Dashboard — chart types: Pie (distribuição), Bar (comparação), Line (performance), Bubble (risco×retorno×tamanho), Treemap (diversificação hierárquica)
+
+### Princípios de design adotados (eliftech)
+
+- Tooltips em hover em todos os charts Plotly
+- Cores consistentes por categoria (usar `CAT_COLORS` existente em `core/styles.py`)
+- Drill-down: clicar categoria no donut → filtrar transações
+- Paleta limitada: não mais de 8 cores simultâneas
+- Sem clutter: só dados relevantes, sem eixos desnecessários
+
 ## LOG DE SESSÕES
 
 ```
+2026-05-23 FEAT  Sprint 1 — Dashboard charts: donut de gastos por categoria + bar chart mensal.
+                 preparar_dados_donut_categorias + preparar_dados_barras_mensais em core/analytics.py.
+                 18 novos testes TDD (test_dashboard_charts.py). Total: 466 testes.
+                 Plotly dark theme: paper_bgcolor transparent, cores de CAT_COLORS, tooltips.
+                 Bar chart: entradas × saídas últimos meses. Donut: top-8 categorias, hole=0.62.
+2026-05-23 AUDIT Deep dive UI/UX com Playwright (27 screenshots). Gap map documentado:
+                 Plotly importado mas nunca usado em Dashboard, Investimentos, Contas.
+                 Mobile completamente quebrado (nav 840px preenche viewport 390×844).
+                 Dashboard de cotações enterrado 3 níveis dentro do expander.
+                 Referências: Figma Finance Mobile Kit + eliftech.com. Sprints 1-6 planejados.
 2026-05-22 FEAT  Toggle claro/escuro na barra de navegação.
                  _FORCE_LIGHT_CSS / _FORCE_DARK_CSS sobrescrevem prefers-color-scheme.
                  Persiste por sessão via st.session_state["klipper_theme"].
