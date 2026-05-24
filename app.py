@@ -12,6 +12,7 @@ from core.styles import (
     inject_css,
     load_page_icon,
     render_navigation,
+    setup_sidebar,
     sidebar_engines,
     sidebar_user,
     stat_card,
