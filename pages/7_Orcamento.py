@@ -63,13 +63,19 @@ def _bud_dialog() -> None:
                                      step=10.0, format="%.2f", value=_limit_pre)
         bf1, bf2 = st.columns(2)
         with bf1:
-            ano_bud = st.number_input("Ano", min_value=2020, max_value=2030,
+            ano_bud = st.number_input("Ano", min_value=2020, max_value=hoje.year + 5,
                                       value=hoje.year, step=1)
         with bf2:
             mes_bud = st.selectbox("Mês", range(1, 13), index=hoje.month - 1,
                                    format_func=lambda m: _MESES_PT[m])
-        b_save = st.form_submit_button("Salvar", type="primary", use_container_width=True)
+        bc1, bc2 = st.columns([1, 2])
+        with bc1:
+            b_cancel = st.form_submit_button("Cancelar", use_container_width=True)
+        with bc2:
+            b_save = st.form_submit_button("Salvar", type="primary", use_container_width=True)
 
+    if b_cancel:
+        st.rerun()
     if b_save:
         try:
             bud_repo.upsert(Budget(
@@ -372,10 +378,13 @@ with tab_score_tab:
             txs_h = tx_repo.list_by_month(y_h, m_h)
             sal_h = calcular_saldo_mensal(txs_h, y_h, m_h)
             bud_h = bud_repo.list_by_month(y_h, m_h)
-            sc_h  = calcular_score_financeiro(
+            port_h_val = sum(inv.current_value for inv in portfolio)
+            total_h    = sal_h.total_ganhos + port_h_val
+            caixa_h    = (sal_h.saldo / total_h * 100) if total_h > 0 else 0.0
+            sc_h = calcular_score_financeiro(
                 transacoes=txs_h, budgets=bud_h, installments=installments,
                 taxa_poupanca_atual=sal_h.taxa_poupanca,
-                meta_poupanca=float(meta_score), caixa_pct=caixa_pct,
+                meta_poupanca=float(meta_score), caixa_pct=caixa_h,
             )
             hist_score.append({"Mês": f"{_MESES_PT[m_h]}/{y_h}", "Score": sc_h.total})
         except Exception:

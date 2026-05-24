@@ -25,9 +25,10 @@ from core.styles import (
     stat_card, load_page_icon,
     setup_sidebar,
 )
+from core.repositories import tx_balance_delta
 from models.bank_account import AccountType, BankAccount
 from models.credit_card import CreditCard
-from models.transaction import Category, TransactionType
+from models.transaction import Category, TransactionStatus, TransactionType
 
 st.set_page_config(page_title="Cartões · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
@@ -170,7 +171,7 @@ with tab_cards:
           <div class="k-card-chip" style="position:absolute;top:56px;left:22px"></div>
           <div class="k-card-num" style="color:rgba(255,255,255,0.9)">•••• •••• •••• {last4}</div>
           <div style="display:flex;justify-content:space-between;align-items:flex-end">
-            <div style="font-family:var(--font-sans);font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:0.06em">Roberto Milet</div>
+            <div style="font-family:var(--font-sans);font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:0.06em">{html.escape(str(st.session_state.get("user", "Titular")))}</div>
             <div style="text-align:right">
               <div style="font-family:var(--font-sans);font-size:9px;opacity:0.5">VENCE</div>
               <div style="font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,0.9)">dia {c.due_day}</div>
@@ -415,12 +416,30 @@ with tab_parc:
 
         # Mark paid action
         with st.expander("Marcar parcela como paga"):
-            opts = {f"{i.description} ({i.n_paid}/{i.n_total})": i.id for i in insts}
+            opts = {f"{i.description} ({i.n_paid}/{i.n_total})": i for i in insts}
             sel_p = st.selectbox("Parcelamento", list(opts.keys()), key="mark_paid_sel",
                                   label_visibility="collapsed")
             if st.button("Marcar paga", key="btn_mark_paid"):
                 try:
-                    inst_repo.mark_paid(opts[sel_p])
+                    inst = opts[sel_p]
+                    # 1. Atualizar a Transaction PENDENTE mais próxima para PAGO
+                    pending_txs = tx_repo.list_pending_by_installment(inst.id)
+                    if pending_txs:
+                        tx_to_pay = pending_txs[0]
+                        from models.transaction import Transaction
+                        paid_tx = Transaction(**{
+                            **tx_to_pay.model_dump(),
+                            "status": TransactionStatus.PAGO,
+                        })
+                        tx_repo.update(paid_tx)
+                        # 2. Ajustar saldo da conta
+                        if paid_tx.account_id:
+                            acc_repo.adjust_balance(
+                                paid_tx.account_id,
+                                tx_balance_delta(float(paid_tx.amount), paid_tx.type),
+                            )
+                    # 3. Incrementar contador
+                    inst_repo.mark_paid(inst.id)
                     st.success("Parcela marcada como paga.")
                     st.rerun()
                 except Exception as e:

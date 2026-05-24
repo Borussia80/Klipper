@@ -33,7 +33,8 @@ def _tx(
 
 
 def test_sinergia_parcelamento_cartao_orcamento_e_saldo_mensal():
-    card = CreditCard(id="card-br-001", name="Cartao Principal", limit_total=1000)
+    card = CreditCard(id="card-br-001", name="Cartao Principal", limit_total=1000,
+                      closing_day=20, due_day=25)
     inst = Installment(
         description="Compra parcelada",
         total_amount=100.0,

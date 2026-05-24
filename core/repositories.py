@@ -72,6 +72,23 @@ class TransactionRepository:
     def list_by_account(self, account_id: str, year: int, month: int) -> list[Transaction]:
         return [t for t in self.list_by_month(year, month) if t.account_id == account_id]
 
+    def list_pending_by_installment(self, installment_id: str) -> list[Transaction]:
+        """Returns PENDENTE/AGENDADO transactions for a given installment, ordered by date."""
+        try:
+            res = (
+                get_client()
+                .table(self.TABLE)
+                .select("*")
+                .eq("installment_id", installment_id)
+                .in_("status", ["PENDENTE", "AGENDADO"])
+                .order("date")
+                .execute()
+            )
+        except Exception as e:
+            log.error("Erro ao listar pendentes do parcelamento %s: %s", installment_id, e)
+            raise
+        return [self._from_row(r) for r in res.data]
+
     def list_pending(self) -> list[Transaction]:
         try:
             res = (

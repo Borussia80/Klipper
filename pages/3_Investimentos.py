@@ -37,6 +37,7 @@ inject_css()
 require_auth()
 
 repo = InvestmentRepository()
+svc  = MarketDataService()
 
 # ── Layout ────────────────────────────────────────────────────────────────────
 
