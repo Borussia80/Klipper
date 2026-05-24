@@ -13,6 +13,7 @@ from core.styles import (
     inject_css, k_card_with_header, section_header,
     sidebar_engines, sidebar_user, sidebar_ai_qa, render_navigation, stat_card, chip,
     load_page_icon,
+    setup_sidebar,
 )
 from models.decision import DecisionOutcome, DecisionRecord
 
@@ -24,46 +25,24 @@ repo     = DecisionRepository()
 inv_repo = InvestmentRepository()
 
 # ── Layout ───────────────────────────────────────────────────────────────────
-nav_col, content_col = st.columns([1, 4])
 
-with nav_col:
-    st.markdown("""
-<style>
-section[data-testid="column"]:first-child {
-    padding: 0.5rem 0.25rem !important;
-    min-width: 80px;
-}
-section[data-testid="column"]:first-child button,
-section[data-testid="column"]:first-child a {
-    width: 100%;
-    text-align: left;
-    padding: 0.4rem 0.5rem;
-    margin-bottom: 0.15rem;
-    font-size: 0.82rem;
-}
-</style>
-""", unsafe_allow_html=True)
-    render_navigation()
-    st.markdown(sidebar_engines(), unsafe_allow_html=True)
-    sidebar_user()
-    sidebar_ai_qa()
+setup_sidebar()
 
-with content_col:
-    # ── Header ────────────────────────────────────────────────────────────────
-    st.markdown(section_header("Decisões", "decision template · auditável"), unsafe_allow_html=True)
+# ── Header ────────────────────────────────────────────────────────────────
+st.markdown(section_header("Decisões", "decision template · auditável"), unsafe_allow_html=True)
 
-    # ── KPI strip ─────────────────────────────────────────────────────────────
-    try:
-        all_decisions = repo.list_all()
-    except Exception:
-        all_decisions = []
+# ── KPI strip ─────────────────────────────────────────────────────────────
+try:
+    all_decisions = repo.list_all()
+except Exception:
+    all_decisions = []
 
-    n_comprar = sum(1 for d in all_decisions if d.outcome and d.outcome.value == "COMPRAR")
-    n_manter  = sum(1 for d in all_decisions if d.outcome and d.outcome.value == "MANTER")
-    n_reduzir = sum(1 for d in all_decisions if d.outcome and d.outcome.value in ("REDUZIR", "VENDER"))
-    n_total   = len(all_decisions)
+n_comprar = sum(1 for d in all_decisions if d.outcome and d.outcome.value == "COMPRAR")
+n_manter  = sum(1 for d in all_decisions if d.outcome and d.outcome.value == "MANTER")
+n_reduzir = sum(1 for d in all_decisions if d.outcome and d.outcome.value in ("REDUZIR", "VENDER"))
+n_total   = len(all_decisions)
 
-    st.markdown(f"""
+st.markdown(f"""
 <div class="k-grid k-cols-4" style="margin-bottom:22px">
   {stat_card("Decisões registradas", str(n_total), "histórico completo")}
   {stat_card("Comprar", str(n_comprar), f"{n_comprar/n_total*100:.0f}% do total" if n_total else "—", "pos")}
@@ -72,154 +51,154 @@ with content_col:
 </div>
 """, unsafe_allow_html=True)
 
-    tab_novo, tab_hist = st.tabs(["Nova Decisão", "Histórico"])
+tab_novo, tab_hist = st.tabs(["Nova Decisão", "Histórico"])
 
-    # ══════════════════════════════════════════════════════════════════════════
-    # TAB 1 — Nova Decisão
-    # ══════════════════════════════════════════════════════════════════════════
-    with tab_novo:
-        portfolio = inv_repo.get_portfolio()
-        tickers = [inv.ticker for inv in portfolio] + ["(outro)"]
+# ══════════════════════════════════════════════════════════════════════════
+# TAB 1 — Nova Decisão
+# ══════════════════════════════════════════════════════════════════════════
+with tab_novo:
+    portfolio = inv_repo.get_portfolio()
+    tickers = [inv.ticker for inv in portfolio] + ["(outro)"]
 
-        with st.form("form_decision", clear_on_submit=True):
-            col1, col2 = st.columns(2, gap="large")
-            with col1:
-                st.markdown(
-                    '<div class="k-kicker" style="margin-bottom:8px">Ativo & decisão</div>',
-                    unsafe_allow_html=True,
-                )
-                ticker = st.selectbox("Ativo", tickers)
-                if ticker == "(outro)":
-                    ticker = st.text_input("Ticker manual").upper()
-                outcome = st.selectbox("Decisão", [o.value for o in DecisionOutcome])
-                invalidation = st.text_input("Condição de saída / invalidação")
-
-            with col2:
-                st.markdown(
-                    '<div class="k-kicker" style="margin-bottom:8px">Scores WikiAgent</div>',
-                    unsafe_allow_html=True,
-                )
-                score_m1 = st.number_input("Score M1", 0.0, 1.0, step=0.01, format="%.4f")
-                regime = st.text_input("Regime M3")
-                confidence = st.text_input("Confidence M3")
-                fragility = st.number_input("Fragility Score", 0.0, 1.0, step=0.01, format="%.4f")
-
+    with st.form("form_decision", clear_on_submit=True):
+        col1, col2 = st.columns(2, gap="large")
+        with col1:
             st.markdown(
-                '<div class="k-kicker" style="margin-top:16px;margin-bottom:8px">Antes da compra</div>',
+                '<div class="k-kicker" style="margin-bottom:8px">Ativo & decisão</div>',
                 unsafe_allow_html=True,
             )
-            thesis       = st.text_area("Tese de investimento", height=80)
-            risk         = st.text_area("Riscos identificados", height=60)
-            inv_cond     = st.text_area("Cenário de invalidação", height=60)
-            expectation  = st.text_area("Expectativa", height=60)
-            alt_scenario = st.text_area("Cenário alternativo", height=60)
+            ticker = st.selectbox("Ativo", tickers)
+            if ticker == "(outro)":
+                ticker = st.text_input("Ticker manual").upper()
+            outcome = st.selectbox("Decisão", [o.value for o in DecisionOutcome])
+            invalidation = st.text_input("Condição de saída / invalidação")
 
+        with col2:
             st.markdown(
-                '<div class="k-kicker" style="margin-top:16px;margin-bottom:8px">Depois · preencher após resultado</div>',
+                '<div class="k-kicker" style="margin-bottom:8px">Scores WikiAgent</div>',
                 unsafe_allow_html=True,
             )
-            result   = st.text_area("Resultado", height=60)
-            error    = st.text_area("Erro cometido", height=60)
-            learning = st.text_area("Aprendizado", height=60)
-            bias     = st.text_area("Viés identificado", height=60)
+            score_m1 = st.number_input("Score M1", 0.0, 1.0, step=0.01, format="%.4f")
+            regime = st.text_input("Regime M3")
+            confidence = st.text_input("Confidence M3")
+            fragility = st.number_input("Fragility Score", 0.0, 1.0, step=0.01, format="%.4f")
 
-            submitted = st.form_submit_button("Salvar decisão", type="primary", use_container_width=True)
+        st.markdown(
+            '<div class="k-kicker" style="margin-top:16px;margin-bottom:8px">Antes da compra</div>',
+            unsafe_allow_html=True,
+        )
+        thesis       = st.text_area("Tese de investimento", height=80)
+        risk         = st.text_area("Riscos identificados", height=60)
+        inv_cond     = st.text_area("Cenário de invalidação", height=60)
+        expectation  = st.text_area("Expectativa", height=60)
+        alt_scenario = st.text_area("Cenário alternativo", height=60)
 
-        if submitted:
-            if not ticker:
-                st.error("Ticker obrigatório.")
-            else:
-                try:
-                    rec = DecisionRecord(
-                        ticker=ticker,
-                        outcome=DecisionOutcome(outcome),
-                        score_m1=score_m1,
-                        regime=regime,
-                        confidence=confidence,
-                        fragility=fragility,
-                        invalidation_condition=invalidation,
-                        thesis=thesis,
-                        risk=risk,
-                        alternative_scenario=alt_scenario,
-                        expectation=expectation,
-                        result=result,
-                        error=error,
-                        learning=learning,
-                        bias_identified=bias,
-                    )
-                    repo.create(rec)
-                    st.success(f"Decision Record salvo: {ticker} — {outcome}")
-                except Exception as e:
-                    st.error(f"Erro: {e}")
+        st.markdown(
+            '<div class="k-kicker" style="margin-top:16px;margin-bottom:8px">Depois · preencher após resultado</div>',
+            unsafe_allow_html=True,
+        )
+        result   = st.text_area("Resultado", height=60)
+        error    = st.text_area("Erro cometido", height=60)
+        learning = st.text_area("Aprendizado", height=60)
+        bias     = st.text_area("Viés identificado", height=60)
 
-    # ══════════════════════════════════════════════════════════════════════════
-    # TAB 2 — Histórico
-    # ══════════════════════════════════════════════════════════════════════════
-    with tab_hist:
-        try:
-            decisions = repo.list_all()
-        except Exception as e:
-            st.error(f"Erro ao carregar histórico: {e}")
-            st.stop()
+        submitted = st.form_submit_button("Salvar decisão", type="primary", use_container_width=True)
 
-        if not decisions:
-            st.markdown(
-                '<div style="padding:48px 0;text-align:center;color:var(--ink-4)">nenhuma decisão registrada ainda</div>',
-                unsafe_allow_html=True,
-            )
+    if submitted:
+        if not ticker:
+            st.error("Ticker obrigatório.")
         else:
-            ticker_fil = st.selectbox(
-                "Filtrar por ativo",
-                ["Todos"] + sorted({d.ticker for d in decisions}),
+            try:
+                rec = DecisionRecord(
+                    ticker=ticker,
+                    outcome=DecisionOutcome(outcome),
+                    score_m1=score_m1,
+                    regime=regime,
+                    confidence=confidence,
+                    fragility=fragility,
+                    invalidation_condition=invalidation,
+                    thesis=thesis,
+                    risk=risk,
+                    alternative_scenario=alt_scenario,
+                    expectation=expectation,
+                    result=result,
+                    error=error,
+                    learning=learning,
+                    bias_identified=bias,
+                )
+                repo.create(rec)
+                st.success(f"Decision Record salvo: {ticker} — {outcome}")
+            except Exception as e:
+                st.error(f"Erro: {e}")
+
+# ══════════════════════════════════════════════════════════════════════════
+# TAB 2 — Histórico
+# ══════════════════════════════════════════════════════════════════════════
+with tab_hist:
+    try:
+        decisions = repo.list_all()
+    except Exception as e:
+        st.error(f"Erro ao carregar histórico: {e}")
+        st.stop()
+
+    if not decisions:
+        st.markdown(
+            '<div style="padding:48px 0;text-align:center;color:var(--ink-4)">nenhuma decisão registrada ainda</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        ticker_fil = st.selectbox(
+            "Filtrar por ativo",
+            ["Todos"] + sorted({d.ticker for d in decisions}),
+        )
+        if ticker_fil != "Todos":
+            decisions = [d for d in decisions if d.ticker == ticker_fil]
+
+        _OUTCOME_TONE = {
+            "COMPRAR": ("pos", "↗"),
+            "MANTER":  ("brass", "→"),
+            "REDUZIR": ("warn", "↘"),
+            "VENDER":  ("neg", "↓"),
+        }
+
+        for dec in decisions:
+            ov    = dec.outcome.value if dec.outcome else "N/A"
+            tone, arrow = _OUTCOME_TONE.get(ov, ("", "·"))
+            chip_html = chip(f"{arrow} {ov}", tone)
+            date_str  = formatar_data_br(dec.date)
+
+            scores = (
+                f'<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px">'
+                f'<span class="mono muted" style="font-size:11px">M1 · {dec.score_m1:.4f}</span>'
+                f'<span class="mono muted" style="font-size:11px">Regime · {dec.regime or "—"}</span>'
+                f'<span class="mono muted" style="font-size:11px">Fragility · {dec.fragility:.4f}</span>'
+                f'</div>'
             )
-            if ticker_fil != "Todos":
-                decisions = [d for d in decisions if d.ticker == ticker_fil]
 
-            _OUTCOME_TONE = {
-                "COMPRAR": ("pos", "↗"),
-                "MANTER":  ("brass", "→"),
-                "REDUZIR": ("warn", "↘"),
-                "VENDER":  ("neg", "↓"),
-            }
+            thesis_html = (
+                f'<div class="serif" style="font-style:italic;font-size:13px;color:var(--ink-2);'
+                f'line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px solid var(--rule)">'
+                f'&#8220;{dec.thesis}&#8221;</div>'
+            ) if dec.thesis else ""
 
-            for dec in decisions:
-                ov    = dec.outcome.value if dec.outcome else "N/A"
-                tone, arrow = _OUTCOME_TONE.get(ov, ("", "·"))
-                chip_html = chip(f"{arrow} {ov}", tone)
-                date_str  = formatar_data_br(dec.date)
-
-                scores = (
-                    f'<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px">'
-                    f'<span class="mono muted" style="font-size:11px">M1 · {dec.score_m1:.4f}</span>'
-                    f'<span class="mono muted" style="font-size:11px">Regime · {dec.regime or "—"}</span>'
-                    f'<span class="mono muted" style="font-size:11px">Fragility · {dec.fragility:.4f}</span>'
+            result_html = ""
+            if dec.result:
+                result_html = (
+                    f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--rule)">'
+                    f'<div class="k-kicker">resultado</div>'
+                    f'<div style="font-family:var(--font-sans);font-size:12.5px;color:var(--ink-2);'
+                    f'line-height:1.55;margin-top:6px">{dec.result}</div>'
                     f'</div>'
                 )
 
-                thesis_html = (
-                    f'<div class="serif" style="font-style:italic;font-size:13px;color:var(--ink-2);'
-                    f'line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px solid var(--rule)">'
-                    f'&#8220;{dec.thesis}&#8221;</div>'
-                ) if dec.thesis else ""
+            body = f'{scores}{thesis_html}{result_html}'
 
-                result_html = ""
-                if dec.result:
-                    result_html = (
-                        f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--rule)">'
-                        f'<div class="k-kicker">resultado</div>'
-                        f'<div style="font-family:var(--font-sans);font-size:12.5px;color:var(--ink-2);'
-                        f'line-height:1.55;margin-top:6px">{dec.result}</div>'
-                        f'</div>'
-                    )
-
-                body = f'{scores}{thesis_html}{result_html}'
-
-                with st.expander(f"{dec.ticker}  ·  {date_str}  ·  {ov}"):
-                    st.markdown(
-                        k_card_with_header(
-                            f"{dec.ticker}",
-                            body,
-                            hint=f"{date_str} · {dec.regime or '—'}",
-                        ),
-                        unsafe_allow_html=True,
-                    )
+            with st.expander(f"{dec.ticker}  ·  {date_str}  ·  {ov}"):
+                st.markdown(
+                    k_card_with_header(
+                        f"{dec.ticker}",
+                        body,
+                        hint=f"{date_str} · {dec.regime or '—'}",
+                    ),
+                    unsafe_allow_html=True,
+                )

@@ -481,6 +481,52 @@ class MarketDataService:
 
         return result
 
+    def get_price_history(
+        self,
+        tickers: list[str],
+        days: int = 30,
+        force_refresh: bool = False,
+    ) -> dict[str, list[dict]]:
+        """Retorna histórico de preços de fechamento para os últimos `days` dias.
+
+        Returns:
+            {ticker: [{"date": date, "close": float}, ...]} ordenado cronologicamente.
+        """
+        if not tickers:
+            return {}
+
+        sa_tickers = [f"{t}.SA" for t in tickers]
+        try:
+            import yfinance as yf
+            df = yf.download(sa_tickers, period=f"{days}d", interval="1d", progress=False, auto_adjust=True)
+        except Exception as e:
+            log.debug("get_price_history: yfinance falhou: %s", e)
+            return {}
+
+        if df is None or df.empty:
+            return {}
+
+        result: dict[str, list[dict]] = {}
+        for ticker, sa in zip(tickers, sa_tickers):
+            try:
+                if ("Close", sa) in df.columns:
+                    series = df[("Close", sa)].dropna()
+                elif "Close" in df.columns:
+                    series = df["Close"].dropna()
+                else:
+                    continue
+                entries = [
+                    {"date": idx.date(), "close": float(val)}
+                    for idx, val in series.items()
+                ]
+                entries.sort(key=lambda e: e["date"])
+                if entries:
+                    result[ticker] = entries
+            except Exception as e:
+                log.debug("get_price_history: parse de %s falhou: %s", ticker, e)
+
+        return result
+
     # ── Tesouro Direto ────────────────────────────────────────────────────────
 
     def get_tesouro_bonds(self, force_refresh: bool = False) -> list[TesouroBond]:
@@ -507,6 +553,85 @@ class MarketDataService:
         if fallback:
             return [TesouroBond(**b) for b in fallback]
         return []
+
+    _TESOURO_CSV_URL = (
+        "https://www.tesourodireto.com.br/json/br/com/b3/tesouro/"
+        "tesouro-direto/1/TesouroDireto_HistoricoTaxaPreco.csv"
+    )
+
+    def get_tesouro_history(
+        self,
+        bond_type: str | None = None,
+        start_date: date | None = None,
+    ) -> list[dict]:
+        """Retorna histórico de preços e taxas do Tesouro Direto via CSV público.
+
+        Returns:
+            [{"date": date, "bond_type": str, "rate_buy": float,
+              "rate_sell": float, "price_buy": float}, ...]
+            ordenado cronologicamente.
+        """
+        import io
+        import requests
+        import pandas as pd
+
+        try:
+            resp = requests.get(self._TESOURO_CSV_URL, timeout=15)
+            resp.raise_for_status()
+            df = pd.read_csv(
+                io.BytesIO(resp.content),
+                sep=";",
+                encoding="latin-1",
+                decimal=",",
+                thousands=".",
+            )
+        except Exception as e:
+            log.debug("get_tesouro_history: falhou ao buscar CSV: %s", e)
+            return []
+
+        # Normaliza nomes de colunas (remove espaços extras)
+        df.columns = [c.strip() for c in df.columns]
+
+        # Mapeia para nomes canônicos — colunas variam ligeiramente entre versões do CSV
+        col_map = {
+            "Tipo Título": "bond_type",
+            "Tipo T\xedtulo": "bond_type",
+            "Data Venda": "date_str",
+            "Taxa Compra Manha": "rate_buy",
+            "Taxa Compra Manh\xe3": "rate_buy",
+            "Taxa Venda Manha": "rate_sell",
+            "Taxa Venda Manh\xe3": "rate_sell",
+            "PU Compra Manha": "price_buy",
+            "PU Compra Manh\xe3": "price_buy",
+        }
+        df = df.rename(columns={k: v for k, v in col_map.items() if k in df.columns})
+
+        required = {"bond_type", "date_str", "rate_buy", "price_buy"}
+        if not required.issubset(df.columns):
+            log.debug("get_tesouro_history: colunas esperadas não encontradas: %s", df.columns.tolist())
+            return []
+
+        if bond_type:
+            df = df[df["bond_type"] == bond_type]
+
+        result = []
+        for _, row in df.iterrows():
+            try:
+                d = datetime.strptime(str(row["date_str"]).strip(), "%d/%m/%Y").date()
+                if start_date and d < start_date:
+                    continue
+                result.append({
+                    "date": d,
+                    "bond_type": str(row["bond_type"]).strip(),
+                    "rate_buy": float(row["rate_buy"]),
+                    "rate_sell": float(row.get("rate_sell", row["rate_buy"])),
+                    "price_buy": float(row["price_buy"]),
+                })
+            except Exception:
+                continue
+
+        result.sort(key=lambda r: r["date"])
+        return result
 
     # ── Câmbio ────────────────────────────────────────────────────────────────
 
