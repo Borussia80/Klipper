@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import calendar
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from models.transaction import Category, Transaction
+
+_MESES_PT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+             "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
 
 @dataclass
@@ -64,3 +68,53 @@ def calcular_top_categorias(
         key=lambda x: x.total,
         reverse=True,
     )[:n]
+
+
+def preparar_dados_donut_categorias(
+    transacoes: list[Transaction],
+) -> list[dict]:
+    """Agrega gastos por categoria para chart de donut.
+
+    Retorna lista de {"categoria": str, "total": float} ordenada decrescente.
+    Exclui transações GANHO e a categoria Investimento.
+    Limitado a 8 categorias (top por valor).
+    """
+    from models.transaction import TransactionType, Category as Cat
+
+    por_cat: dict[str, Decimal] = {}
+    for t in transacoes:
+        if t.type != TransactionType.GASTO:
+            continue
+        if t.category == Cat.INVESTIMENTO:
+            continue
+        por_cat[t.category.value] = por_cat.get(t.category.value, Decimal(0)) + t.amount
+
+    resultado = sorted(
+        [{"categoria": cat, "total": float(total)} for cat, total in por_cat.items()],
+        key=lambda x: x["total"],
+        reverse=True,
+    )
+    return resultado[:8]
+
+
+def preparar_dados_barras_mensais(
+    registros: list[tuple[int, int, Decimal, Decimal]],
+) -> list[dict]:
+    """Prepara dados para bar chart de entradas × saídas mensais.
+
+    Args:
+        registros: lista de (ano, mes, total_ganhos, total_gastos)
+
+    Returns:
+        Lista de {"mes": "Jan/26", "Entradas": float, "Saídas": float}
+        ordenada cronologicamente.
+    """
+    ordenados = sorted(registros, key=lambda r: (r[0], r[1]))
+    return [
+        {
+            "mes": f"{_MESES_PT[mes - 1]}/{str(ano)[-2:]}",
+            "Entradas": float(ganhos),
+            "Saídas": float(gastos),
+        }
+        for ano, mes, ganhos, gastos in ordenados
+    ]

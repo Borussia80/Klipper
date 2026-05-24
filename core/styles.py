@@ -182,17 +182,33 @@ section[data-testid="stSidebar"] { display: none !important; }
 }
 .stButton > button[kind="primary"]:hover { filter: brightness(1.1) !important; }
 
-/* inputs */
-.stTextInput input, .stNumberInput input, .stTextArea textarea {
+/* inputs — seletores alto nível + BaseWeb (Streamlit usa ambos dependendo da versão) */
+.stTextInput input,
+.stNumberInput input,
+.stTextArea textarea,
+[data-baseweb="input"] input,
+[data-baseweb="textarea"] textarea {
   background: var(--surface-2) !important;
   border: 1px solid var(--rule) !important;
   color: var(--ink) !important;
   border-radius: var(--radius-sm) !important;
   font-family: var(--font-sans) !important;
 }
-.stTextInput input:focus, .stNumberInput input:focus {
+/* container BaseWeb dos inputs (wraps o input real) */
+[data-baseweb="input"],
+[data-baseweb="textarea"] {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: var(--radius-sm) !important;
+}
+.stTextInput input:focus,
+.stNumberInput input:focus,
+.stTextArea textarea:focus,
+[data-baseweb="input"] input:focus,
+[data-baseweb="textarea"] textarea:focus {
   border-color: var(--brass) !important;
   box-shadow: 0 0 0 1px var(--brass) !important;
+  outline: none !important;
 }
 .stSelectbox [data-baseweb="select"] {
   background: var(--surface-2) !important;
@@ -200,6 +216,14 @@ section[data-testid="stSidebar"] { display: none !important; }
   border-radius: var(--radius-sm) !important;
 }
 .stSelectbox [data-baseweb="select"] > div { background: transparent !important; color: var(--ink) !important; }
+/* dropdown popover */
+[data-baseweb="popover"] [role="listbox"],
+[data-baseweb="menu"] {
+  background: var(--surface-2) !important;
+  border: 1px solid var(--rule) !important;
+}
+[data-baseweb="menu"] li { color: var(--ink) !important; }
+[data-baseweb="menu"] li:hover { background: var(--surface-3, #1E3347) !important; }
 
 /* form */
 [data-testid="stForm"] {
