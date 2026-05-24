@@ -184,6 +184,35 @@ def preparar_dados_linha_normalizado(
     return result
 
 
+def preparar_dados_gauge_limite(
+    fatura: Decimal,
+    limite_total: Decimal,
+) -> dict:
+    """Prepara dados para gauge Plotly de uso do limite do cartão.
+
+    Returns:
+        {"usado": float, "limite": float, "disponivel": float,
+         "pct_uso": float, "status": "ok" | "alerta" | "estouro"}
+    """
+    usado = float(fatura)
+    limite = float(limite_total)
+
+    if limite <= 0:
+        return {"usado": usado, "limite": limite, "disponivel": 0.0,
+                "pct_uso": 0.0, "status": "ok"}
+
+    pct = min(usado / limite * 100.0, 100.0)
+    disponivel = max(limite - usado, 0.0)
+    status = "estouro" if pct >= 80 else "alerta" if pct >= 50 else "ok"
+    return {
+        "usado": usado,
+        "limite": limite,
+        "disponivel": disponivel,
+        "pct_uso": pct,
+        "status": status,
+    }
+
+
 def preparar_dados_tesouro_historico(
     historico: list[dict],
     bond_name: str,

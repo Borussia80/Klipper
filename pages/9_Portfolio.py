@@ -18,7 +18,7 @@ from core.styles import (
     setup_sidebar,
 )
 
-st.set_page_config(page_title="Portfólio · Klipper", page_icon=load_page_icon(), layout="wide")
+st.set_page_config(page_title="Portfólio · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
 require_auth()
 

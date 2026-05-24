@@ -19,7 +19,7 @@ from core.styles import (
 )
 from models.transaction import Category, PaymentMethod, Transaction, TransactionType
 
-st.set_page_config(page_title="Extratos · Klipper", page_icon=load_page_icon(), layout="wide")
+st.set_page_config(page_title="Extratos · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
 require_auth()
 

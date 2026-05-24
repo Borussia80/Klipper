@@ -196,6 +196,11 @@ section[data-testid="stSidebar"] a[data-testid="stPageLink"][aria-current="page"
   color: var(--emerald);
   font-weight: 600;
 }
+.k-hero-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 .k-hero-stat {
   display: flex;
   flex-direction: column;
@@ -1238,16 +1243,25 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
     flex: 1 1 100% !important;
   }
 
+  /* k-grid — 4 e 3 colunas viram 1 no mobile estreito */
+  .k-cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .k-cols-3 { grid-template-columns: 1fr !important; }
+
   /* Hero — fonte e padding reduzidos */
   .k-hero {
     padding: 20px 16px !important;
     border-radius: 12px !important;
   }
   .k-hero-balance {
-    font-size: clamp(22px, 7vw, 32px) !important;
+    font-size: clamp(20px, 6vw, 28px) !important;
+  }
+  .k-hero-stats-row {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
   }
   .k-hero-stat { font-size: 12px !important; }
-  .k-hero-divider { display: none; }
+  .k-hero-divider { display: none !important; }
+  .k-hero-stat-val { font-size: 13px !important; }
 
   /* Section header menor */
   .k-section-header h2 {
@@ -1928,7 +1942,7 @@ def hero_section(
   <div class="k-hero-kicker">{title}</div>
   {sub_html}
   <div class="k-hero-balance">{saldo}</div>
-  <div style="display:flex;align-items:center;gap:20px">
+  <div class="k-hero-stats-row">
     <div class="k-hero-stat">
       <span class="k-hero-stat-label">Entradas</span>
       <span class="k-hero-stat-val" style="color:var(--emerald)">{ganhos}</span>

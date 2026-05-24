@@ -31,7 +31,7 @@ from core.styles import (
 from models.budget import Budget
 from models.transaction import Category, EXPENSE_CATEGORIES
 
-st.set_page_config(page_title="Orçamento · Klipper", page_icon=load_page_icon(), layout="wide")
+st.set_page_config(page_title="Orçamento · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
 require_auth()
 

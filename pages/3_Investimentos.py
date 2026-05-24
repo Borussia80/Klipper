@@ -32,7 +32,7 @@ from core.styles import (
 from models.investment import Investment, InvestmentType
 from models.transaction import Category
 
-st.set_page_config(page_title="Patrimônio · Klipper", page_icon=load_page_icon(), layout="wide")
+st.set_page_config(page_title="Patrimônio · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
 require_auth()
 
