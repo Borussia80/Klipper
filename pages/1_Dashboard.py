@@ -114,7 +114,9 @@ _ai_ctx = build_financial_context(
 setup_sidebar(ctx=_ai_ctx, violations=violations)
 
 # ── Hero section ─────────────────────────────────────────────────────────────
-mes_nome  = calendar.month_name[mes].capitalize()
+_MESES_PT_FULL = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+mes_nome  = _MESES_PT_FULL[mes]
 dia_semana = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"][hoje.weekday()]
 st.markdown(
     hero_section(

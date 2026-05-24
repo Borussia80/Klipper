@@ -100,6 +100,9 @@ def _login_container() -> None:
   box-shadow:none !important;
   padding:0 !important;
 }}
+.k-auth-panel {{
+  justify-content:flex-end !important;
+}}
 @media (max-width: 980px) {{
   [data-testid="stForm"]:has([data-testid="stTextInput"]) {{
     width:auto;

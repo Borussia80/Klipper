@@ -24,3 +24,7 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Utilidades locais
+klipper_context.txt
+dump_repo.py

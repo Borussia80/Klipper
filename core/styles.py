@@ -903,6 +903,13 @@ label { color: var(--ink-3) !important; font-family: var(--font-sans) !important
 #MainMenu, footer { visibility: hidden !important; }
 [data-testid="stToolbar"] { display: none !important; }
 
+/* sidebar expand button — always visible */
+button[data-testid="collapsedControl"],
+section[data-testid="stSidebarCollapsedControl"] {
+  display: flex !important;
+  z-index: 999999 !important;
+}
+
 /* ── Inline page navigation (column-based) ───────────────────────────────── */
 [data-testid="stSidebarNavItems"] {
   display: none !important;

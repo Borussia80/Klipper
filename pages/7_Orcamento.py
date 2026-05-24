@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-import calendar
 from datetime import date
+
+_MESES_PT = ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+             "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
 import pandas as pd
 import plotly.express as px
@@ -65,7 +67,7 @@ def _bud_dialog() -> None:
                                       value=hoje.year, step=1)
         with bf2:
             mes_bud = st.selectbox("Mês", range(1, 13), index=hoje.month - 1,
-                                   format_func=lambda m: calendar.month_abbr[m])
+                                   format_func=lambda m: _MESES_PT[m])
         b_save = st.form_submit_button("Salvar", type="primary", use_container_width=True)
 
     if b_save:
@@ -108,7 +110,7 @@ with f1:
                            label_visibility="collapsed"))
 with f2:
     mes = int(st.selectbox("Mês", range(1, 13), index=hoje.month - 1,
-                           format_func=lambda m: calendar.month_abbr[m],
+                           format_func=lambda m: _MESES_PT[m],
                            label_visibility="collapsed"))
 
 # ── Load data ─────────────────────────────────────────────────────────────
@@ -279,7 +281,7 @@ with tab_meta:
                 txs_h = tx_repo.list_by_month(y_h, m_h)
                 sal_h = calcular_saldo_mensal(txs_h, y_h, m_h)
                 historico.append({
-                    "Mês": f"{calendar.month_abbr[m_h]}/{y_h}",
+                    "Mês": f"{_MESES_PT[m_h]}/{y_h}",
                     "Poupança (%)": sal_h.taxa_poupanca,
                 })
             except Exception:
@@ -375,7 +377,7 @@ with tab_score_tab:
                 taxa_poupanca_atual=sal_h.taxa_poupanca,
                 meta_poupanca=float(meta_score), caixa_pct=caixa_pct,
             )
-            hist_score.append({"Mês": f"{calendar.month_abbr[m_h]}/{y_h}", "Score": sc_h.total})
+            hist_score.append({"Mês": f"{_MESES_PT[m_h]}/{y_h}", "Score": sc_h.total})
         except Exception:
             pass
 
