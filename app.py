@@ -12,7 +12,6 @@ from core.styles import (
     inject_css,
     load_page_icon,
     render_navigation,
-    setup_sidebar,
     sidebar_engines,
     sidebar_user,
     stat_card,
@@ -27,8 +26,6 @@ st.set_page_config(
 inject_css()
 
 require_auth()
-
-setup_sidebar()
 
 nav_col, content_col = st.columns([1, 4])
 
@@ -48,17 +45,22 @@ section[data-testid="column"]:first-child a {
     font-size: 0.82rem;
 }
 @media (max-width: 640px) {
-  section[data-testid="column"]:first-child {
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:first-child {
     display: none !important;
     width: 0 !important;
     min-width: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
+    flex: 0 0 0 !important;
+  }
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:last-child {
+    flex: 1 1 100% !important;
+    width: 100% !important;
   }
 }
 </style>
 """, unsafe_allow_html=True)
-    render_navigation()
+    render_navigation(key_suffix="_col")
     st.markdown(sidebar_engines(), unsafe_allow_html=True)
     sidebar_user()
 

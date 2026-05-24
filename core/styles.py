@@ -1470,16 +1470,16 @@ def inject_css() -> None:
         st.markdown(_FORCE_DARK_CSS, unsafe_allow_html=True)
 
 
-def theme_toggle_btn() -> None:
+def theme_toggle_btn(key_suffix: str = "") -> None:
     """Renderiza botão de toggle claro/escuro — inclua em render_navigation()."""
     theme = st.session_state.get("klipper_theme", "dark")
     label = "☀  Claro" if theme == "dark" else "☽  Escuro"
-    if st.button(label, key="klipper_theme_toggle", use_container_width=True):
+    if st.button(label, key=f"klipper_theme_toggle{key_suffix}", use_container_width=True):
         st.session_state["klipper_theme"] = "light" if theme == "dark" else "dark"
         st.rerun()
 
 
-def render_navigation() -> None:
+def render_navigation(key_suffix: str = "") -> None:
     """Sidebar navigation: Klipper brand + grouped page links + theme toggle.
 
     Renders SidebarNavSection entries as visual group headers and
@@ -1503,7 +1503,7 @@ def render_navigation() -> None:
                 # silently skip rather than crash the entire navigation rail.
                 pass
     st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-    theme_toggle_btn()
+    theme_toggle_btn(key_suffix=key_suffix)
 
 
 def sidebar_nav() -> None:
