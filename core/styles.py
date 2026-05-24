@@ -1305,6 +1305,21 @@ section[data-testid="stSidebarCollapsedControl"] {
     white-space: nowrap !important;
     scrollbar-width: none !important;
   }
+
+  /* Operating hero — colapsa para coluna única em mobile */
+  .k-operating-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .k-operating-signals {
+    grid-template-columns: repeat(3, 1fr) !important;
+    min-width: unset !important;
+  }
+  .k-operating-hero {
+    padding: 18px 16px !important;
+  }
+  .k-operating-title {
+    font-size: clamp(22px, 5vw, 36px) !important;
+  }
 }
 
 </style>
