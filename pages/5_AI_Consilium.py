@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import os
 from typing import Any
 
@@ -11,6 +12,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from core.anti_bs import PERGUNTA_OBRIGATORIA
+from core.consilium import (
+    ConsiliumMessage, build_system_prompt, chat_history_to_messages,
+    confidence_to_pct, confidence_tone, resolve_provider,
+)
 from core.m3_context import Confidence, MarketRegime
 from core.repositories import InvestmentRepository, DecisionRepository
 from core.auth import require_auth
@@ -33,66 +38,31 @@ PROVIDERS = {
     "Kimi (Moonshot)": "kimi",
 }
 
-MODEL_MAP = {
-    "claude":  "claude-sonnet-4-6",
-    "gemini":  "gemini/gemini-2.0-flash",
-    "gpt4o":   "gpt-4o",
-    "qwen":    "openai/qwen-plus",
-    "kimi":    "openai/moonshot-v1-8k",
-}
-
 PROVIDER_CHIPS = {
     "claude": "brass", "gemini": "pos", "gpt4o": "", "qwen": "", "kimi": "",
 }
 
-SYSTEM_PROMPT = """Você é M4 — Auditoria Histórica do WikiAgent Financeiro Klipper.
-
-Diretrizes absolutas:
-- Matemática ancora. Narrativa sem evidência quantitativa não altera decisão.
-- Contexto modula risco — nunca compra ativo sozinho.
-- Sem verborreia. Resposta máxima: 300 palavras.
-- Declarar incerteza SEMPRE que dados forem insuficientes.
-- Reportar riscos antes de oportunidades.
-- P/VP sozinho não valida ativo. DY alto exige validação de sustentabilidade.
-
-WikiAgent M1 Thresholds:
-- Score ≥ 0.60 → COMPRAR | 0.30–0.59 → MANTER | < 0.30 → REDUZIR
-
-M2 Limites (Beginner Mode):
-- Max por ativo: 10% | Max por tese/setor: 25% | Caixa mínimo: 20%
-
-Anti-BS pergunta obrigatória: "{pergunta}"
-""".format(pergunta=PERGUNTA_OBRIGATORIA)
+SYSTEM_PROMPT = build_system_prompt()
 
 
 def _resolve_model(provider_key: str) -> str:
-    if provider_key == "auto":
-        for p in ["claude", "gemini", "gpt4o", "qwen", "kimi"]:
-            key_env = {
-                "claude": "ANTHROPIC_API_KEY",
-                "gemini": "GOOGLE_API_KEY",
-                "gpt4o": "OPENAI_API_KEY",
-                "qwen": "DASHSCOPE_API_KEY",
-                "kimi": "MOONSHOT_API_KEY",
-            }[p]
-            if os.environ.get(key_env):
-                return MODEL_MAP[p]
-        return MODEL_MAP["gemini"]
-    return MODEL_MAP.get(provider_key, MODEL_MAP["claude"])
+    return resolve_provider(provider_key)
 
 
-def _chamar_litellm(model: str, mensagem: str) -> str:
+def _chamar_litellm(
+    model: str, mensagem: str,
+    messages_override: list[dict] | None = None,
+) -> str:
     try:
         import litellm
         litellm.drop_params = True
+        messages = messages_override or [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": mensagem},
+        ]
         resp = litellm.completion(
-            model=model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": mensagem},
-            ],
-            max_tokens=600,
-            temperature=0.3,
+            model=model, messages=messages,
+            max_tokens=600, temperature=0.3,
         )
         return resp.choices[0].message.content or ""
     except ImportError:
@@ -165,13 +135,86 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ── Confidence gauge strip ─────────────────────────────────────────────────
+_conf_pct  = confidence_to_pct(confidence)
+_conf_tone = confidence_tone(confidence)
+_conf_col1, _conf_col2, _conf_col3 = st.columns([3, 1, 1])
+with _conf_col1:
+    st.markdown(
+        f'<div style="font-family:var(--font-sans);font-size:11px;color:var(--ink-4);margin-bottom:4px">'
+        f'Confidence M3 — <span class="{_conf_tone}">{confidence}</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.progress(_conf_pct / 100)
+with _conf_col2:
+    st.metric("Regime", regime, label_visibility="collapsed")
+with _conf_col3:
+    st.metric("Confidence", f"{_conf_pct}%", label_visibility="collapsed")
+
 # ── Tabs ──────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs([
+tab_chat, tab1, tab2, tab3, tab4 = st.tabs([
+    "💬 Chat M4",
     "Análise de Tese",
     "Atualizar Regime M3",
     "Auditar Decision",
     "Análise de Portfólio",
 ])
+
+# ══════════════════════════════════════════════════════════════════════════
+# TAB 0 — Chat M4 (multi-turn)
+# ══════════════════════════════════════════════════════════════════════════
+with tab_chat:
+    _HIST_KEY = "consilium_chat_history"
+    if _HIST_KEY not in st.session_state:
+        st.session_state[_HIST_KEY] = []
+
+    history: list[ConsiliumMessage] = st.session_state[_HIST_KEY]
+
+    # Render existing messages
+    for msg in history:
+        with st.chat_message(msg.role):
+            st.markdown(msg.content)
+            if msg.role == "assistant" and msg.model:
+                st.caption(f"model: {msg.model}")
+
+    # Input
+    if user_input := st.chat_input(
+        "Pergunte ao M4 — ex: XPML11 tem DY sustentável? Regime atual muda minha tese?",
+        key="consilium_chat_input",
+    ):
+        # Show user message immediately
+        with st.chat_message("user"):
+            st.markdown(user_input)
+        history.append(ConsiliumMessage(role="user", content=user_input))
+
+        # Build messages for LiteLLM: system + history
+        messages_for_llm = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+        ] + chat_history_to_messages(history)
+        # Inject current regime/confidence context in last user message
+        messages_for_llm[-1]["content"] = (
+            f"[Regime: {regime} | Confidence: {confidence}]\n\n{user_input}"
+        )
+
+        with st.chat_message("assistant"):
+            with st.spinner("M4 processando…"):
+                model    = _resolve_model(provider_key)
+                resposta = _chamar_litellm(model, user_input, messages_override=messages_for_llm)
+            st.markdown(resposta)
+            st.caption(f"model: {model}")
+
+            _copy_col, _ = st.columns([1, 4])
+            with _copy_col:
+                st.code(resposta, language=None)
+
+        history.append(ConsiliumMessage(role="assistant", content=resposta, model=model))
+        st.session_state[_HIST_KEY] = history
+
+    if history:
+        if st.button("🗑 Limpar conversa", key="clear_chat"):
+            st.session_state[_HIST_KEY] = []
+            st.rerun()
+
 
 # ══════════════════════════════════════════════════════════════════════════
 # TAB 1 — Análise de Tese
@@ -215,11 +258,11 @@ Análise M4 solicitada:
             resp_html = (
                 f'<div class="serif" style="font-style:italic;font-size:16px;color:var(--ink);'
                 f'line-height:1.55;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--rule)">'
-                f'&#8220;{tese_preview}&#8221;</div>'
+                f'&#8220;{html.escape(tese_preview)}&#8221;</div>'
                 f'<div style="font-family:var(--font-sans);font-size:13px;color:var(--ink-2);'
-                f'line-height:1.65;white-space:pre-wrap">{resposta}</div>'
+                f'line-height:1.65;white-space:pre-wrap">{html.escape(resposta)}</div>'
                 f'<div style="margin-top:14px;font-family:var(--font-mono);font-size:10px;color:var(--ink-4)">'
-                f'model: {model}</div>'
+                f'model: {html.escape(model)}</div>'
             )
             st.markdown(k_card_with_header("Resposta M4", resp_html, model, gilt=True), unsafe_allow_html=True)
 
@@ -262,9 +305,9 @@ INCERTEZA: [o que não foi possível avaliar]
                 resposta = _chamar_litellm(model, prompt)
 
             resp_html = f"""<div style="font-family:var(--font-mono);font-size:13px;color:var(--ink-2);
-  line-height:1.7;white-space:pre-wrap">{resposta}</div>
+  line-height:1.7;white-space:pre-wrap">{html.escape(resposta)}</div>
 <div style="margin-top:14px;font-family:var(--font-mono);font-size:10px;color:var(--ink-4)">
-  model: {model}
+  model: {html.escape(model)}
 </div>"""
             st.markdown(k_card_with_header("Sugestão M4", resp_html, model, gilt=True), unsafe_allow_html=True)
 
@@ -310,9 +353,9 @@ Auditoria M4:
                     resposta = _chamar_litellm(model, prompt)
 
                 resp_html = f"""<div style="font-family:var(--font-sans);font-size:13px;color:var(--ink-2);
-  line-height:1.65;white-space:pre-wrap">{resposta}</div>
+  line-height:1.65;white-space:pre-wrap">{html.escape(resposta)}</div>
 <div style="margin-top:14px;font-family:var(--font-mono);font-size:10px;color:var(--ink-4)">
-  model: {model}
+  model: {html.escape(model)}
 </div>"""
                 st.markdown(k_card_with_header("Auditoria M4", resp_html, model, gilt=True), unsafe_allow_html=True)
         else:
@@ -370,9 +413,9 @@ Análise M4 solicitada:
                     resposta = _chamar_litellm(model, prompt)
 
                 resp_html = f"""<div style="font-family:var(--font-sans);font-size:13px;color:var(--ink-2);
-  line-height:1.65;white-space:pre-wrap">{resposta}</div>
+  line-height:1.65;white-space:pre-wrap">{html.escape(resposta)}</div>
 <div style="margin-top:14px;font-family:var(--font-mono);font-size:10px;color:var(--ink-4)">
-  model: {model}
+  model: {html.escape(model)}
 </div>"""
                 st.markdown(k_card_with_header("Análise M4", resp_html, model, gilt=True), unsafe_allow_html=True)
         else:

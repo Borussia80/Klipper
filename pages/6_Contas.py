@@ -23,7 +23,7 @@ from core.styles import (
     bar_track, fmt_brl, inject_css, k_card_with_header,
     parcela_row, section_header, sidebar_engines, sidebar_user, sidebar_ai_qa, render_navigation,
     stat_card, load_page_icon,
-    setup_sidebar,
+    setup_sidebar, k_premium_empty_state,
 )
 from core.repositories import tx_balance_delta
 from models.bank_account import AccountType, BankAccount
@@ -144,7 +144,7 @@ with tab_cards:
 
     if not cartoes:
         st.markdown(
-            '<div style="padding:64px 0;text-align:center;color:var(--ink-4)">nenhum cartão cadastrado · use o formulário acima</div>',
+            k_premium_empty_state("💳", "Nenhum cartão cadastrado", "Use o formulário acima para adicionar seu primeiro cartão."),
             unsafe_allow_html=True,
         )
     else:
@@ -323,7 +323,7 @@ with tab_cards:
 with tab_parc:
     if not insts:
         st.markdown(
-            '<div style="padding:64px 0;text-align:center;color:var(--ink-4)">nenhum parcelamento ativo</div>',
+            k_premium_empty_state("⊡", "Nenhum parcelamento ativo", "Lançamentos parcelados aparecem aqui com o cronograma de vencimentos."),
             unsafe_allow_html=True,
         )
     else:
@@ -483,7 +483,12 @@ with tab_parc:
 with tab_contas:
     st.markdown(section_header("Contas bancárias", "saldos e movimentação"), unsafe_allow_html=True)
 
-    if contas:
+    if not contas:
+        st.markdown(
+            k_premium_empty_state("🏦", "Nenhuma conta cadastrada", "Adicione uma conta bancária para rastrear saldos e ajustes automáticos."),
+            unsafe_allow_html=True,
+        )
+    elif contas:
         saldo_total = sum(c.balance for c in contas)
         st.markdown(
             f'<div class="k-grid k-cols-4" style="margin-bottom:20px">'

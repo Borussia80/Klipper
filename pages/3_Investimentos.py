@@ -27,7 +27,7 @@ from core.styles import (
     bar_track, fmt_brl, fmt_change, inject_css, k_card_with_header,
     section_header, render_navigation, sidebar_engines, sidebar_user, sidebar_ai_qa,
     stat_card, load_page_icon,
-    setup_sidebar,
+    setup_sidebar, k_premium_empty_state,
 )
 from models.investment import Investment, InvestmentType
 from models.transaction import Category
@@ -72,7 +72,14 @@ with _tab_live:
         _dash_force = st.button("↺ Atualizar", key="dash_force_btn", use_container_width=True)
 
     if not _dash_portfolio:
-        st.info("Portfólio vazio — adicione ativos no painel abaixo.")
+        st.markdown(
+            k_premium_empty_state(
+                "◈",
+                "Portfólio vazio",
+                "Adicione o primeiro ativo no painel abaixo para ativar o dashboard ao vivo.",
+            ),
+            unsafe_allow_html=True,
+        )
     else:
         # ── Performance strip ─────────────────────────────────────────────
         _dash_tickers_all = [inv.ticker for inv in _dash_portfolio]
@@ -402,7 +409,11 @@ except Exception as e:
 
 if not portfolio:
     st.markdown(
-        '<div style="padding:64px 0;text-align:center;color:var(--ink-4)">portfólio vazio · adicione o primeiro ativo acima</div>',
+        k_premium_empty_state(
+            "▣",
+            "Sem ativos cadastrados",
+            "Adicione o primeiro ativo no formulário acima para ver análises de portfólio.",
+        ),
         unsafe_allow_html=True,
     )
     st.stop()

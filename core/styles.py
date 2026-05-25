@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import functools
+import html as _html_mod
 import re
 from dataclasses import dataclass
 
 import streamlit as st
+
+html_escape = _html_mod.escape
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CSS
@@ -15,78 +18,139 @@ import streamlit as st
 KLIPPER_CSS = """
 <style>
 /* ── Fonts ─────────────────────────────────────────────────────────────────── */
-@import url('https://api.fontshare.com/v2/css?f[]=general-sans@200,300,400,500,600,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* ── Tokens ─────────────────────────────────────────────────────────────────── */
+/* ── Design tokens v3.0 ──────────────────────────────────────────────────────── */
 :root {
-  --bg:           #08161F;
-  --bg-deep:      #050B12;
-  --bg-2:         #0C1E2B;
-  --surface-1:    rgba(255,255,255,0.025);
-  --surface-2:    rgba(255,255,255,0.045);
-  --surface-3:    rgba(255,255,255,0.07);
-  --surface-tint: rgba(200,163,100,0.04);
-  --ink:          #F2EAD3;
-  --ink-2:        #C9BC9E;
-  --ink-3:        #8F8770;
-  --ink-4:        #5C5746;
-  --rule:         rgba(255,255,255,0.06);
-  --rule-2:       rgba(255,255,255,0.10);
-  --rule-brass:   rgba(200,163,100,0.22);
-  --brass:        #D9B26F;
-  --brass-soft:   rgba(217,178,111,0.18);
-  --brass-glow:   rgba(217,178,111,0.35);
-  --sea:          #7FB3C8;
-  --electric:     #4D8DFF;
-  --copper:       #E08855;
-  --moss:         #7BC68A;
-  --emerald:      #00C896;
-  --emerald-soft: rgba(0,200,150,0.12);
-  --emerald-glow: rgba(0,200,150,0.25);
-  --rust:         #D87C6A;
-  --lantern:      #F4D58D;
-  --pos:          #00C896;
-  --neg:          #4D8DFF;
-  --neg-expense:  #4D8DFF;
-  --warn:         #F4D58D;
-  --accent:       #D9B26F;
-  --hero-bg:      linear-gradient(145deg, #0A2318 0%, #071A28 60%, #0C1E2B 100%);
-  --hero-accent:  rgba(0,200,150,0.10);
-  --shadow-1:     0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 18px rgba(0,0,0,0.35);
-  --shadow-2:     0 1px 0 rgba(255,255,255,0.05) inset, 0 12px 32px rgba(0,0,0,0.42);
-  --glow-brass:   0 0 0 1px rgba(217,178,111,0.15), 0 0 32px rgba(217,178,111,0.10);
-  --font-serif:   'Instrument Serif', Georgia, serif;
-  --font-sans:    'General Sans', 'Inter', sans-serif;
-  --font-mono:    'Geist Mono', 'IBM Plex Mono', monospace;
+  /* Colour layers — dark default */
+  --bg:             #020617;
+  --bg-deep:        #020617;
+  --bg-2:           #07111D;
+  --surface:        #07111D;
+  --card:           #0D1726;
+  --layer-active:   #132238;
+  --layer-crit:     #1B2B45;
+
+  /* Legacy surface aliases — kept for existing code */
+  --surface-1:      rgba(255,255,255,0.03);
+  --surface-2:      rgba(255,255,255,0.05);
+  --surface-3:      rgba(255,255,255,0.08);
+  --surface-tint:   rgba(59,130,246,0.04);
+
+  /* Ink scale */
+  --ink:            #F1F5F9;
+  --ink-2:          #CBD5E1;
+  --ink-3:          #94A3B8;
+  --ink-4:          #475569;
+
+  /* Borders */
+  --rule:           rgba(255,255,255,0.07);
+  --rule-2:         rgba(255,255,255,0.12);
+  --rule-brass:     rgba(217,178,111,0.18);
+
+  /* Brand & semantic palette */
+  --brass:          #D9B26F;
+  --brass-soft:     rgba(217,178,111,0.12);
+  --brass-glow:     rgba(217,178,111,0.28);
+  --sea:            #7FB3C8;
+  --electric:       #3B82F6;
+  --copper:         #F97316;
+  --moss:           #34D399;
+  --emerald:        #10B981;
+  --emerald-soft:   rgba(16,185,129,0.12);
+  --emerald-glow:   rgba(16,185,129,0.22);
+  --rust:           #F87171;
+  --lantern:        #FCD34D;
+
+  /* Semantic states */
+  --pos:            #10B981;
+  --neg:            #F87171;
+  --neg-expense:    #F87171;
+  --warn:           #F59E0B;
+  --accent:         #3B82F6;
+  --danger:         #EF4444;
+  --success:        #10B981;
+
+  /* Gradients & shadows */
+  --hero-bg:        linear-gradient(145deg, #020617 0%, #07111D 60%, #0D1726 100%);
+  --hero-accent:    rgba(59,130,246,0.07);
+  --shadow-1:       0 1px 0 rgba(255,255,255,0.03) inset, 0 4px 16px rgba(0,0,0,0.45);
+  --shadow-2:       0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 30px rgba(0,0,0,0.55);
+  --glow-accent:    0 0 0 1px rgba(59,130,246,0.18), 0 0 24px rgba(59,130,246,0.08);
+  --glow-brass:     0 0 0 1px rgba(217,178,111,0.12), 0 0 24px rgba(217,178,111,0.06);
+
+  /* Fonts — Sprint 01 */
+  --font-sans:      'Geist', 'Inter Tight', 'Inter', system-ui, sans-serif;
+  --font-mono:      'JetBrains Mono', 'Geist Mono', 'IBM Plex Mono', monospace;
+  --font-serif:     'Instrument Serif', Georgia, serif;
+
+  /* Spacing tokens — Sprint 01 */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  12px;
+  --space-lg:  16px;
+  --space-xl:  24px;
+  --space-xxl: 32px;
+
+  /* Border radius — Sprint 01 */
   --radius-xs:    6px;
   --radius-sm:    10px;
+  --radius-input: 14px;
   --radius:       16px;
+  --radius-card:  20px;
   --radius-lg:    24px;
+  --radius-hero:  28px;
   --radius-pill:  999px;
-  --ease:         cubic-bezier(0.2,0.7,0.2,1);
+  --radius-fab:   999px;
+
+  /* Transitions */
+  --ease:    cubic-bezier(0.2,0.7,0.2,1);
+  --t-fast:  120ms;
+  --t-base:  180ms;
+  --t-slow:  300ms;
 }
 
-/* ── Light mode overrides ───────────────────────────────────────────────────── */
+/* ── Light mode v1 — professional neutral ───────────────────────────────────── */
 @media (prefers-color-scheme: light) {
   :root {
-    --bg:           #F5F0E8;
-    --bg-deep:      #EDE8DF;
-    --bg-2:         #EAE4DA;
-    --surface-1:    rgba(0,0,0,0.03);
-    --surface-2:    rgba(0,0,0,0.055);
-    --surface-3:    rgba(0,0,0,0.085);
-    --surface-tint: rgba(180,140,70,0.05);
-    --ink:          #1C160E;
-    --ink-2:        #3A3028;
-    --ink-3:        #6A5F52;
-    --ink-4:        #9B9185;
-    --rule:         rgba(0,0,0,0.07);
-    --rule-2:       rgba(0,0,0,0.12);
-    --rule-brass:   rgba(180,140,70,0.25);
-    --shadow-1:     0 1px 0 rgba(255,255,255,0.70) inset, 0 4px 14px rgba(0,0,0,0.10);
-    --shadow-2:     0 1px 0 rgba(255,255,255,0.60) inset, 0 8px 28px rgba(0,0,0,0.14);
-    --glow-brass:   0 0 0 1px rgba(180,140,70,0.20), 0 0 24px rgba(180,140,70,0.08);
+    --bg:             #F4F7FA;
+    --bg-deep:        #EBF0F5;
+    --bg-2:           #FFFFFF;
+    --surface:        #F9FAFB;
+    --card:           #FFFFFF;
+    --layer-active:   #EFF6FF;
+    --layer-crit:     #DBEAFE;
+    --surface-1:      rgba(0,0,0,0.02);
+    --surface-2:      rgba(0,0,0,0.04);
+    --surface-3:      rgba(0,0,0,0.07);
+    --surface-tint:   rgba(29,78,216,0.03);
+    --ink:            #111827;
+    --ink-2:          #374151;
+    --ink-3:          #6B7280;
+    --ink-4:          #9CA3AF;
+    --rule:           #E5E7EB;
+    --rule-2:         #D1D5DB;
+    --rule-brass:     rgba(29,78,216,0.12);
+    --electric:       #1D4ED8;
+    --accent:         #1D4ED8;
+    --pos:            #10B981;
+    --neg:            #EF4444;
+    --neg-expense:    #EF4444;
+    --warn:           #F59E0B;
+    --danger:         #EF4444;
+    --success:        #10B981;
+    --hero-bg:        linear-gradient(145deg, #EFF6FF 0%, #F4F7FA 60%, #FFFFFF 100%);
+    --hero-accent:    rgba(29,78,216,0.05);
+    --shadow-1:       0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-2:       0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --glow-accent:    0 0 0 1px rgba(29,78,216,0.14);
+    --glow-brass:     0 0 0 1px rgba(29,78,216,0.10);
+    --brass:          #B45309;
+    --moss:           #059669;
+    --emerald:        #059669;
+    --emerald-soft:   rgba(5,150,105,0.10);
+    --rust:           #EF4444;
+    --lantern:        #D97706;
   }
 }
 
@@ -370,7 +434,7 @@ section[data-testid="stSidebar"] a[data-testid="stPageLink"][aria-current="page"
   background: var(--surface-2) !important;
   border: 1px solid var(--rule) !important;
   color: var(--ink) !important;
-  border-radius: var(--radius-sm) !important;
+  border-radius: var(--radius-input) !important;
   font-family: var(--font-sans) !important;
 }
 /* container BaseWeb dos inputs (wraps o input real) */
@@ -388,6 +452,21 @@ section[data-testid="stSidebar"] a[data-testid="stPageLink"][aria-current="page"
   border-color: var(--brass) !important;
   box-shadow: 0 0 0 1px var(--brass) !important;
   outline: none !important;
+}
+/* Sprint 01B: placeholder accessibility — WCAG AA against dark bg */
+.stTextInput input::placeholder,
+.stNumberInput input::placeholder,
+.stTextArea textarea::placeholder,
+[data-baseweb="input"] input::placeholder {
+  color: var(--ink-4) !important;
+  opacity: 1 !important;
+}
+/* Sprint 01B: input focus glow — brass accent + shadow */
+.stTextInput input:focus,
+.stNumberInput input:focus,
+.stTextArea textarea:focus {
+  border-color: var(--brass) !important;
+  box-shadow: 0 0 8px rgba(217,167,74,0.20) !important;
 }
 .stSelectbox [data-baseweb="select"] {
   background: var(--surface-2) !important;
@@ -1056,6 +1135,162 @@ section[data-testid="stSidebarCollapsedControl"] {
   white-space: nowrap; font-weight: 500;
 }
 
+/* ── Sprint 02: Card hierarchy ──────────────────────────────────────────── */
+
+/* TYPE A — ACTION CARD  (CTAs, quick-add, pix rápido) */
+.k-card-action {
+  background: linear-gradient(135deg, var(--electric) 0%, #2563EB 100%);
+  border: none; border-radius: var(--radius-card);
+  padding: var(--space-xl); cursor: pointer;
+  box-shadow: 0 4px 24px rgba(59,130,246,0.30);
+  transition: transform 120ms, box-shadow 120ms;
+  position: relative; overflow: hidden;
+}
+.k-card-action::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.12), transparent 60%);
+  pointer-events: none;
+}
+.k-card-action:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(59,130,246,0.38); }
+.k-card-action .label {
+  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.10em; text-transform: uppercase; color: rgba(255,255,255,0.75);
+  margin-bottom: 6px;
+}
+.k-card-action .value {
+  font-family: var(--font-mono); font-size: 28px; font-weight: 700;
+  color: #fff; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+}
+.k-card-action .sub {
+  font-family: var(--font-sans); font-size: 11px; color: rgba(255,255,255,0.65);
+  margin-top: 4px;
+}
+
+/* TYPE B — KPI CARD  (métricas hero: saldo, entradas, saídas) */
+.k-card-kpi {
+  background: var(--card);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--radius-card);
+  padding: var(--space-xl);
+  transition: border-color 150ms;
+}
+.k-card-kpi:hover { border-color: rgba(255,255,255,0.18); }
+.k-card-kpi .label {
+  font-family: var(--font-sans); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.10em; text-transform: uppercase; color: var(--ink-4);
+  margin-bottom: 8px;
+}
+.k-card-kpi .value {
+  font-family: var(--font-mono); font-size: 26px; font-weight: 600;
+  color: var(--ink); letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.k-card-kpi .delta {
+  font-family: var(--font-sans); font-size: 11px; margin-top: 6px;
+  display: flex; align-items: center; gap: 4px;
+}
+.k-card-kpi .delta.pos { color: var(--pos); }
+.k-card-kpi .delta.neg { color: var(--neg); }
+.k-card-kpi .delta.warn { color: var(--warn); }
+
+/* TYPE C — ANALYTICS CARD  (charts, donut, barras) */
+.k-card-analytics {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-card);
+  padding: var(--space-xl) var(--space-xl) var(--space-md);
+  overflow: hidden;
+}
+.k-card-analytics .k-card-h {
+  margin-bottom: var(--space-md);
+}
+
+/* TYPE D — CONTEXT CARD  (alertas, WikiAgent, Kira) */
+.k-card-context {
+  background: linear-gradient(135deg,
+    rgba(217,178,111,0.06) 0%,
+    rgba(217,178,111,0.02) 100%);
+  border: 1px solid var(--rule-brass);
+  border-radius: var(--radius-card);
+  padding: var(--space-xl);
+}
+.k-card-context .k-card-t { color: var(--brass); }
+
+/* ── Sprint 03: Bottom navigation (mobile) ──────────────────────────────── */
+.k-bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9990;
+  grid-template-columns: repeat(5, 1fr);
+  background: rgba(7,17,29,0.92);
+  border-top: 1px solid var(--rule-2);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  padding: 8px 4px max(12px, env(safe-area-inset-bottom));
+  height: 72px;
+}
+.k-bottom-nav a, .k-bnav-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 0 4px;
+  font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.02em;
+  color: var(--ink-4); text-decoration: none;
+  transition: color 120ms; cursor: pointer;
+  min-width: 44px; min-height: 44px; justify-content: center;
+  border-radius: var(--radius-xs);
+}
+.k-bottom-nav a:hover, .k-bnav-item:hover,
+.k-bottom-nav a.active, .k-bnav-item.active {
+  color: var(--brass);
+}
+.k-bottom-nav .icon { font-size: 20px; line-height: 1; }
+
+/* ── FAB — global quick-add ──────────────────────────────────────────────── */
+.k-fab {
+  display: none;
+  position: fixed; bottom: 84px; right: 20px; z-index: 9991;
+  width: 56px; height: 56px; border-radius: var(--radius-fab);
+  background: linear-gradient(135deg, var(--electric) 0%, #2563EB 100%);
+  border: none; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(59,130,246,0.45);
+  align-items: center; justify-content: center;
+  font-size: 24px; color: #fff;
+  transition: transform 150ms, box-shadow 150ms;
+}
+.k-fab:hover { transform: scale(1.08); box-shadow: 0 8px 28px rgba(59,130,246,0.55); }
+.k-fab:active { transform: scale(0.95); }
+
+
+/* ── Segmented control (tab-style switch) ───────────────────────────────── */
+.k-seg-ctrl {
+  display: inline-flex; border-radius: var(--radius-input);
+  background: var(--surface-1); border: 1px solid var(--rule);
+  padding: 3px; gap: 2px;
+}
+.k-seg-ctrl .seg {
+  padding: 6px 16px; border-radius: calc(var(--radius-input) - 3px);
+  font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+  color: var(--ink-3); cursor: pointer; transition: all 120ms;
+  min-width: 80px; text-align: center;
+}
+.k-seg-ctrl .seg.active {
+  background: var(--card); color: var(--ink);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+.k-seg-ctrl .seg:hover:not(.active) { color: var(--ink-2); }
+
+/* ── Bottom sheet (modal drawer from bottom on mobile) ──────────────────── */
+.k-bottom-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 9995;
+  background: var(--card); border-top: 1px solid var(--rule-2);
+  border-radius: var(--radius-hero) var(--radius-hero) 0 0;
+  padding: 0 var(--space-xl) max(28px, env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.45);
+  max-height: 92vh; overflow-y: auto;
+}
+.k-bottom-sheet .handle {
+  width: 36px; height: 4px; border-radius: 2px;
+  background: var(--rule-2); margin: 12px auto 20px;
+}
+
 /* ── Premium auth shell ──────────────────────────────────────────────────── */
 .k-auth-shell {
   min-height: 100vh;
@@ -1225,6 +1460,72 @@ section[data-testid="stSidebarCollapsedControl"] {
   }
 }
 
+/* ── Sprint 09: Premium empty state ────────────────────────────────────── */
+.k-empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center;
+  padding: var(--space-xxl) var(--space-xl);
+  border: 1px dashed var(--rule-2);
+  border-radius: var(--radius-card);
+  background: var(--surface-1);
+  min-height: 200px;
+}
+.k-empty-state .icon {
+  font-size: 40px; line-height: 1; margin-bottom: var(--space-lg);
+  opacity: 0.5;
+}
+.k-empty-state .title {
+  font-family: var(--font-sans); font-size: 16px; font-weight: 600;
+  color: var(--ink-2); margin-bottom: var(--space-sm);
+}
+.k-empty-state .sub {
+  font-family: var(--font-sans); font-size: 13px; color: var(--ink-4);
+  max-width: 320px; line-height: 1.55;
+}
+
+/* ── Sprint 07: Radar strip ─────────────────────────────────────────────── */
+.k-radar-strip {
+  background: linear-gradient(135deg,
+    rgba(248,113,113,0.08) 0%,
+    rgba(248,113,113,0.04) 100%);
+  border: 1px solid rgba(248,113,113,0.25);
+  border-left: 3px solid var(--rust);
+  border-radius: var(--radius-card);
+  padding: var(--space-lg) var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+.k-radar-strip.warn {
+  background: linear-gradient(135deg,
+    rgba(245,158,11,0.08) 0%,
+    rgba(245,158,11,0.04) 100%);
+  border-color: rgba(245,158,11,0.25);
+  border-left-color: var(--warn);
+}
+.k-radar-strip.ok {
+  background: linear-gradient(135deg,
+    rgba(16,185,129,0.06) 0%,
+    rgba(16,185,129,0.02) 100%);
+  border-color: rgba(16,185,129,0.20);
+  border-left-color: var(--pos);
+  padding: var(--space-md) var(--space-xl);
+}
+.k-radar-strip .k-radar-title {
+  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--rust); margin-bottom: var(--space-sm);
+}
+.k-radar-strip.warn .k-radar-title { color: var(--warn); }
+.k-radar-strip.ok .k-radar-title { color: var(--pos); }
+.k-radar-alert-row {
+  display: flex; align-items: baseline; gap: var(--space-md);
+  padding: 6px 0; border-top: 1px solid var(--rule);
+  font-family: var(--font-sans); font-size: 13px;
+}
+.k-radar-alert-row:first-child { border-top: none; }
+.k-radar-alert-row .cat { color: var(--ink); font-weight: 500; flex: 1; }
+.k-radar-alert-row .ratio { font-family: var(--font-mono); color: var(--rust); font-size: 12px; }
+.k-radar-alert-row .amounts { font-size: 11px; color: var(--ink-3); }
+
 /* ── Mobile (≤640px) ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
 
@@ -1320,6 +1621,23 @@ section[data-testid="stSidebarCollapsedControl"] {
   .k-operating-title {
     font-size: clamp(22px, 5vw, 36px) !important;
   }
+
+  /* Sprint 03: bottom nav + FAB visible */
+  .k-bottom-nav { display: grid; }
+  .k-fab { display: flex; }
+  [data-testid="stApp"] > div:first-child {
+    padding-bottom: 80px !important;
+  }
+  [data-testid="stMainBlockContainer"] {
+    padding-bottom: 88px !important;
+  }
+
+  /* Sprint 03: touch targets 44px minimum */
+  button, [role="button"], a { min-height: 44px !important; }
+
+  /* Sprint 03: tighter headings */
+  h1 { font-size: 22px !important; }
+  h2 { font-size: 18px !important; }
 }
 
 </style>
@@ -1435,29 +1753,45 @@ def load_page_icon():
 # Late :root declarations beat earlier ones — same specificity, last writer wins.
 
 _FORCE_LIGHT_CSS = """<style>:root {
-  --bg:#F5F0E8 !important;--bg-deep:#EDE8DF !important;--bg-2:#EAE4DA !important;
-  --surface-1:rgba(0,0,0,0.03) !important;--surface-2:rgba(0,0,0,0.055) !important;
-  --surface-3:rgba(0,0,0,0.085) !important;--surface-tint:rgba(180,140,70,0.05) !important;
-  --ink:#1C160E !important;--ink-2:#3A3028 !important;
-  --ink-3:#6A5F52 !important;--ink-4:#9B9185 !important;
-  --rule:rgba(0,0,0,0.07) !important;--rule-2:rgba(0,0,0,0.12) !important;
-  --rule-brass:rgba(180,140,70,0.25) !important;
-  --shadow-1:0 1px 0 rgba(255,255,255,0.70) inset,0 4px 14px rgba(0,0,0,0.10) !important;
-  --shadow-2:0 1px 0 rgba(255,255,255,0.60) inset,0 8px 28px rgba(0,0,0,0.14) !important;
-  --glow-brass:0 0 0 1px rgba(180,140,70,0.20),0 0 24px rgba(180,140,70,0.08) !important;
+  --bg:#F4F7FA !important;--bg-deep:#EBF0F5 !important;--bg-2:#FFFFFF !important;
+  --surface:#F9FAFB !important;--card:#FFFFFF !important;
+  --layer-active:#EFF6FF !important;--layer-crit:#DBEAFE !important;
+  --surface-1:rgba(0,0,0,0.02) !important;--surface-2:rgba(0,0,0,0.04) !important;
+  --surface-3:rgba(0,0,0,0.07) !important;--surface-tint:rgba(29,78,216,0.03) !important;
+  --ink:#111827 !important;--ink-2:#374151 !important;
+  --ink-3:#6B7280 !important;--ink-4:#9CA3AF !important;
+  --rule:#E5E7EB !important;--rule-2:#D1D5DB !important;
+  --rule-brass:rgba(29,78,216,0.12) !important;
+  --electric:#1D4ED8 !important;--accent:#1D4ED8 !important;
+  --pos:#10B981 !important;--neg:#EF4444 !important;--neg-expense:#EF4444 !important;
+  --warn:#F59E0B !important;--danger:#EF4444 !important;--success:#10B981 !important;
+  --hero-bg:linear-gradient(145deg,#EFF6FF 0%,#F4F7FA 60%,#FFFFFF 100%) !important;
+  --shadow-1:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04) !important;
+  --shadow-2:0 4px 12px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04) !important;
+  --glow-accent:0 0 0 1px rgba(29,78,216,0.14) !important;
+  --glow-brass:0 0 0 1px rgba(29,78,216,0.10) !important;
+  --brass:#B45309 !important;--moss:#059669 !important;--emerald:#059669 !important;
+  --rust:#EF4444 !important;--lantern:#D97706 !important;
 }</style>"""
 
 _FORCE_DARK_CSS = """<style>:root {
-  --bg:#08161F !important;--bg-deep:#050B12 !important;--bg-2:#0C1E2B !important;
-  --surface-1:rgba(255,255,255,0.025) !important;--surface-2:rgba(255,255,255,0.045) !important;
-  --surface-3:rgba(255,255,255,0.07) !important;--surface-tint:rgba(200,163,100,0.04) !important;
-  --ink:#F2EAD3 !important;--ink-2:#C9BC9E !important;
-  --ink-3:#8F8770 !important;--ink-4:#5C5746 !important;
-  --rule:rgba(255,255,255,0.06) !important;--rule-2:rgba(255,255,255,0.10) !important;
-  --rule-brass:rgba(200,163,100,0.22) !important;
-  --shadow-1:0 1px 0 rgba(255,255,255,0.04) inset,0 6px 18px rgba(0,0,0,0.35) !important;
-  --shadow-2:0 1px 0 rgba(255,255,255,0.05) inset,0 12px 32px rgba(0,0,0,0.42) !important;
-  --glow-brass:0 0 0 1px rgba(217,178,111,0.15),0 0 32px rgba(217,178,111,0.10) !important;
+  --bg:#020617 !important;--bg-deep:#020617 !important;--bg-2:#07111D !important;
+  --surface:#07111D !important;--card:#0D1726 !important;
+  --layer-active:#132238 !important;--layer-crit:#1B2B45 !important;
+  --surface-1:rgba(255,255,255,0.03) !important;--surface-2:rgba(255,255,255,0.05) !important;
+  --surface-3:rgba(255,255,255,0.08) !important;--surface-tint:rgba(59,130,246,0.04) !important;
+  --ink:#F1F5F9 !important;--ink-2:#CBD5E1 !important;
+  --ink-3:#94A3B8 !important;--ink-4:#475569 !important;
+  --rule:rgba(255,255,255,0.07) !important;--rule-2:rgba(255,255,255,0.12) !important;
+  --rule-brass:rgba(217,178,111,0.18) !important;
+  --electric:#3B82F6 !important;--accent:#3B82F6 !important;
+  --pos:#10B981 !important;--neg:#F87171 !important;--neg-expense:#F87171 !important;
+  --warn:#F59E0B !important;--danger:#EF4444 !important;--success:#10B981 !important;
+  --hero-bg:linear-gradient(145deg,#020617 0%,#07111D 60%,#0D1726 100%) !important;
+  --shadow-1:0 1px 0 rgba(255,255,255,0.03) inset,0 4px 16px rgba(0,0,0,0.45) !important;
+  --shadow-2:0 1px 0 rgba(255,255,255,0.04) inset,0 10px 30px rgba(0,0,0,0.55) !important;
+  --glow-accent:0 0 0 1px rgba(59,130,246,0.18),0 0 24px rgba(59,130,246,0.08) !important;
+  --glow-brass:0 0 0 1px rgba(217,178,111,0.12),0 0 24px rgba(217,178,111,0.06) !important;
 }</style>"""
 
 
@@ -1575,11 +1909,15 @@ def k_card(content: str, gilt: bool = False, extra_style: str = "") -> str:
 
 def k_card_with_header(title: str, content: str, hint: str = "", gilt: bool = False) -> str:
     cls = "k-card" + (" gilt" if gilt else "")
-    hint_html = f'<div style="font-family:var(--font-sans);font-size:11.5px;color:var(--ink-3);margin-top:2px">{hint}</div>' if hint else ""
+    safe_title = html_escape(title)
+    hint_html = (
+        f'<div style="font-family:var(--font-sans);font-size:11.5px;color:var(--ink-3);margin-top:2px">'
+        f'{html_escape(hint)}</div>'
+    ) if hint else ""
     return f"""<div class="{cls}">
   <div class="k-card-h">
     <div>
-      <div class="k-card-t">{title}</div>
+      <div class="k-card-t">{safe_title}</div>
       {hint_html}
     </div>
   </div>
@@ -1599,6 +1937,142 @@ def stat_card(kicker_text: str, value: str, sub: str = "", tone: str = "") -> st
   <div class="mono" style="font-size:26px;line-height:1.1;color:{color};font-variant-numeric:tabular-nums">{value}</div>
   <div class="mono muted" style="font-size:11px;margin-top:2px">{sub}</div>
 </div>"""
+
+
+def kpi_card(label: str, value: str, delta: str = "", tone: str = "") -> str:
+    """TYPE B KPI card — hero metric with optional delta chip."""
+    delta_cls = {"pos": "pos", "neg": "neg", "warn": "warn"}.get(tone, "")
+    delta_html = f'<div class="delta {delta_cls}">{delta}</div>' if delta else ""
+    return f"""<div class="k-card-kpi">
+  <div class="label">{label}</div>
+  <div class="value">{value}</div>
+  {delta_html}
+</div>"""
+
+
+def action_card(label: str, value: str, sub: str = "") -> str:
+    """TYPE A action card — vibrant blue gradient CTA."""
+    return f"""<div class="k-card-action">
+  <div class="label">{label}</div>
+  <div class="value">{value}</div>
+  <div class="sub">{sub}</div>
+</div>"""
+
+
+def context_card(title: str, body: str, hint: str = "") -> str:
+    """TYPE D context card — brass tint for alerts/WikiAgent."""
+    hint_html = f'<div style="font-size:10.5px;color:var(--ink-4);margin-top:4px">{hint}</div>' if hint else ""
+    return f"""<div class="k-card-context">
+  <div class="k-card-h"><div class="k-card-t">{title}</div>{hint_html}</div>
+  <div class="k-card-b">{body}</div>
+</div>"""
+
+
+def k_radar_notification_card(alerts: list[dict]) -> str:
+    """Render the financial radar strip.
+
+    Args:
+        alerts: List of dicts with keys: category, current, baseline, ratio.
+                Empty list means all categories are within bounds.
+
+    Returns:
+        HTML string for st.markdown(unsafe_allow_html=True).
+    """
+    if not alerts:
+        return """<div class="k-radar-strip ok">
+  <div class="k-radar-title">✓ Conformidade financeira</div>
+  <div style="font-family:var(--font-sans);font-size:12.5px;color:var(--ink-3)">
+    Nenhuma categoria acima do padrão histórico.
+  </div>
+</div>"""
+
+    rows_html = "".join(
+        f"""<div class="k-radar-alert-row">
+  <span class="cat">⚠ {html_escape(a["category"])}</span>
+  <span class="ratio">{a["ratio"]:.2f}×</span>
+  <span class="amounts">
+    R${a["current"]:,.2f} vs R${a["baseline"]:,.2f} histórico
+  </span>
+</div>"""
+        for a in alerts
+    )
+    tone = "warn" if max(a["ratio"] for a in alerts) < 1.6 else ""
+    return f"""<div class="k-radar-strip {tone}">
+  <div class="k-radar-title">🔥 Radar financeiro — {len(alerts)} alerta{'s' if len(alerts) > 1 else ''}</div>
+  {rows_html}
+</div>"""
+
+
+def plotly_dark_theme(max_height: int = 220) -> dict:
+    """Return a Plotly layout dict matching the Klipper dark design system.
+
+    Usage:
+        fig.update_layout(**plotly_dark_theme())
+        fig.update_layout(**plotly_dark_theme(max_height=180))
+    """
+    return {
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor":  "rgba(0,0,0,0)",
+        "height": max_height,
+        "margin": {"l": 0, "r": 0, "t": 8, "b": 0},
+        "font": {
+            "family": "JetBrains Mono, Geist, Inter, monospace",
+            "color":  "#94A3B8",
+            "size":   12,
+        },
+        "showlegend": False,
+        "xaxis": {
+            "showgrid": False,
+            "zeroline": False,
+            "tickfont": {"size": 11, "color": "#94A3B8"},
+            "linecolor": "rgba(255,255,255,0.07)",
+        },
+        "yaxis": {
+            "showgrid": True,
+            "gridcolor": "rgba(255,255,255,0.05)",
+            "zeroline": False,
+            "tickfont": {"size": 11, "color": "#94A3B8"},
+        },
+        "hoverlabel": {
+            "bgcolor": "#0D1726",
+            "bordercolor": "#1E293B",
+            "font": {"color": "#F1F5F9", "size": 12},
+        },
+    }
+
+
+def k_premium_empty_state(icon: str, title: str, subtitle: str = "") -> str:
+    """Premium empty-state card — replaces raw Python errors and blank pages.
+
+    All user-supplied strings are XSS-escaped.
+    """
+    safe_icon     = html_escape(icon)
+    safe_title    = html_escape(title)
+    sub_html = (
+        f'<div class="sub">{html_escape(subtitle)}</div>'
+        if subtitle else ""
+    )
+    return f"""<div class="k-empty-state">
+  <div class="icon">{safe_icon}</div>
+  <div class="title">{safe_title}</div>
+  {sub_html}
+</div>"""
+
+
+def seg_ctrl(options: list[str], active: int = 0, key: str = "seg") -> int:
+    """Render a segmented control; returns the index of the selected segment."""
+    import streamlit as _st
+    html = '<div class="k-seg-ctrl">'
+    for i, opt in enumerate(options):
+        cls = "seg active" if i == active else "seg"
+        html += f'<div class="{cls}" id="seg-{key}-{i}">{opt}</div>'
+    html += "</div>"
+    _st.markdown(html, unsafe_allow_html=True)
+    selected = _st.radio(
+        "", options, index=active, horizontal=True,
+        label_visibility="collapsed", key=f"_seg_{key}"
+    )
+    return options.index(selected)
 
 
 def feed_row(icon: str, icon_cls: str, title: str, meta: str,

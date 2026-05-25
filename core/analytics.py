@@ -315,3 +315,66 @@ def preparar_comparativo_categorias(
     ]
     rows.sort(key=lambda r: r["Este mês"], reverse=True)
     return rows[:top_n]
+
+
+def detect_spending_alerts(
+    current: dict[str, float],
+    baseline: dict[str, float],
+    threshold: float = 1.3,
+) -> list[dict]:
+    """Return categories where current spending exceeds baseline * threshold.
+
+    Args:
+        current:   {category: amount} for the period being evaluated.
+        baseline:  {category: average_amount} used as reference.
+        threshold: multiplier above which an alert is raised (default 1.3).
+
+    Returns:
+        List of dicts with keys: category, current, baseline, ratio.
+        Sorted by ratio descending. Empty list if no violations.
+    """
+    alerts = []
+    for category, current_amt in current.items():
+        base = baseline.get(category, 0.0)
+        if base <= 0:
+            continue
+        ratio = current_amt / base
+        if ratio > threshold:
+            alerts.append({
+                "category": category,
+                "current": current_amt,
+                "baseline": base,
+                "ratio": round(ratio, 2),
+            })
+    alerts.sort(key=lambda a: a["ratio"], reverse=True)
+    return alerts
+
+
+def preparar_sparkline_score_historico(
+    registros: list[tuple[int, int, Decimal, Decimal]],
+    meta_poupanca: float = 20.0,
+) -> list[dict]:
+    """Proxy de score financeiro histórico a partir de (ano, mes, ganhos, gastos).
+
+    Score proxy 0–100: taxa de poupança mapeada linearmente onde meta_poupanca → 100.
+    Fórmula: clamp(round(taxa_poupanca * (100 / meta_poupanca)), 0, 100).
+
+    Args:
+        registros: lista de (ano, mes, total_ganhos, total_gastos).
+        meta_poupanca: percentual de poupança que equivale a 100 pts (padrão 20%).
+
+    Returns:
+        Lista de {"mes": "Jan/26", "score": int} ordenada cronologicamente.
+    """
+    fator = 100.0 / meta_poupanca if meta_poupanca > 0 else 0.0
+    ordenados = sorted(registros, key=lambda r: (r[0], r[1]))
+    result = []
+    for ano, mes, ganhos, gastos in ordenados:
+        g = float(ganhos)
+        if g <= 0:
+            score = 0
+        else:
+            taxa = (g - float(gastos)) / g * 100.0
+            score = min(100, max(0, round(taxa * fator)))
+        result.append({"mes": f"{_MESES_PT[mes - 1]}/{str(ano)[-2:]}", "score": score})
+    return result
