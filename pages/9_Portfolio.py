@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 from collections import defaultdict
 
 import streamlit as st
@@ -208,7 +209,7 @@ with col_detail:
         anchor_html = (
             f'<div class="k-kicker">Âncora quant</div>'
             f'<div class="serif" style="font-style:italic;font-size:15px;color:var(--ink);'
-            f'line-height:1.6;margin-top:8px;margin-bottom:16px">&#8220;{t["anchor"]}&#8221;</div>'
+            f'line-height:1.6;margin-top:8px;margin-bottom:16px">&#8220;{html.escape(t["anchor"])}&#8221;</div>'
         )
 
         # Assets table
@@ -220,7 +221,7 @@ with col_detail:
                 f'<div style="display:grid;grid-template-columns:80px 90px 1fr 80px 80px;'
                 f'gap:0;padding:9px 18px;border-top:1px solid var(--rule);'
                 f'font-family:var(--font-mono);font-size:11px;align-items:center">'
-                f'<span style="color:var(--ink);font-weight:600;font-family:var(--font-sans)">{a.ticker}</span>'
+                f'<span style="color:var(--ink);font-weight:600;font-family:var(--font-sans)">{html.escape(a.ticker)}</span>'
                 f'<span style="color:var(--ink-2)">{fmt_brl(a.current_value, compact=True)}</span>'
                 f'<div>{bar_track(peso, 100)}</div>'
                 f'<span style="color:{gl_c2};text-align:right">{a.gain_loss_pct:+.1f}%</span>'

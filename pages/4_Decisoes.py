@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 from datetime import date
 
 import streamlit as st
@@ -183,7 +184,7 @@ with tab_hist:
             thesis_html = (
                 f'<div class="serif" style="font-style:italic;font-size:13px;color:var(--ink-2);'
                 f'line-height:1.5;margin-top:12px;padding-top:12px;border-top:1px solid var(--rule)">'
-                f'&#8220;{dec.thesis}&#8221;</div>'
+                f'&#8220;{html.escape(dec.thesis)}&#8221;</div>'
             ) if dec.thesis else ""
 
             result_html = ""
@@ -192,7 +193,7 @@ with tab_hist:
                     f'<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--rule)">'
                     f'<div class="k-kicker">resultado</div>'
                     f'<div style="font-family:var(--font-sans);font-size:12.5px;color:var(--ink-2);'
-                    f'line-height:1.55;margin-top:6px">{dec.result}</div>'
+                    f'line-height:1.55;margin-top:6px;white-space:pre-wrap">{html.escape(dec.result)}</div>'
                     f'</div>'
                 )
 

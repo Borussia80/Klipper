@@ -21,6 +21,8 @@ from core.repositories import (
     InstallmentRepository, TransactionRepository, tx_balance_delta,
 )
 from core.auth import require_auth
+from core.ledger_filters import filter_transactions_by_chip, paginate_transactions, total_pages
+from core.quick_add import parse_quick_add
 from core.styles import (
     bar_track, fmt_brl, inject_css, k_card_with_header,
     section_header, render_navigation, sidebar_engines, sidebar_user, sidebar_ai_qa,
@@ -61,6 +63,89 @@ _PM_LABEL = {
     "DINHEIRO": "dinheiro", "TED": "TED", "BOLETO": "boleto",
     "TRANSFERENCIA": "transfer.",
 }
+
+@st.dialog("⚡ Lançamento Rápido")
+def quick_add_dialog() -> None:
+    """Quick Add — campo único de texto livre com inferência de categoria/pagamento."""
+    st.markdown(
+        '<p style="font-family:var(--font-sans);font-size:13px;color:var(--ink-3);margin-bottom:12px">'
+        'Digite o que gastou — ex: <em>almoço 42</em> ou <em>pix mercado 150</em>'
+        "</p>",
+        unsafe_allow_html=True,
+    )
+
+    raw = st.text_input(
+        "Lançamento",
+        placeholder="almoço 42  ·  pix uber 25  ·  crédito cinema 30",
+        label_visibility="collapsed",
+        key="quick_add_raw",
+    )
+
+    parsed = parse_quick_add(raw) if raw else {}
+
+    # Show inferred values so user can confirm or override
+    if parsed.get("amount") is not None:
+        c1, c2 = st.columns(2)
+        with c1:
+            valor = st.number_input(
+                "Valor (R$)", min_value=0.01, step=0.01, format="%.2f",
+                value=float(parsed["amount"]),
+                key="qa_valor",
+            )
+            categoria = st.selectbox(
+                "Categoria",
+                [c.value for c in Category],
+                index=max(0, [c.value for c in Category].index(parsed["category"]))
+                      if parsed["category"] in [c.value for c in Category] else 0,
+                key="qa_cat",
+            )
+        with c2:
+            pm_list = [p.value for p in PaymentMethod]
+            pm_default = parsed.get("payment_method", "PIX")
+            pm_idx = pm_list.index(pm_default) if pm_default in pm_list else 0
+            pagamento = st.selectbox("Pagamento", pm_list, index=pm_idx, key="qa_pm")
+
+            _conta_opts = ["—"] + list(conta_map.keys())
+            conta_sel = st.selectbox(
+                "Conta", _conta_opts,
+                index=1 if conta_map else 0,
+                key="qa_conta",
+            )
+        notas = st.text_input(
+            "Notas", value=parsed.get("description", ""),
+            key="qa_notas",
+        )
+
+        # PIX shortcut
+        col_pix, col_save = st.columns([1, 2])
+        with col_pix:
+            if st.button("PIX →", use_container_width=True, key="qa_pix_btn"):
+                st.session_state["qa_pm"] = "PIX"
+                st.rerun()
+        with col_save:
+            if st.button("Gravar", type="primary", use_container_width=True, key="qa_save"):
+                try:
+                    new_tx = Transaction(
+                        date=date.today(),
+                        amount=Decimal(str(valor)),
+                        type=TransactionType(parsed.get("type", "GASTO")),
+                        category=Category(categoria),
+                        notes=notas or None,
+                        payment_method=PaymentMethod(pagamento),
+                        account_id=conta_map.get(conta_sel) if conta_sel != "—" else None,
+                        status=TransactionStatus.PAGO,
+                    )
+                    saved = tx_repo.create(new_tx)
+                    if saved.account_id and saved.status == TransactionStatus.PAGO:
+                        delta = tx_balance_delta(float(saved.amount), saved.type)
+                        acc_repo.adjust_balance(saved.account_id, delta)
+                    st.success("Lançado!")
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f"Erro ao gravar: {exc}")
+    else:
+        st.info("Digite valor e descrição para pré-visualizar o lançamento.")
+
 
 @st.dialog("Editar lançamento")
 def _edit_dialog(tx: Transaction) -> None:
@@ -137,8 +222,13 @@ def _edit_dialog(tx: Transaction) -> None:
 
 setup_sidebar()
 
-# ── Header + Filters ──────────────────────────────────────────────────────────
-st.markdown(section_header("Movimento", "ledger financeiro"), unsafe_allow_html=True)
+# ── Header + Quick Add trigger ────────────────────────────────────────────────
+_hdr_col, _qa_col = st.columns([3, 1])
+with _hdr_col:
+    st.markdown(section_header("Movimento", "ledger financeiro"), unsafe_allow_html=True)
+with _qa_col:
+    if st.button("⚡ Lançar rápido", type="primary", use_container_width=True, key="open_quick_add"):
+        quick_add_dialog()
 
 hoje = date.today()
 f1, f2, f3 = st.columns([1, 1, 2])
@@ -429,26 +519,74 @@ def _build_feed_html(txs: list) -> str:
 
     return f'<div class="k-feed">{"".join(rows_html)}</div>'
 
-def _render_tab(txs: list) -> None:
-    if not txs:
+_CHIP_OPTIONS = ["Todos", "PIX", "Cartão", "Parcelas", "Dinheiro", "TED"]
+_PAGE_SIZE = 30
+
+
+def _render_tab(txs: list, key_prefix: str = "tab") -> None:
+    # ── Filter chips ───────────────────────────────────────────────────────────
+    chip_key  = f"_chip_{key_prefix}"
+    page_key  = f"_page_{key_prefix}"
+    chip_sel  = st.radio(
+        "Filtrar",
+        _CHIP_OPTIONS,
+        horizontal=True,
+        label_visibility="collapsed",
+        key=chip_key,
+    )
+    if st.session_state.get(f"_prev_chip_{key_prefix}") != chip_sel:
+        st.session_state[page_key] = 1
+        st.session_state[f"_prev_chip_{key_prefix}"] = chip_sel
+
+    txs_filtered = filter_transactions_by_chip(txs, chip_sel)
+
+    if not txs_filtered:
         st.markdown(
             '<div style="padding:48px 0;text-align:center;color:var(--ink-4)">sem lançamentos</div>',
             unsafe_allow_html=True,
         )
         return
 
+    # ── Pagination ─────────────────────────────────────────────────────────────
+    current_page = st.session_state.get(page_key, 1)
+    n_pages      = total_pages(len(txs_filtered), _PAGE_SIZE)
+    txs_page     = paginate_transactions(txs_filtered, current_page, _PAGE_SIZE)
+
     col_feed, col_right = st.columns([1.7, 1], gap="large")
 
     with col_feed:
-        ledger_html = _build_feed_html(txs)
+        ledger_html = _build_feed_html(txs_page)
         st.markdown(
-            k_card_with_header("Ledger", ledger_html, f"{len(txs)} lançamentos"),
+            k_card_with_header(
+                "Ledger", ledger_html,
+                f"{len(txs_filtered)} lançamentos · pág. {current_page}/{n_pages}",
+            ),
             unsafe_allow_html=True,
         )
+
+        if n_pages > 1:
+            _pc1, _pc2, _pc3 = st.columns([1, 2, 1])
+            with _pc1:
+                if st.button("← Ant.", disabled=current_page <= 1, key=f"_prev_{key_prefix}",
+                             use_container_width=True):
+                    st.session_state[page_key] = current_page - 1
+                    st.rerun()
+            with _pc2:
+                st.markdown(
+                    f'<div style="text-align:center;font-family:var(--font-sans);'
+                    f'font-size:12px;color:var(--ink-3);padding:6px 0">'
+                    f'{current_page} / {n_pages}</div>',
+                    unsafe_allow_html=True,
+                )
+            with _pc3:
+                if st.button("Próx. →", disabled=current_page >= n_pages, key=f"_next_{key_prefix}",
+                             use_container_width=True):
+                    st.session_state[page_key] = current_page + 1
+                    st.rerun()
         with st.expander("Editar · Excluir"):
             opts = {
                 f"{t.date.strftime('%d/%m')} · {t.category.value} · {fmt_brl(t.amount)}": t
-                for t in sorted(txs, key=lambda x: x.date, reverse=True)
+                for t in sorted(txs_filtered, key=lambda x: x.date, reverse=True)
             }
             sel_key = st.selectbox(
                 "Selecionar lançamento",
@@ -488,7 +626,7 @@ def _render_tab(txs: list) -> None:
 
     with col_right:
         by_cat: dict[str, Decimal] = defaultdict(lambda: Decimal(0))
-        for t in txs:
+        for t in txs_filtered:
             if t.type == TransactionType.GASTO:
                 by_cat[t.category.value] += t.amount
 
@@ -511,7 +649,7 @@ def _render_tab(txs: list) -> None:
             )
 
         by_pm: dict[str, Decimal] = defaultdict(lambda: Decimal(0))
-        for t in txs:
+        for t in txs_filtered:
             by_pm[t.payment_method.value] += t.amount
 
         if by_pm:
@@ -538,7 +676,7 @@ def _render_tab(txs: list) -> None:
                 "Valor": t.amount, "Pagamento": t.payment_method.value,
                 "Status": t.status.value, "Notas": t.notes,
             }
-            for t in txs
+            for t in txs_filtered
         ]
         csv = pd.DataFrame(rows_csv).to_csv(index=False).encode("utf-8")
         st.download_button(
@@ -547,19 +685,19 @@ def _render_tab(txs: list) -> None:
         )
 
 with tab_tudo:
-    _render_tab(txs_all)
+    _render_tab(txs_all, key_prefix="tudo")
 
 with tab_in:
-    _render_tab([t for t in txs_all if t.type == TransactionType.GANHO])
+    _render_tab([t for t in txs_all if t.type == TransactionType.GANHO], key_prefix="in")
 
 with tab_out:
     _render_tab([
         t for t in txs_all
         if t.type == TransactionType.GASTO and t.category != Category.INVESTIMENTO
-    ])
+    ], key_prefix="out")
 
 with tab_inv:
-    _render_tab([t for t in txs_all if t.category == Category.INVESTIMENTO])
+    _render_tab([t for t in txs_all if t.category == Category.INVESTIMENTO], key_prefix="inv")
 
 with tab_auto:
-    _render_tab([t for t in txs_all if t.installment_id is not None])
+    _render_tab([t for t in txs_all if t.installment_id is not None], key_prefix="auto")

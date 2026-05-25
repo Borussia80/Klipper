@@ -8,11 +8,13 @@ from datetime import date
 from decimal import Decimal
 
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 from core.analytics import (
     calcular_saldo_mensal, calcular_top_categorias,
     preparar_dados_donut_categorias, preparar_dados_barras_mensais,
+    preparar_sparkline_score_historico,
 )
 from core.behavioral import calcular_score_financeiro, detectar_alertas_padrao
 from core.installment_engine import calcular_comprometimento_mensal
@@ -31,7 +33,7 @@ from core.styles import (
     stat_card, feed_row, mood_chip, chip, bar_track, section_header,
     render_navigation, sidebar_engines, sidebar_user,
     tx_row, hero_section, CAT_COLORS, load_page_icon, sidebar_ai_qa,
-    setup_sidebar,
+    setup_sidebar, k_radar_notification_card, k_premium_empty_state,
 )
 from models.transaction import TransactionType
 
@@ -185,6 +187,18 @@ st.markdown(f"""<div class="k-operating-hero" style="margin:4px 0 16px">
 </div>
   </div>
 </div>""", unsafe_allow_html=True)
+
+# ── Radar Strip ───────────────────────────────────────────────────────────────
+_radar_alerts = [
+    {
+        "category": a.category,
+        "current":  float(a.gasto_atual),
+        "baseline": float(a.media_3m),
+        "ratio":    a.ratio,
+    }
+    for a in alertas_pad
+]
+st.markdown(k_radar_notification_card(_radar_alerts), unsafe_allow_html=True)
 
 # ── Spending Plan hero (Simplifi-style) ───────────────────────────────────────
 _dias_no_mes    = calendar.monthrange(ano, mes)[1]
@@ -447,6 +461,41 @@ with _chart_col_right:
             unsafe_allow_html=True,
         )
 
+# ── Sparkline score histórico ──────────────────────────────────────────────────
+_spark_regs = list(_historico_6m) + [(ano, mes, saldo.total_ganhos, saldo.total_gastos)]
+_spark_data  = preparar_sparkline_score_historico(_spark_regs)
+if _spark_data:
+    _fig_spark = go.Figure(go.Scatter(
+        x=[d["mes"] for d in _spark_data],
+        y=[d["score"] for d in _spark_data],
+        mode="lines+markers",
+        line=dict(color="#D9A74A", width=2),
+        marker=dict(color="#D9A74A", size=5),
+        fill="tozeroy",
+        fillcolor="rgba(217,167,74,0.08)",
+        hovertemplate="%{x}<br>Score: %{y}<extra></extra>",
+    ))
+    _fig_spark.update_layout(
+        height=110,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=16, b=0),
+        title=dict(
+            text="Score financeiro — 7 meses",
+            font=dict(size=11, color="#7B8B96"),
+            x=0,
+        ),
+        xaxis=dict(showgrid=False, tickfont=dict(color="#7B8B96", size=9)),
+        yaxis=dict(
+            range=[0, 105],
+            showgrid=True, gridcolor="rgba(255,255,255,0.04)",
+            tickfont=dict(color="#7B8B96", size=9),
+            zeroline=False,
+        ),
+        font=dict(color="#A89F8C", size=10, family="ui-monospace,monospace"),
+    )
+    st.plotly_chart(_fig_spark, use_container_width=True, config={"displayModeBar": False})
+
 # ── Main grid — feed + rail ────────────────────────────────────────────────────
 st.markdown(section_header("Feed financeiro", "ao vivo · todos os fluxos"), unsafe_allow_html=True)
 
@@ -454,8 +503,14 @@ col_feed, col_rail = st.columns([1.7, 1])
 
 with col_feed:
     if not transacoes:
-        st.markdown('<div class="k-card"><div class="k-card-b"><span class="muted">Nenhuma transação no período.</span></div></div>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            k_premium_empty_state(
+                "⊕",
+                "Sem transações no período",
+                "Lance a primeira transação usando ⚡ Lançar rápido na página Movimento.",
+            ),
+            unsafe_allow_html=True,
+        )
     else:
         by_date: dict = defaultdict(list)
         for t in transacoes[:40]:

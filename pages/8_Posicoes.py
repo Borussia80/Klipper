@@ -14,7 +14,7 @@ from core.auth import require_auth
 from core.styles import (
     bar_track, fmt_brl, inject_css, k_card_with_header, section_header,
     sidebar_engines, sidebar_user, sidebar_ai_qa, render_navigation, stat_card, chip, load_page_icon,
-    setup_sidebar,
+    setup_sidebar, k_premium_empty_state,
 )
 
 st.set_page_config(page_title="Posições · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
@@ -56,8 +56,11 @@ st.markdown(section_header("Posições", "tabela de mercado · portfólio comple
 
 if not portfolio:
     st.markdown(
-        '<div style="padding:64px 0;text-align:center;color:var(--ink-4)">'
-        'portfólio vazio · adicione ativos em Patrimônio</div>',
+        k_premium_empty_state(
+            "◈",
+            "Portfólio vazio",
+            "Adicione ativos na página Patrimônio para visualizar posições ao vivo.",
+        ),
         unsafe_allow_html=True,
     )
     st.stop()
