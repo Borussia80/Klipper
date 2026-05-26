@@ -204,14 +204,24 @@ with tab_orc:
             for s in status_list:
                 tone  = "neg" if s.status == "ESTOURO" else "warn" if s.status == "ALERTA" else "pos"
                 sc    = "var(--rust)" if s.status == "ESTOURO" else "var(--lantern)" if s.status == "ALERTA" else "var(--moss)"
-                lbl   = s.status
+                # rgba() para badge com opacidade — CSS variables não aceitam sufixo hex
+                badge_bg = (
+                    "rgba(248,113,113,0.1)" if s.status == "ESTOURO"
+                    else "rgba(245,158,11,0.1)" if s.status == "ALERTA"
+                    else "rgba(52,211,153,0.1)"
+                )
+                badge_bd = (
+                    "rgba(248,113,113,0.27)" if s.status == "ESTOURO"
+                    else "rgba(245,158,11,0.27)" if s.status == "ALERTA"
+                    else "rgba(52,211,153,0.27)"
+                )
                 st.markdown(f"""<div style="margin-bottom:4px">
-  <div style="display:flex;justify-content:space-between;font-family:var(--font-sans);font-size:13px;margin-bottom:6px">
-<span style="color:var(--ink);font-weight:500">{s.category}</span>
-<span style="display:flex;align-items:center;gap:8px">
-  <span class="mono" style="font-size:12px;color:var(--ink-2)">{fmt_brl(s.gasto, compact=True)} / {fmt_brl(s.limite, compact=True)}</span>
-  <span style="font-family:var(--font-sans);font-size:10px;color:{sc};font-weight:600;letter-spacing:0.08em">{lbl}</span>
-</span>
+  <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--font-sans);font-size:13px;margin-bottom:6px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="color:var(--ink);font-weight:500">{s.category}</span>
+      <span style="font-size:9px;font-weight:700;letter-spacing:0.08em;padding:2px 7px;border-radius:5px;background:{badge_bg};border:1px solid {badge_bd};color:{sc}">{s.status}</span>
+    </div>
+    <span class="mono" style="font-size:12px;color:var(--ink-2)">{fmt_brl(s.gasto, compact=True)} / {fmt_brl(s.limite, compact=True)}</span>
   </div>
   {bar_track(s.gasto, s.limite, tone)}
   <div style="text-align:right;margin-top:2px;font-family:var(--font-mono);font-size:10px;color:{sc}">{s.pct:.1f}%</div>
@@ -245,6 +255,12 @@ with tab_orc:
 {bar_track(total_gasto_bud, total_limite_bud, tone_overall)}
 """
             st.markdown(k_card_with_header("Resumo", summary_html), unsafe_allow_html=True)
+            st.markdown(
+                '<div style="font-family:var(--font-sans);font-size:10px;letter-spacing:0.12em;'
+                'text-transform:uppercase;color:var(--ink-4);font-weight:600;margin:16px 0 4px">Score financeiro</div>',
+                unsafe_allow_html=True,
+            )
+            score_circle(score.total)
     else:
         st.markdown(
             '<div style="padding:48px 0;text-align:center;color:var(--ink-4)">'
@@ -429,24 +445,41 @@ with tab_alertas:
                 unsafe_allow_html=True,
             )
         else:
-            alert_rows = []
+            alert_cards = []
             for a in alertas:
-                alert_rows.append(f"""<div style="padding:14px 0;border-top:1px solid var(--rule)">
-  <div style="display:flex;justify-content:space-between;align-items:baseline;font-family:var(--font-sans)">
-<div>
-  <div style="font-size:14px;color:var(--ink);font-weight:500">{a.category}</div>
-  <div style="font-size:11px;color:var(--ink-3);margin-top:3px">acima da média em {a.ratio:.1f}×</div>
-</div>
-<div style="text-align:right">
-  <div class="mono" style="font-size:18px;color:var(--rust);font-variant-numeric:tabular-nums">{fmt_brl(a.gasto_atual, compact=True)}</div>
-  <div class="mono muted" style="font-size:10px">média 3m: {fmt_brl(a.media_3m, compact=True)}</div>
-</div>
+                tone_a   = "neg" if a.ratio > 1.7 else "warn"
+                sc_a     = "var(--rust)" if tone_a == "neg" else "var(--lantern)"
+                icon_a   = "⚠"
+                severity = "CRÍTICO" if tone_a == "neg" else "ATENÇÃO"
+                icon_bg  = "rgba(248,113,113,0.1)" if tone_a == "neg" else "rgba(245,158,11,0.1)"
+                icon_bd  = "rgba(248,113,113,0.27)" if tone_a == "neg" else "rgba(245,158,11,0.27)"
+                card_bd  = "rgba(248,113,113,0.19)" if tone_a == "neg" else "rgba(245,158,11,0.19)"
+                desc_txt = (
+                    f"{fmt_brl(float(a.gasto_atual))} vs média de {fmt_brl(float(a.media_3m))} "
+                    f"nos últimos 3 meses (+{(a.ratio - 1)*100:.0f}%)"
+                )
+                alert_cards.append(f"""<div style="background:var(--card);border:1px solid {card_bd};
+  border-radius:16px;padding:16px 20px;display:flex;align-items:flex-start;gap:14px;margin-bottom:10px">
+  <div style="width:36px;height:36px;border-radius:10px;flex-shrink:0;background:{icon_bg};
+    border:1px solid {icon_bd};display:flex;align-items:center;justify-content:center;font-size:16px">
+    {icon_a}
   </div>
-  {bar_track(a.gasto_atual, a.gasto_atual, "neg")}
+  <div style="flex:1;min-width:0">
+    <div style="font-family:var(--font-sans);font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">{a.category}</div>
+    <div style="font-family:var(--font-sans);font-size:12px;color:var(--ink-3);line-height:1.5">{desc_txt}</div>
+  </div>
+  <div style="flex-shrink:0">
+    <span style="font-size:9px;font-weight:700;letter-spacing:0.08em;padding:3px 8px;border-radius:5px;
+      background:{icon_bg};border:1px solid {icon_bd};color:{sc_a}">{severity}</span>
+  </div>
 </div>""")
+            st.markdown("".join(alert_cards), unsafe_allow_html=True)
             st.markdown(
-                k_card_with_header("Alertas de gasto", "".join(alert_rows),
-                                   f"{len(alertas)} categoria{'s' if len(alertas) > 1 else ''} acima da média"),
+                '<div style="padding:16px 20px;background:rgba(255,255,255,0.02);'
+                'border:1px dashed var(--rule);border-radius:16px;'
+                'font-family:var(--font-sans);font-size:12px;color:var(--ink-4);text-align:center">'
+                'Alertas são gerados automaticamente comparando os gastos do mês atual com a média dos 3 meses anteriores.'
+                '</div>',
                 unsafe_allow_html=True,
             )
 
