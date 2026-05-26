@@ -1640,6 +1640,76 @@ section[data-testid="stSidebarCollapsedControl"] {
   h2 { font-size: 18px !important; }
 }
 
+/* ── Mobile: KPI grid 4-col → 2×2 ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+
+  /* KPI strip: 4 colunas viram 2×2 */
+  div[data-testid="stHorizontalBlock"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: calc(50% - 4px) !important;
+    max-width: calc(50% - 4px) !important;
+  }
+
+  /* Hero: fonte menor no mobile */
+  .k-hero-balance {
+    font-size: 28px !important;
+  }
+
+  /* Charts: full width, altura reduzida */
+  .js-plotly-plot {
+    height: 220px !important;
+  }
+
+  /* Tabelas de posições: scroll horizontal */
+  .inv-table-row,
+  .inv-table-header {
+    grid-template-columns: 70px 1fr 70px 60px !important;
+    font-size: 11px !important;
+  }
+  /* Ocultar colunas menos críticas no mobile */
+  .inv-table-row > span:nth-child(4),
+  .inv-table-row > span:nth-child(6),
+  .inv-table-header > span:nth-child(4),
+  .inv-table-header > span:nth-child(6) {
+    display: none !important;
+  }
+
+  /* Quick actions: wrap */
+  .k-quick-actions {
+    flex-wrap: wrap !important;
+  }
+  .k-quick-actions a > div {
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Modais: full width no mobile */
+  div[data-testid="stDialog"] > div {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 8px !important;
+  }
+
+  /* Tabs: fonte menor */
+  button[data-testid="stTab"] {
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+  }
+}
+
+/* ── Mobile: 3 colunas → 1 coluna (M3 controls) ──────────────────────────── */
+@media (max-width: 480px) {
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
 </style>
 """
 

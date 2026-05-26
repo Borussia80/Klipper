@@ -394,6 +394,36 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# ── Mini area chart — gastos acumulados do mês ───────────────────────────────
+_diario_acum_mini = preparar_gastos_diarios(txs_all, ano, mes, cumulative=True)
+if _diario_acum_mini:
+    _fig_mini = go.Figure(go.Scatter(
+        x=[r["date"] for r in _diario_acum_mini],
+        y=[r["Gastos"] for r in _diario_acum_mini],
+        fill="tozeroy",
+        mode="lines",
+        line=dict(color="#3B82F6", width=1.5),
+        fillcolor="rgba(59,130,246,0.18)",
+        hovertemplate="Acum.: R$ %{y:,.2f}<extra></extra>",
+    ))
+    _fig_mini.update_layout(
+        height=80,
+        margin=dict(l=0, r=0, t=0, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis=dict(showgrid=False, tickfont=dict(family="Geist Mono, monospace", size=9, color="#475569"), axisline=False, tickline=False),
+        yaxis=dict(showgrid=False, showticklabels=False),
+        showlegend=False,
+        hovermode="x unified",
+    )
+    st.markdown(
+        '<div style="font-family:var(--font-sans);font-size:10px;letter-spacing:0.12em;'
+        'text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:2px">'
+        f'Gastos diários · {_MESES_PT[mes]}</div>',
+        unsafe_allow_html=True,
+    )
+    st.plotly_chart(_fig_mini, use_container_width=True)
+
 # ── Charts de análise ─────────────────────────────────────────────────────────
 _tab_diario, _tab_comp = st.tabs(["📅 Gastos diários", "📊 Comparativo por categoria"])
 
@@ -484,7 +514,7 @@ tab_tudo, tab_in, tab_out, tab_inv, tab_auto = st.tabs(
 def _build_feed_html(txs: list) -> str:
     by_day: dict[str, list] = defaultdict(list)
     for t in sorted(txs, key=lambda x: x.date, reverse=True):
-        by_day[t.date.strftime("%d %b")].append(t)
+        by_day[t.date.strftime("%d/%b")].append(t)
 
     rows_html = []
     for day, day_txs in by_day.items():
@@ -494,10 +524,7 @@ def _build_feed_html(txs: list) -> str:
         )
         sign      = "+" if day_total >= 0 else ""
         day_color = "var(--moss)" if day_total >= 0 else "var(--rust)"
-        total_span = (
-            f'<span class="mono" style="font-size:10px;color:{day_color}">'
-            f'{sign}{fmt_brl(abs(day_total), compact=True)}</span>'
-        )
+
         feed_rows = []
         for t in day_txs:
             is_income = t.type == TransactionType.GANHO
@@ -512,33 +539,61 @@ def _build_feed_html(txs: list) -> str:
             value     = f'{prefix}{fmt_brl(t.amount, compact=True)}'
             feed_rows.append(tx_row_simplifi(cat, title, meta, value, val_cls))
 
-        rows_html.append(f"""<div class="k-feed-day">
-  <div class="k-feed-day-h">{day}<span class="sub">{total_span} · {len(day_txs)} lanc.</span></div>
-  <div class="k-feed-list">{"".join(feed_rows)}</div>
-</div>""")
+        rows_html.append(
+            f'<div style="margin-bottom:12px">'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;'
+            f'padding:6px 4px;margin-bottom:4px">'
+            f'<div style="font-family:var(--font-sans);font-size:11px;color:var(--ink-4);font-weight:500">{day}</div>'
+            f'<div style="display:flex;align-items:center;gap:6px">'
+            f'<span class="mono" style="font-size:11px;color:{day_color}">{sign}{fmt_brl(abs(day_total), compact=True)}</span>'
+            f'<span style="font-family:var(--font-sans);font-size:10px;color:var(--ink-4)">{len(day_txs)} lanc.</span>'
+            f'</div></div>'
+            f'<div style="background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:4px 16px">'
+            f'{"".join(feed_rows)}'
+            f'</div></div>'
+        )
 
-    return f'<div class="k-feed">{"".join(rows_html)}</div>'
+    return "".join(rows_html)
 
 _CHIP_OPTIONS = ["Todos", "PIX", "Cartão", "Parcelas", "Dinheiro", "TED"]
 _PAGE_SIZE = 30
 
 
 def _render_tab(txs: list, key_prefix: str = "tab") -> None:
-    # ── Filter chips ───────────────────────────────────────────────────────────
-    chip_key  = f"_chip_{key_prefix}"
-    page_key  = f"_page_{key_prefix}"
-    chip_sel  = st.radio(
-        "Filtrar",
-        _CHIP_OPTIONS,
-        horizontal=True,
-        label_visibility="collapsed",
-        key=chip_key,
-    )
+    # ── Filter chips + search ──────────────────────────────────────────────────
+    chip_key   = f"_chip_{key_prefix}"
+    page_key   = f"_page_{key_prefix}"
+    search_key = f"_search_{key_prefix}"
+
+    _c_chips, _c_search = st.columns([3, 1])
+    with _c_chips:
+        chip_sel = st.radio(
+            "Filtrar",
+            _CHIP_OPTIONS,
+            horizontal=True,
+            label_visibility="collapsed",
+            key=chip_key,
+        )
+    with _c_search:
+        search_val = st.text_input(
+            "Buscar",
+            placeholder="🔍 Buscar…",
+            label_visibility="collapsed",
+            key=search_key,
+        )
+
     if st.session_state.get(f"_prev_chip_{key_prefix}") != chip_sel:
         st.session_state[page_key] = 1
         st.session_state[f"_prev_chip_{key_prefix}"] = chip_sel
 
     txs_filtered = filter_transactions_by_chip(txs, chip_sel)
+    if search_val:
+        _sv = search_val.lower()
+        txs_filtered = [
+            t for t in txs_filtered
+            if _sv in (t.notes or "").lower()
+            or _sv in t.category.value.lower()
+        ]
 
     if not txs_filtered:
         st.markdown(

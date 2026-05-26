@@ -64,56 +64,83 @@ def _safe_color(color: str, fallback: str = "#4A5568") -> str:
     return color if _HEX_COLOR_RE.match(color or "") else fallback
 
 
+# ── Dialogs ───────────────────────────────────────────────────────────────────
+
+@st.dialog("Novo cartão de crédito", width="large")
+def dialog_novo_cartao() -> None:
+    fc1, fc2 = st.columns(2)
+    with fc1:
+        nome_cart  = st.text_input("Nome do cartão*", placeholder="Ex: Nubank Platinum")
+        banco_cart = st.text_input("Banco emissor", placeholder="Nubank, Itaú…")
+        limite     = st.number_input("Limite total (R$)", min_value=0.0, step=100.0, format="%.2f")
+    with fc2:
+        fecha_dia = st.number_input("Fecha dia", min_value=1, max_value=28, value=1)
+        vence_dia = st.number_input("Vence dia", min_value=1, max_value=28, value=10)
+        cor_cart  = st.color_picker("Cor do cartão", "#1E3A5F")
+    st.divider()
+    col_cancel, col_save = st.columns([1, 2])
+    with col_cancel:
+        if st.button("Cancelar", use_container_width=True):
+            st.rerun()
+    with col_save:
+        if st.button("Criar cartão", type="primary", use_container_width=True):
+            if not nome_cart.strip():
+                st.error("Nome obrigatório.")
+                return
+            try:
+                card_repo.create(CreditCard(
+                    name=nome_cart.strip(), bank=banco_cart.strip() or None,
+                    limit_total=limite, closing_day=int(fecha_dia),
+                    due_day=int(vence_dia), color=cor_cart,
+                ))
+                st.toast(f"Cartão '{nome_cart}' criado ✓", icon="💳")
+                st.rerun()
+            except Exception as e:
+                st.error(str(e))
+
+
+@st.dialog("Nova conta bancária", width="large")
+def dialog_nova_conta() -> None:
+    cc1, cc2 = st.columns(2)
+    with cc1:
+        nome_conta = st.text_input("Nome*", placeholder="Ex: Conta Corrente Itaú")
+        banco_c    = st.text_input("Banco", placeholder="Itaú, BTG, XP…")
+    with cc2:
+        tipo_c    = st.selectbox("Tipo de conta", [t.value for t in AccountType])
+        saldo_ini = st.number_input("Saldo inicial (R$)", min_value=0.0, step=0.01, format="%.2f")
+        cor_conta = st.color_picker("Cor", "#0F766E")
+    st.divider()
+    col_cancel, col_save = st.columns([1, 2])
+    with col_cancel:
+        if st.button("Cancelar", use_container_width=True, key="nc_cancel"):
+            st.rerun()
+    with col_save:
+        if st.button("Criar conta", type="primary", use_container_width=True):
+            if not nome_conta.strip():
+                st.error("Nome obrigatório.")
+                return
+            try:
+                acc_repo.create(BankAccount(
+                    name=nome_conta.strip(), bank=banco_c.strip() or None,
+                    type=AccountType(tipo_c), balance=saldo_ini, color=cor_conta,
+                ))
+                st.toast(f"Conta '{nome_conta}' criada ✓", icon="🏦")
+                st.rerun()
+            except Exception as e:
+                st.error(str(e))
+
+
 # ── Layout ────────────────────────────────────────────────────────────────────
 
 setup_sidebar()
 
-# ── Forms inline as expanders ─────────────────────────────────────────────
-with st.expander("+ Novo cartão"):
-    with st.form("form_cartao"):
-        fc1, fc2 = st.columns(2)
-        with fc1:
-            nome_cart  = st.text_input("Nome*")
-            banco_cart = st.text_input("Banco emissor")
-            limite     = st.number_input("Limite (R$)", min_value=0.0, step=100.0, format="%.2f")
-        with fc2:
-            fecha_dia  = st.number_input("Fecha dia", min_value=1, max_value=31, value=1)
-            vence_dia  = st.number_input("Vence dia", min_value=1, max_value=31, value=10)
-            cor_cart   = st.color_picker("Cor", "#1E3A5F")
-        if st.form_submit_button("Criar cartão", type="primary", use_container_width=True):
-            if nome_cart.strip():
-                try:
-                    card_repo.create(CreditCard(
-                        name=nome_cart, bank=banco_cart, limit_total=limite,
-                        closing_day=int(fecha_dia), due_day=int(vence_dia),
-                        color=cor_cart,
-                    ))
-                    st.success("Cartão criado.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(str(e))
-
-with st.expander("+ Nova conta bancária"):
-    with st.form("form_conta"):
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            nome_conta = st.text_input("Nome*")
-            banco_c    = st.text_input("Banco")
-        with cc2:
-            tipo_c     = st.selectbox("Tipo", [t.value for t in AccountType])
-            saldo_ini  = st.number_input("Saldo inicial (R$)", step=0.01, format="%.2f")
-            cor_conta  = st.color_picker("Cor", "#0F766E")
-        if st.form_submit_button("Criar conta", type="primary", use_container_width=True):
-            if nome_conta.strip():
-                try:
-                    acc_repo.create(BankAccount(
-                        name=nome_conta, bank=banco_c,
-                        type=AccountType(tipo_c), balance=saldo_ini, color=cor_conta,
-                    ))
-                    st.success("Conta criada.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(str(e))
+col_nc, col_nb, _ = st.columns([1, 1, 4])
+with col_nc:
+    if st.button("＋ Novo cartão", use_container_width=True):
+        dialog_novo_cartao()
+with col_nb:
+    if st.button("＋ Nova conta", use_container_width=True):
+        dialog_nova_conta()
 
 # ── Tabs ──────────────────────────────────────────────────────────────────
 tab_cards, tab_parc, tab_contas = st.tabs(["Cartões", "Parcelas", "Contas"])
@@ -150,12 +177,19 @@ with tab_cards:
     else:
         st.markdown(section_header("Carteira", "seus cartões"), unsafe_allow_html=True)
 
-        # Wallet row — all cards as HTML
+        # Wallet row — all cards as HTML with inline limit bar
+        card_fatura = {
+            c.id: c.fatura_atual([t for t in txs_mes if t.card_id == c.id])
+            for c in cartoes
+        }
         card_items = []
         for c in cartoes:
             last4     = c.id[-4:].upper()
             bank_abbr = html.escape((c.bank or "")[:5].upper() or "CARD")
             safe_col  = _safe_color(c.color)
+            fatura_c  = card_fatura.get(c.id, 0)
+            pct_c     = (fatura_c / c.limit_total * 100) if c.limit_total > 0 else 0
+            bar_color = "#F87171" if pct_c > 80 else "#F59E0B" if pct_c > 60 else "rgba(255,255,255,0.7)"
             card_items.append(f"""<div class="k-cardobj" style="
           background: linear-gradient(135deg, {safe_col} 0%, #0a0a0a 100%);
           color: white; border: 1px solid rgba(255,255,255,0.12);
@@ -170,12 +204,24 @@ with tab_cards:
           </div>
           <div class="k-card-chip" style="position:absolute;top:56px;left:22px"></div>
           <div class="k-card-num" style="color:rgba(255,255,255,0.9)">•••• •••• •••• {last4}</div>
-          <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px">
             <div style="font-family:var(--font-sans);font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:0.06em">{html.escape(str(st.session_state.get("user", "Titular")))}</div>
             <div style="text-align:right">
               <div style="font-family:var(--font-sans);font-size:9px;opacity:0.5">VENCE</div>
               <div style="font-family:var(--font-mono);font-size:12px;color:rgba(255,255,255,0.9)">dia {c.due_day}</div>
             </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:5px">
+            <span>Usado: <span style="color:#fff;font-weight:600">{fmt_brl(fatura_c, compact=True)}</span></span>
+            <span>Limite: <span style="color:rgba(255,255,255,0.8)">{fmt_brl(c.limit_total, compact=True)}</span></span>
+          </div>
+          <div style="height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin-bottom:8px">
+            <div style="width:{min(pct_c,100):.0f}%;height:100%;border-radius:2px;background:{bar_color};transition:width .3s"></div>
+          </div>
+          <div style="display:flex;gap:12px;font-family:var(--font-sans);font-size:10px;color:rgba(255,255,255,0.5)">
+            <span>Fecha: dia {c.closing_day}</span>
+            <span>Vence: dia {c.due_day}</span>
+            <span style="color:{'#F87171' if pct_c > 80 else 'rgba(255,255,255,0.5)'};font-weight:{'600' if pct_c > 80 else '400'}">{pct_c:.0f}% usado</span>
           </div>
         </div>""")
 
