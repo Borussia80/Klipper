@@ -112,19 +112,20 @@ Portar de `core/styles.py` com as correções abaixo. Definir em
 ### ✅ Pré-requisito — decisões tomadas (este documento)
 
 ### Fase 0 — Segurança Supabase (RLS + Auth) · 1 sessão
-> Hoje o Streamlit acessa via service key. Browser falando direto com o banco
-> exige RLS. **Bloqueia todas as fases seguintes.**
+> Hoje o Streamlit acessa via anon key (confirmado: role=anon no JWT). Browser
+> falando direto com o banco exige RLS. **Bloqueia todas as fases seguintes.**
 
-- [ ] Auditar schema atual no Supabase: listar tabelas e verificar se existe
-      coluna `user_id` (app é single-user; provavelmente não existe)
-- [ ] Migration: adicionar `user_id uuid references auth.users` onde faltar +
-      backfill com o id do usuário Roberto + `default auth.uid()`
-- [ ] Habilitar RLS em TODAS as tabelas; policies CRUD `user_id = auth.uid()`
-- [ ] Criar usuário no Supabase Auth (email Roberto) e habilitar MFA TOTP
-- [ ] **Verificar que o Streamlit continua funcionando** (service key bypassa RLS
-      — confirmar, não assumir)
-- [ ] Testes: script de verificação que tenta acessar com anon key sem auth
-      e confirma negação
+- [x] Auditar schema: 11 tabelas mapeadas, nenhuma tem `user_id` ainda
+- [x] Migration 005a: `user_id` nullable adicionada a todas as tabelas
+      (`migrations/005a_add_user_id_columns.sql`)
+- [x] Migration 005b: backfill + NOT NULL + policies user-scoped
+      (`migrations/005b_rls_user_policies.sql`) — **aguarda execução manual**
+- [ ] Criar usuário no Supabase Auth (roberto.milet@gmail.com) e habilitar MFA TOTP
+- [ ] **Atualizar SUPABASE_KEY no Streamlit Cloud para service_role key**
+      (SUPABASE_KEY atual é anon — quebraria após 005b sem esta troca)
+- [ ] Executar 005a → 005b no SQL Editor do Supabase
+- [ ] Rodar `python scripts/verify_rls.py` e confirmar ✅
+- [ ] Verificar Streamlit prod intacto após as mudanças
 - **Aceite:** anon key sem sessão = zero linhas; com sessão = dados completos;
   Streamlit prod intacto.
 
@@ -222,16 +223,46 @@ python -m pytest tests/ -q --tb=short   # suite completa (raiz do repo)
 > Atualizar ao final de cada sessão.
 
 **Última atualização:** 2026-06-10
-**Fase atual:** — (roadmap criado, codificação não iniciada)
-**Próxima ação:** Fase 0 — RLS + Supabase Auth
+**Fase atual:** Fase 0 — RLS + Auth (migrations prontas, passos manuais pendentes)
+**Próxima ação:** Executar passos manuais abaixo → rodar verify_rls.py → commitar aceite
 
 **Decisões registradas:**
 - 2026-06-10 · Stack fechado (Next.js + shadcn/ui + Supabase + FastAPI) — ver tabela
 - 2026-06-10 · Gastos neutros / verde entradas / vermelho só alerta
 - 2026-06-10 · Monorepo: `web/` + `api/` neste repositório
 - 2026-06-10 · Serif e cores secundárias do tema náutico não migram
+- 2026-06-10 · **SUPABASE_KEY atual é anon key** — Streamlit Cloud DEVE ser atualizado
+  para service_role key ANTES de 005b ser aplicado, senão o Streamlit perde dados.
+  Arquitetura definitiva: Streamlit/Railway = service_role; PWA browser = anon key.
+
+**Fase 0 — Passos manuais pendentes (executar nesta ordem):**
+
+1. **Supabase Auth Dashboard** → Authentication → Users → Add user  
+   `roberto.milet@gmail.com` + senha forte + "Auto Confirm"  
+   Copiar o UUID gerado (ex: `xxxxxxxx-xxxx-…`)
+
+2. **Supabase Auth Dashboard** → Authentication → Policies → MFA  
+   Habilitar TOTP (ou fazer enrollment pelo próprio app Streamlit após login)
+
+3. **Supabase SQL Editor** → executar `migrations/005a_add_user_id_columns.sql`  
+   *(seguro; não altera policies)*
+
+4. **Streamlit Cloud** → Settings → Secrets → atualizar `SUPABASE_KEY` para a  
+   **service_role key** (Settings → API no painel Supabase)  
+   Confirmar que o Streamlit continua carregando dados.
+
+5. **Supabase SQL Editor** → executar `migrations/005b_rls_user_policies.sql`  
+   *(faz backfill, NOT NULL, troca policies)*
+
+6. **Local** → adicionar `SUPABASE_SERVICE_KEY=<service_role_key>` ao `.env`  
+   e rodar: `python scripts/verify_rls.py`  
+   → Deve imprimir: `✅ PASSOU — anon key bloqueada corretamente`
+
+7. Confirmar que o Streamlit ainda funciona em produção (login + dados visíveis)
+
+**Aceite Fase 0:** verify_rls.py passa + Streamlit prod intacto + MFA TOTP configurado
 
 **Pendências abertas:**
-- Confirmar acesso ao painel Supabase (URL do projeto + service key) na Fase 0
+- ⏳ Passos manuais acima (Roberto executa no painel Supabase + Streamlit Cloud)
 - Gerar ícones PWA (192/512/maskable) a partir do brand existente em
   `design_handoff_klipper/`
