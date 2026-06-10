@@ -20,6 +20,7 @@ Local: `/home/rmilet/Base/01-Projetos/11-Klipper/Klipper`
 | `pages/` ou UI/UX | `CLAUDE-ux.md` |
 | Novo arquivo ou novo teste | `CLAUDE-process.md` |
 | Bug com histórico de mudança | `CLAUDE-log.md` |
+| Migração PWA (`web/` ou `api/`) | `CLAUDE-pwa.md` — roadmap e decisões fechadas |
 
 ---
 
