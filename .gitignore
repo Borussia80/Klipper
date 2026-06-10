@@ -21,6 +21,12 @@ build/
 # Streamlit
 .streamlit/secrets.toml
 
+# Next.js PWA (web/)
+web/.next/
+web/out/
+web/node_modules/
+web/.env.local
+
 # OS
 .DS_Store
 Thumbs.db
