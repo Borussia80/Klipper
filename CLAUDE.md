@@ -1,345 +1,52 @@
-# CLAUDE.md — Klipper Agent Memory
-> Leia este arquivo PRIMEIRO em toda sessão. As seções de processo são obrigações técnicas, não sugestões.
+# CLAUDE.md — Klipper · Contexto de Sessão
+> Leia este arquivo PRIMEIRO. Carregue os complementares conforme a tarefa.
 
 ---
 
-## O QUE É O KLIPPER
+## IDENTIDADE
 
-App pessoal de gestão financeira de Roberto Milet.
-Stack: Python · Streamlit Cloud · Supabase (PostgreSQL) · LiteLLM (multi-provider IA) · NVIDIA NIM.
-
-Nome: "Klipper" — referência aos Clipper ships. Transmite organização, velocidade e modernidade.
+**Klipper** — Wealth Operating System pessoal de Roberto Milet.
+Stack: Python · Streamlit Cloud · Supabase (PostgreSQL) · LiteLLM · NVIDIA NIM
+Prod: https://klipper.streamlit.app | Repo: https://github.com/Borussia80/Klipper
+Local: `/home/rmilet/Base/01-Projetos/11-Klipper/Klipper`
 
 ---
 
-## ARQUITETURA
+## ARQUIVOS COMPLEMENTARES — carregue só o necessário
 
-```
-WikiAgent Financeiro v2.0
-├── M1  Quant Engine       → core/m1_quant.py
-├── M2  Governance         → core/m2_governance.py
-├── M3  Context Layer      → core/m3_context.py
-├── M4  AI Consilium       → pages/5_AI_Consilium.py (LiteLLM multi-provider)
-├── Anti-BS Engine         → core/anti_bs.py
-├── Fragility Score        → core/fragility.py
-├── Kira · IA Financeira   → core/financial_ai.py  (NVIDIA NIM)
-└── Market Data            → core/market_data.py   (B3 · Tesouro · PTAX · câmbio)
-```
+| Se a tarefa envolve… | Carregue |
+|---|---|
+| `core/` ou `models/` | `CLAUDE-arch.md` |
+| `pages/` ou UI/UX | `CLAUDE-ux.md` |
+| Novo arquivo ou novo teste | `CLAUDE-process.md` |
+| Bug com histórico de mudança | `CLAUDE-log.md` |
 
-## ESTRUTURA DO REPO
+---
 
-```
-app.py                     ← entrada Streamlit
-core/                      ← engines WikiAgent + utilitários
-  market_data.py           ← cotações B3, Tesouro, câmbio (yfinance + BCB)
-  market_cache.py          ← Redis (TTL) + fallback in-memory (fakeredis)
-  circuit_breaker.py       ← CLOSED/OPEN/HALF_OPEN para APIs instáveis
-  financial_ai.py          ← inteligência financeira NVIDIA NIM (Kira)
-models/                    ← Pydantic (Transaction, Investment, BankAccount…)
-pages/                     ← páginas Streamlit (1_Dashboard … 11_Extratos)
-migrations/                ← SQL Supabase
-tests/                     ← pytest ≥ 269 testes, cobertura ≥ 80%
-bot/                       ← Telegram Bot (Fase 6 — pendente)
-```
+## ESCOPO PADRÃO — restrições de leitura
 
-## PROVEDORES IA (M4)
+- **NÃO** leia `tests/` a menos que solicitado explicitamente.
+- **NÃO** leia `migrations/` a menos que a tarefa seja de schema.
+- **NÃO** toque em `bot/` — Fase 6, pendente, fora de escopo.
+- Para entender um padrão existente: leia **um** arquivo de referência, não o diretório inteiro.
+- Referência de qualidade para charts Plotly: `pages/7_Orcamento.py` (tem gauge + line funcionando).
+- Referência de qualidade para testes: `tests/test_dashboard_charts.py` (18 testes TDD recentes).
 
-Ordem de preferência auto-routing:
-1. Claude (Anthropic) — análise complexa
-2. Gemini (Google) — contexto mercado
-3. GPT-4o (OpenAI) — segunda opinião
-4. Qwen / Kimi — custo reduzido
-5. NVIDIA NIM (`meta/llama-3.3-70b-instruct`) — Kira, inteligência financeira pessoal
+---
 
-Configurar chaves em `.env`:
-```
-ANTHROPIC_API_KEY=
-GOOGLE_API_KEY=
-OPENAI_API_KEY=
-DASHSCOPE_API_KEY=
-MOONSHOT_API_KEY=
-NVIDIA_API_KEY=
-REDIS_URL=          # opcional; sem ela usa fakeredis in-memory
-```
-
-## BANCO DE DADOS
-
-- Supabase PostgreSQL · URL: https://obmudpulqzhwtcniyzcj.supabase.co
-- Executar migrations em ordem: `001_initial_schema.sql` → `002_v2_schema.sql`
-
-## PRODUÇÃO
-
-URL: https://klipper.streamlit.app/
-GitHub: https://github.com/Borussia80/Klipper
-
-## COMO EXECUTAR (local)
+## EXECUÇÃO LOCAL
 
 ```bash
-cd /home/rmilet/Trabalho/Projetos/Klipper
+cd /home/rmilet/Base/01-Projetos/11-Klipper/Klipper
 export PATH="$HOME/.local/bin:$PATH"
 streamlit run app.py
-```
-
-## COMO RODAR OS TESTES
-
-```bash
-python -m pytest tests/ -v            # suite completa
-python -m pytest tests/ -q --tb=short # saída compacta
+python -m pytest tests/ -q --tb=short   # suite rápida
+python -m pytest tests/ -v               # saída completa
 ```
 
 ---
 
-## PROCESSO DE DESENVOLVIMENTO — OBRIGAÇÕES TÉCNICAS
+## REGRA DE OURO DO AGENTE
 
-Esta seção descreve o único processo aceito neste repositório. Não são sugestões.
-
-### TDD — Test-Driven Development
-
-TDD não é filosofia de projeto. É a definição operacional de "código pronto".
-
-**O ciclo obrigatório:**
-
-```
-① Red   — escreva o teste que descreve o comportamento. Ele deve falhar.
-② Green — escreva o mínimo de código para o teste passar. Exatamente o mínimo.
-③ Refactor — melhore o design. Nenhum teste pode quebrar.
-```
-
-Regras derivadas:
-- Código sem teste correspondente não é aceito em nenhuma função pública.
-- O teste é escrito **antes** do código que ele valida. Sempre.
-- Um teste escrito após o código não é TDD; é auditoria post-mortem e não conta.
-- Se não existe teste para um bug, o primeiro passo é escrever o teste que reproduz o bug — só então corrigi-lo.
-
----
-
-### F.I.R.S.T. — Robert C. Martin
-
-Todo teste escrito neste projeto satisfaz as cinco propriedades. Violações são corrigidas antes de qualquer outra coisa.
-
-**F — Fast**
-A suite completa executa em menos de 10 segundos. Testes que dependem de I/O de rede real (yfinance, BCB, Supabase) são sempre mockados. Testes de integração contra infraestrutura real são marcados `@pytest.mark.slow` e não bloqueiam o ciclo local.
-
-**I — Independent**
-Nenhum teste depende de estado deixado por outro. A ordem de execução do pytest não pode alterar o resultado de nenhum teste. Fixtures `autouse` isolam `st.session_state`, cache Redis (`fakeredis` dedicado por fixture), circuit breakers (`cb.reset()` no setup) e repositórios (dados sintéticos, nunca banco real).
-
-**R — Repeatable**
-O mesmo resultado em qualquer máquina, em qualquer momento do dia, sem acesso à internet. Datas relativas (`date.today()`) em testes são substituídas por datas absolutas futuras (ex.: `date(2030, 1, 1)`). APIs externas são sempre substituídas por `unittest.mock.patch` ou `MagicMock`.
-
-**S — Self-Validating**
-O teste passa ou falha — sem inspeção manual de stdout, log ou banco de dados. `assert` com mensagem clara é obrigatório. Um teste que "precisa ser lido para saber se passou" é reescrito. `print()` dentro de teste é proibido.
-
-**T — Timely**
-O teste é escrito antes do código de produção. Isso não é opcional — é o que separa TDD de "escrever testes depois". O timing é a propriedade mais frequentemente violada e a mais importante de preservar.
-
----
-
-### Single Responsibility Principle (SRP)
-
-Cada módulo, classe e função tem **exatamente um motivo para mudar**. Quando um módulo acumula uma segunda responsabilidade, ele é dividido imediatamente — não na próxima sprint, não "quando houver tempo".
-
-**Como aplicar a heurística:**
-- Se o nome do módulo contém "e" ou "ou" (`processa_e_salva`, `valida_ou_formata`), ele tem responsabilidade dupla.
-- Se uma função ultrapassa ~25 linhas, questione se ela pode ser dividida. Acima de 40 linhas, divida.
-- Se adicionar uma feature exige modificar uma classe que "não devia precisar mudar", a responsabilidade está errada.
-
-**Exemplos concretos já aplicados:**
-
-| Módulo | Responsabilidade única |
-|--------|------------------------|
-| `core/market_cache.py` | Persistência e TTL de cotações. Não conhece tickers nem regras de negócio. |
-| `core/circuit_breaker.py` | Máquina de estados CLOSED/OPEN/HALF_OPEN. Não conhece quais APIs protege. |
-| `core/market_data.py` | Orquestra fontes e cache. Não implementa protocolo HTTP nem lógica de TTL. |
-| `core/financial_ai.py` | Constrói contexto financeiro e delega ao LLM. Não conhece Streamlit. |
-| `core/m2_governance.py` | Verifica limites M2. Não calcula scores M1 nem acessa banco. |
-
----
-
-### Práticas XP
-
-#### Pair Programming
-Toda sessão de desenvolvimento com o agente Claude Code é pair programming assistido por IA. O humano (Roberto) define **o quê** e **por quê**; o agente executa, questiona e propõe. O humano revisa cada diff antes de aceitar. O agente não faz commit sem aprovação explícita.
-
-#### Integração Contínua (CI)
-GitHub Actions executa em todo push para qualquer branch:
-```
-Ruff (lint) → mypy (tipos) → pytest (testes) → cobertura ≥ 80%
-```
-Nenhum merge acontece com CI vermelho. "Vou corrigir depois do merge" não é uma frase que existe neste repositório.
-
-#### Test-First (Testes antes do código)
-A sequência é invariável e não admite exceção:
-
-1. Entender o requisito com precisão suficiente para descrever o comportamento esperado
-2. Escrever o teste que falha (Red)
-3. Escrever o código mínimo (Green)
-4. Refatorar (Refactor)
-5. Repetir
-
-Features sem teste de aceitação correspondente não são iniciadas.
-
-#### Refactoring contínuo
-Refatoração não é evento separado com data marcada. Acontece no passo **Refactor** de cada ciclo TDD. A regra da escotagem: o código sai mais limpo do que entrou — dentro do escopo da mudança em curso. Fora do escopo, abre-se uma issue separada.
-
-Sinais que disparam refactoring imediato:
-- Duplicação de lógica (violação DRY)
-- Função acima de ~25 linhas
-- Classe com mais de uma responsabilidade (violação SRP)
-- Teste que depende de outro teste (violação F.I.R.S.T.-I)
-- Nome que precisa de comentário para ser entendido
-
-#### Feedback curto
-O tempo entre "escrever código" e "saber se funciona" é minimizado em todas as camadas:
-
-| Camada | Meta |
-|--------|------|
-| Suite local (pytest) | < 10 s |
-| CI completo (Actions) | < 3 min |
-| Review de PR | mesmo dia útil |
-| Deploy em produção | automático após merge em `main` (Streamlit Cloud) |
-
-Qualquer aumento nessas janelas é tratado como defeito de processo, não como aceitável.
-
----
-
-## REGRAS DO AGENTE (do KB WikiAgent)
-
-- Matemática ancora. Narrativa sem evidência não altera decisão.
-- Contexto modula risco — nunca compra ativo.
-- Declarar incerteza sempre.
-- Sem verborreia.
-- M2 Beginner Mode: max ativo 10% | max tese 25% | caixa mínimo 20%.
-
----
-
-## VERSIONAMENTO
-
-Esquema X.Y.Z:
-- X = grande mudança arquitetural
-- Y = nova feature ou bug com impacto perceptível
-- Z = correção pequena ou refactoring interno
-
----
-
-## PENDÊNCIAS (Fases futuras)
-
-- [ ] Fase 6: Telegram Bot (`bot/bot.py`) — captura zero-fricção
-- [ ] Adicionar API keys de IA no `.env`
-
----
-
-## ROADMAP UI/UX — Fase 7: Visualização Interativa & Mobile
-
-> Diagnóstico baseado em deep dive com Playwright (27 screenshots, maio/2026) e referência eliftech.com.
-> Princípio central: **"Show rather than explain"** — o Klipper hoje é 100% texto/HTML-CSS, zero charts interativos nas páginas principais.
-
-### Gap map confirmado por inspeção de código
-
-| Página | Plotly importado | Plotly usado | Problema |
-| ------ | ---------------- | ------------ | -------- |
-| `1_Dashboard.py` | ✅ | ❌ zero charts | 100% HTML/CSS, sem nenhum `px.*` ou `go.*` |
-| `2_Transacoes.py` | ❌ | ❌ zero charts | `bar_track()` = barra CSS simples |
-| `3_Investimentos.py` | ✅ `go` importado | ❌ zero charts | nenhum `go.Figure()` chamado |
-| `6_Contas.py` | ✅ `go` importado | a verificar | — |
-| `7_Orcamento.py` | ✅ | ✅ **tem charts** | gauge + line chart (referência de qualidade) |
-
-### Charts a implementar por página
-
-**Dashboard (`1_Dashboard.py`):**
-
-- [ ] Donut de gastos por categoria — mês corrente (Plotly Express `px.pie`)
-- [ ] Barra mensal: últimos 6 meses entradas × saídas (Plotly Express `px.bar`)
-- [ ] Mini sparkline do score financeiro histórico
-
-**Investimentos (`3_Investimentos.py`):**
-
-- [ ] Cotações ao vivo **promovidas** como conteúdo principal da página (sair do expander)
-- [ ] Donut de alocação: FII × Ações × RF × Caixa (Plotly Express `px.pie`)
-- [ ] Line chart: portfólio vs BOVA11/IFIX últimos 30 dias (Plotly Go)
-- [ ] Bubble chart: DY × P/VP × valor da posição — risk/return map
-
-**Transações (`2_Transacoes.py`):**
-
-- [ ] Line chart de gastos diários no mês corrente (substitui barras CSS)
-- [ ] Barra comparativa: este mês vs mês anterior por categoria
-
-**Contas (`6_Contas.py`):**
-
-- [ ] Gauge de uso do limite por cartão (Plotly Indicator)
-- [ ] Barra de comprometimento futuro por mês (parcelas)
-
-### Mobile fix
-
-- [ ] Layout responsivo: `st.columns([1, 4])` em todas as páginas quebra o mobile
-- [ ] Na tela de 390px, Streamlit empilha colunas verticalmente; nav com 14 itens (~840px) preenche o viewport inteiro, conteúdo fica abaixo do fold
-- [ ] Fix: CSS `@media` para ocultar coluna nav em mobile OU migrar para `st.sidebar` nativo
-
-### Referências de design consultadas
-
-- Figma: Finance Management Mobile App UI/UX Kit (Budget Tracker) — padrão mobile: bottom nav, balance hero, cards full-width
-- eliftech.com: Personal Finance Dashboard — chart types: Pie (distribuição), Bar (comparação), Line (performance), Bubble (risco×retorno×tamanho), Treemap (diversificação hierárquica)
-
-### Princípios de design adotados (eliftech)
-
-- Tooltips em hover em todos os charts Plotly
-- Cores consistentes por categoria (usar `CAT_COLORS` existente em `core/styles.py`)
-- Drill-down: clicar categoria no donut → filtrar transações
-- Paleta limitada: não mais de 8 cores simultâneas
-- Sem clutter: só dados relevantes, sem eixos desnecessários
-
-## LOG DE SESSÕES
-
-```
-2026-05-23 FEAT  Sprint 1 — Dashboard charts: donut de gastos por categoria + bar chart mensal.
-                 preparar_dados_donut_categorias + preparar_dados_barras_mensais em core/analytics.py.
-                 18 novos testes TDD (test_dashboard_charts.py). Total: 466 testes.
-                 Plotly dark theme: paper_bgcolor transparent, cores de CAT_COLORS, tooltips.
-                 Bar chart: entradas × saídas últimos meses. Donut: top-8 categorias, hole=0.62.
-2026-05-23 AUDIT Deep dive UI/UX com Playwright (27 screenshots). Gap map documentado:
-                 Plotly importado mas nunca usado em Dashboard, Investimentos, Contas.
-                 Mobile completamente quebrado (nav 840px preenche viewport 390×844).
-                 Dashboard de cotações enterrado 3 níveis dentro do expander.
-                 Referências: Figma Finance Mobile Kit + eliftech.com. Sprints 1-6 planejados.
-2026-05-22 FEAT  Toggle claro/escuro na barra de navegação.
-                 _FORCE_LIGHT_CSS / _FORCE_DARK_CSS sobrescrevem prefers-color-scheme.
-                 Persiste por sessão via st.session_state["klipper_theme"].
-2026-05-22 FEAT  Dashboard ao vivo no modal de Investimentos (tab "◉ Dashboard ao vivo").
-                 Performance strip: portfólio hoje vs BOVA11, IFIX, IVVB11.
-                 Posições ao vivo: preço, var.%, valor atual e G/L por ativo.
-                 Feed de rendimentos: últimos 60 dias (Category.RENDA).
-2026-05-22 FEAT  Parser BTG Pactual: lê prints PNG/JPG do app mobile.
-                 _parse_btg_date_line, _parse_btg_amount_line, parse_btg_statement.
-                 _is_btg_format detecta automaticamente o banco pelo texto OCR.
-                 read_statement_image: OCR de imagem com roteamento Itaú/BTG.
-                 Importar aceita PNG/JPG além de PDF.
-                 23 novos testes TDD. Total: 448 testes.
-2026-05-22 FIX   Cotações movidas para dentro do modal de Investimentos (tabs).
-                 Ticker lookup com pre-fill de Preço atual / DY / P/VP no form.
-2026-05-22 FIX   PDF statement reader: Itaú extrato detectado corretamente.
-                 PyMuPDF get_text("words") + Y-bucket para reconstruir linhas de tabela.
-                 Filtro _SKIP_RE para "SALDO DO DIA" e cabeçalhos.
-                 Default GANHO para valores sem sinal (convenção Itaú: débitos têm "-").
-                 20 novos testes TDD (TestParseItauLine, TestParseAmountAndType, TestParseTransactions).
-2026-05-22 FIX   Balance auto-adjustment: tx_balance_delta + BankAccountRepository.adjust_balance.
-                 Edição/criação/exclusão de transação atualiza saldo da conta automaticamente.
-                 8 novos testes TDD (TestTxBalanceDelta, TestBankAccountAdjustBalance).
-2026-05-22 FEAT  Cotações helpers: fmt_change (core/styles.py), is_fii (core/market_data.py).
-                 16 novos testes TDD.
-2026-05-22 FIX   Homepage: removidos cards decorativos sem função.
-                 Mantidos: hero logo, briefing diário (4 KPIs), WikiAgent engines.
-2026-05-22 FIX   Sidebar navigation: adicionado link "⌂ Klipper" (app.py) como primeiro item.
-                 "Extratos" renomeado para "Importar" (ícone ⬆) — mais descritivo.
-                 render_navigation() protegida com try/except por item.
-2026-05-22 FEAT  Market data: B3, Tesouro Direto, PTAX, câmbio.
-                 Cache Redis + fakeredis. Circuit breaker CLOSED/OPEN/HALF_OPEN.
-                 63 novos testes. Total: 269 testes.
-2026-05-22 FEAT  Kira — IA financeira NVIDIA NIM (financial_ai.py).
-                 Dashboard briefing widget + sidebar Q&A em todas as páginas.
-2026-05-22 FEAT  Simplifi layout: Spending Plan hero, category badges, accounts rail.
-                 TOTP modal synergy fix. XSS + CSS injection hardening.
-2026-05-21 DEPLOY App em produção: https://klipper.streamlit.app/
-2026-05-21 INIT  Projeto criado. Fases 0-5 implementadas.
-                 Stack: Streamlit + Supabase + LiteLLM.
-                 Engines M1/M2/M3/Anti-BS/Fragility implementados.
-                 Migration SQL gerada (pendente execução no Supabase).
-```
+Matemática ancora. Narrativa sem evidência não altera decisão.
+Código sem teste não entra. Não existe "adicionar teste depois".

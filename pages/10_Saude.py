@@ -33,6 +33,54 @@ from models.health import (
     ReimbursementStatus, Specialty,
 )
 
+@st.dialog("Novo profissional de saúde", width="large")
+def _dialog_novo_profissional() -> None:
+    """Cadastra novo profissional de saúde (Pedro · TEA) via modal."""
+    prof_repo_d = HealthProfessionalRepository()
+    pf1, pf2 = st.columns(2)
+    with pf1:
+        nome_p  = st.text_input("Nome completo*", placeholder="Ex: Dra. Ana Souza")
+        espec_p = st.selectbox(
+            "Especialidade*",
+            options=list(SPECIALTY_LABELS.keys()),
+            format_func=lambda k: SPECIALTY_LABELS[k],
+        )
+    with pf2:
+        conselho_p = st.text_input(
+            "N.º conselho", placeholder="CRP 12345 / CREFITO 67890 / CRM…"
+        )
+        telefone_p = st.text_input(
+            "Telefone / WhatsApp (opcional)", placeholder="(11) 99999-9999"
+        )
+    notas_p = st.text_area(
+        "Notas (opcional)",
+        placeholder="Dias de atendimento, valor da sessão, observações…",
+        height=80,
+    )
+    st.divider()
+    col_cancel, col_save = st.columns([1, 2])
+    with col_cancel:
+        if st.button("Cancelar", use_container_width=True):
+            st.rerun()
+    with col_save:
+        if st.button("Cadastrar profissional", type="primary", use_container_width=True):
+            if not nome_p.strip():
+                st.error("Nome obrigatório.")
+                return
+            try:
+                prof_repo_d.create(HealthProfessional(
+                    name=nome_p.strip(),
+                    specialty=Specialty(espec_p),
+                    council_number=conselho_p.strip() or None,
+                    phone=telefone_p.strip() or None,
+                    notes=notas_p.strip() or None,
+                ))
+                st.toast(f"Profissional '{nome_p}' cadastrado ✓", icon="✚")
+                st.rerun()
+            except Exception as e:
+                st.error(str(e))
+
+
 st.set_page_config(page_title="Saúde · Klipper", page_icon=load_page_icon(), layout="wide", initial_sidebar_state="collapsed")
 inject_css()
 require_auth()
@@ -84,30 +132,8 @@ n_sem_solicitacao = len(sessoes_pend)
 
 setup_sidebar()
 
-# ── Novo profissional form inline ─────────────────────────────────────────
-with st.expander("+ Novo profissional"):
-    with st.form("form_prof"):
-        pf1, pf2 = st.columns(2)
-        with pf1:
-            nome_p    = st.text_input("Nome*")
-            espec_p   = st.selectbox("Especialidade*", options=list(SPECIALTY_LABELS.keys()),
-                                     format_func=lambda k: SPECIALTY_LABELS[k])
-        with pf2:
-            conselho_p = st.text_input("N.º conselho (CRP / CREFITO / CRM…)")
-        if st.form_submit_button("Cadastrar", use_container_width=True):
-            if not nome_p:
-                st.error("Nome obrigatório")
-            elif db_ok:
-                try:
-                    prof_repo.create(HealthProfessional(
-                        name=nome_p,
-                        specialty=Specialty(espec_p),
-                        council_number=conselho_p or None,
-                    ))
-                    st.success("Profissional cadastrado.")
-                    st.rerun()
-                except Exception as ex:
-                    st.error(str(ex))
+if st.button("＋ Novo profissional", type="secondary"):
+    _dialog_novo_profissional()
 
 # ── Topbar ─────────────────────────────────────────────────────────────────
 st.markdown("""
