@@ -159,6 +159,60 @@ export interface Database {
         }
         Relationships: []
       }
+      investments: {
+        Row: {
+          id: string
+          ticker: string
+          type: "FII" | "Ação" | "Renda Fixa" | "Caixa"
+          quantity: number
+          avg_price: number
+          current_price: number
+          dy_12m: number
+          pvp: number
+          liquidity_daily: number
+          volatility: number
+          spread_vs_cdi: number
+          sector: string
+          fragility_score: number
+          notes: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          ticker: string
+          type: "FII" | "Ação" | "Renda Fixa" | "Caixa"
+          quantity: number
+          avg_price: number
+          current_price: number
+          dy_12m?: number
+          pvp?: number
+          liquidity_daily?: number
+          volatility?: number
+          spread_vs_cdi?: number
+          sector?: string
+          fragility_score?: number
+          notes?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          ticker?: string
+          type?: "FII" | "Ação" | "Renda Fixa" | "Caixa"
+          quantity?: number
+          avg_price?: number
+          current_price?: number
+          dy_12m?: number
+          pvp?: number
+          liquidity_daily?: number
+          volatility?: number
+          spread_vs_cdi?: number
+          sector?: string
+          fragility_score?: number
+          notes?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       health_professionals: {
         Row: {
           id: string
