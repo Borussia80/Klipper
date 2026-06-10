@@ -1,11 +1,16 @@
 import type { NextConfig } from "next"
+import withSerwistInit from "@serwist/next"
+
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
+})
 
 const nextConfig: NextConfig = {
-  // Serwist (PWA) será adicionado na Fase 1 final
-  // por ora, apenas configurações base
-  experimental: {
-    typedRoutes: true,
-  },
+  typedRoutes: true,
+  // Serwist é incompatível com Turbopack — deixa vazio para usar webpack no build
+  turbopack: {},
 }
 
-export default nextConfig
+export default withSerwist(nextConfig)

@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 
 const PUBLIC_ROUTES = ["/login", "/auth/callback"]
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rotas públicas: deixa passar
