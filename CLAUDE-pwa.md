@@ -141,11 +141,13 @@ Portar de `core/styles.py` com as correções abaixo. Definir em
 - [x] `lib/utils.ts` — `fmtBRL`, `fmtPct`, `fmtDate`, `cn`
 - [x] `lib/supabase.ts` — client com tipos genéricos
 - [x] Vitest + Testing Library configurados (`npm test`)
-- [ ] Auth: páginas login + desafio TOTP (supabase-js `signInWithPassword` +
-      `mfa.challenge/verify`); middleware protegendo rotas
-      **⚠️ BLOQUEIA: aguarda Fase 0 concluída (RLS + usuário confirmado)**
-- [ ] Serwist service worker (precache shell, network-first para dados)
+- [x] Auth: `app/login/page.tsx` — login email+senha + desafio TOTP 2 steps
+- [x] `proxy.ts` (Next.js 16) — protege rotas, redireciona /login se sem sessão
+- [x] Serwist service worker (`app/sw.ts`) — precache shell + network-first
+- [x] `vercel.json` — pronto para `git push` → deploy automático no Vercel
 - [ ] Deploy inicial no Vercel + teste de instalação em 1 desktop + 1 Android
+      **Ação Roberto: criar projeto Vercel vinculando github.com/Borussia80/Klipper,
+      pasta `web/`, e adicionar vars NEXT_PUBLIC_SUPABASE_URL + ANON_KEY**
 - **Aceite:** app instala como PWA no KDE e no Android, login com TOTP funciona,
   shell navega entre rotas vazias.
 
