@@ -2,6 +2,11 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python bot/bot.py"
+# API FastAPI (Fase 3 PWA) — substituiu o bot.py como serviço Railway
+startCommand = "uvicorn api.main:app --host 0.0.0.0 --port $PORT"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5
+
+# Variáveis de ambiente necessárias no Railway:
+# SUPABASE_URL, SUPABASE_KEY (service_role), demais do .env.example
+# VERCEL_URL=klipper.vercel.app  (para CORS)
