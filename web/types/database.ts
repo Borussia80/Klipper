@@ -22,11 +22,37 @@ export interface Database {
           user_id: string
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["transactions"]["Row"], "id" | "created_at"> & {
+        Insert: {
           id?: string
+          date: string
+          amount: number
+          type: "GASTO" | "GANHO"
+          category: string
+          notes?: string
+          payment_method: "PIX" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | "DINHEIRO" | "TED" | "BOLETO" | "TRANSFERENCIA"
+          account_id?: string | null
+          card_id?: string | null
+          installment_id?: string | null
+          status?: "PAGO" | "PENDENTE" | "AGENDADO"
+          user_id?: string
           created_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["transactions"]["Insert"]>
+        Update: {
+          id?: string
+          date?: string
+          amount?: number
+          type?: "GASTO" | "GANHO"
+          category?: string
+          notes?: string
+          payment_method?: "PIX" | "CARTAO_CREDITO" | "CARTAO_DEBITO" | "DINHEIRO" | "TED" | "BOLETO" | "TRANSFERENCIA"
+          account_id?: string | null
+          card_id?: string | null
+          installment_id?: string | null
+          status?: "PAGO" | "PENDENTE" | "AGENDADO"
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: []
       }
       bank_accounts: {
         Row: {
@@ -40,11 +66,29 @@ export interface Database {
           user_id: string
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["bank_accounts"]["Row"], "id" | "created_at"> & {
+        Insert: {
           id?: string
+          name: string
+          bank: string
+          type: "CORRENTE" | "POUPANCA" | "INVESTIMENTO"
+          balance: number
+          color?: string
+          is_active?: boolean
+          user_id?: string
           created_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["bank_accounts"]["Insert"]>
+        Update: {
+          id?: string
+          name?: string
+          bank?: string
+          type?: "CORRENTE" | "POUPANCA" | "INVESTIMENTO"
+          balance?: number
+          color?: string
+          is_active?: boolean
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: []
       }
       credit_cards: {
         Row: {
@@ -59,11 +103,31 @@ export interface Database {
           user_id: string
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["credit_cards"]["Row"], "id" | "created_at"> & {
+        Insert: {
           id?: string
+          name: string
+          bank: string
+          limit_total: number
+          closing_day: number
+          due_day: number
+          color?: string
+          is_active?: boolean
+          user_id?: string
           created_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["credit_cards"]["Insert"]>
+        Update: {
+          id?: string
+          name?: string
+          bank?: string
+          limit_total?: number
+          closing_day?: number
+          due_day?: number
+          color?: string
+          is_active?: boolean
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: []
       }
       budgets: {
         Row: {
@@ -75,11 +139,25 @@ export interface Database {
           user_id: string
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["budgets"]["Row"], "id" | "created_at"> & {
+        Insert: {
           id?: string
+          category: string
+          monthly_limit: number
+          year: number
+          month: number
+          user_id?: string
           created_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["budgets"]["Insert"]>
+        Update: {
+          id?: string
+          category?: string
+          monthly_limit?: number
+          year?: number
+          month?: number
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: []
       }
       health_professionals: {
         Row: {
@@ -91,15 +169,30 @@ export interface Database {
           user_id: string
           created_at: string
         }
-        Insert: Omit<Database["public"]["Tables"]["health_professionals"]["Row"], "id" | "created_at"> & {
+        Insert: {
           id?: string
+          name: string
+          specialty: "FONOAUDIOLOGIA" | "TERAPIA_OCUPACIONAL" | "PSICOLOGIA" | "PSIQUIATRIA" | "NEUROLOGIA" | "FISIOTERAPIA" | "OUTRO"
+          council_number?: string | null
+          is_active?: boolean
+          user_id?: string
           created_at?: string
         }
-        Update: Partial<Database["public"]["Tables"]["health_professionals"]["Insert"]>
+        Update: {
+          id?: string
+          name?: string
+          specialty?: "FONOAUDIOLOGIA" | "TERAPIA_OCUPACIONAL" | "PSICOLOGIA" | "PSIQUIATRIA" | "NEUROLOGIA" | "FISIOTERAPIA" | "OUTRO"
+          council_number?: string | null
+          is_active?: boolean
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: []
       }
     }
-    Views: Record<string, never>
-    Functions: Record<string, never>
-    Enums: Record<string, never>
+    Views: { [_ in never]: never }
+    Functions: { [_ in never]: never }
+    Enums: { [_ in never]: never }
+    CompositeTypes: { [_ in never]: never }
   }
 }

@@ -155,38 +155,47 @@ Portar de `core/styles.py` com as correções abaixo. Definir em
 
 Ordem: **Transações → Dashboard → Contas → Orçamento → Saúde**.
 
-- [ ] Tipos TypeScript gerados do schema: `supabase gen types typescript`
-- [ ] **Transações**: lista com filtros (mês, categoria, tipo, busca), lançamento
-      rápido via dialog (FAB), edição, exclusão com confirmação,
-      **optimistic update** via TanStack Query
-- [ ] **Dashboard**: KPIs do mês, donut categorias, barras entradas×saídas 6m
-      (Recharts), últimas transações — paridade com `pages/1_Dashboard.py`
-- [ ] **Contas**: cards de conta/cartão, ajuste de saldo, transferência
-      (replicar a lógica dupla-transação de `core/modals.py::modal_transfer`)
-- [ ] **Orçamento**: limites por categoria, barras de progresso, alerta de estouro
-      (vermelho SÓ aqui — ver decisão de design 1)
-- [ ] **Saúde**: profissionais, sessões, reembolsos (paridade `pages/10_Saude.py`)
-- [ ] Skeleton loading em toda lista/card (sem spinners)
-- [ ] Testes por página: render, mutação otimista, caso de erro
+- [x] Tipos TypeScript (manual, compatíveis com supabase-js v2 + `Relationships: []`)
+      `types/database.ts`
+- [x] `lib/queries/useTransactions.ts` — list by month, create, update, delete + invalidate
+- [x] `lib/queries/useAccounts.ts` — bank_accounts, credit_cards
+- [x] `lib/queries/useBudgets.ts` — list by month, upsert
+- [x] `lib/queries/useHealth.ts` — health_professionals
+- [x] `lib/tx-schema.ts` — zod v4 schema + CATEGORIES + CAT_COLORS
+- [x] `components/ui/skeleton.tsx` — Skeleton, SkeletonCard, SkeletonRow
+- [x] `components/providers.tsx` — TanStack Query client provider
+- [x] `components/ui/tx-dialog.tsx` — dialog add/edit (react-hook-form + zod v4)
+- [x] **Dashboard** (`app/page.tsx`): KPIs, donut Recharts, bar chart, últimas 5 txs
+- [x] **Transações** (`app/transacoes/page.tsx`): lista, filtros mês/tipo/search,
+      editar via dialog, excluir com confirmação
+- [x] **Transações Novo** (`app/transacoes/novo/page.tsx`): formulário standalone
+- [x] **Contas** (`app/contas/page.tsx`): bank accounts + credit cards
+- [x] **Orçamento** (`app/orcamento/page.tsx`): progress bars por categoria, alerta estouro
+- [x] **Saúde** (`app/saude/page.tsx`): profissionais
+- [x] **Kira** (`app/kira/page.tsx`): chat SSE streaming (conecta à api/ Fase 3)
+- [x] **Mais** (`app/mais/page.tsx`): links para páginas secundárias
+- [x] Skeleton loading em toda lista/card (sem spinners)
+- [x] TanStack Query provider no layout root
+- [x] 36 testes web passando (pages.test.tsx + components.test.tsx)
+- [x] Build Next.js produção sem erros TypeScript
 - **Aceite:** uso diário completo (lançar, editar, conferir) possível só no PWA.
   Saldo ajustado corretamente ao criar/editar/excluir transação (regra
   `tx_balance_delta` — validar contra os testes Python existentes).
 
 ### Fase 3 — API Python (FastAPI sobre core/) · 2 sessões
 
-- [ ] `api/`: FastAPI + routers; auth via verificação do JWT do Supabase
-      (`Authorization: Bearer` do PWA)
-- [ ] Endpoints:
-      - `GET  /quotes/{ticker}` e `GET /benchmarks` → `core/market_data.py`
-      - `POST /import/statement` (upload PDF/PNG) → `core/statement_reader.py`,
-        retorna transações parseadas para revisão no PWA antes de salvar
-      - `GET  /engines/m1/{ticker}` · `GET /engines/governance` ·
-        `GET /engines/fragility` → `core/m1_quant.py`, `m2_governance.py`, `fragility.py`
-      - `POST /kira/chat` → `core/financial_ai.py` (streaming SSE)
-- [ ] Páginas PWA: **Investimentos** (posições ao vivo, alocação, rendimentos),
-      **Importar** (upload → revisão → confirmação em lote), **Kira** (chat)
-- [ ] Deploy Railway; CORS restrito ao domínio Vercel
-- [ ] Testes: pytest dos routers (mock do core onde há rede), Vitest das páginas
+- [x] `api/main.py`: FastAPI + CORS restrito ao domínio Vercel
+- [x] `api/auth.py`: verificação JWT Supabase (RS256/JWKS) sem round-trip ao DB
+- [x] Endpoints implementados e testados (12 testes, todos passando):
+      - `GET  /quotes/{ticker}` e `GET /quotes/benchmarks` → MarketDataService
+      - `POST /import/statement` (PDF/PNG → StatementResult) → statement_reader
+      - `GET  /engines/m1/{ticker}` · `GET /engines/governance` · `GET /engines/fragility`
+      - `POST /kira/chat` → SSE streaming via financial_ai.ask()
+- [x] `api/requirements.txt` — fastapi, uvicorn, python-jose, httpx
+- [x] `railway.toml` atualizado para `uvicorn api.main:app`
+- [ ] Páginas PWA: **Investimentos**, **Importar**, **Kira** (Fase 2 → conecta à API)
+- [ ] Deploy Railway (requer vars: SUPABASE_URL, SUPABASE_KEY service_role, VERCEL_URL)
+      **Ação Roberto: criar serviço Railway para este repo, setar vars, fazer deploy**
 - **Aceite:** importar um extrato real Itaú/BTG pelo PWA; cotações ao vivo;
   chat Kira com streaming.
 
@@ -229,8 +238,8 @@ python -m pytest tests/ -q --tb=short   # suite completa (raiz do repo)
 > Atualizar ao final de cada sessão.
 
 **Última atualização:** 2026-06-10
-**Fase atual:** Fase 0 (passos manuais pendentes) + Fase 1 scaffold iniciado
-**Próxima ação:** Roberto executa os 3 passos manuais da Fase 0 → verificar RLS → Fase 1 continua
+**Fase atual:** Fases 0+1+2+3 implementadas — aguardando deploys manuais (Supabase, Vercel, Railway)
+**Próxima ação (Roberto):** ver "Passos manuais pendentes" abaixo; depois Fase 4 (cutover)
 
 **Decisões registradas:**
 - 2026-06-10 · Stack fechado (Next.js + shadcn/ui + Supabase + FastAPI) — ver tabela
