@@ -131,17 +131,21 @@ Portar de `core/styles.py` com as correções abaixo. Definir em
 
 ### Fase 1 — Scaffold PWA + Design System + Shell · 1–2 sessões
 
-- [ ] `web/`: `create-next-app` (TypeScript, App Router, Tailwind) + shadcn/ui init
-- [ ] `globals.css` com os tokens acima; config dark/light via next-themes
-- [ ] Componentes base: `KCard`, `KpiCard` (UM componente, com variantes via props
-      — não repetir os 6 do Streamlit), `TxRow`, `EmptyState`, `PageHeader`
-- [ ] Layout shell: sidebar desktop + **bottom tab bar mobile + FAB**
+- [x] `web/`: `create-next-app` (TypeScript, App Router, Tailwind) — Next.js 16 + React 19
+- [x] `globals.css` com os tokens do design system; dark default
+- [x] Componentes base com testes (16 testes passando):
+      `KCard`, `KpiCard`, `TxRow`, `EmptyState`, `PageHeader`
+- [x] Layout shell: `Sidebar` desktop + `BottomBar` mobile + FAB central
+- [x] `manifest.json` PWA (nome, ícones, display standalone, theme #020617)
+- [x] `types/database.ts` — tipos TypeScript do schema Supabase (manual, antes do gen)
+- [x] `lib/utils.ts` — `fmtBRL`, `fmtPct`, `fmtDate`, `cn`
+- [x] `lib/supabase.ts` — client com tipos genéricos
+- [x] Vitest + Testing Library configurados (`npm test`)
 - [ ] Auth: páginas login + desafio TOTP (supabase-js `signInWithPassword` +
       `mfa.challenge/verify`); middleware protegendo rotas
-- [ ] PWA: `manifest.json` (nome, ícones, `display: standalone`, theme color
-      `#020617`) + Serwist (precache shell, network-first para dados)
+      **⚠️ BLOQUEIA: aguarda Fase 0 concluída (RLS + usuário confirmado)**
+- [ ] Serwist service worker (precache shell, network-first para dados)
 - [ ] Deploy inicial no Vercel + teste de instalação em 1 desktop + 1 Android
-- [ ] Testes: render dos componentes base, fluxo de auth mockado
 - **Aceite:** app instala como PWA no KDE e no Android, login com TOTP funciona,
   shell navega entre rotas vazias.
 
@@ -223,8 +227,8 @@ python -m pytest tests/ -q --tb=short   # suite completa (raiz do repo)
 > Atualizar ao final de cada sessão.
 
 **Última atualização:** 2026-06-10
-**Fase atual:** Fase 0 — RLS + Auth (migrations prontas, passos manuais pendentes)
-**Próxima ação:** Executar passos manuais abaixo → rodar verify_rls.py → commitar aceite
+**Fase atual:** Fase 0 (passos manuais pendentes) + Fase 1 scaffold iniciado
+**Próxima ação:** Roberto executa os 3 passos manuais da Fase 0 → verificar RLS → Fase 1 continua
 
 **Decisões registradas:**
 - 2026-06-10 · Stack fechado (Next.js + shadcn/ui + Supabase + FastAPI) — ver tabela

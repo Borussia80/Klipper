@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* ── Klipper Design System — tokens portados de core/styles.py ─────────────── */
+
+:root {
+  /* Dark (default) */
+  --bg:       #020617;
+  --card:     #0D1726;
+  --surface:  #07111D;
+  --layer:    #132238;
+
+  --ink:      #F1F5F9;
+  --ink-2:    #CBD5E1;
+  --ink-3:    #94A3B8;
+  --ink-4:    #64748B;  /* corrigido: era #475569, falhava AA */
+
+  --rule:     rgba(255,255,255,0.07);
+
+  --brass:    #D9B26F;  /* único acento de marca */
+  --pos:      #10B981;  /* entradas, sucesso */
+  --neg:      #F87171;  /* SOMENTE alertas/estouro — não para gastos normais */
+  --warn:     #F59E0B;
+
+  /* Raio e sombra */
+  --radius:   8px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px var(--rule);
+}
+
+/* Light override — opcional, dark é o default */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:      #F8FAFC;
+    --card:    #FFFFFF;
+    --surface: #F1F5F9;
+    --layer:   #E2E8F0;
+    --ink:     #0F172A;
+    --ink-2:   #334155;
+    --ink-3:   #64748B;
+    --ink-4:   #94A3B8;
+    --rule:    rgba(0,0,0,0.07);
+  }
+}
+
+@theme inline {
+  --color-bg:      var(--bg);
+  --color-card:    var(--card);
+  --color-surface: var(--surface);
+  --color-layer:   var(--layer);
+  --color-ink:     var(--ink);
+  --color-ink-2:   var(--ink-2);
+  --color-ink-3:   var(--ink-3);
+  --color-ink-4:   var(--ink-4);
+  --color-brass:   var(--brass);
+  --color-pos:     var(--pos);
+  --color-neg:     var(--neg);
+  --color-warn:    var(--warn);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* ── Reset e base ────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Números: sempre tabular ────────────────────────────────────────────────── */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* ── Focus visível — a11y obrigatório ──────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
