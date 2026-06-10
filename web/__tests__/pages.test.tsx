@@ -227,6 +227,40 @@ describe("Saúde page", () => {
   })
 })
 
+// ── Investimentos page ────────────────────────────────────────────────────────
+describe("Investimentos page", () => {
+  it("renders heading", async () => {
+    const { default: InvestimentosPage } = await import("@/app/investimentos/page")
+    wrap(<InvestimentosPage />)
+    expect(screen.getByRole("heading", { name: /Investimentos/i })).toBeInTheDocument()
+  })
+
+  it("shows KPI skeleton while loading", async () => {
+    const { default: InvestimentosPage } = await import("@/app/investimentos/page")
+    const { container } = wrap(<InvestimentosPage />)
+    const skeletons = container.querySelectorAll('[aria-hidden="true"]')
+    expect(skeletons.length).toBeGreaterThan(0)
+  })
+})
+
+// ── Importar page ─────────────────────────────────────────────────────────────
+describe("Importar page", () => {
+  it("renders upload dropzone", async () => {
+    const { default: ImportarPage } = await import("@/app/importar/page")
+    wrap(<ImportarPage />)
+    expect(screen.getByRole("heading", { name: /Importar/i })).toBeInTheDocument()
+    expect(screen.getByText(/Arraste o extrato/i)).toBeInTheDocument()
+  })
+
+  it("has file input accepting pdf/png/jpg", async () => {
+    const { default: ImportarPage } = await import("@/app/importar/page")
+    const { container } = wrap(<ImportarPage />)
+    const input = container.querySelector("input[type='file']")
+    expect(input).toBeTruthy()
+    expect(input?.getAttribute("accept")).toContain("pdf")
+  })
+})
+
 // ── TxDialog ──────────────────────────────────────────────────────────────────
 describe("TxDialog", () => {
   it("renders form fields when open", async () => {

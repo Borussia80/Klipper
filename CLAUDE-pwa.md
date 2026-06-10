@@ -193,7 +193,11 @@ Ordem: **Transações → Dashboard → Contas → Orçamento → Saúde**.
       - `POST /kira/chat` → SSE streaming via financial_ai.ask()
 - [x] `api/requirements.txt` — fastapi, uvicorn, python-jose, httpx
 - [x] `railway.toml` atualizado para `uvicorn api.main:app`
-- [ ] Páginas PWA: **Investimentos**, **Importar**, **Kira** (Fase 2 → conecta à API)
+- [x] Página **Investimentos** (`app/investimentos/page.tsx`): tabela de posições,
+      KPIs (patrimônio, ganho, DY médio), alocação por tipo (FII/Ação/RF/Caixa)
+- [x] Página **Importar** (`app/importar/page.tsx`): upload drag&drop, OCR via api/,
+      review + seleção individual antes de salvar no Supabase
+- [x] Página **Kira** (`app/kira/page.tsx`): chat SSE (veja Fase 2)
 - [ ] Deploy Railway (requer vars: SUPABASE_URL, SUPABASE_KEY service_role, VERCEL_URL)
       **Ação Roberto: criar serviço Railway para este repo, setar vars, fazer deploy**
 - **Aceite:** importar um extrato real Itaú/BTG pelo PWA; cotações ao vivo;
