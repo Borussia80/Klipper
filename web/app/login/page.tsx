@@ -19,13 +19,27 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // Detecta redirect do e-mail de recuperação: /login#type=recovery&access_token=...
-  // Escuta tanto o mount inicial quanto mudanças de hash (SPA navigation)
+  // Detecta redirect do e-mail de recuperação ou erro de link expirado
   useEffect(() => {
     function checkHash() {
       const hash = window.location.hash
-      if (hash.includes("type=recovery") || hash.includes("type=passwordRecovery")) {
+      const params = new URLSearchParams(hash.slice(1))
+
+      if (params.get("type") === "recovery" || params.get("type") === "passwordRecovery") {
         setStep("new-password")
+        return
+      }
+
+      const errCode = params.get("error_code")
+      if (errCode === "otp_expired") {
+        setStep("recovery")
+        setError("O link expirou. Solicite um novo e-mail de recuperação.")
+        return
+      }
+      const errDesc = params.get("error_description")
+      if (errDesc) {
+        setStep("recovery")
+        setError(decodeURIComponent(errDesc.replace(/\+/g, " ")))
       }
     }
     checkHash()
