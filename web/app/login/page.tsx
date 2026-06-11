@@ -20,12 +20,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
 
   // Detecta redirect do e-mail de recuperação: /login#type=recovery&access_token=...
+  // Escuta tanto o mount inicial quanto mudanças de hash (SPA navigation)
   useEffect(() => {
-    if (typeof window === "undefined") return
-    const hash = window.location.hash
-    if (hash.includes("type=recovery") || hash.includes("type=passwordRecovery")) {
-      setStep("new-password")
+    function checkHash() {
+      const hash = window.location.hash
+      if (hash.includes("type=recovery") || hash.includes("type=passwordRecovery")) {
+        setStep("new-password")
+      }
     }
+    checkHash()
+    window.addEventListener("hashchange", checkHash)
+    return () => window.removeEventListener("hashchange", checkHash)
   }, [])
 
   async function handleLogin(e: React.FormEvent) {
