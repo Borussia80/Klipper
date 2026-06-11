@@ -242,46 +242,27 @@ python -m pytest tests/ -q --tb=short   # suite completa (raiz do repo)
 > Atualizar ao final de cada sessão.
 
 **Última atualização:** 2026-06-10
-**Fase atual:** Fases 0+1+2+3 implementadas — aguardando deploys manuais (Supabase, Vercel, Railway)
-**Próxima ação (Roberto):** ver "Passos manuais pendentes" abaixo; depois Fase 4 (cutover)
+**Fase atual:** Fases 0+1+2+3 completas — PWA em produção
+**Próxima ação:** Fase 4 (cutover) + Railway env vars
 
 **Decisões registradas:**
 - 2026-06-10 · Stack fechado (Next.js + shadcn/ui + Supabase + FastAPI) — ver tabela
 - 2026-06-10 · Gastos neutros / verde entradas / vermelho só alerta
 - 2026-06-10 · Monorepo: `web/` + `api/` neste repositório
 - 2026-06-10 · Serif e cores secundárias do tema náutico não migram
-- 2026-06-10 · **SUPABASE_KEY atual é anon key** — Streamlit Cloud DEVE ser atualizado
-  para service_role key ANTES de 005b ser aplicado, senão o Streamlit perde dados.
-  Arquitetura definitiva: Streamlit/Railway = service_role; PWA browser = anon key.
+- 2026-06-10 · PWA prod: `https://klipper-app.vercel.app` (projeto Vercel: `klipper`)
+- 2026-06-10 · supabase-js: usar `||` (não `??`) no fallback de env vars — strings vazias
+  no Vercel quebravam a validação de URL. safeStorage evita acesso a localStorage no SSR.
 
-**Fase 0 — Passos manuais pendentes (executar nesta ordem):**
-
-1. **Supabase Auth Dashboard** → Authentication → Users → Add user  
-   `roberto.milet@gmail.com` + senha forte + "Auto Confirm"  
-   Copiar o UUID gerado (ex: `xxxxxxxx-xxxx-…`)
-
-2. **Supabase Auth Dashboard** → Authentication → Policies → MFA  
-   Habilitar TOTP (ou fazer enrollment pelo próprio app Streamlit após login)
-
-3. **Supabase SQL Editor** → executar `migrations/005a_add_user_id_columns.sql`  
-   *(seguro; não altera policies)*
-
-4. **Streamlit Cloud** → Settings → Secrets → atualizar `SUPABASE_KEY` para a  
-   **service_role key** (Settings → API no painel Supabase)  
-   Confirmar que o Streamlit continua carregando dados.
-
-5. **Supabase SQL Editor** → executar `migrations/005b_rls_user_policies.sql`  
-   *(faz backfill, NOT NULL, troca policies)*
-
-6. **Local** → adicionar `SUPABASE_SERVICE_KEY=<service_role_key>` ao `.env`  
-   e rodar: `python scripts/verify_rls.py`  
-   → Deve imprimir: `✅ PASSOU — anon key bloqueada corretamente`
-
-7. Confirmar que o Streamlit ainda funciona em produção (login + dados visíveis)
-
-**Aceite Fase 0:** verify_rls.py passa + Streamlit prod intacto + MFA TOTP configurado
+**Estado dos deploys (2026-06-10):**
+- ✅ Vercel: `https://klipper-app.vercel.app` — READY (commit f95aa7b)
+- ✅ Supabase: migrations 005a + 005b executadas; RLS ativo; UUID Roberto: 05e75bea-d26c-4678-8697-a624b4e59718
+- ⏳ Railway API: aguardando Roberto adicionar env vars no dashboard
+  - `SUPABASE_URL` = `https://obmudpulqzhwtcniyzcj.supabase.co`
+  - `SUPABASE_KEY` = service_role key
+  - `VERCEL_URL` = `klipper-app.vercel.app`
 
 **Pendências abertas:**
-- ⏳ Passos manuais acima (Roberto executa no painel Supabase + Streamlit Cloud)
-- Gerar ícones PWA (192/512/maskable) a partir do brand existente em
-  `design_handoff_klipper/`
+- Railway env vars (acima) → desbloqueia OCR, Kira, cotações
+- Gerar ícones PWA (192/512/maskable) a partir do brand em `design_handoff_klipper/`
+- Fase 4: cutover — uso paralelo PWA vs Streamlit por 1–2 semanas
