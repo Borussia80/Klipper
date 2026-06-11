@@ -27,7 +27,7 @@ app = FastAPI(
 _vercel_origin = os.environ.get("VERCEL_URL", "")
 _allowed_origins = [
     "http://localhost:3000",          # dev local
-    "https://klipper.vercel.app",     # Vercel prod (atualizar após deploy)
+    "https://klipper-app.vercel.app",  # Vercel prod
 ]
 if _vercel_origin:
     _allowed_origins.append(f"https://{_vercel_origin}")
