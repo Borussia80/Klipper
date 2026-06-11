@@ -13,7 +13,7 @@ const safeStorage =
       }
 
 export const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://localhost",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "placeholder",
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder",
   { auth: { storage: safeStorage } }
 )
