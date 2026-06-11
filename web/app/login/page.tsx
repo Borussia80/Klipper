@@ -153,19 +153,17 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="seu@email.com" />
               </div>
               <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs text-[var(--ink-3)]" htmlFor="password">Senha</label>
-                  <button type="button" onClick={() => { setError(""); setStep("recovery") }}
-                    className="text-[10px] text-[var(--brass)] hover:opacity-80 transition-opacity">
-                    Esqueci a senha
-                  </button>
-                </div>
+                <label className="text-xs text-[var(--ink-3)]" htmlFor="password">Senha</label>
                 <input id="password" type="password" autoComplete="current-password" required value={password}
                   onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="••••••••" />
               </div>
               {error && <p className="text-xs text-[var(--neg)]">{error}</p>}
               <button type="submit" disabled={loading} className={`mt-1 ${btnPrimary}`}>
                 {loading ? "Entrando…" : "Entrar"}
+              </button>
+              <button type="button" onClick={() => { setError(""); setStep("recovery") }}
+                className="text-sm text-[var(--brass)] hover:opacity-80 transition-opacity text-center">
+                Esqueci minha senha
               </button>
             </form>
           )}
