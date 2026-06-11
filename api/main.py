@@ -1,13 +1,21 @@
 """api/main.py — FastAPI thin layer sobre core/ Klipper.
 
 Autenticação: verifica JWT Supabase via Authorization: Bearer header.
-Deploy: Railway (railway.toml aponta para este arquivo).
+Deploy: Vercel (vercel.json na raiz) + Railway (railway.toml).
 CORS: restrito ao domínio Vercel em produção.
 """
 
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
+
+# Garante que o root do repo está no path (necessário no Vercel onde o
+# working dir é a raiz do projeto, não o diretório api/)
+_repo_root = str(Path(__file__).parent.parent)
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
