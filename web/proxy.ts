@@ -1,41 +1,45 @@
+import { createServerClient } from "@supabase/ssr"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 
 const PUBLIC_ROUTES = ["/login", "/auth/callback"]
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Rotas públicas: deixa passar
-  if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
-    return NextResponse.next()
-  }
+  // Resposta base — o createServerClient pode precisar reescrever cookies
+  // (refresh de token); por isso devolvemos ESTA resposta, não NextResponse.next() novo.
+  let response = NextResponse.next({ request })
 
-  // Verifica sessão via cookie Supabase
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          )
+        },
+      },
+    },
+  )
 
-  const accessToken =
-    request.cookies.get("sb-access-token")?.value ??
-    request.cookies.get(`sb-${supabaseUrl.split("//")[1].split(".")[0]}-auth-token`)?.value
+  // IMPORTANTE: getUser() valida o JWT junto ao Supabase. Não use getSession()
+  // no servidor — ele só lê o cookie sem validar a assinatura.
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!accessToken) {
+  const isPublic = PUBLIC_ROUTES.some((r) => pathname.startsWith(r))
+  if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  // Verifica token válido (lightweight — não faz round-trip ao DB)
-  try {
-    const client = createClient(supabaseUrl, supabaseKey)
-    const { data: { user }, error } = await client.auth.getUser(accessToken)
-    if (error || !user) {
-      return NextResponse.redirect(new URL("/login", request.url))
-    }
-  } catch {
-    return NextResponse.redirect(new URL("/login", request.url))
-  }
-
-  return NextResponse.next()
+  return response
 }
 
 export const config = {

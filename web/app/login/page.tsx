@@ -1,13 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 
 type Step = "credentials" | "totp" | "recovery" | "recovery-sent" | "new-password"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [step, setStep] = useState<Step>("credentials")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,11 +17,24 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  // Detecta redirect do e-mail de recuperação ou erro de link expirado
+  // Detecta o link de recuperação (sucesso ou erro de link expirado).
   useEffect(() => {
+    // 1) Sucesso: o supabase-js processa o hash #access_token de forma assíncrona,
+    //    estabelece a sessão de recovery e dispara PASSWORD_RECOVERY. Ouvir o evento
+    //    é o caminho confiável — ler o hash diretamente perde a corrida (detectSessionInUrl
+    //    já apagou o hash quando o React lê).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setError("")
+        setStep("new-password")
+      }
+    })
+
+    // 2) Erro: link expirado/inválido volta no hash como #error=...&error_code=otp_expired.
+    //    Fallback type=recovery cobre o caso de a sessão já ter sido estabelecida antes
+    //    do listener montar (ex.: redirect caiu na raiz e veio para cá já autenticado).
     function checkHash() {
-      const hash = window.location.hash
-      const params = new URLSearchParams(hash.slice(1))
+      const params = new URLSearchParams(window.location.hash.slice(1))
 
       if (params.get("type") === "recovery" || params.get("type") === "passwordRecovery") {
         setStep("new-password")
@@ -33,7 +44,7 @@ export default function LoginPage() {
       const errCode = params.get("error_code")
       if (errCode === "otp_expired") {
         setStep("recovery")
-        setError("O link expirou. Solicite um novo e-mail de recuperação.")
+        setError("O link expirou ou já foi usado. Solicite um novo e-mail e clique nele logo em seguida.")
         return
       }
       const errDesc = params.get("error_description")
@@ -44,7 +55,11 @@ export default function LoginPage() {
     }
     checkHash()
     window.addEventListener("hashchange", checkHash)
-    return () => window.removeEventListener("hashchange", checkHash)
+
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener("hashchange", checkHash)
+    }
   }, [])
 
   async function handleLogin(e: React.FormEvent) {
@@ -65,7 +80,7 @@ export default function LoginPage() {
         setChallengeId(challengeData.id)
         setStep("totp")
       } else {
-        router.push("/")
+        window.location.assign("/")
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "E-mail ou senha incorretos.")
@@ -81,7 +96,7 @@ export default function LoginPage() {
     try {
       const { error } = await supabase.auth.mfa.verify({ factorId, challengeId, code })
       if (error) throw error
-      router.push("/")
+      window.location.assign("/")
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Código incorreto ou expirado.")
     } finally {
@@ -121,7 +136,7 @@ export default function LoginPage() {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
-      router.push("/")
+      window.location.assign("/")
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro ao redefinir senha.")
     } finally {
