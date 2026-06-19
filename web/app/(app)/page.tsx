@@ -10,6 +10,7 @@ import { KCard } from "@/components/ui/kcard"
 import { SafeToSpendHero } from "@/components/ui/safe-to-spend"
 import { UpcomingBills } from "@/components/ui/upcoming-bills"
 import { NetWorthProjection } from "@/components/ui/networth-projection"
+import { NetWorthChart, type NetWorthPoint } from "@/components/ui/networth-chart"
 import { computeSafeToSpend } from "@/lib/finance/safe-to-spend"
 import { averageMonthlyNet, projectNetWorth } from "@/lib/finance/projection"
 import { useTransactions, useMonthlyTotals } from "@/lib/queries/useTransactions"
@@ -21,6 +22,34 @@ import Link from "next/link"
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
+
+function computeNetWorthHistory(
+  currentCash: number,
+  currentInvestments: number,
+  allTxs: { date: string; amount: number; type: string }[],
+  months = 12,
+): NetWorthPoint[] {
+  const now    = new Date()
+  const result: NetWorthPoint[] = []
+
+  for (let i = months - 1; i >= 0; i--) {
+    const d        = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+    const label    = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" })
+      .replace(".", "")
+      .replace(/^(.)/, c => c.toUpperCase())
+
+    // Net transactions recorded AFTER this month (moves balance forward in time)
+    const netAfter = allTxs
+      .filter(t => t.date.slice(0, 7) > monthKey)
+      .reduce((s, t) => s + (t.type === "GANHO" ? t.amount : -t.amount), 0)
+
+    const caixa = Math.max(0, currentCash - netAfter)
+    result.push({ month: label, total: caixa + currentInvestments, caixa })
+  }
+
+  return result
+}
 
 function aggregateByMonth(txs: { date: string; amount: number; type: string }[]) {
   const map: Record<string, { ganhos: number; gastos: number }> = {}
@@ -64,6 +93,12 @@ export default function HomePage() {
   const patrimonio   = safe.caixa + investido
   const aporteMensal = averageMonthlyNet(history ?? [])
   const projection   = projectNetWorth(patrimonio, aporteMensal, 12)
+
+  // Net Worth History (synthetic from transactions + current balances)
+  const nwHistory = useMemo(
+    () => computeNetWorthHistory(safe.caixa, investido, history ?? []),
+    [safe.caixa, investido, history],
+  )
 
   // Monthly aggregates for deltas and sparkline
   const agg = useMemo(() => aggregateByMonth(history ?? []), [history])
@@ -158,13 +193,33 @@ export default function HomePage() {
         />
       ) : (
         <>
-          {/* 1. Estado real no topo: o que sobra depois das contas */}
+          {/* 1. Patrimônio histórico — hero visual do dashboard */}
+          {nwHistory.length >= 2 && (
+            <KCard className="mb-4 overflow-hidden">
+              <div className="flex items-end justify-between mb-1">
+                <div>
+                  <p className="text-xs font-medium text-[var(--ink-3)] uppercase tracking-wide">
+                    Patrimônio Líquido
+                  </p>
+                  <p className="text-2xl font-semibold text-[var(--brass)] tabular leading-tight">
+                    {fmtBRL(patrimonio)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-[var(--ink-4)]">12 meses</p>
+                </div>
+              </div>
+              <NetWorthChart points={nwHistory} />
+            </KCard>
+          )}
+
+          {/* 2. Estado real: o que sobra depois das contas */}
           <SafeToSpendHero data={safe} />
 
-          {/* 2. O que ameaça esse número */}
+          {/* 3. O que ameaça esse número */}
           <UpcomingBills bills={safe.upcoming} />
 
-          {/* 3. KPIs com delta vs mês anterior + sparkline de saldo */}
+          {/* 4. KPIs com delta vs mês anterior + sparkline de saldo */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
             <KpiCard
               label="Entradas · mês"
@@ -187,7 +242,7 @@ export default function HomePage() {
             />
           </div>
 
-          {/* 4. Para onde isso vai — projeção de patrimônio */}
+          {/* 5. Para onde isso vai — projeção de patrimônio */}
           {patrimonio > 0 && (
             <NetWorthProjection points={projection} current={patrimonio} monthlyNet={aporteMensal} />
           )}
