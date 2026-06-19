@@ -30,11 +30,29 @@ export const CAT_COLORS: Record<string, string> = {
   Outros:        "#94A3B8",
 }
 
+export const CAT_ICONS: Record<string, string> = {
+  Moradia:       "🏠",
+  Alimentação:   "🍽️",
+  Transporte:    "🚌",
+  Saúde:         "💊",
+  Educação:      "📚",
+  Lazer:         "🎮",
+  Investimento:  "📈",
+  Renda:         "💼",
+  Freelance:     "💡",
+  Outros:        "📂",
+}
+
+const splitSchema = z.object({
+  category: z.string().min(1),
+  amount:   z.coerce.number().positive(),
+})
+
 export const txSchema = z.object({
   date:           z.string().min(1, "Data obrigatória"),
   amount:         z.coerce.number().positive("Valor deve ser positivo"),
   type:           z.enum(["GASTO", "GANHO"]),
-  category:       z.string().min(1, "Categoria obrigatória"),
+  category:       z.string().default(""),
   notes:          z.string().optional().default(""),
   payment_method: z.enum([
     "PIX", "CARTAO_CREDITO", "CARTAO_DEBITO",
@@ -43,6 +61,10 @@ export const txSchema = z.object({
   status:         z.enum(["PAGO", "PENDENTE", "AGENDADO"]).default("PAGO"),
   account_id:     z.string().uuid().nullable().optional(),
   card_id:        z.string().uuid().nullable().optional(),
+  n_installments: z.coerce.number().int().min(1).max(48).default(1),
+  splits:         z.array(splitSchema).optional(),
+  confirmed:      z.boolean().default(false),
+  is_recurring:   z.boolean().default(false),
 })
 
 export type TxFormValues = z.infer<typeof txSchema>
