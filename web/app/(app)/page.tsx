@@ -1,41 +1,94 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { PageHeader } from "@/components/ui/page-header"
 import { KpiCard } from "@/components/ui/kpi-card"
 import { TxRow } from "@/components/ui/tx-row"
 import { SkeletonCard, SkeletonRow } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/ui/empty-state"
 import { KCard } from "@/components/ui/kcard"
-import { useTransactions } from "@/lib/queries/useTransactions"
+import { SafeToSpendHero } from "@/components/ui/safe-to-spend"
+import { UpcomingBills } from "@/components/ui/upcoming-bills"
+import { NetWorthProjection } from "@/components/ui/networth-projection"
+import { computeSafeToSpend } from "@/lib/finance/safe-to-spend"
+import { averageMonthlyNet, projectNetWorth } from "@/lib/finance/projection"
+import { useTransactions, useMonthlyTotals } from "@/lib/queries/useTransactions"
 import { useBankAccounts } from "@/lib/queries/useAccounts"
+import { useInvestments } from "@/lib/queries/useInvestments"
 import { fmtBRL } from "@/lib/utils"
 import { CAT_COLORS } from "@/lib/tx-schema"
 import Link from "next/link"
-import {
-  PieChart, Pie, Cell, Tooltip, Legend,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
-} from "recharts"
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
 
-function useNow() {
-  const now = new Date()
-  return { year: now.getFullYear(), month: now.getMonth() + 1 }
+function aggregateByMonth(txs: { date: string; amount: number; type: string }[]) {
+  const map: Record<string, { ganhos: number; gastos: number }> = {}
+  for (const tx of txs) {
+    const k = tx.date.slice(0, 7)
+    if (!map[k]) map[k] = { ganhos: 0, gastos: 0 }
+    if (tx.type === "GANHO") map[k].ganhos += tx.amount
+    else if (tx.type === "GASTO") map[k].gastos += tx.amount
+  }
+  return map
 }
 
 export default function HomePage() {
-  const { year, month } = useNow()
-  const [showDialog, setShowDialog] = useState(false)
+  const now = new Date()
+  const [year, setYear]   = useState(now.getFullYear())
+  const [month, setMonth] = useState(now.getMonth() + 1)
+
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
+
+  function prevMonth() {
+    if (month === 1) { setYear(y => y - 1); setMonth(12) }
+    else              setMonth(m => m - 1)
+  }
+  function nextMonth() {
+    if (isCurrentMonth) return
+    if (month === 12) { setYear(y => y + 1); setMonth(1) }
+    else               setMonth(m => m + 1)
+  }
 
   const { data: txs, isLoading: txLoading, error: txError } = useTransactions(year, month)
   const { data: accounts, isLoading: accLoading } = useBankAccounts()
+  const { data: investments } = useInvestments()
+  const { data: history } = useMonthlyTotals(year, 12)
 
-  const ganhos = txs?.filter(t => t.type === "GANHO").reduce((s, t) => s + t.amount, 0) ?? 0
-  const gastos = txs?.filter(t => t.type === "GASTO").reduce((s, t) => s + t.amount, 0) ?? 0
-  const saldo  = ganhos - gastos
-  const caixa  = accounts?.reduce((s, a) => s + a.balance, 0) ?? 0
+  const ganhos   = txs?.filter(t => t.type === "GANHO").reduce((s, t) => s + t.amount, 0) ?? 0
+  const gastos   = txs?.filter(t => t.type === "GASTO").reduce((s, t) => s + t.amount, 0) ?? 0
   const poupanca = ganhos > 0 ? ((ganhos - gastos) / ganhos) * 100 : 0
+  const safe     = computeSafeToSpend(accounts ?? [], txs ?? [])
+
+  const investido    = investments?.reduce((s, i) => s + i.quantity * i.current_price, 0) ?? 0
+  const patrimonio   = safe.caixa + investido
+  const aporteMensal = averageMonthlyNet(history ?? [])
+  const projection   = projectNetWorth(patrimonio, aporteMensal, 12)
+
+  // Monthly aggregates for deltas and sparkline
+  const agg = useMemo(() => aggregateByMonth(history ?? []), [history])
+
+  const currKey = `${year}-${String(month).padStart(2, "0")}`
+  const prevDate = month === 1
+    ? { year: year - 1, month: 12 }
+    : { year, month: month - 1 }
+  const prevKey = `${prevDate.year}-${String(prevDate.month).padStart(2, "0")}`
+
+  const prevAgg     = agg[prevKey] ?? { ganhos: 0, gastos: 0 }
+  const deltaGanhos = prevAgg.ganhos > 0
+    ? ((ganhos - prevAgg.ganhos) / prevAgg.ganhos) * 100
+    : undefined
+  const deltaGastos = prevAgg.gastos > 0
+    ? ((gastos - prevAgg.gastos) / prevAgg.gastos) * 100
+    : undefined
+
+  // Sparkline: 6 months of net ending at current month
+  const sparklineNet = useMemo(() => Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(year, month - 1 - (5 - i), 1)
+    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+    const m = agg[k] ?? { ganhos: 0, gastos: 0 }
+    return m.ganhos - m.gastos
+  }), [agg, year, month])
 
   // Category breakdown for pie chart
   const catMap: Record<string, number> = {}
@@ -47,14 +100,39 @@ export default function HomePage() {
     .sort((a, b) => b.value - a.value)
 
   const recentTxs = txs?.slice(0, 5) ?? []
-  const subtitle = `${MESES_PT[month - 1]} ${year}`
   const isLoading = txLoading || accLoading
+
+  // Month navigation subtitle
+  const monthNav = (
+    <div className="flex items-center gap-2 text-[var(--ink-3)]">
+      <button
+        type="button"
+        onClick={prevMonth}
+        className="w-5 h-5 flex items-center justify-center rounded hover:text-[var(--ink)] hover:bg-[var(--surface)] transition-colors"
+        aria-label="Mês anterior"
+      >
+        ‹
+      </button>
+      <span className="text-sm font-medium min-w-[72px] text-center">
+        {MESES_PT[month - 1]} {year}
+      </span>
+      <button
+        type="button"
+        onClick={nextMonth}
+        disabled={isCurrentMonth}
+        className="w-5 h-5 flex items-center justify-center rounded hover:text-[var(--ink)] hover:bg-[var(--surface)] transition-colors disabled:opacity-30 disabled:cursor-default"
+        aria-label="Próximo mês"
+      >
+        ›
+      </button>
+    </div>
+  )
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto">
       <PageHeader
         title="Dashboard"
-        subtitle={subtitle}
+        subtitle={monthNav as unknown as string}
         action={
           <Link
             href="/transacoes/novo"
@@ -65,32 +143,60 @@ export default function HomePage() {
         }
       />
 
-      {/* KPI grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-        ) : txError ? (
-          <div className="col-span-4">
-            <EmptyState
-              icon="⚠"
-              title="Erro ao carregar dados"
-              description="Verifique se as migrations Fase 0 foram aplicadas e tente novamente."
+      {isLoading ? (
+        <>
+          <SkeletonCard className="mb-4 h-32" />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+            {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        </>
+      ) : txError ? (
+        <EmptyState
+          icon="⚠"
+          title="Erro ao carregar dados"
+          description="Verifique se as migrations Fase 0 foram aplicadas e tente novamente."
+        />
+      ) : (
+        <>
+          {/* 1. Estado real no topo: o que sobra depois das contas */}
+          <SafeToSpendHero data={safe} />
+
+          {/* 2. O que ameaça esse número */}
+          <UpcomingBills bills={safe.upcoming} />
+
+          {/* 3. KPIs com delta vs mês anterior + sparkline de saldo */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+            <KpiCard
+              label="Entradas · mês"
+              value={ganhos}
+              format="brl"
+              accent
+              delta={deltaGanhos}
+              sparkline={sparklineNet}
+            />
+            <KpiCard
+              label="Saídas · mês"
+              value={gastos}
+              format="brl"
+              delta={deltaGastos}
+            />
+            <KpiCard
+              label="Taxa de poupança"
+              value={poupanca}
+              format="pct"
             />
           </div>
-        ) : (
-          <>
-            <KpiCard label="Caixa disponível" value={caixa} format="brl" />
-            <KpiCard label="Entradas · mês" value={ganhos} format="brl" accent />
-            <KpiCard label="Saídas · mês" value={gastos} format="brl" />
-            <KpiCard label="Taxa de poupança" value={poupanca} format="pct" />
-          </>
-        )}
-      </div>
 
-      {/* Charts */}
+          {/* 4. Para onde isso vai — projeção de patrimônio */}
+          {patrimonio > 0 && (
+            <NetWorthProjection points={projection} current={patrimonio} monthlyNet={aporteMensal} />
+          )}
+        </>
+      )}
+
+      {/* Donut — gastos por categoria */}
       {!isLoading && !txError && txs && txs.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Donut — gastos por categoria */}
+        <div className="mb-6">
           <KCard>
             <p className="text-xs font-medium text-[var(--ink-3)] uppercase tracking-wide mb-3">
               Gastos por categoria
@@ -136,35 +242,6 @@ export default function HomePage() {
               </p>
             )}
           </KCard>
-
-          {/* Bar — saldo do mês */}
-          <KCard>
-            <p className="text-xs font-medium text-[var(--ink-3)] uppercase tracking-wide mb-3">
-              Entradas × Saídas
-            </p>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart
-                data={[{ mes: subtitle, Entradas: ganhos, Saídas: gastos }]}
-                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="mes" tick={{ fill: "var(--ink-4)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "var(--ink-4)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
-                <Tooltip
-                  formatter={(v) => typeof v === "number" ? fmtBRL(v) : v}
-                  contentStyle={{
-                    background: "var(--card)",
-                    border: "1px solid var(--rule)",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                    color: "var(--ink)",
-                  }}
-                />
-                <Bar dataKey="Entradas" fill="var(--pos)" radius={[3,3,0,0]} />
-                <Bar dataKey="Saídas" fill="#3B82F6" radius={[3,3,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </KCard>
         </div>
       )}
 
@@ -182,13 +259,11 @@ export default function HomePage() {
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)
         ) : recentTxs.length > 0 ? (
-          <ul>
+          <div className="divide-y divide-[var(--rule)]">
             {recentTxs.map((tx) => (
-              <li key={tx.id} className="border-b border-[var(--rule)] last:border-0">
-                <TxRow tx={tx} />
-              </li>
+              <TxRow key={tx.id} tx={tx} />
             ))}
-          </ul>
+          </div>
         ) : (
           <EmptyState
             title="Nenhuma transação este mês"
