@@ -24,6 +24,32 @@ type TxType = "GASTO" | "GANHO" | "TODOS"
 
 const MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
 
+function parseDateLocal(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function formatDateLabel(dateStr: string): string {
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const d     = parseDateLocal(dateStr)
+  const diff  = Math.round((today.getTime() - d.getTime()) / 86400000)
+  if (diff === 0) return "Hoje"
+  if (diff === 1) return "Ontem"
+  return d.toLocaleDateString("pt-BR", { day: "numeric", month: "short" })
+}
+
+function groupByDate(txs: Transaction[]): { date: string; txs: Transaction[] }[] {
+  const map = new Map<string, Transaction[]>()
+  for (const tx of txs) {
+    const group = map.get(tx.date) ?? []
+    group.push(tx)
+    map.set(tx.date, group)
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([date, txs]) => ({ date, txs }))
+}
+
 function useNow() {
   const now = new Date()
   return { year: now.getFullYear(), month: now.getMonth() + 1 }
@@ -161,21 +187,43 @@ export default function TransacoesPage() {
             }
           />
         ) : (
-          <ul>
-            {filtered.map((tx) => (
-              <li key={tx.id} className="group border-b border-[var(--rule)] last:border-0 relative">
-                <TxRow tx={tx} onClick={() => openEdit(tx)} />
-                {/* Delete button on hover */}
-                <button
-                  onClick={(e) => { e.stopPropagation(); setConfirmDelete(tx.id) }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-xs text-[var(--ink-4)] hover:text-[var(--neg)] px-2 py-1 transition-all"
-                  aria-label="Excluir transação"
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div>
+            {groupByDate(filtered).map(({ date, txs: dayTxs }) => {
+              const dayGanhos = dayTxs
+                .filter(t => t.type === "GANHO")
+                .reduce((s, t) => s + t.amount, 0)
+              const dayGastos = dayTxs
+                .filter(t => t.type === "GASTO")
+                .reduce((s, t) => s + t.amount, 0)
+              const dayNet = dayGanhos - dayGastos
+              return (
+                <div key={date}>
+                  {/* Date separator with daily net */}
+                  <div className="flex items-center justify-between px-4 py-2 bg-[var(--surface)] border-b border-[var(--rule)]">
+                    <span className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wide">
+                      {formatDateLabel(date)}
+                    </span>
+                    <span className={cn(
+                      "text-xs font-medium tabular",
+                      dayNet > 0 ? "text-[var(--pos)]" : "text-[var(--ink-3)]",
+                    )}>
+                      {dayNet >= 0 ? "+" : "−"}{fmtBRL(Math.abs(dayNet))}
+                    </span>
+                  </div>
+                  {/* Transactions for the day */}
+                  {dayTxs.map((tx, i) => (
+                    <TxRow
+                      key={tx.id}
+                      tx={tx}
+                      onClick={() => openEdit(tx)}
+                      onDelete={() => setConfirmDelete(tx.id)}
+                      className={i < dayTxs.length - 1 ? "border-b border-[var(--rule)]" : ""}
+                    />
+                  ))}
+                </div>
+              )
+            })}
+          </div>
         )}
       </KCard>
 
