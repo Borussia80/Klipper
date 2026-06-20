@@ -6,6 +6,7 @@ const LINKS = [
   { href: "/investimentos", label: "Investimentos", icon: "📈", desc: "Carteira, FIIs, posições" },
   { href: "/kira",          label: "Kira IA",       icon: "🤖", desc: "Assistente financeiro" },
   { href: "/contas",        label: "Contas",         icon: "🏦", desc: "Contas bancárias e cartões" },
+  { href: "/mais/regras",   label: "Regras",         icon: "⚡", desc: "Auto-categorização de transações" },
 ] as const
 
 export default function MaisPage() {

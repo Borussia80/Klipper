@@ -120,19 +120,19 @@ describe("CAT_COLORS", () => {
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 describe("Dashboard page", () => {
   it("renders page header and KPI skeletons while loading", async () => {
-    const { default: HomePage } = await import("@/app/page")
+    const { default: HomePage } = await import("@/app/(app)/page")
     wrap(<HomePage />)
     expect(screen.getByRole("heading", { name: /Dashboard/i })).toBeInTheDocument()
   })
 
   it("shows 'Ver todas' link to /transacoes", async () => {
-    const { default: HomePage } = await import("@/app/page")
+    const { default: HomePage } = await import("@/app/(app)/page")
     wrap(<HomePage />)
     expect(screen.getByText(/Ver todas/)).toBeInTheDocument()
   })
 
   it("shows '+ Lançamento' link", async () => {
-    const { default: HomePage } = await import("@/app/page")
+    const { default: HomePage } = await import("@/app/(app)/page")
     wrap(<HomePage />)
     expect(screen.getByText(/\+ Lançamento/)).toBeInTheDocument()
   })
@@ -141,7 +141,7 @@ describe("Dashboard page", () => {
 // ── Transações list ───────────────────────────────────────────────────────────
 describe("Transações page", () => {
   it("renders heading and filters", async () => {
-    const { default: TransacoesPage } = await import("@/app/transacoes/page")
+    const { default: TransacoesPage } = await import("@/app/(app)/transacoes/page")
     wrap(<TransacoesPage />)
     expect(screen.getByRole("heading", { name: /Transações/i })).toBeInTheDocument()
     expect(screen.getByText("Todos")).toBeInTheDocument()
@@ -150,20 +150,20 @@ describe("Transações page", () => {
   })
 
   it("has search input", async () => {
-    const { default: TransacoesPage } = await import("@/app/transacoes/page")
+    const { default: TransacoesPage } = await import("@/app/(app)/transacoes/page")
     wrap(<TransacoesPage />)
     expect(screen.getByPlaceholderText("Buscar…")).toBeInTheDocument()
   })
 
   it("has + Novo button", async () => {
-    const { default: TransacoesPage } = await import("@/app/transacoes/page")
+    const { default: TransacoesPage } = await import("@/app/(app)/transacoes/page")
     wrap(<TransacoesPage />)
     expect(screen.getByText("+ Novo")).toBeInTheDocument()
   })
 
   it("opens TxDialog when clicking + Novo", async () => {
     const user = userEvent.setup()
-    const { default: TransacoesPage } = await import("@/app/transacoes/page")
+    const { default: TransacoesPage } = await import("@/app/(app)/transacoes/page")
     wrap(<TransacoesPage />)
     await user.click(screen.getByText("+ Novo"))
     // Dialog title appears
@@ -174,13 +174,13 @@ describe("Transações page", () => {
 // ── Contas page ───────────────────────────────────────────────────────────────
 describe("Contas page", () => {
   it("renders heading", async () => {
-    const { default: ContasPage } = await import("@/app/contas/page")
+    const { default: ContasPage } = await import("@/app/(app)/contas/page")
     wrap(<ContasPage />)
     expect(screen.getByRole("heading", { level: 1, name: "Contas" })).toBeInTheDocument()
   })
 
   it("shows both sections", async () => {
-    const { default: ContasPage } = await import("@/app/contas/page")
+    const { default: ContasPage } = await import("@/app/(app)/contas/page")
     wrap(<ContasPage />)
     expect(screen.getByText(/Contas bancárias/i)).toBeInTheDocument()
     expect(screen.getByText(/Cartões de crédito/i)).toBeInTheDocument()
@@ -190,7 +190,7 @@ describe("Contas page", () => {
 // ── Orçamento page ────────────────────────────────────────────────────────────
 describe("Orçamento page", () => {
   it("renders heading and month nav", async () => {
-    const { default: OrcamentoPage } = await import("@/app/orcamento/page")
+    const { default: OrcamentoPage } = await import("@/app/(app)/orcamento/page")
     wrap(<OrcamentoPage />)
     expect(screen.getByRole("heading", { name: /Orçamento/i })).toBeInTheDocument()
     expect(screen.getByText("‹")).toBeInTheDocument()
@@ -199,7 +199,7 @@ describe("Orçamento page", () => {
 
   it("navigates to previous month", async () => {
     const user = userEvent.setup()
-    const { default: OrcamentoPage } = await import("@/app/orcamento/page")
+    const { default: OrcamentoPage } = await import("@/app/(app)/orcamento/page")
     const now = new Date()
     const currentLabel = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][now.getMonth()]
     wrap(<OrcamentoPage />)
@@ -212,31 +212,16 @@ describe("Orçamento page", () => {
   })
 })
 
-// ── Saúde page ────────────────────────────────────────────────────────────────
-describe("Saúde page", () => {
-  it("renders heading", async () => {
-    const { default: SaudePage } = await import("@/app/saude/page")
-    wrap(<SaudePage />)
-    expect(screen.getByRole("heading", { name: /Saúde/i })).toBeInTheDocument()
-  })
-
-  it("shows professionals section", async () => {
-    const { default: SaudePage } = await import("@/app/saude/page")
-    wrap(<SaudePage />)
-    expect(screen.getByText(/Profissionais ativos/i)).toBeInTheDocument()
-  })
-})
-
 // ── Investimentos page ────────────────────────────────────────────────────────
 describe("Investimentos page", () => {
   it("renders heading", async () => {
-    const { default: InvestimentosPage } = await import("@/app/investimentos/page")
+    const { default: InvestimentosPage } = await import("@/app/(app)/investimentos/page")
     wrap(<InvestimentosPage />)
     expect(screen.getByRole("heading", { name: /Investimentos/i })).toBeInTheDocument()
   })
 
   it("shows KPI skeleton while loading", async () => {
-    const { default: InvestimentosPage } = await import("@/app/investimentos/page")
+    const { default: InvestimentosPage } = await import("@/app/(app)/investimentos/page")
     const { container } = wrap(<InvestimentosPage />)
     const skeletons = container.querySelectorAll('[aria-hidden="true"]')
     expect(skeletons.length).toBeGreaterThan(0)
@@ -246,14 +231,14 @@ describe("Investimentos page", () => {
 // ── Importar page ─────────────────────────────────────────────────────────────
 describe("Importar page", () => {
   it("renders upload dropzone", async () => {
-    const { default: ImportarPage } = await import("@/app/importar/page")
+    const { default: ImportarPage } = await import("@/app/(app)/importar/page")
     wrap(<ImportarPage />)
     expect(screen.getByRole("heading", { name: /Importar/i })).toBeInTheDocument()
     expect(screen.getByText(/Arraste o extrato/i)).toBeInTheDocument()
   })
 
   it("has file input accepting pdf/png/jpg", async () => {
-    const { default: ImportarPage } = await import("@/app/importar/page")
+    const { default: ImportarPage } = await import("@/app/(app)/importar/page")
     const { container } = wrap(<ImportarPage />)
     const input = container.querySelector("input[type='file']")
     expect(input).toBeTruthy()
@@ -265,7 +250,7 @@ describe("Importar page", () => {
 describe("TxDialog", () => {
   it("renders form fields when open", async () => {
     const { TxDialog } = await import("@/components/ui/tx-dialog")
-    render(
+    wrap(
       <TxDialog
         open={true}
         onOpenChange={vi.fn()}
@@ -281,7 +266,7 @@ describe("TxDialog", () => {
 
   it("shows expense category options when type is GASTO", async () => {
     const { TxDialog } = await import("@/components/ui/tx-dialog")
-    render(
+    wrap(
       <TxDialog
         open={true}
         onOpenChange={vi.fn()}

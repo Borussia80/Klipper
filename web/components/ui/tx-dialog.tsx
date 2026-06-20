@@ -11,16 +11,19 @@ import {
   CATEGORIES_GANHO,
   PAYMENT_METHODS,
 } from "@/lib/tx-schema"
+import { CategoryChip } from "@/components/ui/category-chip"
+import { useCategorySuggest } from "@/lib/queries/useCategorySuggest"
+import { useRules } from "@/lib/queries/useRules"
 import type { Database } from "@/types/database"
 
 type Transaction = Database["public"]["Tables"]["transactions"]["Row"]
 
 interface TxDialogProps {
-  open: boolean
+  open:         boolean
   onOpenChange: (open: boolean) => void
-  initial?: Partial<Transaction>
-  onSubmit: (values: TxFormValues) => Promise<void>
-  title?: string
+  initial?:     Partial<Transaction>
+  onSubmit:     (values: TxFormValues) => Promise<void>
+  title?:       string
 }
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
@@ -43,6 +46,7 @@ export function TxDialog({ open, onOpenChange, initial, onSubmit, title = "Lanç
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<TxFormValues>({
     resolver: zodResolver(txSchema) as Resolver<TxFormValues>,
@@ -54,11 +58,19 @@ export function TxDialog({ open, onOpenChange, initial, onSubmit, title = "Lanç
       notes:          initial?.notes ?? "",
       payment_method: (initial?.payment_method as TxFormValues["payment_method"]) ?? "PIX",
       status:         (initial?.status as TxFormValues["status"]) ?? "PAGO",
+      n_installments: 1,
+      confirmed:      false,
+      is_recurring:   false,
     },
   })
 
-  const txType = watch("type")
-  const categories = txType === "GANHO" ? CATEGORIES_GANHO : CATEGORIES_GASTO
+  const txType      = watch("type")
+  const payMethod   = watch("payment_method")
+  const notesValue  = watch("notes") ?? ""
+  const categories  = txType === "GANHO" ? CATEGORIES_GANHO : CATEGORIES_GASTO
+  const { data: rules = [] } = useRules()
+  const amountValue  = watch("amount") as number | undefined
+  const suggestion   = useCategorySuggest(notesValue, amountValue ?? 0, rules)
 
   async function onValid(values: TxFormValues) {
     await onSubmit(values)
@@ -116,16 +128,6 @@ export function TxDialog({ open, onOpenChange, initial, onSubmit, title = "Lanç
               </Field>
             </div>
 
-            {/* Categoria */}
-            <Field label="Categoria" error={errors.category?.message}>
-              <select {...register("category")} className={inputCls}>
-                <option value="">Selecionar…</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </Field>
-
             {/* Descrição */}
             <Field label="Descrição" error={errors.notes?.message}>
               <input
@@ -134,6 +136,23 @@ export function TxDialog({ open, onOpenChange, initial, onSubmit, title = "Lanç
                 {...register("notes")}
                 className={inputCls}
               />
+            </Field>
+
+            {/* Categoria + sugestão */}
+            <Field label="Categoria" error={errors.category?.message}>
+              <select {...register("category")} className={inputCls}>
+                <option value="">Selecionar…</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              {suggestion && (
+                <CategoryChip
+                  suggestion={suggestion}
+                  onAccept={(cat) => setValue("category", cat, { shouldValidate: true })}
+                  className="mt-1 self-start"
+                />
+              )}
             </Field>
 
             {/* Método + Status */}
@@ -153,6 +172,25 @@ export function TxDialog({ open, onOpenChange, initial, onSubmit, title = "Lanç
                 </select>
               </Field>
             </div>
+
+            {/* Parcelas — só aparece com Cartão de Crédito */}
+            {payMethod === "CARTAO_CREDITO" && (
+              <Field label="Parcelas" error={errors.n_installments?.message}>
+                <input
+                  type="number"
+                  min={1}
+                  max={48}
+                  {...register("n_installments")}
+                  className={inputCls}
+                />
+              </Field>
+            )}
+
+            {/* Confirmado (grava memória de categorização) */}
+            <label className="flex items-center gap-2 text-sm text-[var(--ink-3)] cursor-pointer">
+              <input type="checkbox" {...register("confirmed")} className="rounded" />
+              Confirmar categoria (aprende para lançamentos futuros)
+            </label>
 
             {/* Actions */}
             <div className="flex gap-2 pt-2">
