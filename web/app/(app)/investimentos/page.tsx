@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { InvestmentDialog } from "@/components/ui/investment-dialog"
 import { useInvestments, useDeleteInvestment, type Investment } from "@/lib/queries/useInvestments"
 import { useM1Score, useFragility, useRunAnalysis } from "@/lib/queries/useEngines"
-import { fmtBRL, fmtPct } from "@/lib/utils"
+import { fmtBRL, fmtPct, chartTooltipStyle } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts"
 
@@ -260,13 +260,7 @@ export default function InvestimentosPage() {
                   </Pie>
                   <Tooltip
                     formatter={(v) => fmtBRL(v as number)}
-                    contentStyle={{
-                      background: "var(--card)",
-                      border: "1px solid var(--rule)",
-                      borderRadius: "6px",
-                      fontSize: "11px",
-                      color: "var(--ink)",
-                    }}
+                    contentStyle={chartTooltipStyle}
                   />
                 </PieChart>
               </ResponsiveContainer>
