@@ -16,7 +16,7 @@ import { averageMonthlyNet, projectNetWorth } from "@/lib/finance/projection"
 import { useTransactions, useMonthlyTotals } from "@/lib/queries/useTransactions"
 import { useBankAccounts } from "@/lib/queries/useAccounts"
 import { useInvestments } from "@/lib/queries/useInvestments"
-import { fmtBRL } from "@/lib/utils"
+import { fmtBRL, chartTooltipStyle } from "@/lib/utils"
 import { CAT_COLORS } from "@/lib/tx-schema"
 import Link from "next/link"
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts"
@@ -220,7 +220,7 @@ export default function HomePage() {
           <UpcomingBills bills={safe.upcoming} />
 
           {/* 4. KPIs com delta vs mês anterior + sparkline de saldo */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 animate-fade-up">
             <KpiCard
               label="Entradas · mês"
               value={ganhos}
@@ -277,13 +277,7 @@ export default function HomePage() {
                   </Pie>
                   <Tooltip
                     formatter={(v) => typeof v === "number" ? fmtBRL(v) : v}
-                    contentStyle={{
-                      background: "var(--card)",
-                      border: "1px solid var(--rule)",
-                      borderRadius: "6px",
-                      fontSize: "12px",
-                      color: "var(--ink)",
-                    }}
+                    contentStyle={chartTooltipStyle}
                   />
                   <Legend
                     iconSize={8}
@@ -321,7 +315,9 @@ export default function HomePage() {
           </div>
         ) : (
           <EmptyState
+            icon="🪙"
             title="Nenhuma transação este mês"
+            description="Registre entradas e saídas para ver seu resumo financeiro."
             action={
               <Link
                 href="/transacoes/novo"

@@ -81,6 +81,15 @@ body {
 /* ── Números: sempre tabular ────────────────────────────────────────────────── */
 .tabular { font-variant-numeric: tabular-nums; }
 
+/* ── Animação de entrada dos cards ─────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 200ms ease-out both;
+}
+
 /* ── Focus visível — a11y obrigatório ──────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--brass);

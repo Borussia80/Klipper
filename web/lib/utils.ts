@@ -5,6 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** Shared contentStyle for all Recharts Tooltip components. */
+export const chartTooltipStyle = {
+  background:   "var(--card)",
+  border:       "1px solid var(--rule)",
+  borderRadius: "6px",
+  fontSize:     "12px",
+  color:        "var(--ink)",
+  boxShadow:    "0 4px 12px rgba(0,0,0,0.2)",
+  padding:      "8px 10px",
+}
+
 export function fmtBRL(value: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
 }
