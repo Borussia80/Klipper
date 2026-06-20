@@ -1,5 +1,7 @@
 // Auto-gerado do schema Supabase (migrations 001–005b)
-// Regenerar após migrations: npx supabase gen types typescript --linked > types/database.ts
+// Atualizado manualmente para migrações 006–007 (is_recurring, transaction_splits).
+// Módulo Saúde removido: reembolsos do Pedro vivem no projeto Gestor-Reembolsos (desktop).
+// Regenerar após próximas migrations: npx supabase gen types typescript --linked > types/database.ts
 
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
 
@@ -18,7 +20,8 @@ export interface Database {
           account_id: string | null
           card_id: string | null
           installment_id: string | null
-          status: "PAGO" | "PENDENTE" | "AGENDADO"
+          status: "PAGO" | "PENDENTE" | "AGENDADO" | "PENDENTE_SYNC"
+          is_recurring: boolean
           user_id: string
           created_at: string
         }
@@ -34,6 +37,7 @@ export interface Database {
           card_id?: string | null
           installment_id?: string | null
           status?: "PAGO" | "PENDENTE" | "AGENDADO"
+          is_recurring?: boolean
           user_id?: string
           created_at?: string
         }
@@ -49,6 +53,7 @@ export interface Database {
           card_id?: string | null
           installment_id?: string | null
           status?: "PAGO" | "PENDENTE" | "AGENDADO"
+          is_recurring?: boolean
           user_id?: string
           created_at?: string
         }
@@ -175,6 +180,7 @@ export interface Database {
           sector: string
           fragility_score: number
           notes: string
+          user_id: string
           updated_at: string
         }
         Insert: {
@@ -192,6 +198,7 @@ export interface Database {
           sector?: string
           fragility_score?: number
           notes?: string
+          user_id?: string
           updated_at?: string
         }
         Update: {
@@ -209,42 +216,49 @@ export interface Database {
           sector?: string
           fragility_score?: number
           notes?: string
+          user_id?: string
           updated_at?: string
         }
         Relationships: []
       }
-      health_professionals: {
+      categorization_rules: {
         Row: {
-          id: string
-          name: string
-          specialty: "FONOAUDIOLOGIA" | "TERAPIA_OCUPACIONAL" | "PSICOLOGIA" | "PSIQUIATRIA" | "NEUROLOGIA" | "FISIOTERAPIA" | "OUTRO"
-          council_number: string | null
-          is_active: boolean
-          user_id: string
+          id:         string
+          priority:   number
+          field:      "notes" | "amount"
+          operator:   "contains" | "starts_with" | "equals" | "greater_than" | "less_than" | "regex"
+          value:      string
+          category:   string
+          is_active:  boolean
+          user_id:    string
           created_at: string
         }
         Insert: {
-          id?: string
-          name: string
-          specialty: "FONOAUDIOLOGIA" | "TERAPIA_OCUPACIONAL" | "PSICOLOGIA" | "PSIQUIATRIA" | "NEUROLOGIA" | "FISIOTERAPIA" | "OUTRO"
-          council_number?: string | null
+          id?:        string
+          priority?:  number
+          field:      "notes" | "amount"
+          operator:   "contains" | "starts_with" | "equals" | "greater_than" | "less_than" | "regex"
+          value:      string
+          category:   string
           is_active?: boolean
-          user_id?: string
+          user_id?:   string
           created_at?: string
         }
         Update: {
-          id?: string
-          name?: string
-          specialty?: "FONOAUDIOLOGIA" | "TERAPIA_OCUPACIONAL" | "PSICOLOGIA" | "PSIQUIATRIA" | "NEUROLOGIA" | "FISIOTERAPIA" | "OUTRO"
-          council_number?: string | null
+          id?:        string
+          priority?:  number
+          field?:     "notes" | "amount"
+          operator?:  "contains" | "starts_with" | "equals" | "greater_than" | "less_than" | "regex"
+          value?:     string
+          category?:  string
           is_active?: boolean
-          user_id?: string
+          user_id?:   string
           created_at?: string
         }
         Relationships: []
       }
-    }
-    Views: { [_ in never]: never }
+      }
+  Views: { [_ in never]: never }
     Functions: { [_ in never]: never }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }
