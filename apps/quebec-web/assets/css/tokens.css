@@ -1,0 +1,33 @@
+/* Quebec design tokens — self-contained, not shared until klipper-web exists */
+:root {
+  /* Background layers */
+  --bg:      #060A12;
+  --surface: #0B1220;
+  --card:    #151D2A;
+
+  /* Text */
+  --ink:   #F8FAFC;
+  --ink-2: #94A3B8;
+  --ink-3: #4E6B87;
+
+  /* Brand accent */
+  --accent:   #4F7BFF;
+  --accent-2: #2563EB;
+  --accent-dim: rgba(79, 123, 255, 0.10);
+  --accent-border: rgba(79, 123, 255, 0.20);
+
+  /* Structure */
+  --border: #263041;
+  --rule:   rgba(255, 255, 255, 0.06);
+
+  /* Status */
+  --status-live:      #22C55E;
+  --status-live-bg:   rgba(34, 197, 94, 0.08);
+  --status-live-border: rgba(34, 197, 94, 0.20);
+  --status-building:      #F59E0B;
+  --status-building-bg:   rgba(245, 158, 11, 0.08);
+  --status-building-border: rgba(245, 158, 11, 0.20);
+  --status-available:      #4F7BFF;
+  --status-available-bg:   rgba(79, 123, 255, 0.08);
+  --status-available-border: rgba(79, 123, 255, 0.20);
+}
