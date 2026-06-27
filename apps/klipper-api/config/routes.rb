@@ -14,6 +14,12 @@ Rails.application.routes.draw do
       resources :budgets,       only: %i[index show create update destroy] do
         collection { get :summary }
       end
+
+      resource :users, only: [] do
+        get   :me,       on: :collection
+        patch :me,       on: :collection, action: :update
+        post  :password, on: :collection
+      end
     end
   end
 end
