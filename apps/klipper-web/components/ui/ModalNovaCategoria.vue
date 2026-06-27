@@ -75,6 +75,7 @@ defineProps<{ open: boolean }>()
 const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
+const { createCategory } = useCategories()
 
 const CATEGORY_ICONS = [
   { name: 'shopping',   label: 'Mercado' },
@@ -95,6 +96,11 @@ const CATEGORY_ICONS = [
   { name: 'wallet',     label: 'Carteira' },
 ]
 
+const ICON_TO_CATEGORY_TYPE: Record<string, string> = {
+  income: 'income',
+  transfer: 'transfer',
+}
+
 const selectedIcon = ref('shopping')
 const nome = ref('')
 const limite = ref('')
@@ -113,8 +119,12 @@ async function submit() {
   if (error.value) return
   isLoading.value = true
   try {
-    await new Promise(r => setTimeout(r, 600))
-    addToast('Categoria criada', 'ok')
+    await createCategory({
+      name: nome.value.trim(),
+      icon: selectedIcon.value || 'wallet',
+      category_type: ICON_TO_CATEGORY_TYPE[selectedIcon.value] ?? 'expense',
+      color: '#6B93AE',
+    })
     nome.value = ''
     limite.value = ''
     selectedIcon.value = 'shopping'

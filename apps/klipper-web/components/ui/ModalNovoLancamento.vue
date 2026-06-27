@@ -48,18 +48,8 @@
         <p class="plbl">Categoria</p>
         <div class="select-wrap">
           <select v-model="categoria" class="field select" aria-label="Categoria do lançamento">
-            <option value="alimentacao">Alimentação</option>
-            <option value="moradia">Moradia</option>
-            <option value="transporte">Transporte</option>
-            <option value="saude">Saúde</option>
-            <option value="lazer">Lazer</option>
-            <option value="restaurantes">Restaurantes</option>
-            <option value="vestuario">Vestuário</option>
-            <option value="utilidades">Utilidades</option>
-            <option value="educacao">Educação</option>
-            <option value="renda">Renda</option>
-            <option value="investimento">Investimento</option>
-            <option value="transferencia">Transferência</option>
+            <option :value="null">Sem categoria</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
           </select>
           <span class="select-arrow">▾</span>
         </div>
@@ -69,10 +59,8 @@
         <p class="plbl">Conta</p>
         <div class="select-wrap">
           <select v-model="conta" class="field select" aria-label="Conta de origem">
-            <option value="nubank-conta">Nubank Conta</option>
-            <option value="nubank-credito">Nubank Crédito</option>
-            <option value="itau">Itaú</option>
-            <option value="btg">BTG Pactual</option>
+            <option :value="null">Selecionar conta</option>
+            <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
           </select>
           <span class="select-arrow">▾</span>
         </div>
@@ -116,6 +104,11 @@ const props = defineProps<{ open: boolean }>()
 const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
+const { accounts, fetchAccounts } = useAccounts()
+const { categories, fetchCategories } = useCategories()
+const { createTransaction } = useTransactions()
+
+onMounted(() => { fetchAccounts(); fetchCategories() })
 
 const tipoOpcoes = [
   { value: 'gasto', label: 'Gasto' },
@@ -126,8 +119,8 @@ const tipoOpcoes = [
 const tipo = ref<'gasto' | 'receita' | 'transferencia'>('gasto')
 const valor = ref('')
 const descricao = ref('')
-const categoria = ref('alimentacao')
-const conta = ref('nubank-conta')
+const categoria = ref<number | null>(null)
+const conta = ref<number | null>(null)
 const data = ref(new Date().toISOString().split('T')[0])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
@@ -151,11 +144,21 @@ async function submit() {
 
   isLoading.value = true
   try {
-    await new Promise((r) => setTimeout(r, 600))
-    addToast(`${ctaLabel.value.replace('Registrar', 'Lançamento')} registrado`, 'ok')
+    const amount = parseFloat(valor.value.replace(',', '.'))
+    const txType = tipo.value === 'receita' ? 'credit' : tipo.value === 'transferencia' ? 'transfer' : 'debit'
+    await createTransaction({
+      account_id: conta.value ?? undefined,
+      category_id: categoria.value ?? undefined,
+      description: descricao.value.trim(),
+      amount: String(amount),
+      transaction_type: txType,
+      occurred_on: data.value,
+    })
     emit('close')
     valor.value = ''
     descricao.value = ''
+    conta.value = null
+    categoria.value = null
   } catch {
     addToast('Erro ao salvar. Tente novamente.', 'alert')
   } finally {

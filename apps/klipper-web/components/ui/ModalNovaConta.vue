@@ -66,6 +66,15 @@ defineProps<{ open: boolean }>()
 const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
+const { createAccount } = useAccounts()
+
+const ACCOUNT_TYPE_MAP: Record<string, string> = {
+  corrente: 'checking',
+  poupanca: 'savings',
+  digital: 'digital',
+  cartao: 'credit_card',
+  investimento: 'investment',
+}
 
 const instituicao = ref('')
 const tipo = ref('corrente')
@@ -84,8 +93,15 @@ async function submit() {
   if (error.value) return
   isLoading.value = true
   try {
-    await new Promise(r => setTimeout(r, 600))
-    addToast('Conta adicionada', 'ok')
+    const name = identificador.value.trim()
+      ? `${instituicao.value.trim()} – ${identificador.value.trim()}`
+      : instituicao.value.trim()
+    await createAccount({
+      name,
+      institution: instituicao.value.trim(),
+      account_type: ACCOUNT_TYPE_MAP[tipo.value] ?? 'checking',
+      currency: 'BRL',
+    })
     instituicao.value = ''
     identificador.value = ''
     tipo.value = 'corrente'

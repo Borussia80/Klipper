@@ -98,6 +98,7 @@ defineProps<{ open: boolean }>()
 const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
+const { createInvestment } = useInvestments()
 
 const tipoOp = ref<'compra' | 'venda'>('compra')
 const ativo = ref('')
@@ -121,11 +122,18 @@ async function submit() {
   if (error.value) return
   isLoading.value = true
   try {
-    await new Promise(r => setTimeout(r, 600))
-    addToast(`${tipoOp.value === 'compra' ? 'Compra' : 'Venda'} registrada`, 'ok')
+    await createInvestment({
+      ticker: ativo.value.trim().toUpperCase(),
+      name: ativo.value.trim().toUpperCase(),
+      investment_type: 'stock',
+      quantity: parseFloat(quantidade.value),
+      average_price: parseFloat(preco.value.replace(',', '.')),
+      currency: 'BRL',
+    })
     ativo.value = ''
     quantidade.value = ''
     preco.value = ''
+    data.value = new Date().toISOString().split('T')[0]
     emit('close')
   } catch {
     addToast('Erro ao salvar. Tente novamente.', 'alert')

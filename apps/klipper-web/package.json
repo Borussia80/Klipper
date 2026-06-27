@@ -1,0 +1,47 @@
+{
+  "name": "klipper-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "typecheck": "nuxt typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@edusites/bancos-brasil": "^1.2.0",
+    "@lucide/vue": "^1.21.0",
+    "@nuxt/fonts": "^0.10.3",
+    "@nuxt/image": "^1.9.0",
+    "@phosphor-icons/vue": "^2.2.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "lucide-vue-next": "^1.0.0",
+    "nuxt": "^3.15.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.13.3",
+    "unstorage": "^1.17.5"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.16.0",
+    "@nuxt/test-utils": "^4.0.3",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vite-pwa/nuxt": "^1.1.1",
+    "@vue/test-utils": "^2.4.11",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "happy-dom": "^20.10.6",
+    "prettier": "^3.8.4",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.9",
+    "vue-tsc": "^2.2.0"
+  }
+}
