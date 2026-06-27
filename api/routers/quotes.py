@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
 # Adiciona raiz do repo ao path para importar core/
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from api.auth import CurrentUser  # noqa: E402
+from api.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
 

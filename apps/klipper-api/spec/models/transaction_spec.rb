@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe Transaction, type: :model do
   describe "associations" do
     it { is_expected.to belong_to(:user) }
-    it { is_expected.to belong_to(:account) }
+    it { is_expected.to belong_to(:account).optional }
     it { is_expected.to belong_to(:category).optional }
   end
 

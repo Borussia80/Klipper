@@ -15,6 +15,14 @@ Rails.application.routes.draw do
         collection { get :summary }
       end
 
+      resources :quotes, only: [:index]
+      resources :imports, only: [:create]
+
+      namespace :reports do
+        get :monthly
+        get :net_worth
+      end
+
       resource :users, only: [] do
         get   :me,       on: :collection
         patch :me,       on: :collection, action: :update

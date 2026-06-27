@@ -32,9 +32,8 @@ TABLES = [
     "installments",
     "budgets",
     "financial_goals",
-    "health_professionals",
-    "reimbursement_requests",
-    "health_sessions",
+    "category_memory",
+    "transaction_splits",
 ]
 
 

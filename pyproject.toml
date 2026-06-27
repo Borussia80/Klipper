@@ -53,8 +53,8 @@ strict = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-v --tb=short"
+testpaths = ["tests", "api/tests"]
+addopts = "-v --tb=short --import-mode=importlib"
 markers = [
     "slow: testes com I/O real (Redis, APIs, sleep) — excluídos do ciclo local",
 ]

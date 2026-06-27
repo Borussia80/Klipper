@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from typing import AsyncIterator
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from api.auth import CurrentUser  # noqa: E402
+from api.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/kira", tags=["kira"])
 

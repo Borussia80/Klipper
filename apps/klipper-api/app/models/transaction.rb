@@ -1,6 +1,6 @@
 class Transaction < ApplicationRecord
   belongs_to :user
-  belongs_to :account
+  belongs_to :account, optional: true
   belongs_to :category, optional: true
 
   belongs_to :parent_transaction, class_name: "Transaction", optional: true

@@ -1,18 +1,18 @@
-streamlit>=1.40.0
-# API FastAPI (Railway)
+# API FastAPI (Railway) — stack: PWA (Vercel) + API (Railway). Streamlit removido.
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
 python-jose[cryptography]>=3.3.0
 python-multipart>=0.0.12
 # Market data
 yfinance>=0.2.54
+beautifulsoup4>=4.12.0  # dependência do yfinance (parsing HTML)
 redis>=5.0.0
 fakeredis>=2.26.0
 httpx>=0.27.0
 python-dateutil>=2.9.0
 supabase==2.10.0
 pydantic>=2.0.0
-plotly>=5.24.0
+rapidfuzz>=3.14.0
 pandas>=2.2.0
 python-dotenv>=1.0.0
 litellm>=1.55.0

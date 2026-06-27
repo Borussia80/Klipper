@@ -15,13 +15,23 @@ import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from api.logging_config import get_logger
+
+logger = get_logger(__name__)
+
+_supabase_url = os.environ.get("SUPABASE_URL")
+if not _supabase_url:
+    raise EnvironmentError(
+        "SUPABASE_URL não definida. Configure a variável de ambiente antes de iniciar a API."
+    )
+
 _bearer = HTTPBearer()
 
 
 @lru_cache(maxsize=1)
 def _jwks() -> dict:
     """Busca as chaves públicas Supabase para verificação JWT (cacheado)."""
-    url = os.environ["SUPABASE_URL"]
+    url = _supabase_url
     resp = httpx.get(f"{url}/auth/v1/.well-known/jwks.json", timeout=10)
     resp.raise_for_status()
     return resp.json()

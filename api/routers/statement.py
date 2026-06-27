@@ -2,22 +2,40 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, UploadFile
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from api.auth import CurrentUser  # noqa: E402
+from api.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/import", tags=["import"])
 
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 
+def _apply_memory(transactions: list, user_id: str) -> None:
+    """Sobrepõe a categoria do parser pela memória do `user_id`, quando ela decide.
+
+    Só altera quando o match veio da camada de histórico (source == "history") —
+    senão manteria o palpite rule/fuzzy que o parser já produziu. Altera in-place.
+    """
+    from core.categorizer import categorize  # type: ignore
+    from core.repositories import CategoryMemoryRepository  # type: ignore
+
+    history = CategoryMemoryRepository().load_history(user_id)
+    if not history:
+        return
+    for tx in transactions:
+        guess = categorize(tx.description, history)
+        if guess.source == "history":
+            tx.category = guess.category
+
+
 @router.post("/statement")
-async def import_statement(file: UploadFile, _user: CurrentUser) -> dict:
+async def import_statement(file: UploadFile, user_id: CurrentUser) -> dict:
     """
     Recebe upload de extrato PDF ou PNG.
     Retorna lista de transações parseadas para revisão antes de salvar.
@@ -33,7 +51,11 @@ async def import_statement(file: UploadFile, _user: CurrentUser) -> dict:
     try:
         from core.statement_reader import read_statement  # type: ignore
         result = read_statement(content)
-        transactions = [t.__dict__ for t in result.transactions] if hasattr(result, "transactions") else result
+        if hasattr(result, "transactions"):
+            _apply_memory(result.transactions, user_id)
+            transactions = [t.__dict__ for t in result.transactions]
+        else:
+            transactions = result
         return {
             "count": len(transactions),
             "transactions": [t.model_dump() if hasattr(t, "model_dump") else t for t in transactions],
