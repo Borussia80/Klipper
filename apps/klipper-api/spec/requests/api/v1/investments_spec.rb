@@ -81,7 +81,7 @@ RSpec.describe "Investments API", type: :request do
       post "/api/v1/investments",
         params: { name: "", investment_type: "stock", quantity: 0, average_price: 0, currency: "BRL" }.to_json,
         headers: headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

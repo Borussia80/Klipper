@@ -24,7 +24,7 @@ RSpec.describe "Auth endpoints", type: :request do
         post "/api/v1/auth/sign_up", params: valid_params.to_json,
           headers: { "Content-Type" => "application/json" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(json_response[:errors]).to be_present
       end
     end
@@ -35,7 +35,7 @@ RSpec.describe "Auth endpoints", type: :request do
           params: { email: "new@example.com" }.to_json,
           headers: { "Content-Type" => "application/json" }
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end
