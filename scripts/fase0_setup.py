@@ -155,7 +155,7 @@ def run_migrations(token: str) -> None:
 TABLES = [
     "transactions", "investments", "decisions", "bank_accounts",
     "credit_cards", "installments", "budgets", "financial_goals",
-    "health_professionals", "reimbursement_requests", "health_sessions",
+    "category_memory", "transaction_splits",
 ]
 
 

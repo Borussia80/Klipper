@@ -57,7 +57,9 @@ def test_sinergia_parcelamento_cartao_orcamento_e_saldo_mensal():
 
     assert sum((p.amount for p in parcelas), Decimal(0)) == inst.total_amount
     assert all(p.payment_method == PaymentMethod.CARTAO_CREDITO for p in parcelas)
-    assert card.fatura_atual(maio) == Decimal("33.33")
+    # Fatura de maio fixada explicitamente — não usar fatura_atual() sem mês,
+    # que assume date.today() e torna o teste dependente do relógio.
+    assert card.fatura_por_vencimento(maio, 2026, 5) == Decimal("33.33")
     assert uso_orcamento.gasto == Decimal("33.33")
     assert saldo.total_gastos == Decimal("33.33")
     assert saldo.saldo == Decimal("4966.67")

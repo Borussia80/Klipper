@@ -13,6 +13,7 @@ from models.credit_card import CreditCard
 from models.installment import Installment
 from models.budget import Budget
 
+from .categorizer import categorize, normalize, CategoryGuess
 from .database import get_client
 
 log = logging.getLogger(__name__)
@@ -456,3 +457,105 @@ class BudgetRepository:
     @staticmethod
     def _from_row(row: dict[str, Any]) -> Budget:
         return Budget(**{k: v for k, v in row.items() if k != "created_at"})
+
+
+class CategoryMemoryRepository:
+    """Persiste e recupera a memória de categorização do usuário.
+
+    É a camada 1 do core.categorizer: rótulos que o usuário confirmou, com
+    precedência sobre as regras genéricas. Dedup por `pattern` (estabelecimento
+    normalizado) — uma linha por estabelecimento, não por transação.
+    """
+
+    TABLE = "category_memory"
+
+    def remember(self, description: str, category: Category, user_id: str) -> None:
+        """Grava (ou reforça) que `description` pertence a `category`, para `user_id`.
+
+        Chamar quando o usuário CONFIRMA/CORRIGE uma categoria — nunca para
+        palpites automáticos, ou o sistema reforçaria os próprios erros.
+
+        `user_id` é OBRIGATÓRIO: o cliente roda com service_role (RLS bypassada,
+        `auth.uid()`=NULL), então toda query é escopada explicitamente por usuário
+        e o INSERT grava `user_id` (sem ele, violaria `NOT NULL`). Ver
+        docs/security/multi_tenant_audit.md §4.1.
+        """
+        if not user_id:
+            raise ValueError("user_id é obrigatório em CategoryMemoryRepository.remember")
+        pattern = normalize(description)
+        if not pattern:
+            return
+        # Read-modify-write (não atômico) em vez de upsert: precisamos INCREMENTAR
+        # `hits`, o que o upsert do PostgREST não faz. Escopo por (user_id, pattern)
+        # — a corrida concorrente por usuário é desprezível. Se virar escrita intensa,
+        # trocar por uma função RPC com `hits = hits + 1` atômico.
+        try:
+            client = get_client()
+            existing = (
+                client.table(self.TABLE)
+                .select("id, hits")
+                .eq("user_id", user_id)
+                .eq("pattern", pattern)
+                .limit(1)
+                .execute()
+            )
+            if existing.data:
+                row = existing.data[0]
+                client.table(self.TABLE).update(
+                    {"category": category.value, "hits": row["hits"] + 1}
+                ).eq("id", row["id"]).eq("user_id", user_id).execute()
+            else:
+                client.table(self.TABLE).insert(
+                    {"pattern": pattern, "category": category.value, "user_id": user_id}
+                ).execute()
+        except Exception as e:
+            # Memória é best-effort: nunca derruba o fluxo de salvar a transação.
+            log.error("Erro ao gravar memória de categoria '%s': %s", pattern, e)
+
+    def load_history(self, user_id: str) -> list[tuple[str, Category]]:
+        """Pares (pattern, category) do `user_id`, para alimentar o categorizador.
+
+        Ordenado por `hits` desc — estabelecimentos mais confirmados primeiro.
+        `user_id` obrigatório (service_role bypassa RLS; filtro explícito evita
+        vazar memória entre usuários).
+        """
+        if not user_id:
+            raise ValueError("user_id é obrigatório em CategoryMemoryRepository.load_history")
+        try:
+            res = (
+                get_client()
+                .table(self.TABLE)
+                .select("pattern, category")
+                .eq("user_id", user_id)
+                .order("hits", desc=True)
+                .execute()
+            )
+            return [(r["pattern"], Category(r["category"])) for r in res.data]
+        except Exception as e:
+            log.error("Erro ao carregar memória de categoria: %s", e)
+            return []
+
+
+def categorize_with_memory(description: str, user_id: str) -> CategoryGuess:
+    """Categoriza consultando a memória do `user_id` + regras + fuzzy.
+
+    Atalho para uso pontual (ex.: entrada rápida). Em importação de lote, carregue
+    a memória UMA vez com CategoryMemoryRepository().load_history(user_id) e passe
+    para core.categorizer.categorize(desc, history=...) por linha — evita N round-trips.
+    """
+    history = CategoryMemoryRepository().load_history(user_id)
+    return categorize(description, history)
+
+
+def confirm_transaction(tx: Transaction, user_id: str, learn: bool = True) -> Transaction:
+    """Persiste uma transação CONFIRMADA pelo usuário e ensina a memória do `user_id`.
+
+    Seam de caso-de-uso: `TransactionRepository.create` continua só persistindo
+    (SOLID-S); o aprendizado é composto aqui. Use nas telas de entrada manual e
+    de correção de categoria — `learn=False` no import automático, para não
+    reforçar palpites do próprio algoritmo.
+    """
+    saved = TransactionRepository().create(tx)
+    if learn and tx.notes:
+        CategoryMemoryRepository().remember(tx.notes, tx.category, user_id)
+    return saved

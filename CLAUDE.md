@@ -6,9 +6,12 @@
 ## IDENTIDADE
 
 **Klipper** — Wealth Operating System pessoal de Roberto Milet.
-Stack: Python · Streamlit Cloud · Supabase (PostgreSQL) · LiteLLM · NVIDIA NIM
-Prod: https://klipper.streamlit.app | Repo: https://github.com/Borussia80/Klipper
+Stack: **PWA Next.js (Vercel) + API FastAPI (Railway) + core/ Python + Supabase (PostgreSQL)** · LiteLLM
+Prod: PWA em Vercel + API em Railway · Repo: https://github.com/Borussia80/Klipper
 Local: `/home/rmilet/Base/01-Projetos/11-Klipper/Klipper`
+> **Streamlit foi removido do projeto (2026-06-14).** `app.py`, `pages/`, `modals.py` e
+> `core/{auth,modals,styles}.py` não existem mais. Ignore referências a Streamlit nos demais
+> docs históricos (`CLAUDE-*.md`) até serem atualizados.
 
 ---
 

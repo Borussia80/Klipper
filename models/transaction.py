@@ -24,6 +24,7 @@ class Category(str, Enum):
     RENDA = "Renda"
     FREELANCE = "Freelance"
     OUTROS = "Outros"
+    RATEADO = "Rateado"  # sentinel — transação com valor particionado em múltiplas categorias
 
 
 EXPENSE_CATEGORIES: list[Category] = [
@@ -68,6 +69,7 @@ class Transaction(BaseModel):
     account_id: str | None = None
     card_id: str | None = None
     installment_id: str | None = None
+    is_recurring: bool = False
     status: TransactionStatus = TransactionStatus.PAGO
 
     @field_validator("amount")

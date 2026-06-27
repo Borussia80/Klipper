@@ -1,0 +1,50 @@
+/* Klipper design tokens — synced with Klipper.dc.html */
+:root {
+  --bg:       #07121E;   /* main canvas */
+  --bg-frame: #050C16;   /* nav + panel — darker structural frame */
+  --sf:  #0C1B2C;
+  --ly:  #122440;
+  --ly2: #19314F;
+
+  --bd:  rgba(80,140,200,0.08);
+  --bd2: rgba(80,140,200,0.14);
+
+  --t1: #E5EEF8;   /* 16.4:1 (AAA) */
+  --t2: #9BBFDA;   /* ~8.5:1 (AAA) — was #8AABCA */
+  --t3: #6B93AE;   /* ~5.1:1 (AA)  — was #4D6E8A, large/bold text ≥14px bold */
+  --t4: #3D6478;   /* ~2.4:1 (decorative only) — was #284158 */
+
+  /* Contrast ratios on --bg (#07121E):
+     --t1: 16.4:1 (AAA) | --t2: 8.5:1 (AAA) | --t3: 5.1:1 (AA) | --t4: 2.4:1 (decorative) */
+
+  --blue: #2B7DF4;
+  --blt:  #5A9BFF;
+  --bdm:  rgba(43,125,244,0.11);
+
+  --ok:  #0DB878;
+  --okd: rgba(13,184,120,0.11);
+
+  --warn: #E59010;
+  --wnd:  rgba(229,144,16,0.11);
+
+  --alert: #E83535;
+  --ald:   rgba(232,53,53,0.11);
+
+  --pur: #7C5CF5;
+
+  --nav: 228px;
+  --rp:  284px;
+  --r:   6px;
+
+  /* Instituições financeiras */
+  --bank-nubank: #8A05BE;
+  --bank-itau:   #EC7000;
+  --bank-btg:    #0B2545;
+
+  /* Cripto */
+  --crypto: #F4C030;
+
+  /* Chart surfaces (React islands não têm acesso direto a CSS vars) */
+  --chart-bg:     #151D2A;
+  --chart-border: #1E2D3F;
+}

@@ -20,7 +20,7 @@ if _repo_root not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import engines, kira, quotes, statement
+from api.routers import accounts, budget, category, engines, kira, quotes, statement, transactions
 
 app = FastAPI(
     title="Klipper API",
@@ -36,7 +36,8 @@ _vercel_origin = os.environ.get("VERCEL_URL", "")
 _allowed_origins = [
     "http://localhost:3000",           # dev local
     "https://klipper-app.vercel.app",  # PWA prod
-    "https://klipper-api.vercel.app",  # self (health checks)
+    "https://klipper-api.vercel.app",  # Vercel API (legado)
+    "https://api.quebec.com.br",        # GCP VM (SSL)
 ]
 if _vercel_origin:
     _allowed_origins.append(f"https://{_vercel_origin}")
@@ -55,6 +56,10 @@ app.include_router(quotes.router)
 app.include_router(engines.router)
 app.include_router(statement.router)
 app.include_router(kira.router)
+app.include_router(category.router)
+app.include_router(transactions.router)
+app.include_router(accounts.router)
+app.include_router(budget.router)
 
 
 # ── Health ────────────────────────────────────────────────────────────────────

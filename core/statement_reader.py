@@ -17,6 +17,7 @@ from datetime import date, datetime
 import fitz  # PyMuPDF
 
 from models.transaction import Category, TransactionType
+from core.categorizer import CATEGORY_KEYWORDS, categorize_category
 
 log = logging.getLogger(__name__)
 
@@ -42,35 +43,10 @@ _SKIP_RE = re.compile(
     re.IGNORECASE,
 )
 
-# ── Categorização por palavras-chave ───────────────────────────────────────────
-_CATEGORY_KEYWORDS: list[tuple[str, Category]] = [
-    ("ifood", Category.ALIMENTACAO), ("rappi", Category.ALIMENTACAO),
-    ("mercado", Category.ALIMENTACAO), ("supermercado", Category.ALIMENTACAO),
-    ("padaria", Category.ALIMENTACAO), ("restaurante", Category.ALIMENTACAO),
-    ("alimenta", Category.ALIMENTACAO), ("lanchonete", Category.ALIMENTACAO),
-    ("uber", Category.TRANSPORTE), ("99pop", Category.TRANSPORTE),
-    ("combustiv", Category.TRANSPORTE), ("gasolina", Category.TRANSPORTE),
-    ("estacion", Category.TRANSPORTE), ("metro ", Category.TRANSPORTE),
-    ("onibus", Category.TRANSPORTE), ("pedagio", Category.TRANSPORTE),
-    ("aluguel", Category.MORADIA), ("condomin", Category.MORADIA),
-    ("energia", Category.MORADIA), ("celesc", Category.MORADIA),
-    ("internet", Category.MORADIA), ("vivo", Category.MORADIA),
-    ("claro", Category.MORADIA), ("oi ", Category.MORADIA),
-    ("farmacia", Category.SAUDE), ("drogaria", Category.SAUDE),
-    ("laborat", Category.SAUDE), ("hospital", Category.SAUDE),
-    ("clinica", Category.SAUDE), ("plano saude", Category.SAUDE),
-    ("escola", Category.EDUCACAO), ("faculdade", Category.EDUCACAO),
-    ("curso", Category.EDUCACAO), ("mensalid", Category.EDUCACAO),
-    ("netflix", Category.LAZER), ("spotify", Category.LAZER),
-    ("prime video", Category.LAZER), ("disney", Category.LAZER),
-    ("cinema", Category.LAZER), ("steam", Category.LAZER),
-    ("salario", Category.RENDA), ("salário", Category.RENDA),
-    ("holerite", Category.RENDA), ("pro-labore", Category.RENDA),
-    ("rendimento", Category.RENDA), ("rend pago", Category.RENDA),
-    ("freelance", Category.FREELANCE), ("freela", Category.FREELANCE),
-    ("invest", Category.INVESTIMENTO), ("fii", Category.INVESTIMENTO),
-    ("cdb", Category.INVESTIMENTO), ("tesouro", Category.INVESTIMENTO),
-]
+# ── Categorização ──────────────────────────────────────────────────────────────
+# A base de regras e o motor fuzzy moram em core.categorizer. Mantemos o nome
+# antigo como alias para compatibilidade com quem importava daqui.
+_CATEGORY_KEYWORDS = CATEGORY_KEYWORDS
 
 
 @dataclass
@@ -283,11 +259,8 @@ def _extract_description(line: str, amount_str: str) -> str:
 
 
 def _categorize(description: str) -> Category:
-    lower = description.lower()
-    for keyword, category in _CATEGORY_KEYWORDS:
-        if keyword in lower:
-            return category
-    return Category.OUTROS
+    """Categorização fuzzy (Jaro-Winkler + token_set + regras). Ver core.categorizer."""
+    return categorize_category(description)
 
 
 # ── BTG Pactual — parser de prints do app mobile ──────────────────────────────

@@ -9,7 +9,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 FAKE_USER_ID = "d82db08b-d2d1-4d28-adf8-2cd4bacf7165"
 
@@ -92,15 +91,28 @@ def test_get_quote_market_error(client: TestClient) -> None:
 # ── Engines M1 ────────────────────────────────────────────────────────────────
 
 def test_m1_score(client: TestClient) -> None:
-    from core.m1_quant import calcular_score_m1
-    mock_result = {"score": 0.72, "decisao": "COMPRAR"}
+    # Core real (sem mock de m1_quant). Mocka só o repositório (camada de banco).
+    # Cobertura aprofundada vive em tests/integration/test_engines_api.py.
+    from decimal import Decimal
 
-    with patch("core.m1_quant.calcular_score_m1", return_value=mock_result):
+    from models.investment import Investment, InvestmentType
+
+    inv = Investment(
+        ticker="MXRF11", type=InvestmentType.FII,
+        quantity=Decimal(100), avg_price=Decimal("10.00"), current_price=Decimal("10.50"),
+        dy_12m=12.0, pvp=0.95, liquidity_daily=Decimal("5000000"),
+        volatility=8.0, spread_vs_cdi=3.0, sector="Papel",
+    )
+
+    with patch("api.routers.engines.InvestmentRepository") as MockRepo:
+        MockRepo.return_value.get_by_ticker.return_value = inv
         resp = client.get("/engines/m1/MXRF11")
 
     assert resp.status_code == 200
-    assert resp.json()["ticker"] == "MXRF11"
-    assert resp.json()["score"] == 0.72
+    body = resp.json()
+    assert body["ticker"] == "MXRF11"
+    assert isinstance(body["score"], (int, float))
+    assert 0.0 <= body["score"] <= 1.0
 
 
 # ── Statement Import ──────────────────────────────────────────────────────────
@@ -150,3 +162,41 @@ def test_kira_chat_returns_stream(client: TestClient) -> None:
         resp = client.post("/kira/chat", json={"message": "Analise MXRF11"})
     assert resp.status_code == 200
     assert "text/event-stream" in resp.headers["content-type"]
+
+
+# ── Category — sugestão + memória ─────────────────────────────────────────────
+
+def test_category_suggest_usa_regra(client: TestClient) -> None:
+    with patch("core.repositories.CategoryMemoryRepository.load_history", return_value=[]):
+        resp = client.post("/category/suggest", json={"description": "IFOOD *PEDIDO"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["category"] == "Alimentação"
+    assert data["source"] == "rule"
+    assert data["confident"] is True
+
+
+def test_category_suggest_descricao_vazia_e_422(client: TestClient) -> None:
+    resp = client.post("/category/suggest", json={"description": ""})
+    assert resp.status_code == 422
+
+
+def test_category_memory_grava_rotulo_confirmado(client: TestClient) -> None:
+    from models.transaction import Category
+    with patch("core.repositories.CategoryMemoryRepository.remember") as remember:
+        resp = client.post(
+            "/category/memory",
+            json={"description": "PADARIA DO ZE", "category": "Lazer"},
+        )
+    assert resp.status_code == 200
+    assert resp.json() == {"ok": True}
+    remember.assert_called_once_with("PADARIA DO ZE", Category.LAZER, FAKE_USER_ID)
+
+
+def test_category_memory_categoria_invalida_e_422(client: TestClient) -> None:
+    resp = client.post(
+        "/category/memory",
+        json={"description": "X", "category": "Criptomoeda"},
+    )
+    assert resp.status_code == 422
+    assert "inválida" in resp.json()["detail"]
