@@ -4,7 +4,7 @@
  * useFormatters() uses module-level Intl.NumberFormat instances, so we
  * call the exported function directly. No mocking required.
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { useFormatters } from '../useFormatters'
 
 describe('useFormatters', () => {
@@ -134,5 +134,74 @@ describe('useFormatters', () => {
     it('returns ▲ for zero', () => {
       expect(deltaSign(0)).toBe('▲')
     })
+  })
+})
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+
+describe('currentMonthLabel', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('retorna mês abreviado e ano', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 22))
+    const { currentMonthLabel } = useFormatters()
+    const result = currentMonthLabel()
+    expect(result).toMatch(/[Jj]un/)
+    expect(result).toContain('2026')
+  })
+
+  it('capitaliza a primeira letra do mês', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 15))
+    const { currentMonthLabel } = useFormatters()
+    expect(currentMonthLabel().charAt(0)).toMatch(/[A-Z]/)
+  })
+})
+
+describe('fmtMonthFull', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('retorna mês por extenso e ano', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 22))
+    const { fmtMonthFull } = useFormatters()
+    const result = fmtMonthFull()
+    expect(result).toMatch(/[Jj]unho/)
+    expect(result).toContain('2026')
+  })
+
+  it('capitaliza a primeira letra do mês', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 15))
+    const { fmtMonthFull } = useFormatters()
+    expect(fmtMonthFull().charAt(0)).toMatch(/[A-Z]/)
+  })
+})
+
+describe('daysLeftInMonth', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('retorna número >= 0 e <= 31', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 22))
+    const { daysLeftInMonth } = useFormatters()
+    const result = daysLeftInMonth()
+    expect(result).toBeGreaterThanOrEqual(0)
+    expect(result).toBeLessThanOrEqual(31)
+  })
+
+  it('retorna 8 em 22 de junho de 2026', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 22))
+    const { daysLeftInMonth } = useFormatters()
+    expect(daysLeftInMonth()).toBe(8)
+  })
+
+  it('no último dia retorna 0', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 30))
+    const { daysLeftInMonth } = useFormatters()
+    expect(daysLeftInMonth()).toBe(0)
   })
 })

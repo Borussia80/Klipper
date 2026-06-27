@@ -3,6 +3,9 @@
  * Keeping formatting in one place avoids locale drift across components.
  */
 
+const monthShort = new Intl.DateTimeFormat('pt-BR', { month: 'short' })
+const monthLong = new Intl.DateTimeFormat('pt-BR', { month: 'long' })
+
 const brl = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL',
@@ -54,5 +57,33 @@ export function useFormatters() {
     return value >= 0 ? '▲' : '▼'
   }
 
-  return { formatBRL, formatBRLCompact, formatPercent, formatPercentRaw, deltaClass, deltaSign }
+  function currentMonthLabel(): string {
+    const now = new Date()
+    const abbr = monthShort.format(now).replace(/\.$/, '')
+    return `${abbr.charAt(0).toUpperCase() + abbr.slice(1)} ${now.getFullYear()}`
+  }
+
+  function fmtMonthFull(): string {
+    const now = new Date()
+    const name = monthLong.format(now)
+    return `${name.charAt(0).toUpperCase() + name.slice(1)} ${now.getFullYear()}`
+  }
+
+  function daysLeftInMonth(): number {
+    const now = new Date()
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    return lastDay - now.getDate()
+  }
+
+  return {
+    formatBRL,
+    formatBRLCompact,
+    formatPercent,
+    formatPercentRaw,
+    deltaClass,
+    deltaSign,
+    currentMonthLabel,
+    fmtMonthFull,
+    daysLeftInMonth,
+  }
 }

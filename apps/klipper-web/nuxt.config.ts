@@ -67,21 +67,15 @@ export default defineNuxtConfig({
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
       runtimeCaching: [
         {
-          urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+          urlPattern: /\/api\/v1\/.*/i,
           handler: 'NetworkFirst',
           options: {
-            cacheName: 'supabase-api',
-            expiration: { maxEntries: 50, maxAgeSeconds: 300 },
+            cacheName: 'klipper-rails-api',
+            expiration: { maxEntries: 100, maxAgeSeconds: 60 },
           },
         },
       ],
     },
   },
 
-  // React islands for charts only
-  vite: {
-    optimizeDeps: {
-      include: ['react', 'react-dom', 'recharts'],
-    },
-  },
 })
