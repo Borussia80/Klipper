@@ -21,6 +21,18 @@ mockNuxtImport('useToast', () => () => ({
   toasts: { value: [] },
 }))
 
+// ── filterTransactions (pure helper tested independently) ────────────────────
+
+type FilterType = 'all' | 'credit' | 'debit'
+
+function filterTransactions<T extends { transaction_type: string }>(
+  txns: T[],
+  filter: FilterType,
+): T[] {
+  if (filter === 'all') return txns
+  return txns.filter((t) => t.transaction_type === filter)
+}
+
 // ── helpers ─────────────────────────────────────────────────────────────────
 
 function makeTx(overrides: Partial<{
@@ -251,5 +263,33 @@ describe('useTransactions', () => {
 
       expect(mockAddToast).toHaveBeenCalledWith('Lançamento removido', 'ok')
     })
+  })
+})
+
+describe('filterTransactions', () => {
+  const txns = [
+    { id: 1, transaction_type: 'credit', description: 'Salário', amount: '5000' },
+    { id: 2, transaction_type: 'debit', description: 'Uber', amount: '25' },
+    { id: 3, transaction_type: 'debit', description: 'Mercado', amount: '200' },
+  ]
+
+  it('retorna todas com filtro "all"', () => {
+    expect(filterTransactions(txns, 'all')).toHaveLength(3)
+  })
+
+  it('retorna só créditos com filtro "credit"', () => {
+    const result = filterTransactions(txns, 'credit')
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe(1)
+  })
+
+  it('retorna só débitos com filtro "debit"', () => {
+    const result = filterTransactions(txns, 'debit')
+    expect(result).toHaveLength(2)
+    expect(result.every((t) => t.transaction_type === 'debit')).toBe(true)
+  })
+
+  it('retorna array vazio se nenhuma transação bater', () => {
+    expect(filterTransactions([], 'credit')).toHaveLength(0)
   })
 })

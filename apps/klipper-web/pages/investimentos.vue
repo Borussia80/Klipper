@@ -4,7 +4,7 @@
     <div style="position:sticky;top:0;background:rgba(7,18,30,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:10">
       <div>
         <div style="font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.015em">Investimentos</div>
-        <div style="font-size:11px;color:var(--t3)">Portfólio · 5 ativos</div>
+        <div style="font-size:11px;color:var(--t3)">Portfólio · {{ investments.length }} ativos</div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
         <div style="text-align:right">

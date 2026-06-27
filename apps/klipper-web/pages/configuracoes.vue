@@ -12,8 +12,8 @@
         <p class="section-label">Conta</p>
         <div class="setting-row">
           <div>
-            <p class="setting-name">Roberto Milet</p>
-            <p class="setting-sub">roberto.milet@gmail.com</p>
+            <p class="setting-name">{{ user?.name ?? 'Usuário' }}</p>
+            <p class="setting-sub">{{ user?.email ?? '' }}</p>
           </div>
           <button class="btn btn-ghost btn-sm">Editar</button>
         </div>
@@ -36,7 +36,6 @@
         <div class="setting-row">
           <div>
             <p class="setting-name">API Klipper</p>
-            <p class="setting-sub mono">railway.app · conectado</p>
           </div>
           <span class="badge badge--positive">Online</span>
         </div>
@@ -47,6 +46,7 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: 'app', title: 'Configurações' })
+const { user } = useAuth()
 </script>
 
 <style scoped>

@@ -4,7 +4,7 @@
     <div style="position:sticky;top:0;background:rgba(7,18,30,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:10">
       <div>
         <div style="font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.015em">Orçamento</div>
-        <div style="font-size:11px;color:var(--t3)">Junho 2026 · 8 dias restantes</div>
+        <div style="font-size:11px;color:var(--t3)">{{ fmtMonthFull() }} · {{ daysLeftInMonth() }} dias restantes</div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
         <button class="sel-chip">
@@ -53,13 +53,9 @@
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
 const { summary, isLoading, fetchSummary } = useBudgets()
-const { formatBRL } = useFormatters()
+const { formatBRL, fmtMonthFull, daysLeftInMonth } = useFormatters()
 
 const now = new Date()
-const daysLeftInMonth = computed(() => {
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-  return lastDay - now.getDate()
-})
 
 onMounted(() => fetchSummary(now.getFullYear(), now.getMonth() + 1))
 
@@ -70,7 +66,7 @@ const categories = computed(() =>
     pct: Math.round(row.pct_used),
     spent: row.spent,
     limit: row.amount_limit,
-    daysLeft: daysLeftInMonth.value,
+    daysLeft: daysLeftInMonth(),
   }))
 )
 

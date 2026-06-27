@@ -2,7 +2,7 @@
   <div>
     <!-- Cockpit hero -->
     <div style="padding:32px 24px 0">
-      <div class="mono" style="font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--t4);margin-bottom:28px">Jun 2026 · 22 · Segunda</div>
+      <div class="mono" style="font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--t4);margin-bottom:28px">{{ currentMonthLabel() }} · {{ now.getDate() }} · {{ now.toLocaleDateString('pt-BR', { weekday: 'long' }) }}</div>
 
       <div class="mono" style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(13,184,120,0.55);margin-bottom:10px">Livre para gastar</div>
       <div class="mono" style="font-size:80px;font-weight:100;letter-spacing:-.04em;line-height:.88;color:var(--ok);filter:drop-shadow(0 0 28px rgba(13,184,120,0.18))">{{ formatBRL(totalBalance) }}</div>
@@ -21,7 +21,7 @@
       <div style="flex-shrink:0;margin-top:1px;color:var(--warn)"><UiAppIcon name="info" :size="18" /></div>
       <div>
         <div style="font-size:13px;color:var(--t1);font-weight:500;margin-bottom:3px">Você está no caminho certo</div>
-        <div style="font-size:12px;color:var(--t3);line-height:1.55">Taxa de poupança de 28,9% em junho — 3,1 pontos acima de maio. Continue assim.</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.55">Taxa de poupança de {{ savingsRate }}% em {{ currentMonthLabel() }}.</div>
       </div>
     </div>
 
@@ -29,29 +29,22 @@
     <div style="padding:0 20px;margin-top:24px">
       <div style="font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t4);font-family:'JetBrains Mono',monospace;margin-bottom:10px">Atenção necessária</div>
 
-      <div style="border-left:3px solid var(--alert);padding:13px 16px;border-radius:0 8px 8px 0;background:rgba(232,53,53,0.04);margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
-          <div>
-            <div style="font-size:13px;font-weight:500;color:var(--t1)">Conta de Luz vence em 3 dias</div>
-            <div style="font-size:11px;color:var(--t3);margin-top:2px">CPFL Energia · 25 Jun · não paga</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div class="mono" style="font-size:13px;font-weight:500;color:var(--alert)">R$ 420,00</div>
-            <div style="font-size:10px;color:var(--blue);cursor:pointer;margin-top:3px">registrar →</div>
-          </div>
-        </div>
-      </div>
-
-      <div style="border-left:3px solid var(--warn);padding:13px 16px;border-radius:0 8px 8px 0;background:rgba(229,144,16,0.04)">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
-          <div>
-            <div style="font-size:13px;font-weight:500;color:var(--t1)">Restaurantes em 87% do orçamento</div>
-            <div style="font-size:11px;color:var(--t3);margin-top:2px">R$ 156 livres · 8 dias restantes no mês</div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <NuxtLink to="/orcamento" style="font-size:10px;color:var(--blue);cursor:pointer">ver orçamento →</NuxtLink>
+      <template v-if="budgetAlerts.length">
+        <div v-for="alert in budgetAlerts" :key="alert.budget_id" style="border-left:3px solid var(--warn);padding:13px 16px;border-radius:0 8px 8px 0;background:rgba(229,144,16,0.04);margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--t1)">{{ alert.category_name }}</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">{{ Math.round(alert.pct_used * 100) }}% do orçamento usado</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div class="mono" style="font-size:13px;font-weight:500;color:var(--warn)">{{ formatBRL(alert.remaining) }} restante</div>
+              <NuxtLink to="/orcamento" style="font-size:10px;color:var(--blue);cursor:pointer;margin-top:3px">ver orçamento →</NuxtLink>
+            </div>
           </div>
         </div>
+      </template>
+      <div v-else style="padding:16px 0;text-align:center;color:var(--t4);font-size:12px">
+        Nenhum alerta de orçamento.
       </div>
     </div>
 
@@ -107,15 +100,28 @@ definePageMeta({ layout: 'app' })
 
 const { accounts, totalBalance, isLoading, fetchAccounts } = useAccounts()
 const { transactions, totalDebits, totalCredits, fetchTransactions } = useTransactions()
-const { formatBRL } = useFormatters()
+const { formatBRL, currentMonthLabel } = useFormatters()
+const { summary, fetchSummary } = useBudgets()
 
 const now = new Date()
 onMounted(() => {
   fetchAccounts()
   fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1 })
+  fetchSummary(now.getFullYear(), now.getMonth() + 1)
 })
 
 const recentTransactions = computed(() => transactions.value.slice(0, 5))
+
+const savingsRate = computed(() => {
+  if (!totalCredits.value || totalCredits.value === 0) return 0
+  return Math.round(((totalCredits.value - totalDebits.value) / totalCredits.value) * 100)
+})
+
+const budgetAlerts = computed(() =>
+  summary.value
+    .filter(b => b.amount_limit > 0 && b.pct_used > 0.8)
+    .slice(0, 2)
+)
 
 function fmtDate(iso: string): string {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(

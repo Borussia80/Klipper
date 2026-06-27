@@ -4,12 +4,12 @@
     <div style="position:sticky;top:0;background:rgba(7,18,30,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:10">
       <div>
         <div style="font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.015em">Transações</div>
-        <div style="font-size:11px;color:var(--t3)">Junho 2026 · 12 lançamentos</div>
+        <div style="font-size:11px;color:var(--t3)">{{ fmtMonthFull() }} · {{ filteredTransactions.length }} lançamento{{ filteredTransactions.length !== 1 ? 's' : '' }}</div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
-        <button class="pill on">Todos</button>
-        <button class="pill">Entradas</button>
-        <button class="pill">Saídas</button>
+        <button :class="['pill', activeFilter === 'all' ? 'on' : '']" @click="activeFilter = 'all'">Todos</button>
+        <button :class="['pill', activeFilter === 'credit' ? 'on' : '']" @click="activeFilter = 'credit'">Entradas</button>
+        <button :class="['pill', activeFilter === 'debit' ? 'on' : '']" @click="activeFilter = 'debit'">Saídas</button>
         <div style="width:1px;height:16px;background:var(--bd2);margin:0 2px;flex-shrink:0"></div>
         <button class="btn btn-g" @click="open('novo-lancamento')">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
@@ -26,7 +26,7 @@
       <UiSkeletonTransactionList v-if="isLoading" :count="4" />
 
       <template v-else>
-        <div v-if="!transactions.length" style="padding:60px 0;text-align:center;color:var(--t4);font-size:13px">
+        <div v-if="!filteredTransactions.length" style="padding:60px 0;text-align:center;color:var(--t4);font-size:13px">
           Nenhum lançamento no período.
         </div>
 
@@ -65,14 +65,22 @@
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
 const { transactions, isLoading, fetchTransactions } = useTransactions()
-const { formatBRL } = useFormatters()
+const { formatBRL, fmtMonthFull } = useFormatters()
 
 const now = new Date()
 onMounted(() => fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1 }))
 
+const activeFilter = ref<'all' | 'credit' | 'debit'>('all')
+
+const filteredTransactions = computed(() =>
+  activeFilter.value === 'all'
+    ? transactions.value
+    : transactions.value.filter((t) => t.transaction_type === activeFilter.value)
+)
+
 const groupedTransactions = computed(() => {
   const groups: Record<string, typeof transactions.value> = {}
-  for (const t of transactions.value) {
+  for (const t of filteredTransactions.value) {
     if (!groups[t.occurred_on]) groups[t.occurred_on] = []
     groups[t.occurred_on].push(t)
   }
