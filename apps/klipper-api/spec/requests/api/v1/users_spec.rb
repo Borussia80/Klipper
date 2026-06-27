@@ -45,7 +45,7 @@ RSpec.describe "Api::V1::Users", type: :request do
       patch "/api/v1/users/me",
         params: { email: "not-an-email" },
         headers: auth_headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "returns 401 without token" do
@@ -67,7 +67,7 @@ RSpec.describe "Api::V1::Users", type: :request do
       post "/api/v1/users/password",
         params: { current_password: "wrongpass", password: "newpass456", password_confirmation: "newpass456" },
         headers: auth_headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       json = JSON.parse(response.body)
       expect(json["error"]).to match(/senha atual/i)
     end
@@ -76,7 +76,7 @@ RSpec.describe "Api::V1::Users", type: :request do
       post "/api/v1/users/password",
         params: { current_password: "secret123", password: "newpass456", password_confirmation: "different" },
         headers: auth_headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "returns 401 without token" do

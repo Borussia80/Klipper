@@ -54,7 +54,7 @@ RSpec.describe "Accounts API", type: :request do
     it "returns errors for invalid params" do
       post "/api/v1/accounts", params: { name: "" }.to_json, headers: headers
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(json_response[:errors]).to be_present
     end
   end

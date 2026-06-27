@@ -50,7 +50,7 @@ RSpec.describe "Api::V1::Quotes", type: :request do
 
     it "returns 422 when tickers param is missing" do
       get "/api/v1/quotes", headers: auth_headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "calls brapi.dev only once when making two requests with same tickers (cache hit)" do

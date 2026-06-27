@@ -63,14 +63,14 @@ RSpec.describe "Budgets API", type: :request do
     it "rejects duplicate budget for same period" do
       create(:budget, user: user, category: category, period_year: 2026, period_month: 6)
       post "/api/v1/budgets", params: valid_params.to_json, headers: headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "returns errors for invalid amount" do
       post "/api/v1/budgets",
         params: { category_id: category.id, amount_limit: -1, period_month: 6, period_year: 2026 }.to_json,
         headers: headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 
