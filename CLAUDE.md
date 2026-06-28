@@ -6,12 +6,21 @@
 ## IDENTIDADE
 
 **Klipper** — Wealth Operating System pessoal de Roberto Milet.
-Stack: **PWA Next.js (Vercel) + API FastAPI (Railway) + core/ Python + Supabase (PostgreSQL)** · LiteLLM
-Prod: PWA em Vercel + API em Railway · Repo: https://github.com/Borussia80/Klipper
+Stack: **PWA Nuxt 4 (Vercel) + API Rails 8 (PostgreSQL)** · LiteLLM
+Prod: PWA em Vercel · Repo: https://github.com/Borussia80/Klipper
 Local: `/home/rmilet/Base/01-Projetos/11-Klipper/Klipper`
-> **Streamlit foi removido do projeto (2026-06-14).** `app.py`, `pages/`, `modals.py` e
-> `core/{auth,modals,styles}.py` não existem mais. Ignore referências a Streamlit nos demais
-> docs históricos (`CLAUDE-*.md`) até serem atualizados.
+
+### Estrutura do monorepo
+
+```
+apps/
+  klipper-web/    ← Nuxt 4 (Vue 3, SSR, PWA) — frontend
+  klipper-api/    ← Rails 8 (PostgreSQL, JWT) — backend
+  quebec-web/     ← Nuxt 4 — landing page institucional
+```
+
+> **Stacks removidas:** Streamlit, Next.js, FastAPI, Railway.
+> Não existem mais: `app.py`, `pages/`, `web/`, `api/`, `core/`, `models/`.
 
 ---
 
@@ -19,33 +28,28 @@ Local: `/home/rmilet/Base/01-Projetos/11-Klipper/Klipper`
 
 | Se a tarefa envolve… | Carregue |
 |---|---|
-| `core/` ou `models/` | `CLAUDE-arch.md` |
-| `pages/` ou UI/UX | `CLAUDE-ux.md` |
 | Novo arquivo ou novo teste | `CLAUDE-process.md` |
-| Bug com histórico de mudança | `CLAUDE-log.md` |
-| Migração PWA (`web/` ou `api/`) | `CLAUDE-pwa.md` — roadmap e decisões fechadas |
-
----
-
-## ESCOPO PADRÃO — restrições de leitura
-
-- **NÃO** leia `tests/` a menos que solicitado explicitamente.
-- **NÃO** leia `migrations/` a menos que a tarefa seja de schema.
-- **NÃO** toque em `bot/` — Fase 6, pendente, fora de escopo.
-- Para entender um padrão existente: leia **um** arquivo de referência, não o diretório inteiro.
-- Referência de qualidade para charts Plotly: `pages/7_Orcamento.py` (tem gauge + line funcionando).
-- Referência de qualidade para testes: `tests/test_dashboard_charts.py` (18 testes TDD recentes).
 
 ---
 
 ## EXECUÇÃO LOCAL
 
 ```bash
-cd /home/rmilet/Base/01-Projetos/11-Klipper/Klipper
-export PATH="$HOME/.local/bin:$PATH"
-streamlit run app.py
-python -m pytest tests/ -q --tb=short   # suite rápida
-python -m pytest tests/ -v               # saída completa
+# Frontend (Nuxt 4)
+cd apps/klipper-web
+npm run dev          # localhost:3000
+npm run test         # Vitest
+
+# Backend (Rails 8) — requer Docker Postgres
+cd apps/klipper-api
+TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/klipper_test" \
+  bundle exec rspec --format documentation
+```
+
+### Docker Postgres (para testes Rails)
+```bash
+cd apps/klipper-api
+sudo docker compose up -d db
 ```
 
 ---
