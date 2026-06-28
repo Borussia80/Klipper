@@ -84,6 +84,21 @@
         </NuxtLink>
       </li>
 
+      <li>
+        <NuxtLink
+          to="/relatorios"
+          class="ni"
+          :class="{ act: route.path.startsWith('/relatorios') }"
+          :aria-current="route.path.startsWith('/relatorios') ? 'page' : undefined"
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path d="M2 12L5 8l3 2 5-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="13" cy="4" r="1.5" fill="currentColor"/>
+          </svg>
+          Relatórios
+        </NuxtLink>
+      </li>
+
       <li><div style="height:1px;background:var(--bd);margin:6px 12px" aria-hidden="true"></div></li>
 
       <li>
