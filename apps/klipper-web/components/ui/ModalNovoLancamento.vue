@@ -43,7 +43,11 @@
     />
 
     <!-- Categoria + Conta -->
-    <div class="row-two">
+    <div v-if="isLoadingData" class="row-two" style="margin-bottom:16px">
+      <UiSkeletonLine height="34px" />
+      <UiSkeletonLine height="34px" />
+    </div>
+    <div v-else class="row-two">
       <div>
         <p class="plbl">Categoria</p>
         <div class="select-wrap">
@@ -108,7 +112,11 @@ const { accounts, fetchAccounts } = useAccounts()
 const { categories, fetchCategories } = useCategories()
 const { createTransaction } = useTransactions()
 
-onMounted(() => { fetchAccounts(); fetchCategories() })
+const isLoadingData = ref(true)
+onMounted(async () => {
+  await Promise.all([fetchAccounts(), fetchCategories()])
+  isLoadingData.value = false
+})
 
 const tipoOpcoes = [
   { value: 'gasto', label: 'Gasto' },
@@ -135,6 +143,7 @@ function validate(): string | null {
   const v = parseFloat(valor.value.replace(',', '.'))
   if (!valor.value || isNaN(v) || v <= 0) return 'Informe um valor válido'
   if (!descricao.value.trim()) return 'Informe uma descrição'
+  if (isFutureDate(data.value)) return 'A data não pode ser futura'
   return null
 }
 

@@ -238,3 +238,19 @@ kbd {
   animation: spin .6s linear infinite;
   flex-shrink: 0;
 }
+
+/* ── Form input utility (shared by modals) ── */
+.fi {
+  background: var(--sf);
+  border: 1px solid var(--bd2);
+  border-radius: var(--r);
+  padding: 9px 12px;
+  color: var(--t1);
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+  font-family: inherit;
+  transition: border-color .12s;
+  box-sizing: border-box;
+}
+.fi:focus { border-color: var(--blue); }
