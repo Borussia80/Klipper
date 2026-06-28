@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: klipper-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    rootDir: apps/klipper-api
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: klipper-db
+          property: connectionString
+      - key: RAILS_MASTER_KEY
+        value: 575b912c87198144e3a9a96917a26231
+      - key: CORS_ORIGINS
+        value: https://klipper-app.vercel.app
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+
+databases:
+  - name: klipper-db
+    plan: free
+    databaseName: klipper_production
+    user: klipper
