@@ -114,6 +114,7 @@ function validate(): string | null {
   if (!quantidade.value || isNaN(q) || q <= 0) return 'Informe uma quantidade válida'
   const p = parseFloat(preco.value.replace(',', '.'))
   if (!preco.value || isNaN(p) || p <= 0) return 'Informe um preço válido'
+  if (isFutureDate(data.value)) return 'A data não pode ser futura'
   return null
 }
 
@@ -144,23 +145,7 @@ async function submit() {
 </script>
 
 <style scoped>
-.fi {
-  background: var(--sf);
-  border: 1px solid var(--bd2);
-  border-radius: var(--r);
-  padding: 9px 12px;
-  color: var(--t1);
-  font-size: 13px;
-  width: 100%;
-  outline: none;
-  font-family: inherit;
-  transition: border-color .12s;
-  margin-bottom: 16px;
-  box-sizing: border-box;
-}
-.fi:focus {
-  border-color: var(--blue);
-}
+.fi { margin-bottom: 16px; }
 input[type="date"].fi::-webkit-calendar-picker-indicator {
   filter: invert(0.5) sepia(1) saturate(0) brightness(0.8);
   cursor: pointer;

@@ -87,3 +87,9 @@ export function useFormatters() {
     daysLeftInMonth,
   }
 }
+
+export function isFutureDate(dateStr: string): boolean {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const today = new Date()
+  return new Date(y, m - 1, d) > new Date(today.getFullYear(), today.getMonth(), today.getDate())
+}

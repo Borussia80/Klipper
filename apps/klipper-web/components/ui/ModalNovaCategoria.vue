@@ -138,23 +138,6 @@ async function submit() {
 </script>
 
 <style scoped>
-.fi {
-  background: var(--sf);
-  border: 1px solid var(--bd2);
-  border-radius: var(--r);
-  padding: 9px 12px;
-  color: var(--t1);
-  font-size: 13px;
-  width: 100%;
-  outline: none;
-  font-family: inherit;
-  transition: border-color .12s;
-  margin-bottom: 0;
-  box-sizing: border-box;
-}
-.fi:focus {
-  border-color: var(--blue);
-}
 .fi + .fi,
 .fi ~ * {
   margin-top: 16px;
