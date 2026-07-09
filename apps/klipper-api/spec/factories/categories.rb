@@ -4,6 +4,7 @@ FactoryBot.define do
     name  { Faker::Commerce.department(max: 1) }
     icon  { "shopping" }
     category_type { "expense" }
+    natureza { "variavel" }
     color { "#6B93AE" }
     active { true }
 
@@ -19,6 +20,22 @@ FactoryBot.define do
 
     trait :inactive do
       active { false }
+    end
+
+    trait :fixo do
+      natureza { "fixo" }
+    end
+
+    trait :cartao_parcelamento do
+      natureza { "cartao_parcelamento" }
+    end
+
+    trait :variavel do
+      natureza { "variavel" }
+    end
+
+    trait :with_reimbursement do
+      reimbursed_by_category { association :category, :income, user: user }
     end
   end
 end

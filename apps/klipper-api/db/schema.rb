@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_27_024311) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_08_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,7 +21,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_024311) do
     t.datetime "created_at", null: false
     t.string "currency", default: "BRL", null: false
     t.string "institution"
+    t.decimal "iof_projetado", precision: 15, scale: 2
+    t.decimal "juros_rotativo_aa", precision: 7, scale: 3
+    t.decimal "juros_rotativo_am", precision: 6, scale: 3
     t.string "name", null: false
+    t.decimal "pagamento_minimo", precision: 15, scale: 2
+    t.datetime "saldo_atualizado_em"
+    t.decimal "saldo_fatura_atual", precision: 15, scale: 2
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["user_id", "active"], name: "index_accounts_on_user_id_and_active"
@@ -49,9 +55,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_024311) do
     t.datetime "created_at", null: false
     t.string "icon", default: "wallet", null: false
     t.string "name", null: false
+    t.string "natureza", default: "variavel", null: false
+    t.bigint "reimbursed_by_category_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["reimbursed_by_category_id"], name: "index_categories_on_reimbursed_by_category_id"
     t.index ["user_id", "category_type"], name: "index_categories_on_user_id_and_category_type"
+    t.index ["user_id", "natureza"], name: "index_categories_on_user_id_and_natureza"
     t.index ["user_id"], name: "index_categories_on_user_id"
   end
 
@@ -71,14 +81,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_024311) do
     t.index ["user_id"], name: "index_investments_on_user_id"
   end
 
+  create_table "members", force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "relationship", default: "titular", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id", "active"], name: "index_members_on_user_id_and_active"
+    t.index ["user_id"], name: "index_members_on_user_id"
+  end
+
   create_table "transactions", force: :cascade do |t|
     t.bigint "account_id"
     t.decimal "amount", precision: 15, scale: 2, null: false
     t.bigint "category_id"
     t.datetime "created_at", null: false
+    t.string "dedupe_hash"
     t.string "description", null: false
     t.integer "installment_number"
     t.integer "installment_total"
+    t.bigint "member_id"
     t.text "notes"
     t.date "occurred_on", null: false
     t.bigint "parent_transaction_id"
@@ -88,7 +111,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_024311) do
     t.index ["account_id", "occurred_on"], name: "index_transactions_on_account_id_and_occurred_on"
     t.index ["account_id"], name: "index_transactions_on_account_id"
     t.index ["category_id"], name: "index_transactions_on_category_id"
+    t.index ["member_id"], name: "index_transactions_on_member_id"
     t.index ["parent_transaction_id"], name: "index_transactions_on_parent_transaction_id"
+    t.index ["user_id", "dedupe_hash"], name: "index_transactions_on_user_id_and_dedupe_hash"
     t.index ["user_id", "occurred_on"], name: "index_transactions_on_user_id_and_occurred_on"
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end
@@ -105,11 +130,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_27_024311) do
   add_foreign_key "accounts", "users"
   add_foreign_key "budgets", "categories"
   add_foreign_key "budgets", "users"
+  add_foreign_key "categories", "categories", column: "reimbursed_by_category_id"
   add_foreign_key "categories", "users"
   add_foreign_key "investments", "accounts"
   add_foreign_key "investments", "users"
+  add_foreign_key "members", "users"
   add_foreign_key "transactions", "accounts"
   add_foreign_key "transactions", "categories"
+  add_foreign_key "transactions", "members"
   add_foreign_key "transactions", "transactions", column: "parent_transaction_id"
   add_foreign_key "transactions", "users"
 end

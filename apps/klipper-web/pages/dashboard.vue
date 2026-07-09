@@ -2,7 +2,16 @@
   <div>
     <!-- Cockpit hero -->
     <div style="padding:32px 24px 0">
-      <div class="mono" style="font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--t4);margin-bottom:28px">{{ currentMonthLabel() }} · {{ now.getDate() }} · {{ now.toLocaleDateString('pt-BR', { weekday: 'long' }) }}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px">
+        <div class="mono" style="font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--t4)">{{ currentMonthLabel() }} · {{ now.getDate() }} · {{ now.toLocaleDateString('pt-BR', { weekday: 'long' }) }}</div>
+        <div class="sel-wrap" style="width:170px">
+          <select v-model="activeMemberId" class="fi fi-sel" style="padding-top:6px;padding-bottom:6px" aria-label="Filtrar por portador">
+            <option :value="undefined">Todos os portadores</option>
+            <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
+          </select>
+          <span class="sel-caret" aria-hidden="true">▾</span>
+        </div>
+      </div>
 
       <div class="mono" style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(13,184,120,0.55);margin-bottom:10px">Livre para gastar</div>
       <div class="mono" style="font-size:80px;font-weight:100;letter-spacing:-.04em;line-height:.88;color:var(--ok);filter:drop-shadow(0 0 28px rgba(13,184,120,0.18))">{{ formatBRL(totalBalance) }}</div>
@@ -34,7 +43,7 @@
           <div style="display:flex;justify-content:space-between;align-items:center;gap:16px">
             <div>
               <div style="font-size:13px;font-weight:500;color:var(--t1)">{{ alert.category_name }}</div>
-              <div style="font-size:11px;color:var(--t3);margin-top:2px">{{ Math.round(alert.pct_used * 100) }}% do orçamento usado</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">{{ Math.round(alert.pct_used) }}% do orçamento usado</div>
             </div>
             <div style="text-align:right;flex-shrink:0">
               <div class="mono" style="font-size:13px;font-weight:500;color:var(--warn)">{{ formatBRL(alert.remaining) }} restante</div>
@@ -45,6 +54,22 @@
       </template>
       <div v-else style="padding:16px 0;text-align:center;color:var(--t4);font-size:12px">
         Nenhum alerta de orçamento.
+      </div>
+    </div>
+
+    <!-- Split fixo × cartão × variável -->
+    <div v-if="donutData.length" style="padding:0 20px;margin-top:24px">
+      <div style="font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--t4);font-family:'JetBrains Mono',monospace;margin-bottom:2px">Fixo × Cartão × Variável</div>
+      <div style="font-size:11px;color:var(--t4);margin-bottom:10px">Total categorizado em {{ currentMonthLabel() }}</div>
+      <ChartsAlocacaoDonut :data="donutData" :total="naturezaSplit?.total ?? 0" />
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <div v-for="row in donutData" :key="row.name" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0" :style="{ background: row.color }"></span>
+            <span style="font-size:12px;color:var(--t2)">{{ row.name }}</span>
+          </div>
+          <span class="mono" style="font-size:12px;color:var(--t1)">{{ formatBRL(row.value) }}</span>
+        </div>
       </div>
     </div>
 
@@ -98,16 +123,57 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 
-const { accounts, totalBalance, isLoading, fetchAccounts } = useAccounts()
+const { totalBalance, isLoading, fetchAccounts } = useAccounts()
 const { transactions, totalDebits, totalCredits, fetchTransactions } = useTransactions()
+const { members, fetchMembers } = useMembers()
 const { formatBRL, currentMonthLabel } = useFormatters()
 const { summary, fetchSummary } = useBudgets()
+const { naturezaSplit, fetchNaturezaSplit } = useReports()
+const chartTokens = useChartTokens()
 
 const now = new Date()
+const activeMemberId = ref<number | undefined>(undefined)
+
+function loadTransactions() {
+  fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1, member_id: activeMemberId.value })
+}
+
+function loadNaturezaSplit() {
+  fetchNaturezaSplit(now.getFullYear(), now.getMonth() + 1, activeMemberId.value)
+}
+
 onMounted(() => {
   fetchAccounts()
-  fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1 })
+  fetchMembers()
+  loadTransactions()
   fetchSummary(now.getFullYear(), now.getMonth() + 1)
+  loadNaturezaSplit()
+})
+
+watch(activeMemberId, () => {
+  loadTransactions()
+  loadNaturezaSplit()
+})
+
+const NATUREZA_LABELS: Record<string, string> = {
+  fixo: 'Fixo',
+  cartao_parcelamento: 'Cartão/Parcelamento',
+  variavel: 'Variável',
+}
+
+const donutData = computed(() => {
+  const rows = naturezaSplit.value?.by_natureza ?? []
+  return rows
+    .filter(r => r.total > 0)
+    .map(r => ({
+      name: NATUREZA_LABELS[r.natureza] ?? r.natureza,
+      value: r.total,
+      color: r.natureza === 'fixo'
+        ? chartTokens.value.blue
+        : r.natureza === 'cartao_parcelamento'
+          ? chartTokens.value.warn
+          : chartTokens.value.ok,
+    }))
 })
 
 const recentTransactions = computed(() => transactions.value.slice(0, 5))
@@ -119,7 +185,7 @@ const savingsRate = computed(() => {
 
 const budgetAlerts = computed(() =>
   summary.value
-    .filter(b => b.amount_limit > 0 && b.pct_used > 0.8)
+    .filter(b => b.amount_limit > 0 && b.pct_used > 80)
     .slice(0, 2)
 )
 
@@ -129,3 +195,27 @@ function fmtDate(iso: string): string {
   )
 }
 </script>
+
+<style scoped>
+.fi-sel {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  padding-right: 32px;
+}
+
+.sel-wrap {
+  position: relative;
+}
+
+.sel-caret {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-60%);
+  color: var(--t3);
+  font-size: 12px;
+  pointer-events: none;
+  line-height: 1;
+}
+</style>

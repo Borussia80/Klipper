@@ -9,12 +9,14 @@ export interface Transaction {
   notes: string | null
   installment_total: number | null
   installment_number: number | null
+  member_id: number | null
 }
 
 export interface TransactionFilters {
   year?: number
   month?: number
   account_id?: number
+  member_id?: number
   type?: string
 }
 

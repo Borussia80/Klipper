@@ -83,6 +83,20 @@
           <span style="margin-left:auto;font-size:10px;background:var(--ly);color:var(--t4);border-radius:10px;padding:1px 6px;font-weight:500" aria-label="4 contas">4</span>
         </NuxtLink>
       </li>
+      <li>
+        <NuxtLink
+          to="/portadores"
+          class="ni"
+          :class="{ act: route.path.startsWith('/portadores') }"
+          :aria-current="route.path.startsWith('/portadores') ? 'page' : undefined"
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <circle cx="7.5" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M2.5 13c0-2.5 2.2-4.5 5-4.5s5 2 5 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Portadores
+        </NuxtLink>
+      </li>
 
       <li>
         <NuxtLink

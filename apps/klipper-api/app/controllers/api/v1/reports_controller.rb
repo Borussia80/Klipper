@@ -6,6 +6,7 @@ module Api
         month = params[:month]&.to_i || Date.current.month
 
         txns = @current_user.transactions.in_month(year, month)
+        txns = txns.where(member_id: params[:member_id]) if params[:member_id]
         debits  = txns.where(transaction_type: "debit").sum(:amount)
         credits = txns.where(transaction_type: "credit").sum(:amount)
 
@@ -32,6 +33,57 @@ module Api
           net:           (credits - debits).to_f.round(2),
           by_category:   by_category,
         }
+      end
+
+      def natureza_split
+        year  = params[:year]&.to_i  || Date.current.year
+        month = params[:month]&.to_i || Date.current.month
+
+        txns = @current_user.transactions.where(transaction_type: "debit").in_month(year, month)
+        txns = txns.where(member_id: params[:member_id]) if params[:member_id]
+
+        totals = txns.joins(:category).group("categories.natureza").sum(:amount)
+        total  = totals.values.sum
+
+        by_natureza = Category::NATUREZAS.map do |nat|
+          amount = totals[nat] || 0
+          {
+            natureza: nat,
+            total:    amount.to_f.round(2),
+            pct:      total.positive? ? (amount / total * 100).round(1) : 0.0,
+          }
+        end
+
+        render json: {
+          year:        year,
+          month:       month,
+          total:       total.to_f.round(2),
+          by_natureza: by_natureza,
+        }
+      end
+
+      def reimbursement_coverage
+        year  = params[:year]&.to_i  || Date.current.year
+        month = params[:month]&.to_i || Date.current.month
+
+        categories = @current_user.categories.expenses.active.with_reimbursement_link
+        categories = categories.where(id: params[:category_id]) if params[:category_id]
+
+        rows = categories.map do |category|
+          ReimbursementCoverageCalculator.new(
+            @current_user, category, reference_date: Date.new(year, month, 1)
+          ).call.merge(
+            category_name: category.name,
+            category_icon: category.icon,
+            reimbursed_by_category_name: category.reimbursed_by_category.name,
+          )
+        end
+
+        render json: { year: year, month: month, categories: rows }
+      end
+
+      def debt_ranking
+        render json: { cards: DebtRankingCalculator.new(@current_user).ranking }
       end
 
       def net_worth

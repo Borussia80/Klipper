@@ -61,4 +61,29 @@ RSpec.describe BudgetEngine, type: :service do
     result = engine.summary
     expect(result.first[:pct_used]).to eq(0.0)
   end
+
+  it "includes natureza and recorrencia fields computed from transaction history" do
+    category.update!(natureza: "fixo")
+    [ [ 2026, 2 ], [ 2026, 3 ], [ 2026, 4 ], [ 2026, 5 ], [ 2026, 6 ] ].each do |y, m|
+      create(:transaction, user: user, account: account, category: category,
+        amount: 100, transaction_type: "debit", occurred_on: Date.new(y, m, 10))
+    end
+
+    row = engine.summary.first
+
+    expect(row[:natureza]).to eq("fixo")
+    expect(row[:months_total]).to eq(CategoryRecurrenceCalculator::DEFAULT_MONTHS)
+    expect(row[:months_present]).to eq(5)
+    expect(row[:recorrencia]).to eq("rotineiro")
+  end
+
+  it "classifies a category with sparse history as pontual" do
+    create(:transaction, user: user, account: account, category: category,
+      amount: 100, transaction_type: "debit", occurred_on: Date.new(2026, 6, 10))
+
+    row = engine.summary.first
+
+    expect(row[:months_present]).to eq(1)
+    expect(row[:recorrencia]).to eq("pontual")
+  end
 end

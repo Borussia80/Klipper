@@ -5,8 +5,15 @@
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
         <div style="font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.015em">Relatórios</div>
 
-        <!-- Month nav (only visible on tab mensal) -->
-        <div v-if="tab === 'mensal'" style="margin-left:auto;display:flex;align-items:center;gap:4px">
+        <!-- Month nav + member filter (only visible on tab mensal) -->
+        <div v-if="tab === 'mensal'" style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          <div class="sel-wrap" style="width:170px">
+            <select v-model="activeMemberId" class="fi fi-sel" style="padding-top:6px;padding-bottom:6px" aria-label="Filtrar por portador">
+              <option :value="undefined">Todos os portadores</option>
+              <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
+            </select>
+            <span class="sel-caret" aria-hidden="true">▾</span>
+          </div>
           <button class="nav-btn" aria-label="Mês anterior" @click="prevMonth">‹</button>
           <span style="font-size:12px;color:var(--t2);min-width:96px;text-align:center">{{ monthLabel }}</span>
           <button class="nav-btn" :disabled="isCurrentMonth" aria-label="Próximo mês" @click="nextMonth">›</button>
@@ -160,11 +167,13 @@
 definePageMeta({ layout: 'app' })
 
 const { monthly, netWorth, isLoading, fetchMonthly, fetchNetWorth } = useReports()
+const { members, fetchMembers } = useMembers()
 const { formatBRL } = useFormatters()
 
 const now = new Date()
 const activeYear = ref(now.getFullYear())
 const activeMonth = ref(now.getMonth() + 1)
+const activeMemberId = ref<number | undefined>(undefined)
 const tab = ref<'mensal' | 'patrimonio'>('mensal')
 
 const monthLabel = computed(() =>
@@ -214,22 +223,45 @@ function investmentLabel(type: string): string {
   return INVESTMENT_LABELS[type] ?? type
 }
 
-watch([activeYear, activeMonth], ([y, m]) => {
-  if (tab.value === 'mensal') fetchMonthly(y, m)
+watch([activeYear, activeMonth, activeMemberId], ([y, m, memberId]) => {
+  if (tab.value === 'mensal') fetchMonthly(y, m, memberId)
 })
 
 watch(tab, (t) => {
-  if (t === 'mensal') fetchMonthly(activeYear.value, activeMonth.value)
+  if (t === 'mensal') fetchMonthly(activeYear.value, activeMonth.value, activeMemberId.value)
   else fetchNetWorth()
 })
 
 onMounted(() => {
-  fetchMonthly(activeYear.value, activeMonth.value)
+  fetchMonthly(activeYear.value, activeMonth.value, activeMemberId.value)
   fetchNetWorth()
+  fetchMembers()
 })
 </script>
 
 <style scoped>
+.fi-sel {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  padding-right: 32px;
+}
+
+.sel-wrap {
+  position: relative;
+}
+
+.sel-caret {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-60%);
+  color: var(--t3);
+  font-size: 12px;
+  pointer-events: none;
+  line-height: 1;
+}
+
 .tab-bar {
   display: flex;
   gap: 4px;

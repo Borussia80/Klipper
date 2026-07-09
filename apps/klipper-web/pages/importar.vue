@@ -3,20 +3,90 @@
     <!-- Header -->
     <div style="position:sticky;top:0;background:rgba(7,18,30,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);padding:12px 20px;z-index:10">
       <div style="font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.015em">Importar Extrato</div>
-      <div style="font-size:11px;color:var(--t3)">Formato suportado: CSV (Data, Descrição, Valor)</div>
+      <div style="font-size:11px;color:var(--t3)">Formatos suportados: CSV, extrato Itaú (PDF), fatura Itaú (PDF)</div>
     </div>
 
     <div style="padding:24px 20px 40px;max-width:560px">
 
+      <!-- PDF PREVIEW STATE -->
+      <template v-if="preview">
+        <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px 14px;margin-bottom:16px">
+          <div style="font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Layout detectado</div>
+          <div style="font-size:13px;color:var(--t1)">{{ adapterLabel(preview.adapter) }}</div>
+        </div>
+
+        <div v-if="preview.warnings.length" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin-bottom:16px">
+          <div style="font-weight:600;margin-bottom:4px">{{ preview.warnings.length }} linha{{ preview.warnings.length !== 1 ? 's' : '' }} não reconhecida{{ preview.warnings.length !== 1 ? 's' : '' }}</div>
+          <div v-for="(w, i) in preview.warnings" :key="i">Página {{ w.page }}: {{ w.reason }}</div>
+        </div>
+
+        <div style="font-size:11px;color:var(--t3);margin-bottom:8px">
+          {{ checkedRows.length }} de {{ preview.rows.length }} lançamentos selecionados
+        </div>
+
+        <div style="max-height:400px;overflow-y:auto;border:1px solid var(--bd2);border-radius:8px;margin-bottom:20px">
+          <template v-for="group in groupedRows" :key="group.cardholder ?? '__none__'">
+            <div
+              v-if="group.cardholder"
+              style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--sf);border-bottom:1px solid var(--bd2)"
+            >
+              <div style="flex:1;min-width:0;font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ group.cardholder }}</div>
+              <div class="sel-wrap">
+                <select
+                  :value="selectedMemberByGroup[group.cardholder] ?? ''"
+                  class="fi fi-sel"
+                  aria-label="Portador do cartão"
+                  @change="onGroupMemberChange(group.cardholder, $event)"
+                >
+                  <option value="">Nenhum</option>
+                  <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
+                </select>
+                <span class="sel-caret" aria-hidden="true">▾</span>
+              </div>
+            </div>
+            <label
+              v-for="(row, i) in group.rows"
+              :key="i"
+              style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--bd2);cursor:pointer"
+            >
+              <input v-model="checkedRows" type="checkbox" :value="row" />
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.description }}</div>
+                <div style="font-size:11px;color:var(--t4)">{{ formatRowDate(row.occurred_on) }}<template v-if="row.installment_number"> · parcela {{ row.installment_number }}/{{ row.installment_total }}</template></div>
+              </div>
+              <div style="font-size:12px;font-family:var(--mono);color:var(--t2);white-space:nowrap">{{ formatRowAmount(row.amount) }}</div>
+            </label>
+          </template>
+        </div>
+
+        <!-- Error banner -->
+        <div v-if="error" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin-bottom:16px">
+          {{ error }}
+        </div>
+
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-g" style="flex:1" @click="handleReset">Cancelar</button>
+          <button
+            class="btn btn-p"
+            style="flex:2"
+            :disabled="!checkedRows.length || isLoading"
+            @click="handleConfirm"
+          >
+            <span v-if="isLoading" class="btn-spinner" aria-hidden="true" />
+            {{ isLoading ? 'Confirmando…' : 'Confirmar importação' }}
+          </button>
+        </div>
+      </template>
+
       <!-- IDLE / UPLOAD STATE -->
-      <template v-if="!result">
+      <template v-else-if="!result">
         <!-- Drop zone -->
         <div
           class="drop-zone"
           :class="{ dragging: isDragging, 'has-file': !!selectedFile }"
           role="button"
           tabindex="0"
-          aria-label="Área de upload de extrato CSV"
+          aria-label="Área de upload de extrato CSV ou PDF"
           @click="triggerFileInput"
           @keydown.enter.space.prevent="triggerFileInput"
           @dragover.prevent="isDragging = true"
@@ -33,9 +103,9 @@
 
           <div v-if="!selectedFile" style="text-align:center">
             <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:4px">
-              {{ isDragging ? 'Solte o arquivo aqui' : 'Clique ou arraste o arquivo CSV' }}
+              {{ isDragging ? 'Solte o arquivo aqui' : 'Clique ou arraste o arquivo CSV ou PDF' }}
             </div>
-            <div style="font-size:11px;color:var(--t4)">Máx. 5 MB · somente .csv</div>
+            <div style="font-size:11px;color:var(--t4)">Máx. 5 MB · .csv, .pdf (extrato/fatura Itaú)</div>
           </div>
           <div v-else style="text-align:center">
             <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:2px">{{ selectedFile.name }}</div>
@@ -46,7 +116,7 @@
         <input
           ref="fileInputRef"
           type="file"
-          accept=".csv,text/csv"
+          accept=".csv,.pdf,text/csv,application/pdf"
           style="display:none"
           aria-hidden="true"
           @change="onFileChange"
@@ -78,6 +148,7 @@
 01/06/2026,SUPERMERCADO EXTRA,-150.00
 05/06/2026,PIX RECEBIDO SALÁRIO,5000.00
 10/06/2026,POSTO SHELL,-120.50</code>
+          <div style="font-size:11px;color:var(--t4);margin-top:8px">PDFs de extrato ou fatura Itaú têm o layout detectado automaticamente — você revisa os lançamentos antes de confirmar.</div>
         </div>
 
         <button
@@ -87,7 +158,7 @@
           @click="handleUpload"
         >
           <span v-if="isLoading" class="btn-spinner" aria-hidden="true" />
-          {{ isLoading ? 'Processando…' : 'Importar transações' }}
+          {{ isLoading ? 'Processando…' : isPdfSelected ? 'Analisar arquivo' : 'Importar transações' }}
         </button>
       </template>
 
@@ -98,6 +169,9 @@
           <div style="font-size:28px;font-weight:700;color:var(--t1)">{{ result.imported }}</div>
           <div style="font-size:13px;color:var(--t3);margin-top:2px">
             transaç{{ result.imported === 1 ? 'ão importada' : 'ões importadas' }}
+          </div>
+          <div v-if="result.duplicates" style="font-size:12px;color:var(--t3);margin-top:6px">
+            {{ result.duplicates }} duplicata{{ result.duplicates !== 1 ? 's' : '' }} ignorada{{ result.duplicates !== 1 ? 's' : '' }} (já importada{{ result.duplicates !== 1 ? 's' : '' }} anteriormente)
           </div>
         </div>
 
@@ -128,14 +202,72 @@ definePageMeta({ layout: 'app' })
 
 const router = useRouter()
 const { accounts, fetchAccounts } = useAccounts()
-const { result, isLoading, error, uploadFile, reset } = useImport()
+const { members, fetchMembers } = useMembers()
+const { result, preview, isLoading, error, uploadFile, previewFile, confirmImport, reset } = useImport()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const selectedFile = ref<File | null>(null)
 const selectedAccountId = ref<number | undefined>(undefined)
 const isDragging = ref(false)
+const checkedRows = ref<PreviewRow[]>([])
+const selectedMemberByGroup = ref<Record<string, number | undefined>>({})
 
-onMounted(() => fetchAccounts())
+const isPdfSelected = computed(() => isPdfFile(selectedFile.value))
+
+interface RowGroup {
+  cardholder: string | null
+  rows: PreviewRow[]
+}
+
+const groupedRows = computed<RowGroup[]>(() => {
+  if (!preview.value) return []
+  const groups: RowGroup[] = []
+  const indexByKey = new Map<string, number>()
+  for (const row of preview.value.rows) {
+    const cardholder = (row.metadata?.cardholder as string | undefined) ?? null
+    const key = cardholder ?? '__none__'
+    let idx = indexByKey.get(key)
+    if (idx === undefined) {
+      idx = groups.length
+      indexByKey.set(key, idx)
+      groups.push({ cardholder, rows: [] })
+    }
+    groups[idx].rows.push(row)
+  }
+  return groups
+})
+
+onMounted(() => {
+  fetchAccounts()
+  fetchMembers()
+})
+
+watch(preview, (value) => {
+  checkedRows.value = value ? [...value.rows] : []
+  selectedMemberByGroup.value = {}
+  if (!value) return
+  for (const row of value.rows) {
+    const cardholder = row.metadata?.cardholder as string | undefined
+    if (!cardholder) continue
+    row.member_id = row.suggested_member_id ?? undefined
+    if (!(cardholder in selectedMemberByGroup.value)) {
+      selectedMemberByGroup.value[cardholder] = row.suggested_member_id ?? undefined
+    }
+  }
+})
+
+function onGroupMemberChange(cardholder: string, event: Event) {
+  const value = (event.target as HTMLSelectElement).value
+  const memberId = value ? Number(value) : undefined
+  selectedMemberByGroup.value[cardholder] = memberId
+  const group = groupedRows.value.find((g) => g.cardholder === cardholder)
+  group?.rows.forEach((row) => { row.member_id = memberId })
+}
+
+function isPdfFile(file: File | null): boolean {
+  if (!file) return false
+  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+}
 
 function triggerFileInput() {
   fileInputRef.value?.click()
@@ -149,20 +281,30 @@ function onFileChange(e: Event) {
 function onDrop(e: DragEvent) {
   isDragging.value = false
   const file = e.dataTransfer?.files[0]
-  if (file && (file.type === 'text/csv' || file.name.endsWith('.csv'))) {
+  if (file && (file.type === 'text/csv' || file.type === 'application/pdf' || file.name.endsWith('.csv') || file.name.endsWith('.pdf'))) {
     selectedFile.value = file
   }
 }
 
 async function handleUpload() {
   if (!selectedFile.value) return
-  await uploadFile(selectedFile.value, selectedAccountId.value)
+  if (isPdfFile(selectedFile.value)) {
+    await previewFile(selectedFile.value, selectedAccountId.value)
+  } else {
+    await uploadFile(selectedFile.value, selectedAccountId.value)
+  }
+}
+
+async function handleConfirm() {
+  if (!checkedRows.value.length) return
+  await confirmImport(checkedRows.value, selectedAccountId.value)
 }
 
 function handleReset() {
   reset()
   selectedFile.value = null
   selectedAccountId.value = undefined
+  checkedRows.value = []
   if (fileInputRef.value) fileInputRef.value.value = ''
 }
 
@@ -174,6 +316,25 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function adapterLabel(adapter: string): string {
+  const labels: Record<string, string> = {
+    itau_extrato: 'Extrato Itaú (conta-corrente)',
+    itau_fatura: 'Fatura Itaú (cartão de crédito)',
+  }
+  return labels[adapter] ?? adapter
+}
+
+function formatRowDate(iso: string): string {
+  const [year, month, day] = iso.split('-')
+  return `${day}/${month}/${year}`
+}
+
+function formatRowAmount(amount: string): string {
+  const value = Number(amount)
+  const formatted = Math.abs(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return `${value < 0 ? '-' : '+'} R$ ${formatted}`
 }
 </script>
 

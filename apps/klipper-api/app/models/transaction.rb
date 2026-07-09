@@ -2,6 +2,7 @@ class Transaction < ApplicationRecord
   belongs_to :user
   belongs_to :account, optional: true
   belongs_to :category, optional: true
+  belongs_to :member, optional: true
 
   belongs_to :parent_transaction, class_name: "Transaction", optional: true
   has_many   :split_transactions, class_name: "Transaction",

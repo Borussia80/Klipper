@@ -5,6 +5,7 @@ RSpec.describe Transaction, type: :model do
     it { is_expected.to belong_to(:user) }
     it { is_expected.to belong_to(:account).optional }
     it { is_expected.to belong_to(:category).optional }
+    it { is_expected.to belong_to(:member).optional }
   end
 
   describe "validations" do

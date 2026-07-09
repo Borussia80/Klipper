@@ -45,6 +45,24 @@
           Nenhum orçamento para o período.
         </div>
       </template>
+
+      <template v-if="reimbursements.length">
+        <div style="font-size:13px;font-weight:600;color:var(--t1);margin:24px 0 10px">Reembolsos</div>
+        <UiReimbursementCoverageCard
+          v-for="row in reimbursements"
+          :key="row.category_id"
+          :icon="row.category_icon"
+          :name="row.category_name"
+          :reimbursed-by-name="row.reimbursed_by_category_name"
+          :spent="row.spent"
+          :reimbursed="row.reimbursed"
+          :coverage-pct="row.coverage_pct"
+          :historical-avg-pct="row.historical_avg_pct"
+          :months-considered="row.months_considered"
+          :alert="row.alert"
+          style="margin-bottom:8px"
+        />
+      </template>
     </div>
   </div>
 </template>
@@ -53,22 +71,35 @@
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
 const { summary, isLoading, fetchSummary } = useBudgets()
+const { fetchCategories } = useCategories()
+const { reimbursementCoverage, fetchReimbursementCoverage } = useReports()
 const { formatBRL, fmtMonthFull, daysLeftInMonth } = useFormatters()
 
 const now = new Date()
 
-onMounted(() => fetchSummary(now.getFullYear(), now.getMonth() + 1))
+onMounted(() => {
+  fetchSummary(now.getFullYear(), now.getMonth() + 1)
+  fetchCategories()
+  fetchReimbursementCoverage(now.getFullYear(), now.getMonth() + 1)
+})
 
 const categories = computed(() =>
   summary.value.map((row) => ({
+    categoryId: row.category_id,
     icon: row.category_icon,
     name: row.category_name,
     pct: Math.round(row.pct_used),
     spent: row.spent,
     limit: row.amount_limit,
     daysLeft: daysLeftInMonth(),
+    natureza: row.natureza,
+    recorrencia: row.recorrencia,
+    monthsPresent: row.months_present,
+    monthsTotal: row.months_total,
   }))
 )
+
+const reimbursements = computed(() => reimbursementCoverage.value?.categories ?? [])
 
 const totalAllocated = computed(() => summary.value.reduce((s, r) => s + Number(r.amount_limit), 0))
 const totalSpent = computed(() => summary.value.reduce((s, r) => s + Number(r.spent), 0))

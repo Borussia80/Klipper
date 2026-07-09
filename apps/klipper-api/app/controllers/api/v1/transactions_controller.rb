@@ -7,6 +7,7 @@ module Api
         txns = current_user.transactions.includes(:account, :category)
         txns = txns.in_month(params[:year].to_i, params[:month].to_i) if params[:year] && params[:month]
         txns = txns.where(account_id: params[:account_id]) if params[:account_id]
+        txns = txns.where(member_id: params[:member_id]) if params[:member_id]
         txns = txns.where(transaction_type: params[:type]) if params[:type]
         render json: txns.order(occurred_on: :desc, id: :desc)
       end
@@ -51,7 +52,7 @@ module Api
       end
 
       def transaction_params
-        params.permit(:account_id, :category_id, :description, :amount,
+        params.permit(:account_id, :category_id, :member_id, :description, :amount,
           :transaction_type, :occurred_on, :notes, :installment_total, :installment_number)
       end
     end

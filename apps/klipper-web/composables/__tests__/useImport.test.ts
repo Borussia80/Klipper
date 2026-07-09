@@ -65,4 +65,125 @@ describe('useImport', () => {
     expect(result.value).toBeNull()
     expect(error.value).toBeNull()
   })
+
+  describe('previewFile', () => {
+    const previewResponse = {
+      adapter: 'itau_extrato',
+      rows: [
+        {
+          occurred_on: '2026-06-25',
+          description: 'JOAOEMARIA',
+          amount: '-37.50',
+          installment_number: null,
+          installment_total: null,
+          page: 1,
+          metadata: {},
+          suggested_member_id: null,
+        },
+      ],
+      warnings: [],
+    }
+
+    it('sets preview state on successful PDF preview', async () => {
+      mockApiFetch.mockResolvedValue(previewResponse)
+      const { useImport } = await import('../useImport')
+      const { preview, previewFile } = useImport()
+      const file = new File(['content'], 'extrato.pdf', { type: 'application/pdf' })
+      await previewFile(file)
+      expect(preview.value?.adapter).toBe('itau_extrato')
+      expect(preview.value?.rows).toHaveLength(1)
+    })
+
+    it('exposes suggested_member_id from the backend on preview rows', async () => {
+      const withSuggestion = {
+        ...previewResponse,
+        rows: [ { ...previewResponse.rows[0], metadata: { cardholder: 'CLAREAANAALMEIDA (final 7445)' }, suggested_member_id: 12 } ],
+      }
+      mockApiFetch.mockResolvedValue(withSuggestion)
+      const { useImport } = await import('../useImport')
+      const { preview, previewFile } = useImport()
+      const file = new File(['content'], 'fatura.pdf', { type: 'application/pdf' })
+      await previewFile(file)
+      expect(preview.value?.rows[0].suggested_member_id).toBe(12)
+    })
+
+    it('sends FormData with file to /api/v1/imports/preview', async () => {
+      mockApiFetch.mockResolvedValue(previewResponse)
+      const { useImport } = await import('../useImport')
+      const { previewFile } = useImport()
+      const file = new File(['content'], 'fatura.pdf', { type: 'application/pdf' })
+      await previewFile(file)
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v1/imports/preview',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    it('sets error and isLoading=false when preview fails', async () => {
+      mockApiFetch.mockRejectedValue(new Error('layout não reconhecido'))
+      const { useImport } = await import('../useImport')
+      const { error, isLoading, preview, previewFile } = useImport()
+      const file = new File(['content'], 'estranho.pdf', { type: 'application/pdf' })
+      await previewFile(file)
+      expect(error.value).toBeTruthy()
+      expect(isLoading.value).toBe(false)
+      expect(preview.value).toBeNull()
+    })
+  })
+
+  describe('confirmImport', () => {
+    const rows = [
+      {
+        occurred_on: '2026-06-25',
+        description: 'JOAOEMARIA',
+        amount: '-37.50',
+        installment_number: null,
+        installment_total: null,
+        page: 1,
+        metadata: {},
+      },
+    ]
+
+    it('sends rows and account_id to /api/v1/imports/confirm', async () => {
+      mockApiFetch.mockResolvedValue({ imported: 1, errors: [] })
+      const { useImport } = await import('../useImport')
+      const { confirmImport } = useImport()
+      await confirmImport(rows, 7)
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v1/imports/confirm',
+        expect.objectContaining({ method: 'POST', body: { rows, account_id: 7 } }),
+      )
+    })
+
+    it('sets result and clears preview on success', async () => {
+      mockApiFetch.mockResolvedValue({ imported: 1, errors: [] })
+      const { useImport } = await import('../useImport')
+      const { result, preview, previewFile, confirmImport } = useImport()
+      await previewFile(new File(['content'], 'extrato.pdf', { type: 'application/pdf' }))
+      await confirmImport(rows)
+      expect(result.value?.imported).toBe(1)
+      expect(preview.value).toBeNull()
+    })
+
+    it('sets error and isLoading=false on confirm failure', async () => {
+      mockApiFetch.mockRejectedValue(new Error('erro ao confirmar'))
+      const { useImport } = await import('../useImport')
+      const { error, isLoading, confirmImport } = useImport()
+      await confirmImport(rows)
+      expect(error.value).toBeTruthy()
+      expect(isLoading.value).toBe(false)
+    })
+
+    it('passes through a member_id set on a row to /api/v1/imports/confirm', async () => {
+      mockApiFetch.mockResolvedValue({ imported: 1, errors: [] })
+      const { useImport } = await import('../useImport')
+      const { confirmImport } = useImport()
+      const rowsWithMember = [ { ...rows[0], suggested_member_id: 12, member_id: 12 } ]
+      await confirmImport(rowsWithMember, 7)
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v1/imports/confirm',
+        expect.objectContaining({ method: 'POST', body: { rows: rowsWithMember, account_id: 7 } }),
+      )
+    })
+  })
 })

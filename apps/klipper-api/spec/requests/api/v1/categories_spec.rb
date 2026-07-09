@@ -55,6 +55,28 @@ RSpec.describe "Categories API", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       expect(json_response[:errors]).to be_present
     end
+
+    it "defaults natureza to variavel when omitted" do
+      post "/api/v1/categories", params: valid_params.to_json, headers: headers
+
+      expect(json_response[:natureza]).to eq("variavel")
+    end
+
+    it "persists the given natureza" do
+      post "/api/v1/categories",
+        params: valid_params.merge(natureza: "fixo").to_json, headers: headers
+
+      expect(response).to have_http_status(:created)
+      expect(json_response[:natureza]).to eq("fixo")
+    end
+
+    it "rejects an invalid natureza value" do
+      post "/api/v1/categories",
+        params: valid_params.merge(natureza: "invalido").to_json, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(json_response[:errors]).to be_present
+    end
   end
 
   describe "PATCH /api/v1/categories/:id" do
@@ -66,6 +88,22 @@ RSpec.describe "Categories API", type: :request do
 
       expect(response).to have_http_status(:ok)
       expect(json_response[:name]).to eq("New")
+    end
+
+    it "updates natureza" do
+      patch "/api/v1/categories/#{category.id}",
+        params: { natureza: "cartao_parcelamento" }.to_json, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response[:natureza]).to eq("cartao_parcelamento")
+    end
+
+    it "rejects an invalid natureza value on update" do
+      patch "/api/v1/categories/#{category.id}",
+        params: { natureza: "invalido" }.to_json, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(json_response[:errors]).to be_present
     end
   end
 

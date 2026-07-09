@@ -50,9 +50,35 @@
               <div style="font-size:13px;font-weight:600;color:var(--t1)">{{ acc.name }}</div>
               <div style="font-size:11px;color:var(--t3)">{{ acc.institution }}</div>
             </div>
-            <div style="text-align:right;flex-shrink:0">
+            <div style="text-align:right;flex-shrink:0;display:flex;align-items:center;gap:10px">
               <div class="mono" style="font-size:15px;font-weight:500;color:var(--warn)">{{ formatBRL(parseFloat(acc.balance)) }}</div>
+              <button
+                type="button"
+                style="display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t4)"
+                title="Editar dados de dívida"
+                aria-label="Editar dados de dívida do cartão"
+                @click="open('editar-cartao', acc)"
+              >
+                <UiAppIcon name="settings" :size="14" />
+              </button>
             </div>
+          </div>
+        </template>
+
+        <template v-if="creditCards.length">
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;margin:20px 0 10px">Custo do rotativo</div>
+          <template v-if="debtRanking?.cards.length">
+            <UiDebtRankingCard
+              v-for="(card, i) in debtRanking.cards"
+              :key="card.account_id"
+              :rank="i"
+              :row="card"
+              style="margin-bottom:8px"
+            />
+          </template>
+          <div v-else style="padding:24px 0;text-align:center;color:var(--t4);font-size:12px">
+            Nenhum cartão com dados de dívida preenchidos. Edite um cartão acima para informar
+            saldo da fatura e juros do rotativo.
           </div>
         </template>
 
@@ -71,8 +97,12 @@ definePageMeta({ layout: 'app' })
 const { open } = useModal()
 const { accounts, isLoading, fetchAccounts, totalBalance } = useAccounts()
 const { formatBRL } = useFormatters()
+const { debtRanking, fetchDebtRanking } = useReports()
 
-onMounted(fetchAccounts)
+onMounted(() => {
+  fetchAccounts()
+  fetchDebtRanking()
+})
 
 const checkingAccounts = computed(() => accounts.value.filter((a) => a.account_type !== 'credit_card'))
 const creditCards = computed(() => accounts.value.filter((a) => a.account_type === 'credit_card'))

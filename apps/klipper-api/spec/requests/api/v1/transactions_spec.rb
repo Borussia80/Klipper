@@ -37,6 +37,18 @@ RSpec.describe "Transactions API", type: :request do
       expect(ids.length).to eq(2)
     end
 
+    it "filters by member_id" do
+      member = create(:member, user: user)
+      other_member = create(:member, user: user)
+      create(:transaction, user: user, account: account, category: category, member: other_member)
+      create(:transaction, user: user, account: account, category: category, member: member)
+
+      get "/api/v1/transactions?member_id=#{member.id}", headers: headers
+      ids = json_response.map { |t| t[:id] }
+
+      expect(ids.length).to eq(1)
+    end
+
     it "returns 401 without token" do
       get "/api/v1/transactions"
       expect(response).to have_http_status(:unauthorized)

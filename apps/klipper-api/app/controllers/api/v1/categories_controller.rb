@@ -43,7 +43,7 @@ module Api
       end
 
       def category_params
-        params.permit(:name, :icon, :category_type, :color)
+        params.permit(:name, :icon, :category_type, :color, :natureza, :reimbursed_by_category_id)
       end
     end
   end

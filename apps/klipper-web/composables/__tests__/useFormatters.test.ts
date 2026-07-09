@@ -179,6 +179,45 @@ describe('fmtMonthFull', () => {
   })
 })
 
+describe('formatDaysAgo', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('retorna "atualizado hoje" para o momento atual', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 8, 12, 0, 0))
+    const { formatDaysAgo } = useFormatters()
+    expect(formatDaysAgo(new Date(2026, 6, 8, 10, 0, 0).toISOString())).toBe('atualizado hoje')
+  })
+
+  it('retorna "atualizado há 1 dia" para ontem', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 8, 12, 0, 0))
+    const { formatDaysAgo } = useFormatters()
+    expect(formatDaysAgo(new Date(2026, 6, 7, 12, 0, 0).toISOString())).toBe('atualizado há 1 dia')
+  })
+
+  it('retorna "atualizado há N dias" para menos de 30 dias', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 8, 12, 0, 0))
+    const { formatDaysAgo } = useFormatters()
+    expect(formatDaysAgo(new Date(2026, 5, 28, 12, 0, 0).toISOString())).toBe('atualizado há 10 dias')
+  })
+
+  it('retorna "atualizado há 1 mês" para 30-59 dias', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 8, 12, 0, 0))
+    const { formatDaysAgo } = useFormatters()
+    expect(formatDaysAgo(new Date(2026, 5, 8, 12, 0, 0).toISOString())).toBe('atualizado há 1 mês')
+  })
+
+  it('retorna "atualizado há N meses" para 60+ dias', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 6, 8, 12, 0, 0))
+    const { formatDaysAgo } = useFormatters()
+    expect(formatDaysAgo(new Date(2026, 3, 8, 12, 0, 0).toISOString())).toBe('atualizado há 3 meses')
+  })
+})
+
 describe('daysLeftInMonth', () => {
   afterEach(() => vi.useRealTimers())
 

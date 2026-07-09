@@ -43,7 +43,9 @@ module Api
       end
 
       def account_params
-        params.permit(:name, :institution, :account_type, :balance, :currency)
+        params.permit(:name, :institution, :account_type, :balance, :currency,
+                      :saldo_fatura_atual, :pagamento_minimo, :juros_rotativo_am,
+                      :juros_rotativo_aa, :iof_projetado)
       end
     end
   end

@@ -46,20 +46,28 @@ function makeSummaryRow(overrides: Partial<{
   category_id: number
   category_name: string
   category_icon: string
+  natureza: string
   amount_limit: number
   spent: number
   remaining: number
   pct_used: number
+  recorrencia: string
+  months_present: number
+  months_total: number
 }> = {}) {
   return {
     budget_id: 1,
     category_id: 1,
     category_name: 'Alimentação',
     category_icon: '🍔',
+    natureza: 'variavel',
     amount_limit: 1000,
     spent: 400,
     remaining: 600,
     pct_used: 0.4,
+    recorrencia: 'rotineiro',
+    months_present: 5,
+    months_total: 6,
     ...overrides,
   }
 }
@@ -175,6 +183,24 @@ describe('useBudgets', () => {
       const { summary, fetchSummary } = useBudgets()
       await fetchSummary(2026, 1)
       expect(summary.value).toHaveLength(0)
+    })
+
+    it('exposes natureza and recorrencia fields correctly', async () => {
+      mockApiFetch.mockResolvedValue([
+        makeSummaryRow({
+          natureza: 'fixo',
+          recorrencia: 'ocasional',
+          months_present: 3,
+          months_total: 6,
+        }),
+      ])
+      const { summary, fetchSummary } = useBudgets()
+      await fetchSummary(2026, 6)
+      const row = summary.value[0]
+      expect(row.natureza).toBe('fixo')
+      expect(row.recorrencia).toBe('ocasional')
+      expect(row.months_present).toBe(3)
+      expect(row.months_total).toBe(6)
     })
   })
 

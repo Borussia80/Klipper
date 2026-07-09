@@ -75,6 +75,16 @@ export function useFormatters() {
     return lastDay - now.getDate()
   }
 
+  function formatDaysAgo(dateStr: string): string {
+    const then = new Date(dateStr)
+    const days = Math.floor((Date.now() - then.getTime()) / 86_400_000)
+    if (days <= 0) return 'atualizado hoje'
+    if (days === 1) return 'atualizado há 1 dia'
+    if (days < 30) return `atualizado há ${days} dias`
+    const months = Math.floor(days / 30)
+    return months === 1 ? 'atualizado há 1 mês' : `atualizado há ${months} meses`
+  }
+
   return {
     formatBRL,
     formatBRLCompact,
@@ -85,6 +95,7 @@ export function useFormatters() {
     currentMonthLabel,
     fmtMonthFull,
     daysLeftInMonth,
+    formatDaysAgo,
   }
 }
 

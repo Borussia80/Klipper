@@ -103,7 +103,7 @@ onMounted(async () => {
   )
 
   const root = createRoot(mountEl.value)
-  root.mount(el)
+  root.render(el)
   onUnmounted(() => root.unmount())
 })
 </script>

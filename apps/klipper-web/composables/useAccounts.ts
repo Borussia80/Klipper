@@ -8,6 +8,12 @@ export interface Account {
   active: boolean
   created_at: string
   updated_at: string
+  saldo_fatura_atual: string | null
+  pagamento_minimo: string | null
+  juros_rotativo_am: string | null
+  juros_rotativo_aa: string | null
+  iof_projetado: string | null
+  saldo_atualizado_em: string | null
 }
 
 export function useAccounts() {

@@ -2,7 +2,7 @@ FactoryBot.define do
   factory :investment do
     association :user
     name            { Faker::Company.name }
-    ticker          { Faker::String.random(length: 5).upcase }
+    ticker          { Faker::Alphanumeric.alphanumeric(number: 5).upcase }
     investment_type { "stock" }
     quantity        { Faker::Number.decimal(l_digits: 2, r_digits: 4) }
     average_price   { Faker::Commerce.price(range: 5.0..200.0) }

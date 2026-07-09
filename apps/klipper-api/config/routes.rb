@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
       resources :accounts,      only: %i[index show create update destroy]
       resources :categories,    only: %i[index show create update destroy]
+      resources :members,       only: %i[index show create update destroy]
       resources :transactions,  only: %i[index show create update destroy]
       resources :investments,   only: %i[index show create update destroy] do
         collection { get :portfolio }
@@ -16,11 +17,19 @@ Rails.application.routes.draw do
       end
 
       resources :quotes, only: [:index]
-      resources :imports, only: [:create]
+      resources :imports, only: [:create] do
+        collection do
+          post :preview
+          post :confirm
+        end
+      end
 
       namespace :reports do
         get :monthly
         get :net_worth
+        get :natureza_split
+        get :reimbursement_coverage
+        get :debt_ranking
       end
 
       resource :users, only: [] do

@@ -25,6 +25,36 @@
       </div>
     </div>
 
+    <!-- Natureza picker -->
+    <div>
+      <label class="plbl">Natureza</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+        <button
+          v-for="opt in NATUREZA_OPTIONS"
+          :key="opt.value"
+          type="button"
+          :aria-pressed="selectedNatureza === opt.value"
+          class="nat-opt"
+          :class="{ active: selectedNatureza === opt.value }"
+          @click="selectedNatureza = opt.value"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Reembolsada por (só para categorias de despesa) -->
+    <div v-if="categoryType === 'expense'">
+      <label class="plbl">Reembolsada por</label>
+      <div class="sel-wrap">
+        <select v-model="reimbursedByCategoryId" class="fi fi-sel" aria-label="Categoria de receita que reembolsa esta despesa">
+          <option :value="null">Nenhuma</option>
+          <option v-for="inc in incomes" :key="inc.id" :value="inc.id">{{ inc.name }}</option>
+        </select>
+        <span class="sel-caret">▾</span>
+      </div>
+    </div>
+
     <div>
       <label class="plbl">Nome</label>
       <input
@@ -75,7 +105,9 @@ defineProps<{ open: boolean }>()
 const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
-const { createCategory } = useCategories()
+const { incomes, fetchCategories, createCategory } = useCategories()
+
+onMounted(() => fetchCategories())
 
 const CATEGORY_ICONS = [
   { name: 'shopping',   label: 'Mercado' },
@@ -101,11 +133,21 @@ const ICON_TO_CATEGORY_TYPE: Record<string, string> = {
   transfer: 'transfer',
 }
 
+const NATUREZA_OPTIONS: { value: 'fixo' | 'cartao_parcelamento' | 'variavel'; label: string }[] = [
+  { value: 'fixo', label: 'Fixo' },
+  { value: 'cartao_parcelamento', label: 'Cartão/Parcelamento' },
+  { value: 'variavel', label: 'Variável' },
+]
+
 const selectedIcon = ref('shopping')
+const selectedNatureza = ref<'fixo' | 'cartao_parcelamento' | 'variavel'>('variavel')
 const nome = ref('')
 const limite = ref('')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const reimbursedByCategoryId = ref<number | null>(null)
+
+const categoryType = computed(() => ICON_TO_CATEGORY_TYPE[selectedIcon.value] ?? 'expense')
 
 function validate(): string | null {
   if (!nome.value.trim()) return 'Informe o nome da categoria'
@@ -122,12 +164,16 @@ async function submit() {
     await createCategory({
       name: nome.value.trim(),
       icon: selectedIcon.value || 'wallet',
-      category_type: ICON_TO_CATEGORY_TYPE[selectedIcon.value] ?? 'expense',
+      category_type: categoryType.value,
       color: '#6B93AE',
+      natureza: selectedNatureza.value,
+      reimbursed_by_category_id: categoryType.value === 'expense' ? reimbursedByCategoryId.value : null,
     })
     nome.value = ''
     limite.value = ''
     selectedIcon.value = 'shopping'
+    selectedNatureza.value = 'variavel'
+    reimbursedByCategoryId.value = null
     emit('close')
   } catch {
     addToast('Erro ao salvar. Tente novamente.', 'alert')
@@ -175,4 +221,14 @@ div > .fi {
 .icon-opt:hover { color: var(--t2); background: var(--ly); }
 .icon-opt.active { border-color: var(--blue); background: var(--bdm); color: var(--blt); }
 .icon-opt:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.nat-opt {
+  height: 30px; padding: 0 12px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: 1px solid var(--bd2); background: var(--sf);
+  color: var(--t3); font-size: 12px; transition: border-color .12s, color .12s, background .12s;
+}
+.nat-opt:hover { color: var(--t2); background: var(--ly); }
+.nat-opt.active { border-color: var(--blue); background: var(--bdm); color: var(--blt); }
+.nat-opt:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 </style>

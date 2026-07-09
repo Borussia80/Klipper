@@ -11,10 +11,14 @@ export interface BudgetSummaryRow {
   category_id: number
   category_name: string
   category_icon: string
+  natureza: 'fixo' | 'cartao_parcelamento' | 'variavel'
   amount_limit: number
   spent: number
   remaining: number
   pct_used: number
+  recorrencia: 'rotineiro' | 'ocasional' | 'pontual'
+  months_present: number
+  months_total: number
 }
 
 export function useBudgets() {
