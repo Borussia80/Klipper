@@ -9,3 +9,7 @@
 /tmp/cache/
 /tmp/pids/
 /tmp/restart.txt
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
+
