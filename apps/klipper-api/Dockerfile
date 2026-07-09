@@ -42,4 +42,6 @@ COPY --chown=rails:rails --from=build /rails /rails
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["sh", "-c", "bundle exec puma -b tcp://0.0.0.0:$PORT -e production"]
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+
+CMD ["./bin/rails", "server"]
