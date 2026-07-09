@@ -29,6 +29,7 @@ apps/
 | Se a tarefa envolve… | Carregue |
 |---|---|
 | Novo arquivo ou novo teste | `CLAUDE-process.md` |
+| Nova feature, gap de produto, ou pedido vago sobre o que fazer a seguir | `ROADMAP_KLIPPER_WEALTH_OS.md` |
 
 ---
 

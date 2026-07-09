@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klipper — Resumo de Produto &amp; Arquitetura</title>
+<style>
+  :root {
+    --bg: #07121e;
+    --panel: #0d1b2c;
+    --panel-2: #122340;
+    --line: rgba(120,165,210,0.14);
+    --line-soft: rgba(120,165,210,0.08);
+    --accent: #2b7df4;
+    --accent-soft: #5a9bff;
+    --ink-1: #e8f0fa;
+    --ink-2: #93b4ce;
+    --ink-3: #5d7f98;
+    --ok: #14c08a;
+    --warn: #e8a020;
+    --alert: #ef4b4b;
+    --kira: #8566f7;
+    --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+    --sans: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --rail-w: 232px;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #eef3f8;
+    --panel: #ffffff;
+    --panel-2: #f4f8fc;
+    --line: rgba(30,70,110,0.14);
+    --line-soft: rgba(30,70,110,0.08);
+    --accent: #1d63c9;
+    --accent-soft: #3f7fe0;
+    --ink-1: #0e2438;
+    --ink-2: #3f5d76;
+    --ink-3: #6c889e;
+    --ok: #0a8f66;
+    --warn: #a86a08;
+    --alert: #c9352f;
+    --kira: #6a4bd6;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #eef3f8;
+      --panel: #ffffff;
+      --panel-2: #f4f8fc;
+      --line: rgba(30,70,110,0.14);
+      --line-soft: rgba(30,70,110,0.08);
+      --accent: #1d63c9;
+      --accent-soft: #3f7fe0;
+      --ink-1: #0e2438;
+      --ink-2: #3f5d76;
+      --ink-3: #6c889e;
+      --ok: #0a8f66;
+      --warn: #a86a08;
+      --alert: #c9352f;
+      --kira: #6a4bd6;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink-1);
+    font-family: var(--sans);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { display: flex; min-height: 100vh; }
+
+  a { color: var(--accent-soft); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; }
+
+  ::selection { background: rgba(43,125,244,0.3); }
+
+  /* ---------- Rail ---------- */
+  nav.rail {
+    width: var(--rail-w);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    padding: 28px 0 28px;
+  }
+  .rail-brand {
+    padding: 0 24px 22px;
+    border-bottom: 1px solid var(--line-soft);
+    margin-bottom: 6px;
+  }
+  .rail-brand .mark {
+    font-family: var(--serif);
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .rail-brand .sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 5px;
+  }
+  .rail a.item {
+    display: block;
+    padding: 9px 24px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .rail a.item:hover { color: var(--ink-1); background: var(--line-soft); }
+  .rail a.item .n { color: var(--ink-3); margin-right: 2px; }
+  .rail-foot {
+    padding: 18px 24px 0;
+    margin-top: 14px;
+    border-top: 1px solid var(--line-soft);
+    font-size: 11px;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  /* ---------- Main ---------- */
+  main { flex: 1; min-width: 0; padding: 56px clamp(24px, 5vw, 72px) 100px; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .wide { max-width: 100%; }
+
+  header.hero {
+    max-width: 860px;
+    margin: 0 auto 8px;
+    padding-bottom: 34px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin-bottom: 14px;
+  }
+  h1.title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(32px, 5vw, 44px);
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 16px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    max-width: 62ch;
+  }
+  .meta-row {
+    display: flex;
+    gap: 22px;
+    flex-wrap: wrap;
+    margin-top: 22px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+  .meta-row b { color: var(--ink-2); font-weight: 500; }
+
+  section { max-width: 860px; margin: 0 auto; padding: 58px 0; border-bottom: 1px solid var(--line-soft); }
+  section:last-of-type { border-bottom: none; }
+  section.wide-section { max-width: 100%; }
+  section.wide-section > .inner-wide { max-width: 100%; }
+
+  .s-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--accent-soft);
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 26px;
+    letter-spacing: -0.015em;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14.5px;
+    margin: 28px 0 12px;
+    color: var(--ink-1);
+  }
+  p { line-height: 1.65; color: var(--ink-2); max-width: 68ch; }
+  p.tight { max-width: none; }
+  strong { color: var(--ink-1); font-weight: 600; }
+  code, .code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--accent-soft);
+  }
+
+  /* ---------- Cards / grids ---------- */
+  .grid { display: grid; gap: 14px; }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 720px) {
+    .grid.cols-3, .grid.cols-2 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .card h4 {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--ink-1);
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p { font-size: 13px; margin: 0; color: var(--ink-3); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* stack table */
+  table.stack { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.stack th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    padding: 0 14px 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  table.stack td {
+    padding: 11px 14px 11px 0;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+  table.stack td:first-child { color: var(--ink-1); font-weight: 500; white-space: nowrap; }
+  table.stack tr:last-child td { border-bottom: none; }
+  .scroll-x { overflow-x: auto; }
+
+  /* timeline */
+  .tl { position: relative; padding-left: 28px; }
+  .tl::before {
+    content: "";
+    position: absolute; left: 5px; top: 6px; bottom: 6px;
+    width: 1px; background: var(--line);
+  }
+  .tl-item { position: relative; padding-bottom: 26px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-item::before {
+    content: "";
+    position: absolute; left: -28px; top: 4px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--bg); border: 2px solid var(--accent-soft);
+  }
+  .tl-item.past::before { border-color: var(--ink-3); }
+  .tl-date { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-bottom: 3px; }
+  .tl-title { font-weight: 600; font-size: 14.5px; color: var(--ink-1); margin-bottom: 4px; }
+  .tl-why { font-size: 13px; color: var(--ink-2); max-width: 60ch; }
+
+  /* nav map */
+  .navmap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+  .navchip {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    background: var(--panel-2);
+  }
+  .navchip.beta { color: var(--accent-soft); border-color: rgba(43,125,244,0.3); }
+
+  table.pages { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.pages th {
+    text-align: left; font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 500;
+    padding: 0 12px 9px 0; border-bottom: 1px solid var(--line);
+  }
+  table.pages td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line-soft); color: var(--ink-2); }
+  table.pages td:first-child { font-family: var(--mono); color: var(--accent-soft); white-space: nowrap; }
+  table.pages tr:last-child td { border-bottom: none; }
+  .pill { font-size: 10px; font-family: var(--mono); padding: 2px 7px; border-radius: 10px; }
+  .pill.gap { background: rgba(232,160,32,0.14); color: var(--warn); }
+  .pill.beta { background: rgba(43,125,244,0.14); color: var(--accent-soft); }
+
+  /* palette swatches */
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px,1fr)); gap: 10px; margin: 18px 0 26px; }
+  .swatch {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .swatch .fill { height: 52px; }
+  .swatch .label { padding: 8px 10px; font-family: var(--mono); font-size: 10.5px; }
+  .swatch .label .name { color: var(--ink-1); display: block; margin-bottom: 2px; }
+  .swatch .label .hex { color: var(--ink-3); }
+  .swatch .label .ratio { color: var(--ink-3); font-size: 9.5px; display: block; margin-top: 2px; }
+
+  /* modal spec cards */
+  .modal-card {
+    display: grid;
+    grid-template-columns: 128px 1fr;
+    gap: 18px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .modal-card:last-child { border-bottom: none; }
+  .modal-mini {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--accent);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    height: fit-content;
+  }
+  .modal-mini .mt { color: var(--ink-1); font-size: 11px; margin-bottom: 6px; }
+  .modal-mini .mf { padding: 2px 0; }
+  .modal-card h4 { margin: 0 0 6px; font-size: 14.5px; color: var(--ink-1); font-weight: 600; }
+  .modal-card .fields { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .field-tag {
+    font-family: var(--mono); font-size: 10.5px; color: var(--ink-2);
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px;
+  }
+
+  /* status list */
+  ul.status { list-style: none; margin: 0; padding: 0; }
+  ul.status li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; color: var(--ink-2);
+  }
+  ul.status li:last-child { border-bottom: none; }
+  ul.status .tag {
+    font-family: var(--mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em;
+    padding: 2px 7px; border-radius: 4px; flex-shrink: 0; margin-top: 1px;
+  }
+  .tag.done { background: rgba(20,192,138,0.14); color: var(--ok); }
+  .tag.open { background: rgba(232,160,32,0.14); color: var(--warn); }
+  .tag.risk { background: rgba(239,75,75,0.14); color: var(--alert); }
+
+  footer.end {
+    max-width: 860px; margin: 0 auto; padding-top: 40px;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  }
+
+  @media (max-width: 880px) {
+    nav.rail { display: none; }
+    main { padding: 40px 20px 80px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+</head>
+<body>
+<nav class="rail" aria-label="Sumário">
+  <div class="rail-brand">
+    <div class="mark">Klipper</div>
+    <div class="sub">Handoff · Product Design</div>
+  </div>
+  <a class="item" href="#arquitetura"><span class="n">/</span>arquitetura</a>
+  <a class="item" href="#decisoes"><span class="n">/</span>decisoes</a>
+  <a class="item" href="#mapa-de-telas"><span class="n">/</span>mapa-de-telas</a>
+  <a class="item" href="#design-system"><span class="n">/</span>design-system</a>
+  <a class="item" href="#modais"><span class="n">/</span>modais</a>
+  <a class="item" href="#kira"><span class="n">/</span>kira</a>
+  <a class="item" href="#estado-atual"><span class="n">/</span>estado-atual</a>
+  <div class="rail-foot">
+    Roberto Milet<br>
+    Atualizado 2026-07-06
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <div class="eyebrow">Resumo de arquitetura &amp; produto</div>
+    <h1 class="title">Klipper — Wealth Operating System</h1>
+    <p class="lede">
+      Sistema pessoal de gestão financeira: contas, transações, orçamento, investimentos e um
+      copiloto de IA (Kira). Este documento consolida arquitetura, decisões técnicas, inventário
+      de telas, sistema de design e padrões de interação para handoff com o coordenador de design.
+    </p>
+    <div class="meta-row">
+      <span><b>Repo</b> · github.com/Borussia80/Klipper</span>
+      <span><b>Monorepo</b> · 3 apps</span>
+      <span><b>Telas ativas</b> · 11</span>
+      <span><b>Stack atual</b> · Nuxt 4 + Rails 8</span>
+    </div>
+  </header>
+
+  <section id="arquitetura">
+    <div class="s-eyebrow">01 — visão geral</div>
+    <h2>Arquitetura</h2>
+    <p>
+      Klipper é um <strong>monorepo</strong> com três aplicações independentes. O produto principal
+      é um PWA (app instalável, funciona offline-first) servido separadamente da API de domínio —
+      não há SSR acoplado ao backend de negócio.
+    </p>
+
+    <div class="grid cols-3" style="margin: 22px 0 28px">
+      <div class="card">
+        <h4><span class="dot" style="background:var(--accent)"></span>klipper-web</h4>
+        <p>Nuxt 4 (Vue 3) · PWA · frontend do app financeiro. 11 rotas ativas, componentes em Vue SFC.</p>
+      </div>
+      <div class="card">
+        <h4><span class="dot" style="background:var(--ok)"></span>klipper-api</h4>
+        <p>Rails 8 API-only · PostgreSQL · JWT auth · domínio de contas, transações, orçamento e investimentos.</p>
+      </div>
+      <div class="card">
+        <h4><span class="dot" style="background:var(--ink-3)"></span>quebec-web</h4>
+        <p>Nuxt 4 · landing institucional da Quebec (empresa-mãe do produto), separada do app logado.</p>
+      </div>
+    </div>
+
+    <h3>Stack por camada</h3>
+    <div class="scroll-x">
+      <table class="stack">
+        <tr><th>Camada</th><th>Escolha</th><th>Deploy</th></tr>
+        <tr><td>Frontend</td><td>Nuxt 4 · Vue 3 · TypeScript · PWA (Serwist)</td><td>Vercel</td></tr>
+        <tr><td>Gráficos</td><td>React 18 + Recharts, montado como "ilha" isolada dentro do Nuxt via <code>@vitejs/plugin-react</code></td><td>—</td></tr>
+        <tr><td>Backend</td><td>Ruby on Rails 8 (API-only) · Solid Queue · Solid Cache</td><td>Render</td></tr>
+        <tr><td>Banco</td><td>PostgreSQL</td><td>—</td></tr>
+        <tr><td>Auth</td><td>JWT (JwtService) + bcrypt</td><td>—</td></tr>
+        <tr><td>State (front)</td><td>Composables Vue (sem Vuex/Pinia store global — dados vêm via <code>useAsyncData</code>/composables por domínio)</td><td>—</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:14px; font-size:13px">
+      Decisão notável para o design: os três gráficos do produto (sparkline de patrimônio, timeline
+      de patrimônio, donut de alocação) rodam em <strong>React embarcado</strong>, não em Vue nativo —
+      qualquer alteração visual nesses componentes cruza um limite técnico (props tipadas, sem CSS
+      vars diretas — usam tokens de gráfico próprios, ver <code>design-system</code>).
+    </p>
+  </section>
+
+  <section id="decisoes">
+    <div class="s-eyebrow">02 — histórico</div>
+    <h2>Decisões de arquitetura</h2>
+    <p>O produto passou por três reescritas de stack em poucos meses. Cada uma teve motivo específico — importante para não propor voltar a padrões já descartados.</p>
+
+    <div class="tl" style="margin-top:28px">
+      <div class="tl-item past">
+        <div class="tl-date">até jun/2026</div>
+        <div class="tl-title">Streamlit (Python)</div>
+        <div class="tl-why">Protótipo original. Multi-page app com <code>st.dialog</code> para modais. Descartado: limitações de UI/mobile e de customização de interação.</div>
+      </div>
+      <div class="tl-item past">
+        <div class="tl-date">jun/2026</div>
+        <div class="tl-title">Next.js 16 + React 19 (PWA) na Vercel</div>
+        <div class="tl-why">Primeira reescrita como PWA de verdade (Serwist, ícones, auth via Supabase). Descartada em favor de Vue/Nuxt por preferência de stack do time.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">21/jun/2026 → atual</div>
+        <div class="tl-title">Nuxt 4 (frontend) + Rails 8 (backend)</div>
+        <div class="tl-why">Decisão vigente. Frontend em Vue/Nuxt, domínio de negócio concentrado em Rails (auth, jobs, cache, filas). React mantido apenas como ilha isolada para os gráficos (Recharts).</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">06/jul/2026</div>
+        <div class="tl-title">Deploy da API migra para Render</div>
+        <div class="tl-why">Configuração Kamal/Render substitui a tentativa anterior via Railway/Vercel serverless para a API.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="mapa-de-telas" class="wide-section">
+    <div class="inner-wide" style="max-width:860px;margin:0 auto">
+      <div class="s-eyebrow">03 — navegação</div>
+      <h2>Mapa de telas</h2>
+      <p>Navegação principal fica em sidebar fixa (desktop) com espelho em bottom-nav (mobile) — mesma lista de itens, dois padrões de exposição.</p>
+
+      <div class="navmap">
+        <span class="navchip">/dashboard</span>
+        <span class="navchip">/transacoes</span>
+        <span class="navchip">/orcamento</span>
+        <span class="navchip">/investimentos</span>
+        <span class="navchip">/contas</span>
+        <span class="navchip">/relatorios</span>
+        <span class="navchip">/kira</span>
+        <span class="navchip beta">/importar · BETA</span>
+      </div>
+
+      <div class="scroll-x">
+        <table class="pages">
+          <tr><th>Rota</th><th>Função</th><th>Status</th></tr>
+          <tr><td>/dashboard</td><td>Hero: timeline de patrimônio líquido, KPIs com delta mensal e sparkline, próximas contas</td><td></td></tr>
+          <tr><td>/transacoes</td><td>Lista agrupada por data, ícones por categoria, lançamento rápido</td><td></td></tr>
+          <tr><td>/orcamento</td><td>Orçamento estilo envelope (inspirado em Actual Budget) por categoria</td><td></td></tr>
+          <tr><td>/investimentos</td><td>Donut de alocação, cards mobile, dividend yield %</td><td></td></tr>
+          <tr><td>/contas</td><td>Contas bancárias e cartões cadastrados</td><td></td></tr>
+          <tr><td>/relatorios</td><td>Fechamento mensal + evolução de patrimônio líquido</td><td></td></tr>
+          <tr><td>/kira</td><td>Chat com assistente financeiro de IA</td><td><span class="pill beta">beta</span></td></tr>
+          <tr><td>/importar</td><td>Importação de extrato (CSV) com auto-categorização por regras</td><td><span class="pill beta">beta</span></td></tr>
+          <tr><td>/onboarding</td><td>Fluxo de 3 passos pré-login: conectar banco, categorizar, revisar</td><td></td></tr>
+          <tr><td>/login</td><td>Autenticação + recuperação de senha</td><td></td></tr>
+          <tr><td>/configuracoes</td><td>Página existe e funciona, mas <strong>não está linkada</strong> em sidebar, topbar ou mobile-nav</td><td><span class="pill gap">gap de IA</span></td></tr>
+        </table>
+      </div>
+      <p style="margin-top:14px;font-size:12.5px">
+        <code>/configuracoes</code> é acessível só por URL direta hoje — vale decidir com o coordenador
+        onde ela deveria aparecer (menu do usuário na topbar é o candidato natural).
+      </p>
+    </div>
+  </section>
+
+  <section id="design-system">
+    <div class="s-eyebrow">04 — sistema de design</div>
+    <h2>Design system</h2>
+    <p>
+      Tema único, dark-first (não há light mode implementado no produto ainda). Paleta fria,
+      construída para leitura de números financeiros por longos períodos — contraste é tratado
+      como requisito, não afterthought: os tokens de texto já vêm anotados com a razão de contraste
+      WCAG contra o fundo.
+    </p>
+
+    <h3>Paleta de texto (tokens.css)</h3>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="fill" style="background:#E5EEF8"></div><div class="label"><span class="name">--t1</span><span class="hex">#E5EEF8</span><span class="ratio">16.4:1 · AAA</span></div></div>
+      <div class="swatch"><div class="fill" style="background:#9BBFDA"></div><div class="label"><span class="name">--t2</span><span class="hex">#9BBFDA</span><span class="ratio">8.5:1 · AAA</span></div></div>
+      <div class="swatch"><div class="fill" style="background:#6B93AE"></div><div class="label"><span class="name">--t3</span><span class="hex">#6B93AE</span><span class="ratio">5.1:1 · AA</span></div></div>
+      <div class="swatch"><div class="fill" style="background:#3D6478"></div><div class="label"><span class="name">--t4</span><span class="hex">#3D6478</span><span class="ratio">2.4:1 · decorativo</span></div></div>
+    </div>
+
+    <h3>Paleta funcional</h3>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="fill" style="background:#07121E"></div><div class="label"><span class="name">--bg</span><span class="hex">#07121E</span></div></div>
+      <div class="swatch"><div class="fill" style="background:#2B7DF4"></div><div class="label"><span class="name">--blue</span><span class="hex">#2B7DF4</span></div></div>
+      <div class="swatch"><div class="fill" style="background:#0DB878"></div><div class="label"><span class="name">--ok</span><span class="hex">#0DB878</span></div></div>
+      <div class="swatch"><div class="fill" style="background:#E59010"></div><div class="label"><span class="name">--warn</span><span class="hex">#E59010</span></div></div>
+      <div class="swatch"><div class="fill" style="background:#E83535"></div><div class="label"><span class="name">--alert</span><span class="hex">#E83535</span></div></div>
+      <div class="swatch"><div class="fill" style="background:#7C5CF5"></div><div class="label"><span class="name">--pur</span><span class="hex">#7C5CF5 · usado na Kira</span></div></div>
+    </div>
+
+    <h3>Instituições financeiras (cores de marca)</h3>
+    <p class="tight" style="font-size:13px">
+      Bancos recebem cor própria e reconhecível — Nubank <code style="color:#8A05BE">#8A05BE</code>,
+      Itaú <code style="color:#EC7000">#EC7000</code>, BTG <code style="color:#0B2545">#0B2545</code> —
+      mais cripto <code style="color:#F4C030">#F4C030</code>. Novos bancos/ativos precisam de um
+      token de cor equivalente antes de entrar em produção.
+    </p>
+
+    <h3>Tipografia</h3>
+    <p class="tight" style="font-size:13px">
+      Números e labels técnicos usam <strong>monospace (JetBrains Mono)</strong> com
+      <code>tabular-nums</code> — visível em rótulos de step ("Passo 1 de 3"), badges BETA e valores
+      monetários. Texto de interface usa a fonte do sistema. Não há uma família serifada no produto.
+    </p>
+
+    <h3>Layout &amp; responsividade</h3>
+    <p class="tight" style="font-size:13px">
+      Três colunas no desktop: sidebar fixa (<code>--nav: 228px</code>) · conteúdo · painel direito
+      contextual (<code>--rp: 284px</code>, muda de conteúdo conforme a página — patrimônio no
+      Dashboard, resumo de categoria em Transações etc). Em mobile, sidebar e painel direito somem;
+      surge bottom-nav fixo com os mesmos 6 itens principais. Raio de borda padrão é discreto
+      (<code>--r: 6px</code>).
+    </p>
+  </section>
+
+  <section id="modais">
+    <div class="s-eyebrow">05 — padrão de interação</div>
+    <h2>Modais</h2>
+    <p>
+      Não são modais centrais — é um <strong>drawer lateral</strong> (slide-in pela direita, 420px,
+      full-screen em mobile), compartilhando um único componente-base (<code>BaseModal</code>) com
+      focus-trap, fechamento por <code>Esc</code>, <code>aria-modal</code> e devolução de foco ao
+      elemento que abriu o painel. Todas as 4 telas de criação usam esse mesmo padrão — decisão
+      deliberada de consistência, não uma coincidência de implementação.
+    </p>
+
+    <h3 style="margin-top:32px">Os 4 modais existentes</h3>
+    <div style="margin-top:10px">
+      <div class="modal-card">
+        <div class="modal-mini">
+          <div class="mt">Novo lançamento</div>
+          <div class="mf">Tipo: receita/despesa</div>
+          <div class="mf">Valor (R$)</div>
+          <div class="mf">Descrição</div>
+          <div class="mf">Categoria · Conta</div>
+        </div>
+        <div>
+          <h4>Novo lançamento</h4>
+          <p>O modal mais rico dos quatro — toggle de tipo, campo monetário com prefixo R$, categoria e conta em <code>select</code> com skeleton enquanto carrega. Acessado de qualquer tela via atalho de teclado <code>N</code>.</p>
+          <div class="fields">
+            <span class="field-tag">tipo</span><span class="field-tag">valor</span><span class="field-tag">descrição</span><span class="field-tag">categoria</span><span class="field-tag">conta</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-card">
+        <div class="modal-mini">
+          <div class="mt">Nova conta</div>
+          <div class="mf">Instituição</div>
+          <div class="mf">Tipo de conta</div>
+        </div>
+        <div>
+          <h4>Nova conta</h4>
+          <p>Cadastro de conta bancária ou cartão. Campo de instituição é texto livre (ex: "Nubank, Itaú, BTG…") — não há autocomplete de bancos brasileiros ainda, apesar da dependência <code>@edusites/bancos-brasil</code> já estar instalada no projeto.</p>
+          <div class="fields">
+            <span class="field-tag">instituição</span><span class="field-tag">tipo</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-card">
+        <div class="modal-mini">
+          <div class="mt">Novo aporte</div>
+          <div class="mf">Ativo (ticker)</div>
+          <div class="mf">Quantidade</div>
+        </div>
+        <div>
+          <h4>Novo aporte</h4>
+          <p>Registro de compra de ativo por ticker ou nome livre (ex: IVVB11). Usado a partir da tela de Investimentos.</p>
+          <div class="fields">
+            <span class="field-tag">ativo</span><span class="field-tag">quantidade</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-card">
+        <div class="modal-mini">
+          <div class="mt">Nova categoria</div>
+          <div class="mf">Ícone (grid)</div>
+          <div class="mf">Nome</div>
+        </div>
+        <div>
+          <h4>Nova categoria</h4>
+          <p>Seletor de ícone visual + nome livre (ex: "Restaurantes, Pets, Viagens…"). É o único modal com escolha de ícone via grid clicável.</p>
+          <div class="fields">
+            <span class="field-tag">ícone</span><span class="field-tag">nome</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12.5px;margin-top:6px">
+      Abertura é orquestrada por um composable único (<code>useModal</code>), que guarda qual dos
+      4 nomes está ativo — só um modal pode estar aberto por vez em toda a aplicação.
+    </p>
+  </section>
+
+  <section id="kira">
+    <div class="s-eyebrow">06 — feature destaque</div>
+    <h2>Kira — copiloto financeiro</h2>
+    <p>
+      Chat de IA dedicado (rota própria, não um widget flutuante), marcado como <span class="pill beta">beta</span>.
+      Estado vazio traz avatar animado e 4 chips de sugestão que cobrem as perguntas mais prováveis
+      de um usuário novo:
+    </p>
+    <div class="navmap" style="margin-top:16px">
+      <span class="navchip">"Qual é meu saldo atual?"</span>
+      <span class="navchip">"Onde gastei mais este mês?"</span>
+      <span class="navchip">"Quanto tenho em investimentos?"</span>
+      <span class="navchip">"Estou dentro do orçamento?"</span>
+    </div>
+    <p style="margin-top:18px; font-size:13px">
+      Visualmente diferenciada do resto do produto pelo tom roxo (<code style="color:#7C5CF5">--pur #7C5CF5</code>)
+      — único lugar da interface que usa essa cor, o que a torna reconhecível como "zona de IA"
+      em qualquer tela.
+    </p>
+  </section>
+
+  <section id="estado-atual">
+    <div class="s-eyebrow">07 — onde estamos</div>
+    <h2>Estado atual</h2>
+    <ul class="status">
+      <li><span class="tag done">feito</span> 11 telas do app + landing Quebec funcionando em Nuxt 4</li>
+      <li><span class="tag done">feito</span> Backend Rails 8 com 7 controllers de API, auth JWT, 6 migrations aplicadas</li>
+      <li><span class="tag done">feito</span> Padrão de modal único (drawer) consolidado nas 4 telas de criação</li>
+      <li><span class="tag done">feito</span> Deploy da API reconfigurado para Render (Kamal), substituindo tentativa via Vercel/Railway</li>
+      <li><span class="tag open">aberto</span> <code>/configuracoes</code> sem entrada de navegação — decidir onde expor</li>
+      <li><span class="tag open">aberto</span> Sem tema claro implementado — paleta atual é dark-only</li>
+      <li><span class="tag open">aberto</span> Autocomplete de bancos brasileiros (dependência já instalada, não usada no modal de conta)</li>
+      <li><span class="tag risk">atenção</span> Stack legado (Streamlit: <code>app.py</code>, <code>pages/</code>, <code>core/</code>, <code>web/</code> Next.js) ainda presente no working tree, marcado para remoção — não usar como referência de UI atual</li>
+    </ul>
+  </section>
+
+  <footer class="end">
+    Klipper · monorepo <code>apps/klipper-web</code> + <code>apps/klipper-api</code> + <code>apps/quebec-web</code> · gerado a partir do estado do repositório em 2026-07-06
+  </footer>
+</main>
+</body>
+</html>
