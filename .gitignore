@@ -40,8 +40,10 @@ dump_repo.py
 /ssh/
 /Modelo_Bancos/
 
-# Cruft legado (FastAPI substituído por Rails, decisão de deletar fica para depois)
+# Cruft legado (FastAPI + core/ substituídos por Rails, decisão de deletar fica para depois)
 /api/
+/tests/
+/spec/
 
 # Config local de ferramentas
 /.ai-memory.toml
