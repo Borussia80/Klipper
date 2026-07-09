@@ -35,3 +35,13 @@ Thumbs.db
 klipper_context.txt
 dump_repo.py
 .vercel
+
+# Segurança — nunca commitar
+/ssh/
+/Modelo_Bancos/
+
+# Cruft legado (FastAPI substituído por Rails, decisão de deletar fica para depois)
+/api/
+
+# Config local de ferramentas
+/.ai-memory.toml

@@ -1,0 +1,11 @@
+# Fixtures de PDF real (dados pessoais) - locais apenas, nunca commitados
+/spec/fixtures/pdf/*.pdf
+
+# Rails — logs, cache e tmp (padrão do framework, restaurado nesta sessão)
+/log/*.log
+/tmp/*
+!/tmp/.keep
+!/tmp/fixtures
+/tmp/cache/
+/tmp/pids/
+/tmp/restart.txt
