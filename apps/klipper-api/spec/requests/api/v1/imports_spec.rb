@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe "Api::V1::Imports", type: :request do
   let(:user) { create(:user) }
-  let(:token) { JwtService.encode(user_id: user.id) }
+  let(:token) { JwtService.encode(user_id: user.id, token_version: user.token_version) }
   let(:auth_headers) { { "Authorization" => "Bearer #{token}" } }
 
   let(:csv_content) do

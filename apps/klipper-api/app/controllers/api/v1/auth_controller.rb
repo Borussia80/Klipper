@@ -4,7 +4,8 @@ module Api
       def sign_up
         user = User.new(sign_up_params)
         if user.save
-          token = JwtService.encode(user_id: user.id)
+          DefaultCategoriesSeederService.call(user)
+          token = JwtService.encode(user_id: user.id, token_version: user.token_version)
           render json: { token: token, user: user_json(user) }, status: :created
         else
           render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
@@ -14,7 +15,7 @@ module Api
       def sign_in
         user = User.find_by(email: params[:email]&.downcase)
         if user&.authenticate(params[:password])
-          token = JwtService.encode(user_id: user.id)
+          token = JwtService.encode(user_id: user.id, token_version: user.token_version)
           render json: { token: token, user: user_json(user) }
         else
           render json: { error: "E-mail ou senha inválidos" }, status: :unauthorized

@@ -15,6 +15,14 @@ RSpec.describe "Auth endpoints", type: :request do
         expect(json_response[:token]).to be_present
         expect(json_response[:user][:email]).to eq("new@example.com")
       end
+
+      it "seeds default categories so the user isn't starting from a blank slate" do
+        post "/api/v1/auth/sign_up", params: valid_params.to_json,
+          headers: { "Content-Type" => "application/json" }
+
+        user = User.find_by(email: "new@example.com")
+        expect(user.categories.pluck(:name)).to include("Alimentação", "Moradia", "Renda")
+      end
     end
 
     context "with duplicate email" do
@@ -52,6 +60,9 @@ RSpec.describe "Auth endpoints", type: :request do
         expect(response).to have_http_status(:ok)
         expect(json_response[:token]).to be_present
         expect(json_response[:user][:email]).to eq("user@example.com")
+
+        decoded = JwtService.decode(json_response[:token])
+        expect(decoded[:token_version]).to eq(user.token_version)
       end
     end
 

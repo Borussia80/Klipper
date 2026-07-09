@@ -36,6 +36,7 @@ Rails.application.routes.draw do
         get   :me,       on: :collection
         patch :me,       on: :collection, action: :update
         post  :password, on: :collection
+        post  :logout,   on: :collection
       end
     end
   end

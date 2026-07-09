@@ -33,6 +33,11 @@ module Api
         end
       end
 
+      def logout
+        @current_user.increment!(:token_version)
+        render json: { message: "Sessão encerrada" }, status: :ok
+      end
+
       private
 
       def update_params

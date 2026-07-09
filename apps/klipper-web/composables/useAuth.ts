@@ -33,13 +33,22 @@ export function useAuth() {
     await navigateTo('/dashboard')
   }
 
-  function logout() {
+  async function logout() {
+    try {
+      await apiFetch('/api/v1/users/logout', { method: 'POST' })
+    } catch {
+      // best-effort: revoke server-side if possible, but always clear local session
+    }
     token.value = null
     user.value = null
-    navigateTo('/login')
+    await navigateTo('/login')
+  }
+
+  async function fetchCurrentUser() {
+    user.value = await apiFetch<User>('/api/v1/users/me')
   }
 
   const isAuthenticated = computed(() => !!token.value)
 
-  return { user, login, signUp, logout, isAuthenticated }
+  return { user, login, signUp, logout, fetchCurrentUser, isAuthenticated }
 }

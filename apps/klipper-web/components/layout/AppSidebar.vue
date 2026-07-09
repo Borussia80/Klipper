@@ -143,6 +143,20 @@
           Importar
         </NuxtLink>
       </li>
+      <li>
+        <NuxtLink
+          to="/configuracoes"
+          class="ni"
+          :class="{ act: route.path.startsWith('/configuracoes') }"
+          :aria-current="route.path.startsWith('/configuracoes') ? 'page' : undefined"
+        >
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <circle cx="7.5" cy="7.5" r="2.2" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M7.5 1.8v1.4M7.5 12.8v1.4M13.2 7.5h-1.4M3.7 7.5H2.3M11.5 3.5l-1 1M5 10l-1 1M11.5 11.5l-1-1M5 5l-1-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Configurações
+        </NuxtLink>
+      </li>
     </ul>
 
     <div style="padding:10px 12px 0">

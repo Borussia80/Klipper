@@ -40,13 +40,28 @@
           <span class="badge badge--positive">Online</span>
         </div>
       </div>
+
+      <div class="card settings-card">
+        <p class="section-label">Sessão</p>
+        <div class="setting-row">
+          <div>
+            <p class="setting-name">Encerrar sessão</p>
+            <p class="setting-sub">Sai da conta neste dispositivo</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" @click="handleLogout">Sair</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({ layout: 'app', title: 'Configurações' })
-const { user } = useAuth()
+const { user, logout } = useAuth()
+
+async function handleLogout() {
+  await logout()
+}
 </script>
 
 <style scoped>

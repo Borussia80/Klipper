@@ -4,7 +4,7 @@ module RequestHelpers
   end
 
   def auth_headers_for(user)
-    token = JwtService.encode(user_id: user.id)
+    token = JwtService.encode(user_id: user.id, token_version: user.token_version)
     { "Authorization" => "Bearer #{token}", "Content-Type" => "application/json" }
   end
 end

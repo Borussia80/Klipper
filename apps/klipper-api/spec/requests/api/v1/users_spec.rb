@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe "Api::V1::Users", type: :request do
   let(:user) { create(:user, name: "Roberto Milet", email: "roberto@example.com", password: "secret123", password_confirmation: "secret123") }
-  let(:token) { JwtService.encode(user_id: user.id) }
+  let(:token) { JwtService.encode(user_id: user.id, token_version: user.token_version) }
   let(:auth_headers) { { "Authorization" => "Bearer #{token}" } }
 
   describe "GET /api/v1/users/me" do
@@ -81,6 +81,36 @@ RSpec.describe "Api::V1::Users", type: :request do
 
     it "returns 401 without token" do
       post "/api/v1/users/password", params: { current_password: "x", password: "y", password_confirmation: "y" }
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  describe "POST /api/v1/users/logout" do
+    it "invalidates the current token by bumping token_version" do
+      expect { post "/api/v1/users/logout", headers: auth_headers }
+        .to change { user.reload.token_version }.by(1)
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "rejects the old token on a subsequent request after logout" do
+      post "/api/v1/users/logout", headers: auth_headers
+
+      get "/api/v1/users/me", headers: auth_headers
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns 401 without token" do
+      post "/api/v1/users/logout"
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  describe "stale token_version (revoked session)" do
+    it "returns 401 when the token's token_version no longer matches the user's" do
+      stale_token = JwtService.encode(user_id: user.id, token_version: user.token_version)
+      user.increment!(:token_version)
+
+      get "/api/v1/users/me", headers: { "Authorization" => "Bearer #{stale_token}" }
       expect(response).to have_http_status(:unauthorized)
     end
   end

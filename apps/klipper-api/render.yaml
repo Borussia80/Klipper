@@ -12,7 +12,7 @@ services:
           name: klipper-db
           property: connectionString
       - key: RAILS_MASTER_KEY
-        value: 575b912c87198144e3a9a96917a26231
+        sync: false
       - key: CORS_ORIGINS
         value: https://klipper-app.vercel.app
       - key: RAILS_LOG_TO_STDOUT

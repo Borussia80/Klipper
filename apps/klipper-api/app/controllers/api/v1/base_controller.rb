@@ -9,7 +9,8 @@ module Api
         header = request.headers["Authorization"]
         token = header&.split(" ")&.last
         decoded = JwtService.decode(token)
-        @current_user = User.find(decoded[:user_id]) if decoded
+        user = User.find(decoded[:user_id]) if decoded
+        @current_user = user if user && decoded[:token_version] == user.token_version
         render json: { error: "Não autorizado" }, status: :unauthorized unless @current_user
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Usuário não encontrado" }, status: :unauthorized
