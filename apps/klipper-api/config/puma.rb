@@ -31,6 +31,10 @@ threads threads_count, threads_count
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 port ENV.fetch("PORT", 3000)
 
+# Force single mode regardless of any WEB_CONCURRENCY-equivalent set upstream —
+# cluster mode with 1 worker only doubles memory footprint on this free-tier instance.
+workers 0
+
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
 

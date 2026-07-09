@@ -6,6 +6,7 @@ services:
     rootDir: apps/klipper-api
     plan: free
     healthCheckPath: /api/v1/health
+    preDeployCommand: bundle exec rails db:migrate
     envVars:
       - key: DATABASE_URL
         fromDatabase:
