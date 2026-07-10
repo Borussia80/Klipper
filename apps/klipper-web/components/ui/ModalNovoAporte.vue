@@ -30,7 +30,7 @@
     </div>
 
     <div>
-      <label class="plbl">Ativo</label>
+      <label class="flbl">Ativo</label>
       <input
         v-model="ativo"
         type="text"
@@ -42,7 +42,7 @@
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
-        <label class="plbl">Quantidade</label>
+        <label class="flbl">Quantidade</label>
         <input
           v-model="quantidade"
           type="number"
@@ -52,7 +52,7 @@
         />
       </div>
       <div>
-        <label class="plbl">Preço unitário</label>
+        <label class="flbl">Preço unitário</label>
         <input
           v-model="preco"
           type="text"
@@ -64,7 +64,7 @@
     </div>
 
     <div style="margin-bottom:24px">
-      <label class="plbl">Data</label>
+      <label class="flbl">Data</label>
       <input
         v-model="data"
         type="date"

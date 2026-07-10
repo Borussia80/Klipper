@@ -47,9 +47,6 @@ onUnmounted(() => {
         :aria-label="title"
         aria-labelledby="modal-title-id"
       >
-        <!-- Accent stripe -->
-        <div class="drawer-stripe"></div>
-
         <!-- Header -->
         <div class="drawer-header">
           <div>
@@ -91,17 +88,6 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
-.drawer-stripe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--blue), var(--blt), transparent);
-  opacity: 0.4;
-  pointer-events: none;
-}
-
 .drawer-header {
   display: flex;
   align-items: flex-start;
@@ -111,14 +97,14 @@ onUnmounted(() => {
 }
 
 .drawer-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--t1);
   letter-spacing: -0.015em;
 }
 
 .drawer-subtitle {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--t3);
   margin-top: 2px;
 }

@@ -17,7 +17,6 @@
             <circle cx="7.5" cy="7.5" r="5.8" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2.5 2.5" stroke-dashoffset="1.25"/>
           </svg>
           Painel
-          <span style="margin-left:auto;font-size:10px;background:var(--ald);color:var(--alert);border-radius:10px;padding:1px 6px;font-weight:500" aria-label="2 alertas">2</span>
         </NuxtLink>
       </li>
       <li>
@@ -45,7 +44,11 @@
             <path d="M5 3V2.5M10 3V2.5M2 6h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
           </svg>
           Orçamento
-          <span style="margin-left:auto;font-size:10px;background:var(--wnd);color:var(--warn);border-radius:10px;padding:1px 6px;font-weight:500" aria-label="87% do orçamento usado">87%</span>
+          <span
+            v-if="alarmCount > 0"
+            style="margin-left:auto;font-size:10px;background:var(--wnd);color:var(--warn);border-radius:10px;padding:1px 6px;font-weight:500"
+            :aria-label="`${alarmCount} ${alarmCount === 1 ? 'orçamento' : 'orçamentos'} acima de 80%`"
+          >{{ alarmCount }}</span>
         </NuxtLink>
       </li>
 
@@ -80,7 +83,6 @@
             <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/>
           </svg>
           Carteiras
-          <span style="margin-left:auto;font-size:10px;background:var(--ly);color:var(--t4);border-radius:10px;padding:1px 6px;font-weight:500" aria-label="4 contas">4</span>
         </NuxtLink>
       </li>
       <li>
@@ -185,6 +187,12 @@
 <script setup lang="ts">
 const route = useRoute()
 const { open } = useModal()
+
+// Mesma regra de alarme do dashboard: orçamento com limite definido e >80% usado
+const { summary } = useBudgets()
+const alarmCount = computed(
+  () => summary.value.filter(b => b.amount_limit > 0 && b.pct_used > 80).length,
+)
 </script>
 
 <style scoped>

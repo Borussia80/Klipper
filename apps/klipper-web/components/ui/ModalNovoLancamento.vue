@@ -17,7 +17,7 @@
     </div>
 
     <!-- Valor -->
-    <p class="plbl">Valor</p>
+    <p class="flbl">Valor</p>
     <div class="valor-wrap" :class="{ receita: tipo === 'receita' }">
       <span class="valor-prefix">R$</span>
       <input
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Descrição -->
-    <p class="plbl">Descrição</p>
+    <p class="flbl">Descrição</p>
     <input
       v-model="descricao"
       class="field"
@@ -42,14 +42,19 @@
       aria-label="Descrição do lançamento"
     />
 
-    <!-- Categoria + Conta -->
+    <!-- Detalhes: categoria + conta + data -->
+    <div class="gh" style="padding-top:6px">
+      <span class="gl">Detalhes</span>
+      <span class="gr"></span>
+    </div>
+
     <div v-if="isLoadingData" class="row-two" style="margin-bottom:16px">
       <UiSkeletonLine height="34px" />
       <UiSkeletonLine height="34px" />
     </div>
     <div v-else class="row-two">
       <div>
-        <p class="plbl">Categoria</p>
+        <p class="flbl">Categoria</p>
         <div class="select-wrap">
           <select v-model="categoria" class="field select" aria-label="Categoria do lançamento">
             <option :value="null">Sem categoria</option>
@@ -60,7 +65,7 @@
       </div>
 
       <div>
-        <p class="plbl">Conta</p>
+        <p class="flbl">Conta</p>
         <div class="select-wrap">
           <select v-model="conta" class="field select" aria-label="Conta de origem">
             <option :value="null">Selecionar conta</option>
@@ -72,7 +77,7 @@
     </div>
 
     <!-- Data -->
-    <p class="plbl">Data</p>
+    <p class="flbl">Data</p>
     <input
       v-model="data"
       class="field"
@@ -199,7 +204,7 @@ async function submit() {
 
 .tipo-btn.active {
   background: var(--blue);
-  color: #fff;
+  color: #0E1112;
   border-color: var(--blue);
 }
 
@@ -222,13 +227,13 @@ async function submit() {
 .valor-prefix {
   font-size: 16px;
   color: var(--t3);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   margin-right: 8px;
   flex-shrink: 0;
 }
 
 .valor-input {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 32px;
   font-weight: 300;
   color: var(--t1);
@@ -246,14 +251,23 @@ async function submit() {
   color: var(--t4);
 }
 
+/* ── Form labels (sentence case) ─────────────────────────── */
+.flbl {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--t3);
+  margin-bottom: 6px;
+}
+
 /* ── Shared field style ──────────────────────────────────── */
 .field {
   background: var(--sf);
   border: 1px solid var(--bd2);
   border-radius: var(--r);
-  padding: 9px 12px;
+  padding: 10px 12px;
+  min-height: 40px;
   color: var(--t1);
-  font-size: 13px;
+  font-size: 14px;
   width: 100%;
   outline: none;
   font-family: inherit;

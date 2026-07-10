@@ -7,7 +7,7 @@
   >
     <!-- Icon picker -->
     <div>
-      <label class="plbl">Ícone</label>
+      <label class="flbl">Ícone</label>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
         <button
           v-for="opt in CATEGORY_ICONS"
@@ -27,7 +27,7 @@
 
     <!-- Natureza picker -->
     <div>
-      <label class="plbl">Natureza</label>
+      <label class="flbl">Natureza</label>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
         <button
           v-for="opt in NATUREZA_OPTIONS"
@@ -45,7 +45,7 @@
 
     <!-- Reembolsada por (só para categorias de despesa) -->
     <div v-if="categoryType === 'expense'">
-      <label class="plbl">Reembolsada por</label>
+      <label class="flbl">Reembolsada por</label>
       <div class="sel-wrap">
         <select v-model="reimbursedByCategoryId" class="fi fi-sel" aria-label="Categoria de receita que reembolsa esta despesa">
           <option :value="null">Nenhuma</option>
@@ -56,7 +56,7 @@
     </div>
 
     <div>
-      <label class="plbl">Nome</label>
+      <label class="flbl">Nome</label>
       <input
         v-model="nome"
         type="text"
@@ -67,7 +67,7 @@
     </div>
 
     <div style="margin-bottom:24px">
-      <label class="plbl">Limite mensal</label>
+      <label class="flbl">Limite mensal</label>
       <div class="val-wrap">
         <span class="val-prefix">R$</span>
         <input
@@ -205,7 +205,7 @@ div > .fi {
   font-size: 13px;
   color: var(--t3);
   pointer-events: none;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   z-index: 1;
 }
 .fi-val {

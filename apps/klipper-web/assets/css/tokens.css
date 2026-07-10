@@ -1,42 +1,49 @@
-/* Klipper design tokens — synced with Klipper.dc.html */
+/* Klipper design tokens — HMI de alta performance (ISA-101, tema escuro calmo)
+ *
+ * REGRA DE RACIONALIZAÇÃO DE COR (não violar):
+ * Nenhum elemento estático usa cor semântica. Cor aparece exclusivamente em:
+ *   1. O instrumento primário da tela (--ok, um por página)
+ *   2. Condições anormais que pedem ação do usuário (--warn / --alert)
+ *   3. Elementos interativos (--blue: CTA, links, foco)
+ * Todo o resto é escala de cinza (--t1..--t4) com hierarquia por tamanho/posição.
+ */
 :root {
-  --bg:       #07121E;   /* main canvas */
-  --bg-frame: #050C16;   /* nav + panel — darker structural frame */
-  --sf:  #0C1B2C;
-  --ly:  #122440;
-  --ly2: #19314F;
+  --bg:       #161819;   /* canvas grafite neutro */
+  --bg-frame: #111314;   /* nav + topbar — moldura estrutural */
+  --sf:  #1E2122;        /* superfície de card */
+  --ly:  #282C2E;        /* camada elevada */
+  --ly2: #32373A;        /* camada 2 */
 
-  --bd:  rgba(80,140,200,0.08);
-  --bd2: rgba(80,140,200,0.14);
+  --bd:  rgba(255,255,255,0.05);
+  --bd2: rgba(255,255,255,0.09);
 
-  --t1: #E5EEF8;   /* 16.4:1 (AAA) */
-  --t2: #9BBFDA;   /* ~8.5:1 (AAA) — was #8AABCA */
-  --t3: #6B93AE;   /* ~5.1:1 (AA)  — was #4D6E8A, large/bold text ≥14px bold */
-  --t4: #3D6478;   /* ~2.4:1 (decorative only) — was #284158 */
+  --t1: #EDEFF0;   /* 15.9:1 (AAA) */
+  --t2: #AEB4B8;   /* 8.3:1 (AAA) */
+  --t3: #7D848A;   /* 4.6:1 (AA large / ≥14px bold) */
+  --t4: #565D63;   /* 2.6:1 (decorativo apenas) */
 
-  /* Contrast ratios on --bg (#07121E):
-     --t1: 16.4:1 (AAA) | --t2: 8.5:1 (AAA) | --t3: 5.1:1 (AA) | --t4: 2.4:1 (decorative) */
+  /* Contrast ratios sobre --bg (#161819):
+     --t1: 15.9:1 (AAA) | --t2: 8.3:1 (AAA) | --t3: 4.6:1 (AA large) | --t4: decorativo */
 
-  --blue: #2B7DF4;
-  --blt:  #5A9BFF;
-  --bdm:  rgba(43,125,244,0.11);
+  --blue: #5B9BD5;              /* aço dessaturado — SÓ interativo */
+  --blt:  #7FB3E3;
+  --bdm:  rgba(91,155,213,0.11);
 
-  --ok:  #0DB878;
-  --okd: rgba(13,184,120,0.11);
+  --ok:  #3FBF8F;               /* SÓ instrumento primário + confirmações */
+  --okd: rgba(63,191,143,0.11);
 
-  --warn: #E59010;
-  --wnd:  rgba(229,144,16,0.11);
+  --warn: #E0A33E;              /* SÓ alarme acionável — prioridade média */
+  --wnd:  rgba(224,163,62,0.11);
 
-  --alert: #E83535;
-  --ald:   rgba(232,53,53,0.11);
+  --alert: #E06A4C;             /* SÓ alarme acionável — prioridade alta */
+  --ald:   rgba(224,106,76,0.11);
 
-  --pur: #7C5CF5;
+  --pur: #9B8CDB;               /* categórica de charts (classe de ativo), não semântica */
 
   --nav: 228px;
-  --rp:  284px;
   --r:   6px;
 
-  /* Instituições financeiras */
+  /* Instituições financeiras (identidade de marca em listas, não semântica) */
   --bank-nubank: #8A05BE;
   --bank-itau:   #EC7000;
   --bank-btg:    #0B2545;
@@ -45,6 +52,6 @@
   --crypto: #F4C030;
 
   /* Chart surfaces (React islands não têm acesso direto a CSS vars) */
-  --chart-bg:     #151D2A;
-  --chart-border: #1E2D3F;
+  --chart-bg:     #1E2122;
+  --chart-border: #32373A;
 }

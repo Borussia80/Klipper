@@ -25,7 +25,7 @@
 
       <template v-else>
         <template v-if="titulares.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;margin-bottom:10px">Titulares</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px">Titulares</div>
           <div v-for="member in titulares" :key="member.id" class="ac">
             <div class="mem-avatar">{{ initials(member.name) }}</div>
             <div style="flex:1;min-width:0">
@@ -36,7 +36,7 @@
         </template>
 
         <template v-if="dependentes.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;margin:20px 0 10px">Dependentes</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin:20px 0 10px">Dependentes</div>
           <div v-for="member in dependentes" :key="member.id" class="ac">
             <div class="mem-avatar">{{ initials(member.name) }}</div>
             <div style="flex:1;min-width:0">

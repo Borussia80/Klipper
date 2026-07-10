@@ -18,7 +18,7 @@
       <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:12px;padding:32px">
 
         <!-- Step label -->
-        <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-bottom:20px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-family:'IBM Plex Mono',monospace;margin-bottom:20px">
           Passo {{ currentStep }} de 3
         </div>
 
@@ -147,13 +147,13 @@
           <div style="margin-bottom:24px">
             <label style="display:block;font-size:11px;color:var(--t3);margin-bottom:8px;font-weight:500">Quanto quero guardar por mês</label>
             <div style="display:flex;align-items:center;gap:8px;background:var(--ly);border:1px solid var(--bd2);border-radius:var(--r);padding:0 12px;height:44px">
-              <span style="font-size:13px;color:var(--t3);font-family:'JetBrains Mono',monospace">R$</span>
+              <span style="font-size:13px;color:var(--t3);font-family:'IBM Plex Mono',monospace">R$</span>
               <input
                 v-model="savingsGoal"
                 type="text"
                 inputmode="numeric"
                 placeholder="0,00"
-                style="flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--t1);font-family:'JetBrains Mono',monospace"
+                style="flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--t1);font-family:'IBM Plex Mono',monospace"
                 aria-label="Meta de poupança mensal em reais"
               >
             </div>

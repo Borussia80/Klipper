@@ -6,7 +6,7 @@
     @close="$emit('close')"
   >
     <div>
-      <label class="plbl">Nome</label>
+      <label class="flbl">Nome</label>
       <input
         v-model="nome"
         type="text"
@@ -17,7 +17,7 @@
     </div>
 
     <div style="margin-bottom:24px">
-      <label class="plbl">Relação</label>
+      <label class="flbl">Relação</label>
       <div class="sel-wrap">
         <select v-model="relacao" class="fi fi-sel" aria-label="Relação do portador">
           <option value="titular">Titular</option>

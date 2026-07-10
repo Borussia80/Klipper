@@ -6,7 +6,7 @@
     @close="$emit('close')"
   >
     <div>
-      <label class="plbl">Reembolsada por</label>
+      <label class="flbl">Reembolsada por</label>
       <div class="sel-wrap">
         <select v-model="reimbursedByCategoryId" class="fi fi-sel" aria-label="Categoria de receita que reembolsa esta despesa">
           <option :value="null">Nenhuma</option>

@@ -5,20 +5,20 @@
  */
 export function useChartTokens() {
   const tokens = ref({
-    blue:        '#2B7DF4',
-    blt:         '#5A9BFF',
-    ok:          '#0DB878',
-    warn:        '#E59010',
-    alert:       '#E83535',
-    pur:         '#7C5CF5',
+    blue:        '#5B9BD5',
+    blt:         '#7FB3E3',
+    ok:          '#3FBF8F',
+    warn:        '#E0A33E',
+    alert:       '#E06A4C',
+    pur:         '#9B8CDB',
     crypto:      '#F4C030',
-    t2:          '#8AABCA',
-    t3:          '#4D6E8A',
-    t4:          '#284158',
-    chartBg:     '#151D2A',
-    chartBorder: '#1E2D3F',
-    sf:          '#0C1B2C',
-    ly:          '#122440',
+    t2:          '#AEB4B8',
+    t3:          '#7D848A',
+    t4:          '#565D63',
+    chartBg:     '#1E2122',
+    chartBorder: '#32373A',
+    sf:          '#1E2122',
+    ly:          '#282C2E',
   })
 
   onMounted(() => {

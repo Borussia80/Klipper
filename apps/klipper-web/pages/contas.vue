@@ -29,7 +29,7 @@
 
       <template v-else>
         <template v-if="checkingAccounts.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;margin-bottom:10px">Contas correntes</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px">Contas correntes</div>
           <div v-for="acc in checkingAccounts" :key="acc.id" class="ac">
             <UiBankIcon :institution="acc.institution" :name="acc.name" :size="36" />
             <div style="flex:1;min-width:0">
@@ -43,7 +43,7 @@
         </template>
 
         <template v-if="creditCards.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;margin:20px 0 10px">Cartões de crédito</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin:20px 0 10px">Cartões de crédito</div>
           <div v-for="acc in creditCards" :key="acc.id" class="ac">
             <UiBankIcon :institution="acc.institution" :name="acc.name" :size="36" />
             <div style="flex:1;min-width:0">
@@ -66,7 +66,7 @@
         </template>
 
         <template v-if="creditCards.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;margin:20px 0 10px">Custo do rotativo</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin:20px 0 10px">Custo do rotativo</div>
           <template v-if="debtRanking?.cards.length">
             <UiDebtRankingCard
               v-for="(card, i) in debtRanking.cards"

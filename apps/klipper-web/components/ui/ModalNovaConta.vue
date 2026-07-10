@@ -6,7 +6,7 @@
     @close="$emit('close')"
   >
     <div>
-      <label class="plbl">Instituição</label>
+      <label class="flbl">Instituição</label>
       <input
         v-model="instituicao"
         type="text"
@@ -17,7 +17,7 @@
     </div>
 
     <div>
-      <label class="plbl">Tipo</label>
+      <label class="flbl">Tipo</label>
       <div class="sel-wrap">
         <select v-model="tipo" class="fi fi-sel" aria-label="Tipo de conta">
           <option value="corrente">Conta corrente</option>
@@ -31,7 +31,7 @@
     </div>
 
     <div style="margin-bottom:24px">
-      <label class="plbl">Identificador</label>
+      <label class="flbl">Identificador</label>
       <input
         v-model="identificador"
         type="text"

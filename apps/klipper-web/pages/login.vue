@@ -13,7 +13,7 @@
         style="width:40px;height:40px;border-radius:10px;margin:0 auto 14px;display:block"
       >
       <div style="font-size:28px;font-weight:300;letter-spacing:-.03em;color:var(--t1);line-height:1.15">Klipper</div>
-      <div style="font-size:13px;color:var(--t3);margin-top:4px;margin-bottom:48px;letter-spacing:.02em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:11px">Wealth OS</div>
+      <div style="font-size:13px;color:var(--t3);margin-top:4px;margin-bottom:48px;letter-spacing:.02em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;font-size:11px">Wealth OS</div>
 
       <!-- Key ring focal element -->
       <div
@@ -97,7 +97,7 @@
 
         <div v-if="showEmailForm" style="margin-top:14px;text-align:left">
           <div v-if="mode === 'signup'" style="margin-bottom:10px">
-            <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Nome</label>
+            <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Nome</label>
             <input
               v-model="nameField"
               type="text"
@@ -108,7 +108,7 @@
             />
           </div>
           <div style="margin-bottom:10px">
-            <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em">E-mail</label>
+            <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em">E-mail</label>
             <input
               v-model="emailField"
               type="email"
@@ -120,7 +120,7 @@
             />
           </div>
           <div :style="{ marginBottom: mode === 'signup' ? '10px' : '14px' }">
-            <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Senha</label>
+            <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Senha</label>
             <input
               v-model="passwordField"
               type="password"
@@ -132,7 +132,7 @@
             />
           </div>
           <div v-if="mode === 'signup'" style="margin-bottom:14px">
-            <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Confirmar senha</label>
+            <label style="font-size:11px;color:var(--t3);display:block;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Confirmar senha</label>
             <input
               v-model="passwordConfirmationField"
               type="password"

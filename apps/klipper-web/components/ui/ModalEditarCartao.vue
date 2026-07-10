@@ -6,7 +6,7 @@
     @close="$emit('close')"
   >
     <div>
-      <label class="plbl">Saldo da fatura atual</label>
+      <label class="flbl">Saldo da fatura atual</label>
       <input
         v-model.number="saldoFaturaAtual"
         type="number"
@@ -18,7 +18,7 @@
     </div>
 
     <div>
-      <label class="plbl">Pagamento mínimo</label>
+      <label class="flbl">Pagamento mínimo</label>
       <input
         v-model.number="pagamentoMinimo"
         type="number"
@@ -30,7 +30,7 @@
     </div>
 
     <div>
-      <label class="plbl">Juros do rotativo (a.m.)</label>
+      <label class="flbl">Juros do rotativo (a.m.)</label>
       <input
         v-model.number="jurosRotativoAm"
         type="number"
@@ -42,7 +42,7 @@
     </div>
 
     <div>
-      <label class="plbl">Juros do rotativo (a.a.)</label>
+      <label class="flbl">Juros do rotativo (a.a.)</label>
       <input
         v-model.number="jurosRotativoAa"
         type="number"
@@ -54,7 +54,7 @@
     </div>
 
     <div style="margin-bottom:24px">
-      <label class="plbl">IOF projetado</label>
+      <label class="flbl">IOF projetado</label>
       <input
         v-model.number="iofProjetado"
         type="number"

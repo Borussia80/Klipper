@@ -25,7 +25,7 @@
     <div style="padding:0 20px 32px">
       <!-- Allocation bar -->
       <div style="margin-top:20px;background:var(--sf);border:1px solid var(--bd2);border-radius:10px;padding:18px 20px">
-        <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;margin-bottom:14px">Alocação por classe</div>
+        <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin-bottom:14px">Alocação por classe</div>
         <!-- Dynamic allocation bar -->
         <div v-if="portfolio" style="display:flex;border-radius:6px;overflow:hidden;height:8px;gap:2px;margin-bottom:14px">
           <div
@@ -46,8 +46,8 @@
       <!-- Holdings table header -->
       <div style="display:grid;grid-template-columns:40px 1fr auto;gap:12px;padding:12px 8px;margin:16px -8px 0;border-bottom:1px solid var(--bd)">
         <div></div>
-        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'JetBrains Mono',monospace">Ativo</div>
-        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'JetBrains Mono',monospace;text-align:right">Valor</div>
+        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'IBM Plex Mono',monospace">Ativo</div>
+        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'IBM Plex Mono',monospace;text-align:right">Valor</div>
       </div>
 
       <UiSkeletonTransactionList v-if="isLoading" />
