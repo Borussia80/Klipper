@@ -17,111 +17,137 @@
       </div>
     </div>
 
-    <UiInstrumentReadout
-      style="margin-bottom:20px"
-      label="Resultado do mês · operacional"
-      :net-value="netResult"
-      :formatted-value="formatBRL(netResult)"
-      :spent-ratio="spentRatio"
-      :detail="heroDetail"
-    />
-
-    <UiDebtAlarmBanner
-      v-if="showDebtAlarm"
-      style="margin-bottom:20px"
-      :row="debtRanking!.cards[0]"
-    />
-
-    <div v-if="kpiCount" class="kpi-grid" :style="{ gridTemplateColumns: `repeat(${kpiCount},1fr)` }">
-      <UiKpiCard
-        v-if="incomeHighlight"
-        :label="incomeCategory?.name ?? 'Maior entrada do mês'"
-        icon="income"
-        :value="formatBRL(parseFloat(incomeHighlight.amount))"
-        :chip-text="`recebido em ${fmtDate(incomeHighlight.occurred_on)}`"
-      />
-      <UiKpiCard
-        v-if="fixoRow"
-        label="Compromissos fixos"
-        icon="home"
-        :value="formatBRL(fixoRow.total)"
-        :chip-text="fixoPct !== null ? `${Math.round(fixoPct * 100)}% da renda` : undefined"
-        :chip-tone="commitmentTone(fixoPct)"
-      />
-      <UiKpiCard
-        v-if="cartaoRow"
-        label="Cartões & parcelas"
-        icon="card"
-        :value="formatBRL(cartaoRow.total)"
-        :chip-text="cartaoPct !== null ? `${Math.round(cartaoPct * 100)}% da renda` : undefined"
-        :chip-tone="commitmentTone(cartaoPct)"
-      />
+    <!-- Error banner -->
+    <div v-if="dashboardError" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin-bottom:16px">
+      {{ dashboardError }}
     </div>
 
-    <div v-if="colsCount" class="cols" :style="{ gridTemplateColumns: colsCount === 2 ? '1fr 1fr' : '1fr' }">
-      <div v-if="splitBars.length" class="card">
-        <div class="card-h">
-          <span class="card-title">Fixo × Cartão × Variável</span>
-          <NuxtLink class="link" to="/orcamento">Relatório →</NuxtLink>
-        </div>
-        <div v-for="bar in splitBars" :key="bar.name" class="split-row">
-          <span class="split-dot" :style="{ background: bar.color }"></span>
-          <span class="split-name">{{ bar.name }}</span>
-          <span class="split-track"><span class="f" :style="{ width: bar.pct + '%', background: bar.color }"></span></span>
-          <span class="split-val mono">{{ formatBRL(bar.value) }}</span>
-          <span class="split-pct mono">{{ Math.round(bar.pct) }}%</span>
-        </div>
-      </div>
+    <!-- Loading skeleton -->
+    <template v-if="dashboardLoading">
+      <UiSkeletonCard v-for="n in 4" :key="n" style="margin-bottom:8px" />
+    </template>
 
-      <div v-if="debtRanking?.cards.length" class="card">
-        <div class="card-h">
-          <span class="card-title">Prioridade de quitação</span>
-          <NuxtLink class="link" to="/contas">Todos os cartões →</NuxtLink>
-        </div>
-        <UiDebtRankingCard
-          v-for="(card, i) in debtRanking.cards"
-          :key="card.account_id"
-          :rank="i"
-          :row="card"
+    <!-- Empty state -->
+    <div v-else-if="!hasData" style="padding:48px 0;text-align:center;color:var(--t4);font-size:13px">
+      Nenhum lançamento neste mês ainda.
+      <br />
+      <NuxtLink class="btn btn-p" style="margin-top:12px;display:inline-block" to="/importar">Importar extrato</NuxtLink>
+    </div>
+
+    <template v-else>
+      <UiInstrumentReadout
+        style="margin-bottom:20px"
+        label="Resultado do mês · operacional"
+        :net-value="netResult"
+        :formatted-value="formatBRL(netResult)"
+        :spent-ratio="spentRatio"
+        :detail="heroDetail"
+      />
+
+      <UiDebtAlarmBanner
+        v-if="showDebtAlarm"
+        style="margin-bottom:20px"
+        :row="debtRanking!.cards[0]"
+      />
+
+      <div v-if="kpiCount" class="kpi-grid" :style="{ gridTemplateColumns: `repeat(${kpiCount},1fr)` }">
+        <UiKpiCard
+          v-if="incomeHighlight"
+          :label="incomeCategory?.name ?? 'Maior entrada do mês'"
+          icon="income"
+          :value="formatBRL(parseFloat(incomeHighlight.amount))"
+          :chip-text="`recebido em ${fmtDate(incomeHighlight.occurred_on)}`"
+        />
+        <UiKpiCard
+          v-if="fixoRow"
+          label="Compromissos fixos"
+          icon="home"
+          :value="formatBRL(fixoRow.total)"
+          :chip-text="fixoPct !== null ? `${Math.round(fixoPct * 100)}% da renda` : undefined"
+          :chip-tone="commitmentTone(fixoPct)"
+        />
+        <UiKpiCard
+          v-if="cartaoRow"
+          label="Cartões & parcelas"
+          icon="card"
+          :value="formatBRL(cartaoRow.total)"
+          :chip-text="cartaoPct !== null ? `${Math.round(cartaoPct * 100)}% da renda` : undefined"
+          :chip-tone="commitmentTone(cartaoPct)"
         />
       </div>
-    </div>
 
-    <div
-      v-for="row in reimbursementCoverage?.categories ?? []"
-      :key="row.category_id"
-      class="card"
-      style="margin-bottom:14px"
-    >
-      <div class="card-h">
-        <span class="card-title">{{ row.category_name }} · cobertura {{ row.reimbursed_by_category_name }}</span>
-        <span v-if="row.coverage_pct !== null" class="chip" :class="row.alert ? 'alert' : 'ok'">
-          {{ Math.round(row.coverage_pct) }}% coberto
-        </span>
+      <div v-if="colsCount" class="cols" :style="{ gridTemplateColumns: colsCount === 2 ? '1fr 1fr' : '1fr' }">
+        <div v-if="splitBars.length" class="card">
+          <div class="card-h">
+            <span class="card-title">Fixo × Cartão × Variável</span>
+            <NuxtLink class="link" to="/orcamento">Relatório →</NuxtLink>
+          </div>
+          <div v-for="bar in splitBars" :key="bar.name" class="split-row">
+            <span class="split-dot" :style="{ background: bar.color }"></span>
+            <span class="split-name">{{ bar.name }}</span>
+            <span class="split-track"><span class="f" :style="{ width: bar.pct + '%', background: bar.color }"></span></span>
+            <span class="split-val mono">{{ formatBRL(bar.value) }}</span>
+            <span class="split-pct mono">{{ Math.round(bar.pct) }}%</span>
+          </div>
+        </div>
+
+        <div v-if="debtRanking?.cards.length" class="card">
+          <div class="card-h">
+            <span class="card-title">Prioridade de quitação</span>
+            <NuxtLink class="link" to="/contas">Todos os cartões →</NuxtLink>
+          </div>
+          <UiDebtRankingCard
+            v-for="(card, i) in debtRanking.cards"
+            :key="card.account_id"
+            :rank="i"
+            :row="card"
+          />
+        </div>
       </div>
-      <div class="split-row">
-        <span class="split-dot" style="background:var(--alert)"></span>
-        <span class="split-name">Gasto no mês</span>
-        <span class="split-track"><span class="f" style="width:100%;background:var(--bd-hi)"></span></span>
-        <span class="split-val mono">{{ formatBRL(row.spent) }}</span>
-        <span class="split-pct mono">100%</span>
+
+      <div
+        v-for="row in reimbursementCoverage?.categories ?? []"
+        :key="row.category_id"
+        class="card"
+        style="margin-bottom:14px"
+      >
+        <div class="card-h">
+          <span class="card-title">{{ row.category_name }} · cobertura {{ row.reimbursed_by_category_name }}</span>
+          <span v-if="row.coverage_pct !== null" class="chip" :class="row.alert ? 'alert' : 'ok'">
+            {{ Math.round(row.coverage_pct) }}% coberto
+          </span>
+        </div>
+        <div class="split-row">
+          <span class="split-dot" style="background:var(--alert)"></span>
+          <span class="split-name">Gasto no mês</span>
+          <span class="split-track"><span class="f" style="width:100%;background:var(--bd-hi)"></span></span>
+          <span class="split-val mono">{{ formatBRL(row.spent) }}</span>
+          <span class="split-pct mono">100%</span>
+        </div>
+        <div class="split-row">
+          <span class="split-dot" style="background:var(--ok)"></span>
+          <span class="split-name">Reembolsado</span>
+          <span class="split-track"><span class="f" :style="{ width: (row.coverage_pct ?? 0) + '%', background: 'var(--ok)' }"></span></span>
+          <span class="split-val mono">{{ formatBRL(row.reimbursed) }}</span>
+          <span class="split-pct mono">{{ row.coverage_pct !== null ? Math.round(row.coverage_pct) + '%' : '—' }}</span>
+        </div>
       </div>
-      <div class="split-row">
-        <span class="split-dot" style="background:var(--ok)"></span>
-        <span class="split-name">Reembolsado</span>
-        <span class="split-track"><span class="f" :style="{ width: (row.coverage_pct ?? 0) + '%', background: 'var(--ok)' }"></span></span>
-        <span class="split-val mono">{{ formatBRL(row.reimbursed) }}</span>
-        <span class="split-pct mono">{{ row.coverage_pct !== null ? Math.round(row.coverage_pct) + '%' : '—' }}</span>
-      </div>
-    </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 
-const { transactions, totalDebits, totalCredits, fetchTransactions } = useTransactions()
-const { members, fetchMembers } = useMembers()
+const {
+  transactions,
+  totalDebits,
+  totalCredits,
+  fetchTransactions,
+  isLoading: transactionsLoading,
+  error: transactionsError,
+} = useTransactions()
+const { members, fetchMembers, error: membersError } = useMembers()
 const { formatBRL, currentMonthLabel } = useFormatters()
 const {
   naturezaSplit,
@@ -130,8 +156,16 @@ const {
   fetchDebtRanking,
   reimbursementCoverage,
   fetchReimbursementCoverage,
+  isLoading: reportsLoading,
+  error: reportsError,
 } = useReports()
-const { categories, fetchCategories } = useCategories()
+const { categories, fetchCategories, error: categoriesError } = useCategories()
+
+const dashboardLoading = computed(() => transactionsLoading.value || reportsLoading.value)
+const dashboardError = computed(
+  () => transactionsError.value || reportsError.value || categoriesError.value || membersError.value
+)
+const hasData = computed(() => transactions.value.length > 0)
 
 const now = new Date()
 const activeMemberId = ref<number | undefined>(undefined)
