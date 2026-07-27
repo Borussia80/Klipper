@@ -81,9 +81,11 @@ export function useReports() {
   const reimbursementCoverage = ref<ReimbursementCoverageReport | null>(null)
   const debtRanking = ref<DebtRankingReport | null>(null)
   const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   async function fetchMonthly(year?: number, month?: number, memberId?: number) {
     isLoading.value = true
+    error.value = null
     try {
       const now = new Date()
       monthly.value = await apiFetch<MonthlyReport>('/api/v1/reports/monthly', {
@@ -93,6 +95,8 @@ export function useReports() {
           member_id: memberId,
         },
       })
+    } catch {
+      error.value = 'Erro ao carregar relatório mensal.'
     } finally {
       isLoading.value = false
     }
@@ -100,8 +104,11 @@ export function useReports() {
 
   async function fetchNetWorth() {
     isLoading.value = true
+    error.value = null
     try {
       netWorth.value = await apiFetch<NetWorthReport>('/api/v1/reports/net_worth')
+    } catch {
+      error.value = 'Erro ao carregar patrimônio.'
     } finally {
       isLoading.value = false
     }
@@ -109,6 +116,7 @@ export function useReports() {
 
   async function fetchNaturezaSplit(year?: number, month?: number, memberId?: number) {
     isLoading.value = true
+    error.value = null
     try {
       const now = new Date()
       naturezaSplit.value = await apiFetch<NaturezaSplitReport>('/api/v1/reports/natureza_split', {
@@ -118,6 +126,8 @@ export function useReports() {
           member_id: memberId,
         },
       })
+    } catch {
+      error.value = 'Erro ao carregar composição de gastos.'
     } finally {
       isLoading.value = false
     }
@@ -125,6 +135,7 @@ export function useReports() {
 
   async function fetchReimbursementCoverage(year?: number, month?: number, categoryId?: number) {
     isLoading.value = true
+    error.value = null
     try {
       const now = new Date()
       reimbursementCoverage.value = await apiFetch<ReimbursementCoverageReport>('/api/v1/reports/reimbursement_coverage', {
@@ -134,6 +145,8 @@ export function useReports() {
           category_id: categoryId,
         },
       })
+    } catch {
+      error.value = 'Erro ao carregar cobertura de reembolso.'
     } finally {
       isLoading.value = false
     }
@@ -141,8 +154,11 @@ export function useReports() {
 
   async function fetchDebtRanking() {
     isLoading.value = true
+    error.value = null
     try {
       debtRanking.value = await apiFetch<DebtRankingReport>('/api/v1/reports/debt_ranking')
+    } catch {
+      error.value = 'Erro ao carregar prioridade de quitação.'
     } finally {
       isLoading.value = false
     }
@@ -155,6 +171,7 @@ export function useReports() {
     reimbursementCoverage,
     debtRanking,
     isLoading,
+    error,
     fetchMonthly,
     fetchNetWorth,
     fetchNaturezaSplit,

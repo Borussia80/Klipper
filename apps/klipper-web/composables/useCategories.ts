@@ -14,11 +14,15 @@ export function useCategories() {
   const { addToast } = useToast()
   const categories = useState<Category[]>('categories', () => [])
   const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   async function fetchCategories() {
     isLoading.value = true
+    error.value = null
     try {
       categories.value = await apiFetch<Category[]>('/api/v1/categories')
+    } catch {
+      error.value = 'Erro ao carregar categorias.'
     } finally {
       isLoading.value = false
     }
@@ -53,5 +57,5 @@ export function useCategories() {
   const expenses = computed(() => categories.value.filter((c) => c.category_type === 'expense'))
   const incomes = computed(() => categories.value.filter((c) => c.category_type === 'income'))
 
-  return { categories, isLoading, fetchCategories, createCategory, updateCategory, deleteCategory, expenses, incomes }
+  return { categories, isLoading, error, fetchCategories, createCategory, updateCategory, deleteCategory, expenses, incomes }
 }
