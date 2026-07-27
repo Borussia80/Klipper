@@ -1,52 +1,67 @@
 /**
- * InstrumentReadout tests — o instrumento primário de cada tela (padrão HMI):
- * label, valor, barra de faixa com ratio clampado em [0,1] e detalhe opcional.
+ * InstrumentReadout tests — hero faceplate do dashboard (direção náutica premium):
+ * label, valor com sinal, barra de faixa clampada em [0,1] (over acima de 100%)
+ * e detalhe opcional.
  */
 import { describe, it, expect } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import InstrumentReadout from '../InstrumentReadout.vue'
 
 const baseProps = {
-  label: 'Livre para gastar',
-  value: 'R$ 4.820,00',
-  ratio: 0.59,
+  label: 'Resultado do mês · operacional',
+  netValue: -1711,
+  formattedValue: '−R$ 1.711,00',
+  spentRatio: 1.12,
 }
 
 describe('InstrumentReadout', () => {
-  it('renders label and value', async () => {
+  it('renders label and formatted value', async () => {
     const wrapper = await mountSuspended(InstrumentReadout, { props: baseProps })
-    expect(wrapper.text()).toContain('Livre para gastar')
-    expect(wrapper.text()).toContain('R$ 4.820,00')
+    expect(wrapper.text()).toContain('Resultado do mês · operacional')
+    expect(wrapper.text()).toContain('−R$ 1.711,00')
   })
 
-  it('sets the range bar width from ratio', async () => {
+  it('applies the neg class when netValue is negative', async () => {
     const wrapper = await mountSuspended(InstrumentReadout, { props: baseProps })
-    const bar = wrapper.find('[data-testid="readout-bar"]')
-    expect(bar.exists()).toBe(true)
-    expect(bar.attributes('style')).toContain('width: 59%')
+    expect(wrapper.find('.hero-num').classes()).toContain('neg')
   })
 
-  it('clamps ratio above 1 to 100%', async () => {
+  it('applies the pos class when netValue is positive', async () => {
     const wrapper = await mountSuspended(InstrumentReadout, {
-      props: { ...baseProps, ratio: 1.8 },
+      props: { ...baseProps, netValue: 4500, formattedValue: 'R$ 4.500,00', spentRatio: 0.4 },
+    })
+    expect(wrapper.find('.hero-num').classes()).toContain('pos')
+  })
+
+  it('sets the bar width from spentRatio', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, {
+      props: { ...baseProps, spentRatio: 0.65 },
     })
     const bar = wrapper.find('[data-testid="readout-bar"]')
-    expect(bar.attributes('style')).toContain('width: 100%')
+    expect(bar.attributes('style')).toContain('width: 65%')
   })
 
-  it('clamps negative ratio to 0%', async () => {
+  it('clamps spentRatio above 1 to 100% and adds the over class', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, { props: baseProps })
+    const bar = wrapper.find('[data-testid="readout-bar"]')
+    expect(bar.attributes('style')).toContain('width: 100%')
+    expect(bar.classes()).toContain('over')
+  })
+
+  it('clamps negative spentRatio to 0% and omits the over class', async () => {
     const wrapper = await mountSuspended(InstrumentReadout, {
-      props: { ...baseProps, ratio: -0.4 },
+      props: { ...baseProps, spentRatio: -0.4 },
     })
     const bar = wrapper.find('[data-testid="readout-bar"]')
     expect(bar.attributes('style')).toContain('width: 0%')
+    expect(bar.classes()).not.toContain('over')
   })
 
   it('renders detail text when provided', async () => {
     const wrapper = await mountSuspended(InstrumentReadout, {
-      props: { ...baseProps, detail: 'R$ 8.740 gastos · R$ 12.300 recebidos' },
+      props: { ...baseProps, detail: 'de R$ 13.804 em entradas contra R$ 15.515 em saídas' },
     })
-    expect(wrapper.text()).toContain('R$ 8.740 gastos · R$ 12.300 recebidos')
+    expect(wrapper.text()).toContain('de R$ 13.804 em entradas contra R$ 15.515 em saídas')
   })
 
   it('omits detail element when not provided', async () => {

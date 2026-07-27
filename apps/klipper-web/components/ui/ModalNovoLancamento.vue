@@ -227,13 +227,13 @@ async function submit() {
 .valor-prefix {
   font-size: 16px;
   color: var(--t3);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', monospace;
   margin-right: 8px;
   flex-shrink: 0;
 }
 
 .valor-input {
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', monospace;
   font-size: 32px;
   font-weight: 300;
   color: var(--t1);

@@ -205,7 +205,7 @@ div > .fi {
   font-size: 13px;
   color: var(--t3);
   pointer-events: none;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'Space Grotesk', monospace;
   z-index: 1;
 }
 .fi-val {

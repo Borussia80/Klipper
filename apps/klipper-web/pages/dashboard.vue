@@ -1,116 +1,118 @@
 <template>
-  <div style="padding:32px 24px">
-    <!-- Contexto + filtro -->
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:32px">
-      <div style="font-size:13px;color:var(--t3)">
-        {{ currentMonthLabel() }} · {{ now.getDate() }} · {{ now.toLocaleDateString('pt-BR', { weekday: 'long' }) }}
+  <div class="dash" style="max-width:1160px">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Painel</div>
+        <div class="page-sub">{{ dateLabel }}</div>
       </div>
-      <div class="sel-wrap" style="width:180px">
-        <select v-model="activeMemberId" class="fi fi-sel" style="padding-top:6px;padding-bottom:6px" aria-label="Filtrar por portador">
-          <option :value="undefined">Todos os portadores</option>
-          <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
-        </select>
-        <span class="sel-caret" aria-hidden="true">▾</span>
+      <div style="display:flex;gap:10px">
+        <div class="pill" style="cursor:default">{{ currentMonthLabel() }}</div>
+        <div class="pill brass sel-wrap">
+          <select v-model="activeMemberId" class="fi-sel" aria-label="Filtrar por portador">
+            <option :value="undefined">Todos os portadores</option>
+            <option v-for="m in members" :key="m.id" :value="m.id">{{ m.name }}</option>
+          </select>
+          <span class="sel-caret" aria-hidden="true">▾</span>
+        </div>
       </div>
     </div>
 
-    <!-- 1. Instrumento primário -->
     <UiInstrumentReadout
-      label="Livre para gastar"
-      :value="formatBRL(totalBalance)"
-      :ratio="freeRatio"
-      :detail="`${formatBRL(totalDebits)} gastos · ${formatBRL(totalCredits)} recebidos em ${currentMonthLabel()}`"
+      style="margin-bottom:20px"
+      label="Resultado do mês · operacional"
+      :net-value="netResult"
+      :formatted-value="formatBRL(netResult)"
+      :spent-ratio="spentRatio"
+      :detail="heroDetail"
     />
 
-    <!-- 2. Alarmes acionáveis -->
-    <div style="margin-top:36px">
-      <div class="slbl">Atenção necessária</div>
+    <UiDebtAlarmBanner
+      v-if="showDebtAlarm"
+      style="margin-bottom:20px"
+      :row="debtRanking!.cards[0]"
+    />
 
-      <template v-if="budgetAlerts.length">
-        <div
-          v-for="alert in budgetAlerts"
-          :key="alert.budget_id"
-          :style="`border-left:3px solid var(${alert.pct_used > 100 ? '--alert' : '--warn'});padding:12px 16px;border-radius:0 8px 8px 0;background:var(--sf);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:16px`"
-        >
-          <div>
-            <div style="font-size:14px;font-weight:500;color:var(--t1)">{{ alert.category_name }}</div>
-            <div style="font-size:12px;color:var(--t3);margin-top:2px">
-              {{ Math.round(alert.pct_used) }}% do orçamento usado<template v-if="alert.pct_used > 100"> — limite estourado</template>
-            </div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div class="mono" :style="`font-size:14px;font-weight:500;color:var(${alert.pct_used > 100 ? '--alert' : '--warn'})`">
-              {{ formatBRL(alert.remaining) }} restante
-            </div>
-            <NuxtLink to="/orcamento" style="font-size:12px;color:var(--blue)">ver orçamento →</NuxtLink>
-          </div>
+    <div v-if="kpiCount" class="kpi-grid" :style="{ gridTemplateColumns: `repeat(${kpiCount},1fr)` }">
+      <UiKpiCard
+        v-if="incomeHighlight"
+        :label="incomeCategory?.name ?? 'Maior entrada do mês'"
+        icon="income"
+        :value="formatBRL(parseFloat(incomeHighlight.amount))"
+        :chip-text="`recebido em ${fmtDate(incomeHighlight.occurred_on)}`"
+      />
+      <UiKpiCard
+        v-if="fixoRow"
+        label="Compromissos fixos"
+        icon="home"
+        :value="formatBRL(fixoRow.total)"
+        :chip-text="fixoPct !== null ? `${Math.round(fixoPct * 100)}% da renda` : undefined"
+        :chip-tone="commitmentTone(fixoPct)"
+      />
+      <UiKpiCard
+        v-if="cartaoRow"
+        label="Cartões & parcelas"
+        icon="card"
+        :value="formatBRL(cartaoRow.total)"
+        :chip-text="cartaoPct !== null ? `${Math.round(cartaoPct * 100)}% da renda` : undefined"
+        :chip-tone="commitmentTone(cartaoPct)"
+      />
+    </div>
+
+    <div v-if="colsCount" class="cols" :style="{ gridTemplateColumns: colsCount === 2 ? '1fr 1fr' : '1fr' }">
+      <div v-if="splitBars.length" class="card">
+        <div class="card-h">
+          <span class="card-title">Fixo × Cartão × Variável</span>
+          <NuxtLink class="link" to="/orcamento">Relatório →</NuxtLink>
         </div>
-      </template>
-      <div v-else style="padding:12px 0;color:var(--t3);font-size:13px">
-        Nenhuma condição anormal — orçamentos dentro da faixa.
+        <div v-for="bar in splitBars" :key="bar.name" class="split-row">
+          <span class="split-dot" :style="{ background: bar.color }"></span>
+          <span class="split-name">{{ bar.name }}</span>
+          <span class="split-track"><span class="f" :style="{ width: bar.pct + '%', background: bar.color }"></span></span>
+          <span class="split-val mono">{{ formatBRL(bar.value) }}</span>
+          <span class="split-pct mono">{{ Math.round(bar.pct) }}%</span>
+        </div>
+      </div>
+
+      <div v-if="debtRanking?.cards.length" class="card">
+        <div class="card-h">
+          <span class="card-title">Prioridade de quitação</span>
+          <NuxtLink class="link" to="/contas">Todos os cartões →</NuxtLink>
+        </div>
+        <UiDebtRankingCard
+          v-for="(card, i) in debtRanking.cards"
+          :key="card.account_id"
+          :rank="i"
+          :row="card"
+        />
       </div>
     </div>
 
-    <!-- 3. Detalhe sob demanda -->
-    <details class="fold" style="margin-top:28px">
-      <summary class="fold-summary">
-        <span class="fold-caret" aria-hidden="true">▸</span>
-        Fixo × Cartão × Variável
-        <span v-if="naturezaSplit?.total" class="mono" style="margin-left:auto;font-size:12px;color:var(--t3)">{{ formatBRL(naturezaSplit.total) }}</span>
-      </summary>
-      <div style="padding:16px 0 8px">
-        <template v-if="donutData.length">
-          <ChartsAlocacaoDonut :data="donutData" :total="naturezaSplit?.total ?? 0" />
-          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
-            <div v-for="row in donutData" :key="row.name" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-              <div style="display:flex;align-items:center;gap:8px">
-                <span style="width:8px;height:8px;border-radius:50%;flex-shrink:0" :style="{ background: row.color }"></span>
-                <span style="font-size:13px;color:var(--t2)">{{ row.name }}</span>
-              </div>
-              <span class="mono" style="font-size:13px;color:var(--t1)">{{ formatBRL(row.value) }}</span>
-            </div>
-          </div>
-        </template>
-        <div v-else style="color:var(--t4);font-size:13px">Nada categorizado em {{ currentMonthLabel() }}.</div>
+    <div
+      v-for="row in reimbursementCoverage?.categories ?? []"
+      :key="row.category_id"
+      class="card"
+      style="margin-bottom:14px"
+    >
+      <div class="card-h">
+        <span class="card-title">{{ row.category_name }} · cobertura {{ row.reimbursed_by_category_name }}</span>
+        <span v-if="row.coverage_pct !== null" class="chip" :class="row.alert ? 'alert' : 'ok'">
+          {{ Math.round(row.coverage_pct) }}% coberto
+        </span>
       </div>
-    </details>
-
-    <details class="fold">
-      <summary class="fold-summary">
-        <span class="fold-caret" aria-hidden="true">▸</span>
-        Lançamentos recentes
-        <NuxtLink to="/transacoes" style="margin-left:auto;font-size:12px;color:var(--blue)" @click.stop>ver todos →</NuxtLink>
-      </summary>
-      <div style="padding:8px 0">
-        <template v-if="isLoading">
-          <UiSkeletonCard v-for="n in 4" :key="n" style="margin-bottom:8px" />
-        </template>
-        <template v-else>
-          <div v-for="tx in recentTransactions" :key="tx.id" class="txr">
-            <div style="width:32px;height:32px;border-radius:8px;background:var(--ly);display:flex;align-items:center;justify-content:center;color:var(--t3);flex-shrink:0">
-              <UiAppIcon :name="tx.transaction_type === 'credit' ? 'income' : 'expense'" :size="16" />
-            </div>
-            <div>
-              <div style="font-size:14px;font-weight:500;color:var(--t1)">{{ tx.description }}</div>
-              <div style="font-size:12px;color:var(--t3);margin-top:1px">{{ fmtDate(tx.occurred_on) }}</div>
-            </div>
-            <span class="mono" style="font-size:14px;color:var(--t2)">
-              {{ tx.transaction_type === 'credit' ? '+' : '-' }} {{ formatBRL(parseFloat(tx.amount)) }}
-            </span>
-          </div>
-          <div v-if="!recentTransactions.length" style="padding:24px 0;color:var(--t4);font-size:13px">
-            Nenhum lançamento este mês.
-          </div>
-        </template>
+      <div class="split-row">
+        <span class="split-dot" style="background:var(--alert)"></span>
+        <span class="split-name">Gasto no mês</span>
+        <span class="split-track"><span class="f" style="width:100%;background:var(--bd-hi)"></span></span>
+        <span class="split-val mono">{{ formatBRL(row.spent) }}</span>
+        <span class="split-pct mono">100%</span>
       </div>
-    </details>
-
-    <!-- 4. Kira — uma linha discreta -->
-    <div style="margin-top:28px;display:flex;align-items:center;flex-wrap:wrap;gap:6px">
-      <span style="font-size:12px;color:var(--t4);margin-right:4px">Perguntar à Kira:</span>
-      <button class="pill">Como estou gastando?</button>
-      <button class="pill">Posso economizar onde?</button>
-      <button class="pill">Resumo do mês</button>
+      <div class="split-row">
+        <span class="split-dot" style="background:var(--ok)"></span>
+        <span class="split-name">Reembolsado</span>
+        <span class="split-track"><span class="f" :style="{ width: (row.coverage_pct ?? 0) + '%', background: 'var(--ok)' }"></span></span>
+        <span class="split-val mono">{{ formatBRL(row.reimbursed) }}</span>
+        <span class="split-pct mono">{{ row.coverage_pct !== null ? Math.round(row.coverage_pct) + '%' : '—' }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -118,16 +120,27 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 
-const { totalBalance, isLoading, fetchAccounts } = useAccounts()
 const { transactions, totalDebits, totalCredits, fetchTransactions } = useTransactions()
 const { members, fetchMembers } = useMembers()
 const { formatBRL, currentMonthLabel } = useFormatters()
-const { summary, fetchSummary } = useBudgets()
-const { naturezaSplit, fetchNaturezaSplit } = useReports()
-const chartTokens = useChartTokens()
+const {
+  naturezaSplit,
+  fetchNaturezaSplit,
+  debtRanking,
+  fetchDebtRanking,
+  reimbursementCoverage,
+  fetchReimbursementCoverage,
+} = useReports()
+const { categories, fetchCategories } = useCategories()
 
 const now = new Date()
 const activeMemberId = ref<number | undefined>(undefined)
+
+const dateLabel = computed(() => {
+  const weekday = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(now)
+  const full = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(now)
+  return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${full} · ciclo em andamento`
+})
 
 function loadTransactions() {
   fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1, member_id: activeMemberId.value })
@@ -138,11 +151,12 @@ function loadNaturezaSplit() {
 }
 
 onMounted(() => {
-  fetchAccounts()
   fetchMembers()
+  fetchCategories()
   loadTransactions()
-  fetchSummary(now.getFullYear(), now.getMonth() + 1)
   loadNaturezaSplit()
+  fetchDebtRanking()
+  fetchReimbursementCoverage(now.getFullYear(), now.getMonth() + 1)
 })
 
 watch(activeMemberId, () => {
@@ -150,95 +164,99 @@ watch(activeMemberId, () => {
   loadNaturezaSplit()
 })
 
-const NATUREZA_LABELS: Record<string, string> = {
-  fixo: 'Fixo',
-  cartao_parcelamento: 'Cartão/Parcelamento',
-  variavel: 'Variável',
-}
-
-const donutData = computed(() => {
-  const rows = naturezaSplit.value?.by_natureza ?? []
-  return rows
-    .filter(r => r.total > 0)
-    .map(r => ({
-      name: NATUREZA_LABELS[r.natureza] ?? r.natureza,
-      value: r.total,
-      color: r.natureza === 'fixo'
-        ? chartTokens.value.blue
-        : r.natureza === 'cartao_parcelamento'
-          ? chartTokens.value.warn
-          : chartTokens.value.ok,
-    }))
-})
-
-const recentTransactions = computed(() => transactions.value.slice(0, 5))
-
-// Fração da renda do mês ainda não gasta (barra de faixa do instrumento).
-// Sem receita registrada, a faixa fica em zero — nada de número inventado.
-const freeRatio = computed(() => {
-  if (!totalCredits.value || totalCredits.value <= 0) return 0
-  return 1 - totalDebits.value / totalCredits.value
-})
-
-const budgetAlerts = computed(() =>
-  summary.value.filter(b => b.amount_limit > 0 && b.pct_used > 80)
-)
-
 function fmtDate(iso: string): string {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(
     new Date(iso + 'T12:00:00')
   )
 }
+
+function commitmentTone(pct: number | null): 'warn' | 'alert' | 'neutral' {
+  if (pct === null) return 'neutral'
+  if (pct >= 0.7) return 'alert'
+  if (pct >= 0.4) return 'warn'
+  return 'neutral'
+}
+
+const netResult = computed(() => totalCredits.value - totalDebits.value)
+
+const spentRatio = computed(() => (totalCredits.value > 0 ? totalDebits.value / totalCredits.value : 0))
+
+const heroDetail = computed(() => {
+  if (totalCredits.value <= 0 && totalDebits.value <= 0) return undefined
+  return `de ${formatBRL(totalCredits.value)} em entradas contra ${formatBRL(totalDebits.value)} em saídas`
+})
+
+const showDebtAlarm = computed(() => isDebtAlarmVisible(debtRanking.value))
+
+const incomeHighlight = computed(() => pickIncomeHighlight(transactions.value, categories.value))
+const incomeCategory = computed(() => categories.value.find((c) => c.id === incomeHighlight.value?.category_id) ?? null)
+
+const fixoRow = computed(() => naturezaSplit.value?.by_natureza.find((r) => r.natureza === 'fixo' && r.total > 0) ?? null)
+const cartaoRow = computed(() => naturezaSplit.value?.by_natureza.find((r) => r.natureza === 'cartao_parcelamento' && r.total > 0) ?? null)
+
+const fixoPct = computed(() => pctOfIncome(fixoRow.value?.total ?? 0, totalCredits.value))
+const cartaoPct = computed(() => pctOfIncome(cartaoRow.value?.total ?? 0, totalCredits.value))
+
+const kpiCount = computed(() => [incomeHighlight.value, fixoRow.value, cartaoRow.value].filter(Boolean).length)
+
+const splitBars = computed(() =>
+  mapNaturezaSplitToBars(
+    (naturezaSplit.value?.by_natureza ?? []).filter((r) => r.total > 0),
+    { fixo: 'var(--sea)', cartao_parcelamento: 'var(--alert)', variavel: 'var(--brass)' }
+  )
+)
+
+const colsCount = computed(() =>
+  [splitBars.value.length > 0, (debtRanking.value?.cards.length ?? 0) > 0].filter(Boolean).length
+)
 </script>
 
 <style scoped>
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 22px; }
+.page-title { font-family: 'Space Grotesk'; font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+.page-sub { color: var(--t3); font-size: 13px; margin-top: 3px; }
+
+.pill {
+  background: var(--sf); border: 1px solid var(--bd); border-radius: var(--r-sm);
+  padding: 7px 13px; font-size: 13px; color: var(--t2); font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+}
+.pill.brass { border-color: var(--brass-dim); color: var(--brass); }
+
+.sel-wrap { position: relative; }
 .fi-sel {
-  -webkit-appearance: none;
-  appearance: none;
-  cursor: pointer;
-  padding-right: 32px;
+  -webkit-appearance: none; appearance: none; background: none; border: none;
+  color: inherit; font: inherit; cursor: pointer; padding-right: 16px;
 }
+.sel-caret { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 11px; pointer-events: none; }
 
-.sel-wrap {
-  position: relative;
-}
+.kpi-grid { display: grid; gap: 14px; margin-bottom: 20px; }
+.cols { display: grid; gap: 14px; margin-bottom: 14px; }
 
-.sel-caret {
-  position: absolute;
-  right: 11px;
-  top: 50%;
-  transform: translateY(-60%);
-  color: var(--t3);
-  font-size: 12px;
-  pointer-events: none;
-  line-height: 1;
+.card {
+  background: var(--sf); border: 1px solid var(--bd); border-radius: var(--r);
+  padding: 17px 18px; transition: border-color .14s;
 }
+.card:hover { border-color: var(--bd-hi); }
+.card-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-title { font-family: 'Space Grotesk'; font-size: 15px; font-weight: 600; }
+.link { color: var(--sea); font-size: 12.5px; text-decoration: none; font-weight: 500; }
 
-/* ── Seções colapsadas (disclosure progressivo) ── */
-.fold {
-  border-top: 1px solid var(--bd);
-}
+.split-row { display: flex; align-items: center; gap: 12px; margin-bottom: 13px; }
+.split-row:last-child { margin-bottom: 0; }
+.split-dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.split-name { font-size: 13px; color: var(--t2); width: 150px; flex: none; }
+.split-track { flex: 1; height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.split-track .f { height: 100%; border-radius: 4px; }
+.split-val { font-size: 13px; font-weight: 600; width: 88px; text-align: right; flex: none; }
+.split-pct { font-size: 12px; color: var(--t3); width: 42px; text-align: right; flex: none; }
 
-.fold-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--t3);
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-  transition: color 0.12s;
-}
-.fold-summary:hover { color: var(--t2); }
-.fold-summary::-webkit-details-marker { display: none; }
+.chip { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 20px; font-family: 'Space Grotesk'; }
+.chip.ok { background: rgba(67,197,158,0.13); color: var(--ok); }
+.chip.warn { background: rgba(230,180,76,0.14); color: var(--warn); }
+.chip.alert { background: rgba(232,115,90,0.14); color: var(--alert); }
 
-.fold-caret {
-  font-size: 11px;
-  color: var(--t4);
-  transition: transform 0.15s;
+@media (max-width: 920px) {
+  .kpi-grid, .cols { grid-template-columns: 1fr !important; }
 }
-.fold[open] .fold-caret { transform: rotate(90deg); }
 </style>

@@ -19,7 +19,7 @@
           <path d="M10.5 10.5L13.5 13.5" stroke="var(--t4)" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <span style="font-size:12px;color:var(--t4);flex:1">Buscar lançamentos, categorias, contas…</span>
-        <span aria-hidden="true" style="font-size:10px;color:var(--t4);background:var(--ly);border:1px solid var(--bd2);border-radius:3px;padding:1px 5px;font-family:'IBM Plex Mono',monospace">⌘K</span>
+        <span aria-hidden="true" style="font-size:10px;color:var(--t4);background:var(--ly);border:1px solid var(--bd2);border-radius:3px;padding:1px 5px;font-family:'Space Grotesk',monospace">⌘K</span>
       </button>
     </div>
 
