@@ -22,6 +22,11 @@
     </div>
 
     <div style="padding:20px 20px 32px">
+      <!-- Error banner -->
+      <div v-if="error" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin-bottom:16px">
+        {{ error }}
+      </div>
+
       <!-- Skeleton while loading (wire-up point for real data fetch) -->
       <template v-if="isLoading">
         <UiSkeletonCard v-for="n in 5" :key="n" style="margin-bottom:8px" />
@@ -29,7 +34,7 @@
 
       <template v-else>
         <template v-if="checkingAccounts.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px">Contas correntes</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin-bottom:10px">Contas correntes</div>
           <div v-for="acc in checkingAccounts" :key="acc.id" class="ac">
             <UiBankIcon :institution="acc.institution" :name="acc.name" :size="36" />
             <div style="flex:1;min-width:0">
@@ -43,7 +48,7 @@
         </template>
 
         <template v-if="creditCards.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin:20px 0 10px">Cartões de crédito</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin:20px 0 10px">Cartões de crédito</div>
           <div v-for="acc in creditCards" :key="acc.id" class="ac">
             <UiBankIcon :institution="acc.institution" :name="acc.name" :size="36" />
             <div style="flex:1;min-width:0">
@@ -66,7 +71,7 @@
         </template>
 
         <template v-if="creditCards.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin:20px 0 10px">Custo do rotativo</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin:20px 0 10px">Custo do rotativo</div>
           <template v-if="debtRanking?.cards.length">
             <UiDebtRankingCard
               v-for="(card, i) in debtRanking.cards"
@@ -95,7 +100,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { accounts, isLoading, fetchAccounts, totalBalance } = useAccounts()
+const { accounts, isLoading, error, fetchAccounts, totalBalance } = useAccounts()
 const { formatBRL } = useFormatters()
 const { debtRanking, fetchDebtRanking } = useReports()
 

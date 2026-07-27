@@ -18,6 +18,11 @@
     </div>
 
     <div style="padding:20px 20px 32px">
+      <!-- Error banner -->
+      <div v-if="error" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin-bottom:16px">
+        {{ error }}
+      </div>
+
       <!-- Skeleton while loading -->
       <template v-if="isLoading">
         <UiSkeletonCard v-for="n in 5" :key="n" style="margin-bottom:8px" />
@@ -25,7 +30,7 @@
 
       <template v-else>
         <template v-if="titulares.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin-bottom:10px">Titulares</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin-bottom:10px">Titulares</div>
           <div v-for="member in titulares" :key="member.id" class="ac">
             <div class="mem-avatar">{{ initials(member.name) }}</div>
             <div style="flex:1;min-width:0">
@@ -36,7 +41,7 @@
         </template>
 
         <template v-if="dependentes.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin:20px 0 10px">Dependentes</div>
+          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin:20px 0 10px">Dependentes</div>
           <div v-for="member in dependentes" :key="member.id" class="ac">
             <div class="mem-avatar">{{ initials(member.name) }}</div>
             <div style="flex:1;min-width:0">
@@ -59,7 +64,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { members, isLoading, fetchMembers } = useMembers()
+const { members, isLoading, error, fetchMembers } = useMembers()
 
 onMounted(fetchMembers)
 

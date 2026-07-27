@@ -23,9 +23,14 @@
     </div>
 
     <div style="padding:0 20px 32px">
+      <!-- Error banner -->
+      <div v-if="error" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin:16px 0">
+        {{ error }}
+      </div>
+
       <!-- Allocation bar -->
       <div style="margin-top:20px;background:var(--sf);border:1px solid var(--bd2);border-radius:10px;padding:18px 20px">
-        <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'IBM Plex Mono',monospace;margin-bottom:14px">Alocação por classe</div>
+        <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin-bottom:14px">Alocação por classe</div>
         <!-- Dynamic allocation bar -->
         <div v-if="portfolio" style="display:flex;border-radius:6px;overflow:hidden;height:8px;gap:2px;margin-bottom:14px">
           <div
@@ -46,8 +51,8 @@
       <!-- Holdings table header -->
       <div style="display:grid;grid-template-columns:40px 1fr auto;gap:12px;padding:12px 8px;margin:16px -8px 0;border-bottom:1px solid var(--bd)">
         <div></div>
-        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'IBM Plex Mono',monospace">Ativo</div>
-        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'IBM Plex Mono',monospace;text-align:right">Valor</div>
+        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'Space Grotesk',monospace">Ativo</div>
+        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'Space Grotesk',monospace;text-align:right">Valor</div>
       </div>
 
       <UiSkeletonTransactionList v-if="isLoading" />
@@ -76,7 +81,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { investments, portfolio, isLoading, fetchInvestments, fetchPortfolio } = useInvestments()
+const { investments, portfolio, isLoading, error, fetchInvestments, fetchPortfolio } = useInvestments()
 const { formatBRL } = useFormatters()
 
 onMounted(() => { fetchInvestments(); fetchPortfolio() })
@@ -85,7 +90,7 @@ const TYPE_COLORS: Record<string, string> = {
   fixed_income: 'var(--ok)',
   stock:        'var(--warn)',
   etf:          'var(--blue)',
-  fii:          'var(--pur)',
+  fii:          'var(--brass)',
   crypto:       'var(--crypto)',
   other:        'var(--t4)',
 }
@@ -102,7 +107,7 @@ function typeColor(t: string) { return TYPE_COLORS[t] ?? 'var(--t4)' }
 function typeColorAlpha(t: string) {
   const map: Record<string, string> = {
     fixed_income: 'rgba(13,184,120,0.12)', stock: 'rgba(229,144,16,0.12)',
-    etf: 'rgba(43,125,244,0.12)', fii: 'rgba(124,92,245,0.12)',
+    etf: 'rgba(43,125,244,0.12)', fii: 'rgba(217,168,92,0.12)',
     crypto: 'rgba(244,192,48,0.12)', other: 'rgba(128,128,128,0.12)',
   }
   return map[t] ?? 'rgba(128,128,128,0.12)'

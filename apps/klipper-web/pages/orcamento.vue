@@ -8,7 +8,7 @@
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
         <button class="sel-chip">
-          Junho 2026
+          {{ fmtMonthFull() }}
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 4L5 6.5 7.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <button class="btn btn-g" @click="open('nova-categoria')">
@@ -22,6 +22,11 @@
     </div>
 
     <div style="padding:0 20px 32px">
+      <!-- Error banner -->
+      <div v-if="error" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin:16px 0">
+        {{ error }}
+      </div>
+
       <!-- Summary tiles -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0">
         <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px">
@@ -70,7 +75,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { summary, isLoading, fetchSummary } = useBudgets()
+const { summary, isLoading, error, fetchSummary } = useBudgets()
 const { fetchCategories } = useCategories()
 const { reimbursementCoverage, fetchReimbursementCoverage } = useReports()
 const { formatBRL, fmtMonthFull, daysLeftInMonth } = useFormatters()

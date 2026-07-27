@@ -100,12 +100,12 @@ describe('useBudgets', () => {
       expect(isLoading.value).toBe(false)
     })
 
-    it('sets isLoading to false after a failed fetch', async () => {
+    it('sets isLoading to false and error on a failed fetch', async () => {
       mockApiFetch.mockRejectedValue(new Error('network error'))
-      const { isLoading, fetchBudgets } = useBudgets()
-      // useBudgets fetchBudgets uses try/finally but no catch — it will throw
-      try { await fetchBudgets() } catch { /* expected */ }
+      const { isLoading, error, fetchBudgets } = useBudgets()
+      await fetchBudgets()
       expect(isLoading.value).toBe(false)
+      expect(error.value).toBe('Erro ao carregar orçamentos.')
     })
 
     it('passes year and month as query params when provided', async () => {
@@ -201,6 +201,14 @@ describe('useBudgets', () => {
       expect(row.recorrencia).toBe('ocasional')
       expect(row.months_present).toBe(3)
       expect(row.months_total).toBe(6)
+    })
+
+    it('sets isLoading to false and error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+      const { isLoading, error, fetchSummary } = useBudgets()
+      await fetchSummary(2026, 6)
+      expect(isLoading.value).toBe(false)
+      expect(error.value).toBe('Erro ao carregar orçamento.')
     })
   })
 

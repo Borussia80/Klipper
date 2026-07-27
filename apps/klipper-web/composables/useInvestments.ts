@@ -28,20 +28,28 @@ export function useInvestments() {
   const investments = useState<Investment[]>('investments', () => [])
   const portfolio = useState<PortfolioTotals | null>('investments.portfolio', () => null)
   const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   async function fetchInvestments(type?: string) {
     isLoading.value = true
+    error.value = null
     try {
       investments.value = await apiFetch<Investment[]>('/api/v1/investments', {
         query: type ? { type } : {},
       })
+    } catch {
+      error.value = 'Erro ao carregar investimentos.'
     } finally {
       isLoading.value = false
     }
   }
 
   async function fetchPortfolio() {
-    portfolio.value = await apiFetch<PortfolioTotals>('/api/v1/investments/portfolio')
+    try {
+      portfolio.value = await apiFetch<PortfolioTotals>('/api/v1/investments/portfolio')
+    } catch {
+      error.value = 'Erro ao carregar investimentos.'
+    }
   }
 
   async function createInvestment(payload: Partial<Investment>) {
@@ -74,6 +82,7 @@ export function useInvestments() {
     investments,
     portfolio,
     isLoading,
+    error,
     fetchInvestments,
     fetchPortfolio,
     createInvestment,
