@@ -150,6 +150,27 @@ de fatura, pagamento mínimo, juros rotativo a.m./a.a., IOF projetado em `Accoun
 
 ---
 
+## Bugs conhecidos (achados em auditoria, não silenciar)
+
+### `investimentos.vue` — header com valores hardcoded, não calculados
+
+**Encontrado em:** auditoria de paridade visual do redesign ISA-101 (sessão de
+2026-07-27, branch `sprint-1-onboarding-usabilidade`).
+
+**Problema:** o header de `pages/investimentos.vue` mostra "R$ 187.400" (total) e
+"+14,2%" (variação) como texto fixo no template — não são derivados de
+`investments`/`portfolio` (dados reais do usuário). Qualquer usuário vê os mesmos
+dois números, independente do patrimônio real cadastrado.
+
+**Prioridade:** média — não bloqueia uso básico, mas é dado financeiro incorreto
+exibido como se fosse real, o que é particularmente grave numa tela de patrimônio.
+
+**Critério de aceite:** total do header = soma real de `investments`/`portfolio` do
+usuário logado; variação percentual calculada a partir de um histórico real (ou, na ausência de
+histórico, omitida/marcada como indisponível em vez de inventada).
+
+---
+
 ## Fora de escopo deste roadmap (não confundir)
 
 - Tema claro (dark-only hoje) — é backlog de design, não impacta a lógica financeira
