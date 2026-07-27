@@ -1,6 +1,11 @@
 # Roadmap — Klipper Wealth OS
 
 **Gerado em:** 2026-07-06
+**Auditado em:** 2026-07-27 — as 6 lacunas abaixo foram confirmadas como implementadas
+(schema, serviços, endpoints e UI, todas com teste automatizado associado), via leitura
+direta do código em `apps/klipper-api` e `apps/klipper-web`. Este documento passa a
+funcionar como registro histórico da decisão de produto + mapa de onde cada peça mora
+no código, não mais como lista de pendências.
 **Base:** resumo de arquitetura/produto do Klipper (monorepo `apps/klipper-web` + `apps/klipper-api` + `apps/quebec-web`, Nuxt 4 + Rails 8)
 **Objetivo deste documento:** fechar as 5 lacunas entre o Klipper atual (orçamento/investimento genérico) e o "wealth OS" real que o uso pessoal do Roberto exige — gestão familiar multi-portador, extrato/fatura em PDF, e priorização de dívida.
 
@@ -27,7 +32,11 @@ Ordem sugerida de execução: **1 → 2 → 3 → 4 → 5** (cada item depende d
 
 **Prioridade:** Alta — é a base de tudo, sem isso o resto do roadmap não tem dado real para trabalhar.
 
-**Estado atual:** `/importar` (beta) só aceita CSV com auto-categorização por regras.
+**Estado atual: ✅ Implementado.** Backend: `app/services/pdf_import_service.rb` +
+`app/services/pdf_adapters/{registry,base_adapter,itau_extrato_adapter,itau_fatura_adapter}.rb`,
+`Api::V1::ImportsController#preview`/`#confirm`. Frontend: `pages/importar.vue` +
+`composables/useImport.ts` (`previewFile`/`confirmImport`) — aceita CSV e PDF, com tela
+de preview antes de confirmar.
 
 **Necessidade real:** ler PDF de extrato de conta-corrente (Itaú) e fatura de cartão (Itaú Personnalité, Santander, Nubank), cada um com layout diferente.
 
@@ -44,10 +53,11 @@ Ordem sugerida de execução: **1 → 2 → 3 → 4 → 5** (cada item depende d
 
 **Prioridade:** Alta — bloqueia confiar o uso real no Klipper assim que a Lacuna 1 estiver no ar.
 
-**Estado atual:** Nenhum mecanismo de deduplicação ou rastreio de qual arquivo/período já foi
-importado. Isso apareceu na prática durante a análise manual desta sessão: um extrato de junho
-reimportado junto com um extrato que ia de junho a julho geraria linhas duplicadas se importado
-sem cuidado manual.
+**Estado atual: ✅ Implementado.** Migration
+`db/migrate/20260707120000_add_dedupe_hash_to_transactions.rb`, cálculo em
+`app/services/bank_import/dedupe_hash.rb` (SHA256 de user/conta/data/descrição/valor/tipo),
+rejeição em `app/services/bank_import/transaction_writer.rb`. Frontend: tela de resultado
+mostra `result.duplicates` ("X duplicata(s) ignorada(s)") em `pages/importar.vue`.
 
 **Necessidade real:** a primeira vez que um extrato/fatura com período sobreposto ao de uma
 importação anterior for reimportado, o sistema vai duplicar transação sem esse mecanismo.
@@ -68,7 +78,11 @@ verificar antes de criar cada transação nova, tanto no fluxo de CSV quanto no 
 
 **Prioridade:** Alta.
 
-**Estado atual:** `/contas` trata conta/cartão sem vincular a uma pessoa física. Não há como saber, num cartão família, se o gasto foi do Roberto, da Clareana ou da Lara.
+**Estado atual: ✅ Implementado.** Backend: model `app/models/member.rb`, migrations
+`create_members`/`add_member_to_transactions` (FK opcional em `transactions`),
+`Api::V1::MembersController`, matching automático em `app/services/bank_import/member_matcher.rb`.
+Frontend: `pages/portadores.vue` + `ModalNovoMembro.vue`, filtro por portador em
+`pages/dashboard.vue` e `pages/relatorios.vue`.
 
 **Necessidade real:** cada lançamento (principalmente os de cartão) precisa carregar um portador.
 
@@ -84,7 +98,11 @@ verificar antes de criar cada transação nova, tanto no fluxo de CSV quanto no 
 
 **Prioridade:** Média-alta.
 
-**Estado atual:** `/orcamento` já é estilo envelope por categoria, mas não tem essa camada de classificação por natureza e por regularidade.
+**Estado atual: ✅ Implementado.** Backend: migration `add_natureza_to_categories`, enum em
+`app/models/category.rb`, cálculo de recorrência em
+`app/services/category_recurrence_calculator.rb`, endpoint `natureza_split`. Frontend:
+select de natureza em `ModalNovaCategoria.vue`, exibição ("presente em X dos últimos Y
+meses") em `BudgetCategoryCard.vue`, gráfico donut fixo × cartão × variável no dashboard.
 
 **Necessidade real:** replicar a lógica validada manualmente nesta análise — separar o que é compromisso fixo (pensão, aluguel, terapia, contas) do que é cartão/parcelamento (alavanca real de ajuste) e do que é variável; e separar o que é rotineiro (aparece na maioria dos meses) do que é pontual (evento isolado, tipo viagem ou quitação de financiamento).
 
@@ -100,6 +118,12 @@ verificar antes de criar cada transação nova, tanto no fluxo de CSV quanto no 
 
 **Prioridade:** Média.
 
+**Estado atual: ✅ Implementado.** Backend: FK `reimbursed_by_category_id` (self-referencing
+em `Category`, migration `add_reimbursed_by_category_to_categories`),
+`app/services/reimbursement_coverage_calculator.rb`, endpoint `reimbursement_coverage`.
+Frontend: `ModalEditarReembolso.vue` (vínculo despesa↔receita), colunas de % de cobertura
+em `pages/orcamento.vue`.
+
 **Necessidade real:** vincular lançamentos de despesa (ex: pagamento a terapeuta) a lançamentos de receita (reembolso do convênio), calculando % de cobertura ao longo do tempo — hoje isso só existe porque foi calculado manualmente na planilha.
 
 **Critério de aceite:**
@@ -111,6 +135,11 @@ verificar antes de criar cada transação nova, tanto no fluxo de CSV quanto no 
 ## Lacuna 5 — Comparador de custo de dívida entre cartões (priorização de quitação)
 
 **Prioridade:** Baixa-média (evento infrequente, mas de alto impacto quando ocorre — como visto nesta análise com a fatura Itaú Personnalité).
+
+**Estado atual: ✅ Implementado.** Backend: migration `add_debt_fields_to_accounts` (saldo
+de fatura, pagamento mínimo, juros rotativo a.m./a.a., IOF projetado em `Account`),
+`app/services/debt_ranking_calculator.rb`, endpoint `debt_ranking`. Frontend:
+`DebtRankingCard.vue` em `pages/contas.vue`, com simulação "pagando só o mínimo".
 
 **Necessidade real:** dado o saldo em aberto e a taxa de juros do rotativo/parcelamento de cada cartão, ranquear qual quitar primeiro.
 
@@ -130,4 +159,8 @@ verificar antes de criar cada transação nova, tanto no fluxo de CSV quanto no 
 
 ---
 
-*Documento de referência para handoff com Claude Code. Baseado na análise manual de fluxo de caixa, fixos x cartões, rotina x pontual, e prioridade de quitação conduzida em julho/2026.*
+*Documento de referência para handoff com Claude Code. Gerado em 2026-07-06 a partir da
+análise manual de fluxo de caixa, fixos x cartões, rotina x pontual, e prioridade de
+quitação conduzida em julho/2026. Auditado em 2026-07-27 (leitura direta de código em
+`apps/klipper-api` e `apps/klipper-web`, via agentes Explore em worktrees isoladas):
+todas as 6 lacunas confirmadas como implementadas.*
