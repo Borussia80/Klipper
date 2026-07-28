@@ -27,8 +27,18 @@
         {{ error }}
       </div>
 
+      <!-- Hero: livre no ciclo, com barra de estouro -->
+      <UiInstrumentReadout
+        compact
+        label="Livre no ciclo"
+        :net-value="totalFree"
+        :formatted-value="formatBRL(totalFree)"
+        :spent-ratio="spentRatio"
+        style="margin-top:20px"
+      />
+
       <!-- Summary tiles -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:10px 0 20px">
         <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px">
           <div class="plbl" style="margin-bottom:4px">Alocado</div>
           <div class="mono" style="font-size:18px;font-weight:500;color:var(--t1)">{{ formatBRL(totalAllocated) }}</div>
@@ -36,10 +46,6 @@
         <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px">
           <div class="plbl" style="margin-bottom:4px">Gasto</div>
           <div class="mono" style="font-size:18px;font-weight:500;color:var(--warn)">{{ formatBRL(totalSpent) }}</div>
-        </div>
-        <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px">
-          <div class="plbl" style="margin-bottom:4px">Livre</div>
-          <div class="mono" style="font-size:18px;font-weight:500;color:var(--ok)">{{ formatBRL(totalFree) }}</div>
         </div>
       </div>
 
@@ -106,7 +112,8 @@ const categories = computed(() =>
 
 const reimbursements = computed(() => reimbursementCoverage.value?.categories ?? [])
 
-const totalAllocated = computed(() => summary.value.reduce((s, r) => s + Number(r.amount_limit), 0))
-const totalSpent = computed(() => summary.value.reduce((s, r) => s + Number(r.spent), 0))
-const totalFree = computed(() => totalAllocated.value - totalSpent.value)
+const totalAllocated = computed(() => sumAllocated(summary.value))
+const totalSpent = computed(() => sumSpent(summary.value))
+const totalFree = computed(() => freeAmount(totalAllocated.value, totalSpent.value))
+const spentRatio = computed(() => budgetSpentRatio(totalSpent.value, totalAllocated.value) ?? 0)
 </script>
