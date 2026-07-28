@@ -7,10 +7,7 @@
         <div style="font-size:11px;color:var(--t3)">Portfólio · {{ investments.length }} ativos</div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-        <div style="text-align:right">
-          <div class="mono" style="font-size:16px;font-weight:500;color:var(--t1);line-height:1.2">R$ 187.400</div>
-          <div style="font-size:11px;color:var(--ok)">▲ +14,2% total</div>
-        </div>
+        <UiPortfolioValueChip :total-cost="portfolio?.total_cost ?? 0" />
         <div style="width:1px;height:24px;background:var(--bd2);flex-shrink:0"></div>
         <button class="btn btn-g" @click="open('novo-aporte')">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
