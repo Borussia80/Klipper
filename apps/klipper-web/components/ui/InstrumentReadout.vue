@@ -4,13 +4,18 @@
  * Instrumento primário: resultado do mês, com moldura, gradiente e barra
  * de faixa — nunca um número solto no vazio.
  */
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   label: string
   netValue: number
   formattedValue: string
   spentRatio: number
   detail?: string
-}>()
+  compact?: boolean
+  showBar?: boolean
+}>(), {
+  compact: false,
+  showBar: true,
+})
 
 const pct = computed(() => Math.round(Math.min(1, Math.max(0, props.spentRatio)) * 100))
 const isOver = computed(() => props.spentRatio > 1)
@@ -20,24 +25,26 @@ const scaleLabel = computed(() =>
 </script>
 
 <template>
-  <div class="hero">
+  <div class="hero" :class="{ compact }">
     <div class="hero-lbl">{{ label }}</div>
     <div class="hero-row">
       <div class="hero-num mono" :class="netValue < 0 ? 'neg' : 'pos'">{{ formattedValue }}</div>
       <div v-if="detail" data-testid="readout-detail" class="hero-delta">{{ detail }}</div>
     </div>
-    <div class="hero-bar" role="presentation">
-      <div
-        data-testid="readout-bar"
-        class="fill"
-        :class="{ over: isOver }"
-        :style="{ width: pct + '%' }"
-      ></div>
-    </div>
-    <div class="hero-scale">
-      <span>{{ scaleLabel }}</span>
-      <span class="mono">{{ Math.round(spentRatio * 100) }}% da renda</span>
-    </div>
+    <template v-if="showBar">
+      <div class="hero-bar" role="presentation">
+        <div
+          data-testid="readout-bar"
+          class="fill"
+          :class="{ over: isOver }"
+          :style="{ width: pct + '%' }"
+        ></div>
+      </div>
+      <div class="hero-scale">
+        <span>{{ scaleLabel }}</span>
+        <span class="mono">{{ Math.round(spentRatio * 100) }}% da renda</span>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -75,4 +82,6 @@ const scaleLabel = computed(() =>
   display: flex; justify-content: space-between; margin-top: 7px;
   font-size: 11.5px; color: var(--t3);
 }
+.hero.compact { padding: 14px 16px; }
+.hero.compact .hero-num { font-size: clamp(20px, 3vw, 26px); }
 </style>

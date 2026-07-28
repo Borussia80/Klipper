@@ -68,4 +68,26 @@ describe('InstrumentReadout', () => {
     const wrapper = await mountSuspended(InstrumentReadout, { props: baseProps })
     expect(wrapper.find('[data-testid="readout-detail"]').exists()).toBe(false)
   })
+
+  it('applies the compact class when compact is true', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, { props: { ...baseProps, compact: true } })
+    expect(wrapper.find('.hero').classes()).toContain('compact')
+  })
+
+  it('omits the compact class by default', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, { props: baseProps })
+    expect(wrapper.find('.hero').classes()).not.toContain('compact')
+  })
+
+  it('omits the bar and scale when showBar is false', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, { props: { ...baseProps, showBar: false } })
+    expect(wrapper.find('[data-testid="readout-bar"]').exists()).toBe(false)
+    expect(wrapper.find('.hero-scale').exists()).toBe(false)
+  })
+
+  it('renders the bar and scale by default', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, { props: baseProps })
+    expect(wrapper.find('[data-testid="readout-bar"]').exists()).toBe(true)
+    expect(wrapper.find('.hero-scale').exists()).toBe(true)
+  })
 })

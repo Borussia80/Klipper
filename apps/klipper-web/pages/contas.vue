@@ -7,10 +7,14 @@
         <div style="font-size:11px;color:var(--t3)">{{ accounts.length }} contas</div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-        <div style="text-align:right">
-          <div style="font-size:10px;color:var(--t4)">Caixa disponível</div>
-          <div class="mono" style="font-size:16px;font-weight:500;color:var(--t1);line-height:1.2">{{ formatBRL(totalBalance) }}</div>
-        </div>
+        <UiInstrumentReadout
+          compact
+          :show-bar="false"
+          label="Caixa disponível"
+          :net-value="checkingTotal"
+          :formatted-value="formatBRL(checkingTotal)"
+          :spent-ratio="0"
+        />
         <button class="btn btn-p" @click="open('nova-conta')">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
             <line x1="5.5" y1="1" x2="5.5" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -71,7 +75,10 @@
         </template>
 
         <template v-if="creditCards.length">
-          <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin:20px 0 10px">Custo do rotativo</div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin:20px 0 10px">
+            <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace">Custo do rotativo</div>
+            <div v-if="debtRanking?.cards.length" class="mono" style="font-size:12px;color:var(--warn)">{{ formatBRL(debtChargesTotal) }}</div>
+          </div>
           <template v-if="debtRanking?.cards.length">
             <UiDebtRankingCard
               v-for="(card, i) in debtRanking.cards"
@@ -100,7 +107,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { accounts, isLoading, error, fetchAccounts, totalBalance } = useAccounts()
+const { accounts, isLoading, error, fetchAccounts } = useAccounts()
 const { formatBRL } = useFormatters()
 const { debtRanking, fetchDebtRanking } = useReports()
 
@@ -111,4 +118,6 @@ onMounted(() => {
 
 const checkingAccounts = computed(() => accounts.value.filter((a) => a.account_type !== 'credit_card'))
 const creditCards = computed(() => accounts.value.filter((a) => a.account_type === 'credit_card'))
+const checkingTotal = computed(() => sumCheckingBalance(checkingAccounts.value))
+const debtChargesTotal = computed(() => sumDebtCharges(debtRanking.value?.cards ?? []))
 </script>
