@@ -31,24 +31,24 @@
       <template v-else>
         <template v-if="titulares.length">
           <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin-bottom:10px">Titulares</div>
-          <div v-for="member in titulares" :key="member.id" class="ac">
-            <div class="mem-avatar">{{ initials(member.name) }}</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:600;color:var(--t1)">{{ member.name }}</div>
-              <div style="font-size:11px;color:var(--t3)">Titular</div>
-            </div>
-          </div>
+          <UiMemberCard
+            v-for="member in titulares"
+            :key="member.id"
+            :name="member.name"
+            relationship="titular"
+            :spent-label="formatBRL(spendByMember.get(member.id) ?? 0)"
+          />
         </template>
 
         <template v-if="dependentes.length">
           <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin:20px 0 10px">Dependentes</div>
-          <div v-for="member in dependentes" :key="member.id" class="ac">
-            <div class="mem-avatar">{{ initials(member.name) }}</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:600;color:var(--t1)">{{ member.name }}</div>
-              <div style="font-size:11px;color:var(--t3)">Dependente</div>
-            </div>
-          </div>
+          <UiMemberCard
+            v-for="member in dependentes"
+            :key="member.id"
+            :name="member.name"
+            relationship="dependente"
+            :spent-label="formatBRL(spendByMember.get(member.id) ?? 0)"
+          />
         </template>
 
         <div v-if="!members.length" style="padding:48px 0;text-align:center;color:var(--t4);font-size:13px">
@@ -65,34 +65,19 @@
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
 const { members, isLoading, error, fetchMembers } = useMembers()
+const { formatBRL } = useFormatters()
 
-onMounted(fetchMembers)
+const memberSpends = ref<MemberSpend[]>([])
+
+onMounted(async () => {
+  await fetchMembers()
+  const now = new Date()
+  memberSpends.value = await fetchMemberSpends(
+    members.value.map((m) => m.id), now.getFullYear(), now.getMonth() + 1,
+  )
+})
 
 const titulares = computed(() => members.value.filter((m) => m.relationship === 'titular'))
 const dependentes = computed(() => members.value.filter((m) => m.relationship === 'dependente'))
-
-function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('')
-}
+const spendByMember = computed(() => new Map(memberSpends.value.map((s) => [s.memberId, s.totalDebits])))
 </script>
-
-<style scoped>
-.mem-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--bd);
-  color: var(--t1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-</style>
