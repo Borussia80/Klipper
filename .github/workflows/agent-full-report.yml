@@ -1,0 +1,226 @@
+name: Relatório completo de auditoria (release / deploy)
+
+on:
+  release:
+    types: [published]
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      depth:
+        description: 'Profundidade: fast (3 agentes) ou deep (5 agentes)'
+        type: choice
+        options: [fast, deep]
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: full-report-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    # deployment_status dispara a cada deploy (inclusive os que a integração
+    # Vercel↔GitHub cria só pra preview); só prossegue pra produção com sucesso.
+    # Guard-rail anti-loop: o PR automático deste workflow, ao ser mergeado,
+    # gera um novo deploy — se o commit desse deploy tiver a mensagem
+    # "chore(reports): ..." (usada pelo peter-evans/create-pull-request
+    # abaixo), NÃO reprocessa.
+    if: >
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'production')
+    runs-on: ubuntu-latest
+    outputs:
+      depth: ${{ steps.resolve.outputs.depth }}
+      proceed: ${{ steps.loop-guard.outputs.proceed }}
+      commit: ${{ steps.resolve.outputs.commit }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Guard-rail anti-loop (commit do próprio pipeline de relatórios?)
+        id: loop-guard
+        run: |
+          set -euo pipefail
+          SHA="${{ github.event.deployment_status.sha || github.sha }}"
+          MSG=$(git log -1 --format=%s "$SHA" 2>/dev/null || echo "")
+          if [[ "$MSG" =~ ^chore\(reports\): ]]; then
+            echo "Commit '$SHA' é do próprio pipeline de relatórios — abortando."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolver profundidade (Fast/Deep) e commit
+        id: resolve
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.depth }}" ]; then
+            DEPTH="${{ inputs.depth }}"
+          elif [ "${{ github.event_name }}" = "release" ]; then
+            DEPTH="deep"
+          elif [ "${{ github.event_name }}" = "deployment_status" ]; then
+            DEPTH="fast"
+          else
+            DEPTH="${{ vars.FULL_REPORT_DEFAULT_DEPTH || 'fast' }}"
+          fi
+          echo "depth=$DEPTH" >> "$GITHUB_OUTPUT"
+          echo "commit=${{ github.event.deployment_status.sha || github.sha }}" >> "$GITHUB_OUTPUT"
+
+  run-agents:
+    needs: guard
+    if: needs.guard.outputs.proceed == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        agent: ${{ fromJSON(needs.guard.outputs.depth == 'deep' && '["architecture","security","finance","runtime","ux"]' || '["architecture","security","finance"]') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.guard.outputs.commit }}
+
+      - name: Preparar OUTPUT_PATH
+        run: |
+          mkdir -p "${{ runner.temp }}/partials"
+          echo "OUTPUT_PATH=${{ runner.temp }}/partials/partial-${{ matrix.agent }}.json" >> "$GITHUB_ENV"
+
+      - name: "Agente: ${{ matrix.agent }}"
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --allowedTools "Read,Grep,Glob,Bash,Write"
+            --max-turns 60
+          prompt: |
+            Leia integralmente `.github/claude-prompts/_shared-contract.md` e, em
+            seguida, `.github/claude-prompts/agents/${{ matrix.agent }}.md`. Siga
+            as instruções de ambos os arquivos por completo.
+
+            Você pode consultar `reports/registry/findings.json` (se existir)
+            para reconhecer findings já catalogados e reutilizar o mesmo
+            `natural_key` quando o problema for o mesmo.
+
+            Escreva a saída — JSON puro, sem markdown ao redor, sem ```` ```json ````
+            fences — no arquivo indicado pela variável de ambiente OUTPUT_PATH.
+
+      - name: Validar saída do agente
+        run: node .github/scripts/validate-partial.mjs "$OUTPUT_PATH"
+
+      - name: Upload do partial
+        uses: actions/upload-artifact@v4
+        with:
+          name: partial-${{ matrix.agent }}
+          path: ${{ env.OUTPUT_PATH }}
+          retention-days: 7
+
+  aggregate:
+    needs: [guard, run-agents]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.guard.outputs.commit }}
+
+      - name: Baixar todos os partials
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/partials
+          pattern: partial-*
+          merge-multiple: true
+
+      - name: Agregar (aggregate-report.mjs)
+        run: |
+          node .github/scripts/aggregate-report.mjs \
+            "${{ runner.temp }}/partials" \
+            "${{ runner.temp }}/run-report.json" \
+            --depth="${{ needs.guard.outputs.depth }}" \
+            --trigger="${{ github.event_name }}" \
+            --branch="${{ github.ref_name }}" \
+            --commit="${{ needs.guard.outputs.commit }}" \
+            --registry="reports/registry/findings.json"
+
+      - name: Mesclar findings e atribuir IDs permanentes (merge-findings.mjs)
+        run: |
+          node .github/scripts/merge-findings.mjs \
+            "${{ runner.temp }}/run-report.json" \
+            reports/registry/findings.json
+
+      - name: Listar candidatos a ADR
+        id: adr-candidates
+        run: |
+          {
+            echo 'list<<ADR_EOF'
+            node .github/scripts/draft-adrs.mjs --list
+            echo 'ADR_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Redigir corpo dos ADRs candidatos via Claude
+        if: steps.adr-candidates.outputs.list != '[]'
+        uses: anthropics/claude-code-action@v1
+        env:
+          ADR_CANDIDATES: ${{ steps.adr-candidates.outputs.list }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --allowedTools "Read,Grep,Glob,Bash,Write"
+            --max-turns 30
+          prompt: |
+            Leia integralmente `.github/claude-prompts/adr-draft.md` e siga suas
+            instruções.
+
+            A variável de ambiente ADR_CANDIDATES contém um array JSON de findings
+            elegíveis a ADR (já com `id` permanente). Para CADA finding do array,
+            escreva o corpo do ADR correspondente (formato definido no prompt) em
+            `${{ runner.temp }}/adr-body-<id>.md`, substituindo `<id>` pelo `id`
+            exato do finding (ex: `${{ runner.temp }}/adr-body-ARCH-018.md`). Um
+            arquivo por finding, nenhum arquivo extra.
+
+      - name: Montar arquivos de ADR (draft-adrs.mjs)
+        if: steps.adr-candidates.outputs.list != '[]'
+        run: |
+          set -euo pipefail
+          echo "$ADR_CANDIDATES" | node -e '
+            const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
+            for (const f of data) console.log(f.id);
+          ' | while IFS= read -r ID; do
+            BODY="${{ runner.temp }}/adr-body-${ID}.md"
+            if [ -f "$BODY" ]; then
+              node .github/scripts/draft-adrs.mjs --finding-id="$ID" --body-file="$BODY"
+            else
+              echo "Aviso: corpo de ADR ausente para $ID ($BODY não encontrado); pulando."
+            fi
+          done
+        env:
+          ADR_CANDIDATES: ${{ steps.adr-candidates.outputs.list }}
+
+      - name: Renderizar relatório (render-report.mjs)
+        run: node .github/scripts/render-report.mjs "${{ runner.temp }}/run-report.json"
+
+      - name: Abrir PR automático com o relatório
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(reports): atualiza relatório de auditoria (${{ github.event_name }}, ${{ needs.guard.outputs.depth }})"
+          branch: reports/auto-${{ github.run_id }}
+          title: "chore(reports): relatório de auditoria automático (${{ needs.guard.outputs.depth }})"
+          body: |
+            Relatório gerado automaticamente pelo pipeline de auditoria.
+
+            - **Trigger:** `${{ github.event_name }}`
+            - **Modo:** `${{ needs.guard.outputs.depth }}`
+            - **Commit avaliado:** `${{ needs.guard.outputs.commit }}`
+
+            Ver `reports/latest/latest.md` para o resumo desta execução e
+            `reports/debt-register.md` para o registro de dívida técnica
+            consolidado.
+          add-paths: |
+            reports/**
+            docs/adrs/**
+          labels: reports-automation

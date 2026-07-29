@@ -1,0 +1,72 @@
+name: Revisão automática de PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - 'reports/**'
+      - 'docs/adrs/**'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'Número do PR a revisar'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Guard-rail anti-loop: nunca revisar PR aberto pelo próprio pipeline
+    # de relatórios (peter-evans/create-pull-request roda como github-actions[bot]).
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.user.login != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolver número do PR
+        id: pr
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.pr_number }}" ]; then
+            echo "number=${{ inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Preparar OUTPUT_PATH
+        run: echo "OUTPUT_PATH=${{ runner.temp }}/pr-review.md" >> "$GITHUB_ENV"
+
+      - name: Revisão via Claude Code
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: |
+            --allowedTools "Read,Grep,Glob,Bash,Write"
+            --max-turns 30
+          prompt: |
+            Leia integralmente `.github/claude-prompts/pr-review.md` e siga suas
+            instruções por completo.
+
+            O diff a avaliar é o da Pull Request #${{ steps.pr.outputs.number }}
+            deste repositório. Obtenha o diff real com
+            `gh pr diff ${{ steps.pr.outputs.number }}` (já autenticado via GH_TOKEN)
+            em vez de supor o que mudou.
+
+            Escreva o comentário Markdown final (só o conteúdo do comentário,
+            sem texto antes ou depois) no arquivo indicado pela variável de
+            ambiente OUTPUT_PATH.
+
+      - name: Publicar comentário no PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr comment "${{ steps.pr.outputs.number }}" --body-file "$OUTPUT_PATH"
