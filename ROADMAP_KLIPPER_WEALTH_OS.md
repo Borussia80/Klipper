@@ -154,20 +154,157 @@ de fatura, pagamento mínimo, juros rotativo a.m./a.a., IOF projetado em `Accoun
 
 ### `investimentos.vue` — header com valores hardcoded, não calculados
 
+**Estado atual: ✅ Resolvido.** Commit `905d8f1` (2026-07-28) — novo
+`PortfolioValueChip` usa `portfolio.total_cost` real do backend e exibe chip
+neutro de variação (sem `current_price`/histórico, a variação não é inventada).
+
 **Encontrado em:** auditoria de paridade visual do redesign ISA-101 (sessão de
 2026-07-27, branch `sprint-1-onboarding-usabilidade`).
 
-**Problema:** o header de `pages/investimentos.vue` mostra "R$ 187.400" (total) e
-"+14,2%" (variação) como texto fixo no template — não são derivados de
-`investments`/`portfolio` (dados reais do usuário). Qualquer usuário vê os mesmos
-dois números, independente do patrimônio real cadastrado.
+**Problema:** o header de `pages/investimentos.vue` mostrava "R$ 187.400" (total) e
+"+14,2%" (variação) como texto fixo no template — não eram derivados de
+`investments`/`portfolio` (dados reais do usuário).
 
-**Prioridade:** média — não bloqueia uso básico, mas é dado financeiro incorreto
-exibido como se fosse real, o que é particularmente grave numa tela de patrimônio.
+---
 
-**Critério de aceite:** total do header = soma real de `investments`/`portfolio` do
-usuário logado; variação percentual calculada a partir de um histórico real (ou, na ausência de
-histórico, omitida/marcada como indisponível em vez de inventada).
+### `orcamento.vue` — `spentRatio ?? 0` conflate "sem orçamento" com "0% gasto"
+
+**Encontrado em:** code review do plano do Sprint 2 (sessão de 2026-07-28, branch
+`sprint-1-onboarding-usabilidade`), aceito como risco conhecido antes do Green e
+ainda não endereçado.
+
+**Problema:** `budgetSpentRatio()` (`composables/useBudgetKpis.ts`) retorna `null`
+corretamente quando `allocated <= 0` (sem orçamento definido), mas
+`pages/orcamento.vue:118` faz `budgetSpentRatio(...) ?? 0` antes de passar pro
+`InstrumentReadout`. Resultado: uma categoria sem limite definido mas com gasto
+lançado (`spent > 0`, `allocated = 0`) mostra a mesma barra "0% gasto" de uma
+categoria realmente zerada — visualmente indistinguíveis.
+
+**Prioridade:** baixa-média — não é dado incorreto (matemática está certa), mas é
+ambiguidade visual num critério que o usuário precisa distinguir rápido no
+dia a dia (orçamento zerado vs. orçamento inexistente).
+
+**Critério de aceite:** `InstrumentReadout` (ou `orcamento.vue`) trata o `null` de
+`budgetSpentRatio` como estado distinto de "0%" — ex: badge/texto "sem orçamento
+definido" em vez de barra vazia — em vez de forçar `?? 0`.
+
+---
+
+## Backlog priorizado de execução (auditorias 2026-07-27 a 2026-07-29)
+
+> Achados confirmados por leitura direta do código, não por suposição.
+> Atualizar a coluna Status a cada sessão que tocar um destes itens — este
+> backlog é vivo, não um snapshot congelado da auditoria.
+
+**Nota de escopo:** este detalhamento item-a-item cabe aqui enquanto o volume
+for pequeno (11 achados). Quando `OBS-1` for ativado e o agente começar a
+gerar dezenas/centenas de findings automáticos, o detalhamento migra para
+`reports/debt-register.md` (já existe, já é o destino desenhado para isso —
+auto-gerado a cada run de `agent-full-report.yml`) ou GitHub Issues/Projects.
+Este roadmap volta a conter só iniciativas e objetivos por sprint, não a
+lista completa de findings — mantendo seu papel de documento estratégico.
+
+**Prioridade** (P0 bloqueia uso real/dado financeiro hoje · P1 risco/fricção
+real, não bloqueia o dia a dia · P2 polimento/dívida técnica de baixo risco)
+é independente de **Sprint** (ordem de execução): um P1 pode rodar antes de um
+P0 se ele desbloquear ou barateizar os demais (caso de OBS-1 abaixo).
+
+Domínios **Arquitetura** e **Performance**: nenhum achado aberto confirmado
+nesta rodada (grep de padrões arriscados + leitura de código não achou nada)
+— não incluídos abaixo para não inventar item sem evidência.
+
+### Visão geral
+
+| ID | Domínio | Prioridade | Risco | Valor | Esforço | Owner | Status | Sprint | Source | Validação |
+|----|---------|:---:|:---:|:---:|:---:|---|:---:|:---:|---|---|
+| OBS-1 | Observabilidade | P1 | Baixo | Alto | M | DevOps | Todo | **0** | User Request | QA (dry-run) + Produção |
+| FIN-1 | Financeiro | **P0** | Alto | Muito alto | L | Backend | Todo | 1 | Manual Audit | Automatizado + Fixture |
+| FIN-2 | Financeiro | P1 | Médio | Alto | M | Backend | Todo | 1 | Manual Audit | Automatizado + Fixture |
+| UX-1 | UX | P1 | Médio | Alto | S | Frontend | Todo | 1 | Manual Audit | Automatizado + Manual |
+| SEC-1 | Segurança | P1 | Médio | Alto | L | Backend | Todo | 2 | Manual Audit | Automatizado + Manual |
+| UX-2 | UX | P1 | Baixo | Médio | S | Frontend | Todo | 2 | Manual Audit | Manual |
+| SEC-2 | Segurança | P2 | Baixo | Médio | M | Backend | Todo | 3A | Manual Audit | Automatizado + Manual |
+| FIN-3 | Financeiro | P2 | Baixo | Baixo | S | Frontend | Todo | 3A | Bug Report | Automatizado |
+| UX-3 | UX | P2 | Baixo | Baixo | XS | Frontend | Todo | 3B | Manual Audit | Manual |
+| UX-4 | UX | P2 | Baixo | Baixo | S | Frontend | Todo | 3B | Manual Audit | Manual |
+| UX-5 | UX | P2 | Baixo | Baixo | XS | Frontend | Todo | 3B | Manual Audit | Manual/Decisão |
+
+**Progresso**
+
+```
+Total   ░░░░░░░░░░  0%  (0/11 done)
+P0      ░░░░░░░░░░  0%  (0/1 done)
+P1      ░░░░░░░░░░  0%  (0/5 done)
+P2      ░░░░░░░░░░  0%  (0/5 done)
+```
+
+### Sprint 0 — Observabilidade primeiro
+
+Ativar o agente de relatório **antes** de começar a mexer em código —
+qualquer mudança feita a partir daqui já entra no histórico/tendência do
+sistema de auditoria automática, em vez de nascer sem rastro.
+
+**OBS-1 [P1 · Risco Baixo · Valor Alto · Owner DevOps · Source: User Request]** — Agente de relatório
+estruturado construído em 2026-07-29, não commitado nem ativado.
+- **Onde:** `.github/workflows/{agent-pr-review,agent-full-report}.yml`, `.github/claude-prompts/`, `.github/scripts/`, `reports/`, `docs/adrs/` — todos untracked.
+- **Dependências:** nenhuma técnica; requer decisão do usuário sobre commitar.
+- **Critério de aceite (execução, não desenho):**
+  1. Commit dos arquivos já criados.
+  2. Secret `CLAUDE_CODE_OAUTH_TOKEN`/`anthropic_api_key` configurado no repo.
+  3. GitHub → Settings → Actions: "Allow GitHub Actions to create and approve pull requests" + "Read and write permissions" habilitados.
+  4. Confirmar `environment: production` nos Deployments do Vercel↔GitHub.
+- **Validação:** `workflow_dispatch` de `agent-full-report.yml` em modo `fast` (QA/dry-run) → confirmar PR automático com `reports/` preenchido (produção).
+
+### Sprint 1 — Desbloqueio de uso real (Financeiro + Onboarding)
+
+**FIN-1 [P0 · Risco Alto · Valor Muito alto · Owner Backend · Source: Manual Audit]** — Import de PDF só cobre Itaú — Nubank/BTG sem adapter.
+- **Onde:** `app/services/pdf_adapters/registry.rb` (`ADAPTERS = [ItauExtratoAdapter, ItauFaturaAdapter]`).
+- **Impacto:** contas Nubank/BTG já cadastradas na família não importam PDF — uso real bloqueado.
+- **Dependências:** nenhuma. Bloqueia UX-1.
+- **Critério de aceite:** `NubankFaturaAdapter` e `BtgExtratoAdapter` registrados, com teste de parsing, PDFs de exemplo importam sem erro.
+- **Validação:** RSpec com fixture de PDF real/sintética por banco.
+
+**FIN-2 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit]** — Import CSV exige colunas/formato fixo em português.
+- **Onde:** `app/services/csv_import_service.rb` (linhas 37-44: `row["Data"]`/`row["Descrição"]`/`row["Valor"]`, `Date.strptime(..., "%d/%m/%Y")` hardcoded).
+- **Impacto:** CSV de banco com nomes de coluna/formato de data diferente falha ou quebra.
+- **Dependências:** nenhuma; roda em paralelo com FIN-1.
+- **Critério de aceite:** CSV de pelo menos 2 formatos de exportação diferentes importa sem reformatação manual.
+- **Validação:** RSpec com fixture por formato de CSV.
+
+**UX-1 [P1 · Risco Médio · Valor Alto · Owner Frontend · Source: Manual Audit]** — Onboarding oferece 6 bancos como "conectáveis", só Itaú funciona; badges com letra hardcoded.
+- **Onde:** `pages/onboarding.vue` (array `banks`, badges `label:'N'/'BTG'/...` em vez de `UiBankIcon`, já usado em `contas.vue`).
+- **Dependências:** depende de FIN-1 estar concluído (lista de bancos ofertados deve refletir adapters reais).
+- **Critério de aceite:** onboarding só lista como "conectável" banco com adapter implementado; badges usam `UiBankIcon`.
+- **Validação:** teste de componente (Vitest) + conferência visual manual.
+
+### Sprint 2 — Segurança de conta + comunicação de sessão
+
+**SEC-1 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit]** — Não existe fluxo de recuperação de senha ("esqueci minha senha").
+- **Onde:** `config/routes.rb`/`users_controller.rb` só tem troca de senha autenticada (exige `current_password`); sem mailer, sem token de reset, sem rota pública.
+- **Impacto:** usuário que esquece a senha fica sem saída própria.
+- **Dependências:** confirmar que há mecanismo de envio de e-mail configurado no Rails (ActionMailer/SMTP) antes de estimar — não verificado nesta rodada.
+- **Critério de aceite:** usuário solicita reset por e-mail, recebe link com token de expiração curta, define nova senha sem precisar da antiga.
+- **Validação:** RSpec (geração/expiração de token) + teste manual do fluxo de e-mail ponta a ponta.
+
+**UX-2 [P1 · Risco Baixo · Valor Médio · Owner Frontend · Source: Manual Audit]** — Sessão expirada redireciona ao login silenciosamente, sem aviso.
+- **Onde:** `composables/useApi.ts` (`onResponseError` no 401: zera token + `navigateTo('/login')`, sem toast).
+- **Dependências:** nenhuma.
+- **Critério de aceite:** usuário vê mensagem "sua sessão expirou" antes/ao ser redirecionado ao login.
+- **Validação:** teste manual (forçar 401).
+
+### Sprint 3A — Estabilidade e Segurança
+
+**SEC-2 [P2 · Risco Baixo · Valor Médio · Owner Backend · Source: Manual Audit]** — JWT sem refresh, só expiração fixa de 30 dias (`app/services/jwt_service.rb`, `EXPIRY = 30.days`; `token_version` invalida no logout, mas não é refresh token). Aceitável para uso solo hoje; endereçar antes de multiusuário futuro. **Critério de aceite:** decisão registrada (aceitar o risco documentadamente, ou implementar refresh token). **Validação:** RSpec + teste manual.
+
+**FIN-3 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Bug Report]** — `orcamento.vue` — `budgetSpentRatio ?? 0` conflate "sem orçamento" com "0% gasto". Ver detalhe completo na seção do bug acima (critério de aceite já escrito lá). **Validação:** Vitest.
+
+### Sprint 3B — UX e Dívida Técnica
+
+**UX-3 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit]** — 3 tokens de `tokens.css` ainda provisórios (`--ly2`, `--t4`, `--blt`, comentário "extrapolado"). **Critério de aceite:** valores conferidos contra o draft aprovado e fixados. **Validação:** comparação visual manual.
+
+**UX-4 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit]** — `KpiCard.vue`/`DebtAlarmBanner.vue` sem media query própria, dependem só do grid do pai colapsar. **Critério de aceite:** os dois componentes não quebram em viewport estreito (~360px). **Validação:** teste manual de resize.
+
+**UX-5 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit]** — `components/charts/PatrimonioTimeline.vue` órfão, com `MOCK_DATA`, não importado em nenhuma página. **Dependências:** decisão do usuário — remover (recomendado, YAGNI) ou implementar de verdade. **Validação:** decisão manual + confirmação de bundle.
 
 ---
 
