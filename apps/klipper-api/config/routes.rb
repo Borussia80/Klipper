@@ -5,6 +5,9 @@ Rails.application.routes.draw do
       post "auth/sign_up",    to: "auth#sign_up"
       post "auth/sign_in",    to: "auth#sign_in"
 
+      post  "password_resets",        to: "password_resets#create"
+      patch "password_resets/:token", to: "password_resets#update"
+
       resources :accounts,      only: %i[index show create update destroy]
       resources :categories,    only: %i[index show create update destroy]
       resources :members,       only: %i[index show create update destroy]

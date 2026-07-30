@@ -1,6 +1,10 @@
 class User < ApplicationRecord
   has_secure_password
 
+  generates_token_for :password_reset, expires_in: 30.minutes do
+    password_salt&.last(10)
+  end
+
   has_many :accounts,     dependent: :destroy
   has_many :categories,   dependent: :destroy
   has_many :transactions, dependent: :destroy

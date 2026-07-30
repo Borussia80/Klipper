@@ -84,6 +84,9 @@
             <span v-if="isLoading" class="btn-spinner" />
             <span v-else>{{ mode === 'signup' ? 'Criar conta' : 'Entrar' }}</span>
           </button>
+          <div v-if="mode === 'login'" style="text-align:right;margin-top:10px">
+            <NuxtLink to="/esqueci-senha" style="font-size:12px;color:var(--t3);text-decoration:none">Esqueceu a senha?</NuxtLink>
+          </div>
         </div>
       </div>
 
