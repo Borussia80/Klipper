@@ -22,10 +22,11 @@ Rails.application.configure do
   # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  config.force_ssl = true
 
-  # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  # Skip http-to-https redirect for the health check endpoint — Render's prober hits
+  # the container directly and doesn't set X-Forwarded-Proto like the edge proxy does.
+  config.ssl_options = { redirect: { exclude: ->(request) { Api::V1::HealthController.excluded_from_ssl_redirect?(request) } } }
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
