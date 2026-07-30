@@ -8,6 +8,9 @@ module BankImport
     end
 
     def write!(description:, amount:, occurred_on:, installment_number: nil, installment_total: nil, notes: nil, member_id: nil)
+      raise ActiveRecord::RecordNotFound, "Conta inválida" if @account_id.present? && !@user.accounts.exists?(id: @account_id)
+      raise ActiveRecord::RecordNotFound, "Portador inválido" if member_id.present? && !@user.members.exists?(id: member_id)
+
       tx_type = amount >= 0 ? "credit" : "debit"
       hash = BankImport::DedupeHash.call(
         user_id: @user.id,

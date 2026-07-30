@@ -223,7 +223,7 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | FIN-1 | Financeiro | Manual Audit (roadmap original) | **P0** | Alto | Muito alto | L | Backend | Todo | 1 | Manual Audit | Automatizado + Fixture |
 | SEC-03 | Segurança | H1 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-04 | Segurança | H2 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
-| SEC-05 | Segurança | H3 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
+| SEC-05 | Segurança | H3 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | FIN-2 | Financeiro | Manual Audit (roadmap original) | P1 | Médio | Alto | M | Backend | Todo | 2 | Manual Audit | Automatizado + Fixture |
 | UX-1 | UX | Manual Audit (roadmap original) | P1 | Médio | Alto | S | Frontend | Todo | 2 | Manual Audit | Automatizado + Manual |
 | SEC-06 | Segurança | H4 | P2 | Baixo | Baixo | S | Backend | Todo | 2 | Security Audit | Decisão + bump de gem |
@@ -248,8 +248,8 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   █░░░░░░░░░  8%  (2/25 done)
-P0      █████░░░░░  50%  (2/4 done)
+Total   █░░░░░░░░░  12%  (3/25 done)
+P0      ████████░░  75%  (3/4 done)
 P1      ░░░░░░░░░░  0%  (0/8 done)
 P2      ░░░░░░░░░░  0%  (0/13 done)
 ```
@@ -293,7 +293,7 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
   2. Só então: revalidar cada FK contra `current_user.<associação>` em ambos os controllers.
 - **Validação:** RSpec (request spec do PoC vira o teste de regressão do fix).
 
-**SEC-05 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H3 · Source: Security Audit]** — Mesmo padrão de BOLA no fluxo de importação (CSV/PDF).
+**SEC-05 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H3 · Source: Security Audit · Status: Done]** — Mesmo padrão de BOLA no fluxo de importação (CSV/PDF).
 - **Onde:** `app/controllers/api/v1/imports_controller.rb` → `CsvImportService`/`PdfImportService` → `BankImport::TransactionWriter#write!` (não valida `account_id`/`member_id` contra `@user`). Detalhe completo em [`docs/security/audit-2026-07-29.md#h3`](docs/security/audit-2026-07-29.md).
 - **Critério de aceite (nesta ordem):**
   1. **PoC de reprodução cross-user** — request spec: usuário A importa um CSV informando `account_id` de B; confirmar que a transação é gravada contra a conta de B.
