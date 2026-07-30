@@ -40,12 +40,7 @@
               @click="toggleBank(bank.id)"
               @keydown.enter.space.prevent="toggleBank(bank.id)"
             >
-              <div
-                class="bank-logo"
-                :style="{ background: bank.bg, color: bank.fg, fontSize: bank.smallText ? '9px' : '14px', fontWeight: 700 }"
-              >
-                {{ bank.label }}
-              </div>
+              <UiBankIcon :institution="bank.name" :size="36" />
               <div style="font-size:11px;color:var(--t2);margin-top:6px">{{ bank.name }}</div>
             </div>
           </div>
@@ -190,19 +185,14 @@ const isFinishing = ref(false)
 interface Bank {
   id: string
   name: string
-  label: string
-  bg: string
-  fg: string
-  smallText?: boolean
 }
 
+// Só bancos com adapter de import implementado (app/services/pdf_adapters/registry.rb).
+// Adicionar aqui só depois do adapter existir — ver FIN-1/UX-1 no roadmap.
 const banks: Bank[] = [
-  { id: 'nubank',    name: 'Nubank',    label: 'N',   bg: 'var(--bank-nubank)', fg: '#fff' },
-  { id: 'itau',      name: 'Itaú',      label: 'I',   bg: 'var(--bank-itau)',   fg: '#fff' },
-  { id: 'btg',       name: 'BTG',       label: 'BTG', bg: 'var(--bank-btg)',    fg: '#4A9EFF', smallText: true },
-  { id: 'bradesco',  name: 'Bradesco',  label: 'B',   bg: '#CC0000',            fg: '#fff' },
-  { id: 'santander', name: 'Santander', label: 'S',   bg: '#EC0000',            fg: '#fff' },
-  { id: 'c6',        name: 'C6 Bank',   label: 'C6',  bg: '#242424',            fg: '#F4C430' },
+  { id: 'nubank', name: 'Nubank' },
+  { id: 'itau',   name: 'Itaú' },
+  { id: 'btg',    name: 'BTG' },
 ]
 
 interface Goal {
@@ -269,16 +259,6 @@ async function finish() {
 .bank-card:hover { border-color: rgba(43,125,244,0.35); }
 .bank-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .bank-card--selected { border-color: var(--blue); background: var(--bdm); }
-
-.bank-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: .02em;
-}
 
 .goal-card {
   display: flex;
