@@ -1,5 +1,6 @@
 export function useApi() {
   const config = useRuntimeConfig()
+  const { addToast } = useToast()
   const token = useCookie<string | null>('klipper_token', {
     sameSite: 'lax',
     secure: import.meta.env.PROD,
@@ -18,7 +19,11 @@ export function useApi() {
     },
     onResponseError({ response }) {
       if (response.status === 401) {
+        const hadToken = !!token.value
         token.value = null
+        if (hadToken) {
+          addToast('Sua sessão expirou. Faça login novamente.', 'warn')
+        }
         navigateTo('/login')
       }
     },
