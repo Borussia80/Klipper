@@ -125,6 +125,18 @@ RSpec.describe CsvImportService, type: :service do
     end
   end
 
+  it "collects a per-row error instead of raising when the value column has no parseable number" do
+    content = <<~CSV
+      Data,Descrição,Valor
+      01/06/2026,LINHA SEM VALOR NUMERICO,R$
+    CSV
+
+    result = run(content)
+
+    expect(result.imported).to eq(0)
+    expect(result.errors.first).to match(/Valor inválido/)
+  end
+
   it "returns a clear error when no known date/description/value columns are found" do
     content = <<~CSV
       Foo,Bar,Baz

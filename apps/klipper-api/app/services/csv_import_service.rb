@@ -88,6 +88,8 @@ class CsvImportService
     { ok: true }
   rescue Date::Error
     { error: "Data inválida: #{raw_date}" }
+  rescue ArgumentError
+    { error: "Valor inválido: #{raw_value}" }
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
     { error: e.message }
   end

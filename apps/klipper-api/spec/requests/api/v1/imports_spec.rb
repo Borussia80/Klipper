@@ -96,6 +96,29 @@ RSpec.describe "Api::V1::Imports", type: :request do
       post "/api/v1/imports", headers: auth_headers
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    it "returns 422 without persisting anything when a PDF is sent to the CSV endpoint" do
+      fake_pdf = Rack::Test::UploadedFile.new(StringIO.new("%PDF-1.4\nnão é um csv"), "application/pdf", original_filename: "fatura.pdf")
+
+      expect {
+        post "/api/v1/imports", params: { file: fake_pdf }, headers: auth_headers
+      }.not_to change { user.transactions.count }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(JSON.parse(response.body)["error"]).to match(/não parece ser um CSV/)
+    end
+
+    it "returns 422 without persisting anything when the file is bigger than the allowed size" do
+      oversized_content = "Data,Descrição,Valor\n" + ("01/06/2026,item,-10.00\n" * 1) + ("a" * (BankImport::FileGuard::MAX_BYTES + 1))
+      oversized_file = Rack::Test::UploadedFile.new(StringIO.new(oversized_content), "text/csv", original_filename: "gigante.csv")
+
+      expect {
+        post "/api/v1/imports", params: { file: oversized_file }, headers: auth_headers
+      }.not_to change { user.transactions.count }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(JSON.parse(response.body)["error"]).to match(/maior/)
+    end
   end
 
   describe "POST /api/v1/imports/preview" do
@@ -142,6 +165,17 @@ RSpec.describe "Api::V1::Imports", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       json = JSON.parse(response.body)
       expect(json["error"]).to be_present
+    end
+
+    it "returns 422 without parsing anything when a CSV is sent to the PDF endpoint" do
+      fake_csv = Rack::Test::UploadedFile.new(StringIO.new("Data,Descrição,Valor\n01/06/2026,item,-10.00\n"), "text/csv", original_filename: "extrato.csv")
+
+      expect(PDF::Reader).not_to receive(:new)
+
+      post "/api/v1/imports/preview", params: { file: fake_csv }, headers: auth_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(JSON.parse(response.body)["error"]).to match(/não é um PDF válido/)
     end
   end
 

@@ -37,6 +37,8 @@ class PdfImportService
     PreviewResult.new(rows: [], warnings: [], error: "PDF corrompido ou ilegível")
   rescue PdfAdapters::ParseError => e
     PreviewResult.new(rows: [], warnings: [], error: e.message)
+  rescue Date::Error, ArgumentError => e
+    PreviewResult.new(rows: [], warnings: [], error: "Não foi possível interpretar o extrato: #{e.message}")
   end
 
   def confirm(rows)

@@ -53,6 +53,21 @@ RSpec.describe PdfImportService do
       end
     end
 
+    it "retorna erro sem levantar exceção quando o parsing do adapter encontra uma data inválida" do
+      fake_page = Struct.new(:text).new("texto qualquer")
+      fake_reader = instance_double(PDF::Reader, pages: [ fake_page ])
+      allow(PDF::Reader).to receive(:new).and_return(fake_reader)
+
+      adapter_class = double("FakeAdapter", adapter_key: "fake_adapter")
+      allow(PdfAdapters::Registry).to receive(:detect).and_return(adapter_class)
+      allow(adapter_class).to receive(:new).and_raise(Date::Error, "invalid date")
+
+      result = service.preview(StringIO.new("qualquer coisa"))
+
+      expect(result.error?).to eq(true)
+      expect(result.error).to match(/não foi possível interpretar/i)
+    end
+
     it "sugere o member_id do portador cujo nome normalizado bate com o cardholder" do
       member = create(:member, user: user, name: "Clarea Ana Almeida")
       fake_page = Struct.new(:text).new("texto qualquer")
