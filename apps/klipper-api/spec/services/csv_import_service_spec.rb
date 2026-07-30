@@ -100,4 +100,38 @@ RSpec.describe CsvImportService, type: :service do
     expect(result.imported).to eq(1)
     expect(result.duplicates).to eq(3)
   end
+
+  context "with a different CSV export format (semicolon delimiter, English headers, ISO date)" do
+    let(:alt_csv_content) do
+      <<~CSV
+        Date;Description;Amount
+        2026-06-01;COMPRA DEBITO SUPERMERCADO EXTRA;-150.00
+        2026-06-05;PIX RECEBIDO SALARIO;5000.00
+      CSV
+    end
+
+    it "imports every row without requiring manual reformatting" do
+      result = run(alt_csv_content)
+      expect(result.imported).to eq(2)
+      expect(result.errors).to eq([])
+    end
+
+    it "parses the ISO date and semicolon-separated amount correctly" do
+      run(alt_csv_content)
+      tx = user.transactions.find_by(description: "COMPRA DEBITO SUPERMERCADO EXTRA")
+      expect(tx.occurred_on).to eq(Date.new(2026, 6, 1))
+      expect(tx.amount).to eq(150.00)
+      expect(tx.transaction_type).to eq("debit")
+    end
+  end
+
+  it "returns a clear error when no known date/description/value columns are found" do
+    content = <<~CSV
+      Foo,Bar,Baz
+      1,2,3
+    CSV
+    result = run(content)
+    expect(result.imported).to eq(0)
+    expect(result.errors.first).to match(/colunas reconhecidas/)
+  end
 end
