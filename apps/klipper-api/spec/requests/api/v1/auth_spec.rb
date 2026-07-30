@@ -87,4 +87,49 @@ RSpec.describe "Auth endpoints", type: :request do
       end
     end
   end
+
+  describe "SEC-08: throttle de força bruta" do
+    it "returns 429 after 5 sign_in attempts for the same e-mail within a minute" do
+      5.times do
+        post "/api/v1/auth/sign_in",
+          params: { email: "victim@example.com", password: "wrongpass" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+      end
+
+      post "/api/v1/auth/sign_in",
+        params: { email: "victim@example.com", password: "wrongpass" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:too_many_requests)
+      expect(json_response[:error]).to be_present
+    end
+
+    it "does not throttle sign_in attempts for a different e-mail" do
+      5.times do
+        post "/api/v1/auth/sign_in",
+          params: { email: "victim@example.com", password: "wrongpass" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+      end
+
+      post "/api/v1/auth/sign_in",
+        params: { email: "someone-else@example.com", password: "wrongpass" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns 429 after 20 auth requests from the same IP within a minute" do
+      20.times do |i|
+        post "/api/v1/auth/sign_in",
+          params: { email: "attacker#{i}@example.com", password: "wrongpass" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+      end
+
+      post "/api/v1/auth/sign_in",
+        params: { email: "attacker21@example.com", password: "wrongpass" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:too_many_requests)
+    end
+  end
 end
