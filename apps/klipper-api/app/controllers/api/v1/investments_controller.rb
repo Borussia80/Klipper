@@ -18,6 +18,10 @@ module Api
       end
 
       def create
+        unless valid_investment_fk?
+          return render json: { errors: [ "Conta inválida" ] }, status: :unprocessable_entity
+        end
+
         investment = current_user.investments.build(investment_params)
         if investment.save
           render json: investment, status: :created
@@ -27,6 +31,10 @@ module Api
       end
 
       def update
+        unless valid_investment_fk?
+          return render json: { errors: [ "Conta inválida" ] }, status: :unprocessable_entity
+        end
+
         if @investment.update(investment_params)
           render json: @investment
         else
@@ -50,6 +58,13 @@ module Api
       def investment_params
         params.permit(:account_id, :ticker, :name, :investment_type,
           :quantity, :average_price, :currency)
+      end
+
+
+      def valid_investment_fk?
+        return true if investment_params[:account_id].blank?
+
+        current_user.accounts.exists?(id: investment_params[:account_id])
       end
     end
   end

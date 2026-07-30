@@ -96,6 +96,27 @@ RSpec.describe "Investments API", type: :request do
     end
   end
 
+  describe "SEC-04: BOLA em account_id (cross-user)" do
+    let(:other_user)    { create(:user) }
+    let(:other_account) { create(:account, user: other_user) }
+
+    it "rejects account_id de outro usuário na criação" do
+      post "/api/v1/investments",
+        params: { account_id: other_account.id, ticker: "PETR4", name: "Petrobras PN",
+                   investment_type: "stock", quantity: 100, average_price: 38.50, currency: "BRL" }.to_json,
+        headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "rejects account_id de outro usuário na atualização" do
+      investment = create(:investment, user: user)
+      patch "/api/v1/investments/#{investment.id}",
+        params: { account_id: other_account.id }.to_json, headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(investment.reload.account_id).to be_nil
+    end
+  end
+
   describe "DELETE /api/v1/investments/:id" do
     let(:investment) { create(:investment, user: user) }
 

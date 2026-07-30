@@ -116,6 +116,53 @@ RSpec.describe "Transactions API", type: :request do
     end
   end
 
+  describe "SEC-04: BOLA em account_id/category_id/member_id (cross-user)" do
+    let(:other_user)     { create(:user) }
+    let(:other_account)  { create(:account, user: other_user) }
+    let(:other_category) { create(:category, user: other_user, icon: "x") }
+    let(:other_member)   { create(:member, user: other_user) }
+
+    it "rejects account_id de outro usuário na criação" do
+      post "/api/v1/transactions",
+        params: { account_id: other_account.id, category_id: category.id, description: "x",
+                   amount: 10, transaction_type: "debit", occurred_on: "2026-06-20" }.to_json,
+        headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "rejects category_id de outro usuário na criação" do
+      post "/api/v1/transactions",
+        params: { account_id: account.id, category_id: other_category.id, description: "x",
+                   amount: 10, transaction_type: "debit", occurred_on: "2026-06-20" }.to_json,
+        headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "rejects member_id de outro usuário na criação" do
+      post "/api/v1/transactions",
+        params: { account_id: account.id, category_id: category.id, member_id: other_member.id,
+                   description: "x", amount: 10, transaction_type: "debit", occurred_on: "2026-06-20" }.to_json,
+        headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "rejects account_id de outro usuário na atualização (não passa a somar nos totais da conta alheia)" do
+      txn = create(:transaction, user: user, account: account, category: category)
+      patch "/api/v1/transactions/#{txn.id}",
+        params: { account_id: other_account.id }.to_json, headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(txn.reload.account_id).to eq(account.id)
+    end
+
+    it "rejects member_id de outro usuário na atualização" do
+      txn = create(:transaction, user: user, account: account, category: category)
+      patch "/api/v1/transactions/#{txn.id}",
+        params: { member_id: other_member.id }.to_json, headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(txn.reload.member_id).to be_nil
+    end
+  end
+
   describe "DELETE /api/v1/transactions/:id" do
     let(:txn) { create(:transaction, user: user, account: account, category: category) }
 

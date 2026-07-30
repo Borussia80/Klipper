@@ -222,7 +222,7 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | OBS-1 | Observabilidade | Manual Audit (roadmap original) | P1 | Baixo | Alto | M | DevOps | Todo | **0** | User Request | QA (dry-run) + Produção |
 | FIN-1 | Financeiro | Manual Audit (roadmap original) | **P0** | Alto | Muito alto | L | Backend | Todo | 1 | Manual Audit | Automatizado + Fixture |
 | SEC-03 | Segurança | H1 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
-| SEC-04 | Segurança | H2 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
+| SEC-04 | Segurança | H2 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-05 | Segurança | H3 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | FIN-2 | Financeiro | Manual Audit (roadmap original) | P1 | Médio | Alto | M | Backend | Todo | 2 | Manual Audit | Automatizado + Fixture |
 | UX-1 | UX | Manual Audit (roadmap original) | P1 | Médio | Alto | S | Frontend | Todo | 2 | Manual Audit | Automatizado + Manual |
@@ -248,8 +248,8 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   ░░░░░░░░░░  4%  (1/25 done)
-P0      ███░░░░░░░  25%  (1/4 done)
+Total   █░░░░░░░░░  8%  (2/25 done)
+P0      █████░░░░░  50%  (2/4 done)
 P1      ░░░░░░░░░░  0%  (0/8 done)
 P2      ░░░░░░░░░░  0%  (0/13 done)
 ```
@@ -286,7 +286,7 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
   2. Só então: revalidar `category_id` contra `current_user.categories` em `create`/`update` de `budgets_controller.rb`.
 - **Validação:** RSpec (request spec do PoC vira o teste de regressão do fix).
 
-**SEC-04 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H2 · Source: Security Audit]** — BOLA: `Transaction`/`Investment` aceitam `account_id`/`category_id`/`member_id` de outro usuário.
+**SEC-04 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H2 · Source: Security Audit · Status: Done]** — BOLA: `Transaction`/`Investment` aceitam `account_id`/`category_id`/`member_id` de outro usuário.
 - **Onde:** `app/controllers/api/v1/transactions_controller.rb#update` + `app/controllers/api/v1/investments_controller.rb#create`/`#update` (FKs de `transaction_params`/`investment_params` sem revalidação). Detalhe completo em [`docs/security/audit-2026-07-29.md#h2`](docs/security/audit-2026-07-29.md).
 - **Critério de aceite (nesta ordem):**
   1. **PoC de reprodução cross-user** — request spec: usuário A edita uma transação/investimento próprio setando `account_id`/`member_id` de B; confirmar que o registro passa a aparecer nos totais da conta de B.
