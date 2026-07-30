@@ -9,6 +9,7 @@ Copie de `Modelo_Bancos/` (raiz do repo) para cá com estes nomes exatos:
 |---|---|
 | `itau_extrato.pdf` | `itau_extrato_072025.pdf` |
 | `itau_fatura.pdf`  | `Extrato_Cartão_Itau_Personnalite.pdf` |
+| `nubank_fatura.pdf` | `Nubank_2026-07-10.pdf` |
 
 Specs que dependem desses arquivos usam o helper `with_pdf_fixture` (`spec/support/pdf_fixtures.rb`)
 e são automaticamente puladas (`skip`), com mensagem explicando o motivo, em qualquer máquina/CI

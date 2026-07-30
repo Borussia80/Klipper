@@ -10,6 +10,10 @@ RSpec.describe PdfAdapters::Registry do
       expect(described_class.detect("... ResumodafaturaemR$ ...")).to eq(PdfAdapters::ItauFaturaAdapter)
     end
 
+    it "detecta o adapter de fatura Nubank pelos marcadores nubank + resumo da fatura" do
+      expect(described_class.detect("... sua conta Nubank ... RESUMO DA FATURA ATUAL ...")).to eq(PdfAdapters::NubankFaturaAdapter)
+    end
+
     it "retorna nil quando nenhum adapter reconhece o texto" do
       expect(described_class.detect("texto de um layout desconhecido, sem marcadores")).to be_nil
     end
