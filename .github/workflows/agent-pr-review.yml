@@ -23,9 +23,16 @@ concurrency:
 
 jobs:
   review:
-    # Guard-rail anti-loop: nunca revisar PR aberto pelo próprio pipeline
-    # de relatórios (peter-evans/create-pull-request roda como github-actions[bot]).
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.user.login != 'github-actions[bot]'
+    # Guard-rails: (1) anti-loop — nunca revisar PR aberto pelo próprio pipeline
+    # de relatórios (peter-evans/create-pull-request roda como github-actions[bot]);
+    # (2) anti-prompt-injection (SEC-13/LLM01) — PR de fork tem Bash + GH_TOKEN
+    # disponíveis ao agente, então só roda automático para PRs do próprio repo.
+    # Fork PR ainda pode ser revisado, mas só via workflow_dispatch manual
+    # (exige permissão de escrita no repo para disparar).
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.user.login != 'github-actions[bot]' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
