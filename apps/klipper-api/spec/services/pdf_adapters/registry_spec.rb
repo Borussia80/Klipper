@@ -14,6 +14,10 @@ RSpec.describe PdfAdapters::Registry do
       expect(described_class.detect("... sua conta Nubank ... RESUMO DA FATURA ATUAL ...")).to eq(PdfAdapters::NubankFaturaAdapter)
     end
 
+    it "detecta o adapter de extrato BTG pelos marcadores BTG Pactual + investimento" do
+      expect(described_class.detect("... BTG PACTUAL SERVIÇOS ... Extrato da Conta Investimento ...")).to eq(PdfAdapters::BtgExtratoAdapter)
+    end
+
     it "retorna nil quando nenhum adapter reconhece o texto" do
       expect(described_class.detect("texto de um layout desconhecido, sem marcadores")).to be_nil
     end

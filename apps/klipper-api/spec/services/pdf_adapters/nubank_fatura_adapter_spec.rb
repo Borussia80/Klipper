@@ -2,10 +2,10 @@ require "rails_helper"
 require "pdf/reader"
 
 RSpec.describe PdfAdapters::NubankFaturaAdapter do
-  FakePage = Struct.new(:text)
+  NubankFakePage = Struct.new(:text)
 
   def fake_page(text)
-    FakePage.new(text)
+    NubankFakePage.new(text)
   end
 
   def pages_for(path)

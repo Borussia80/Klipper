@@ -220,7 +220,7 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | ID | Categoria | Origem | Prioridade | Risco | Valor | Esforço | Owner | Status | Sprint | Source | Validação |
 |----|---|---|:---:|:---:|:---:|:---:|---|:---:|:---:|---|---|
 | OBS-1 | Observabilidade | Manual Audit (roadmap original) | P1 | Baixo | Alto | M | DevOps | Todo | **0** | User Request | QA (dry-run) + Produção |
-| FIN-1 | Financeiro | Manual Audit (roadmap original) | **P0** | Alto | Muito alto | L | Backend | **Doing (Nubank done, BTG bloqueado)** | 1 | Manual Audit | Automatizado + Fixture |
+| FIN-1 | Financeiro | Manual Audit (roadmap original) | **P0** | Alto | Muito alto | L | Backend | **Done** | 1 | Manual Audit | Automatizado + Fixture |
 | SEC-03 | Segurança | H1 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-04 | Segurança | H2 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-05 | Segurança | H3 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
@@ -248,8 +248,8 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   █░░░░░░░░░  12%  (3/25 done)
-P0      ████████░░  75%  (3/4 done)
+Total   ██░░░░░░░░  16%  (4/25 done)
+P0      ██████████  100%  (4/4 done)
 P1      ░░░░░░░░░░  0%  (0/8 done)
 P2      ░░░░░░░░░░  0%  (0/13 done)
 ```
@@ -300,13 +300,13 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
   2. Só então: validar `account_id`/`member_id` dentro de `BankImport::TransactionWriter#write!` (ponto único, reusado por CSV e PDF).
 - **Validação:** RSpec (request spec do PoC vira o teste de regressão do fix).
 
-**FIN-1 [P0 · Risco Alto · Valor Muito alto · Owner Backend · Source: Manual Audit · Status: Doing]** — Import de PDF só cobre Itaú — Nubank/BTG sem adapter.
-- **Onde:** `app/services/pdf_adapters/registry.rb` (`ADAPTERS = [ItauExtratoAdapter, ItauFaturaAdapter, NubankFaturaAdapter]`).
-- **Impacto:** contas Nubank/BTG já cadastradas na família não importam PDF — uso real bloqueado.
-- **Dependências:** nenhuma. Bloqueia UX-1.
+**FIN-1 [P0 · Risco Alto · Valor Muito alto · Owner Backend · Source: Manual Audit · Status: Done]** — Import de PDF só cobria Itaú — Nubank/BTG sem adapter.
+- **Onde:** `app/services/pdf_adapters/registry.rb` (`ADAPTERS = [ItauExtratoAdapter, ItauFaturaAdapter, NubankFaturaAdapter, BtgExtratoAdapter]`).
+- **Impacto:** contas Nubank/BTG já cadastradas na família não importavam PDF — uso real bloqueado.
+- **Dependências:** nenhuma. Desbloqueia UX-1.
 - **Critério de aceite:** `NubankFaturaAdapter` e `BtgExtratoAdapter` registrados, com teste de parsing, PDFs de exemplo importam sem erro.
-- **Validação:** RSpec com fixture de PDF real/sintética por banco.
-- **Progresso:** `NubankFaturaAdapter` **feito** — parser de fatura (coluna única, ano inferido pela data de emissão), testado contra fixture real (`Modelo_Bancos/Nubank_2026-07-10.pdf`) e casos sintéticos (titular, seção "Pagamentos" sem titular, virada de ano). `BtgExtratoAdapter` **bloqueado**: não existe nenhum PDF real de extrato/fatura BTG em `Modelo_Bancos/` nem em fixtures — escrever o parser sem uma amostra real violaria a Regra de Ouro do projeto (código sem teste não entra; não dá pra validar regex/layout contra dado inventado). Pendente: usuário fornecer um PDF real (ou anonimizado, mantendo o layout) de extrato/fatura BTG.
+- **Validação:** RSpec com fixture de PDF real por banco.
+- **Progresso:** `NubankFaturaAdapter` — parser de fatura (coluna única, ano inferido pela data de emissão), testado contra fixture real (`Modelo_Bancos/Nubank_2026-07-10.pdf`) e casos sintéticos (titular, seção "Pagamentos" sem titular, virada de ano). `BtgExtratoAdapter` — parser da seção "Conta corrente - Movimentação" do extrato de conta investimento (única seção do relatório equivalente a um ledger de lançamentos; as demais são posição de carteira), testado contra fixture real (`Modelo_Bancos/report_146828241.pdf`) e casos sintéticos; contorna um bug do PDF gerado pelo BTG (ToUnicode CMap incompleto mapeia a letra "a" minúscula como NUL em títulos/cabeçalhos — não afeta as linhas de dados).
 
 ### Sprint 2 — Importação e UX
 
