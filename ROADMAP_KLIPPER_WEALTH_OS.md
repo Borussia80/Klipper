@@ -190,52 +190,68 @@ definido" em vez de barra vazia — em vez de forçar `?? 0`.
 
 ---
 
-## Backlog priorizado de execução (auditorias 2026-07-27 a 2026-07-29)
+## Backlog priorizado de execução (produto + segurança, auditorias 2026-07-27 a 2026-07-29)
 
-> Achados confirmados por leitura direta do código, não por suposição.
-> Atualizar a coluna Status a cada sessão que tocar um destes itens — este
-> backlog é vivo, não um snapshot congelado da auditoria.
+> Roadmap único — não existe roadmap de produto e roadmap de segurança em
+> paralelo. Cada item carrega duas etiquetas independentes: **Categoria**
+> (Segurança/Financeiro/UX/Observabilidade/Arquitetura) e **Prioridade**
+> (P0/P1/P2). **Sprint** é a ordem de execução real e é campo separado da
+> Prioridade — um P1 pode rodar antes de um P0 se desbloquear os demais
+> (caso de OBS-1). Atualizar a coluna Status a cada sessão que tocar um
+> destes itens — este backlog é vivo.
 
-**Nota de escopo:** este detalhamento item-a-item cabe aqui enquanto o volume
-for pequeno (11 achados). Quando `OBS-1` for ativado e o agente começar a
-gerar dezenas/centenas de findings automáticos, o detalhamento migra para
-`reports/debt-register.md` (já existe, já é o destino desenhado para isso —
-auto-gerado a cada run de `agent-full-report.yml`) ou GitHub Issues/Projects.
-Este roadmap volta a conter só iniciativas e objetivos por sprint, não a
-lista completa de findings — mantendo seu papel de documento estratégico.
-
-**Prioridade** (P0 bloqueia uso real/dado financeiro hoje · P1 risco/fricção
-real, não bloqueia o dia a dia · P2 polimento/dívida técnica de baixo risco)
-é independente de **Sprint** (ordem de execução): um P1 pode rodar antes de um
-P0 se ele desbloquear ou barateizar os demais (caso de OBS-1 abaixo).
+**IDs de segurança:** os achados da auditoria de segurança de 2026-07-29 têm
+ID técnico próprio (`H1`, `M3`, `L7`...) documentado em
+[`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md) —
+esse arquivo é um **snapshot imutável**, não editar para refletir progresso.
+No roadmap, cada achado ganha um ID próprio de backlog (`SEC-01`...`SEC-16`,
+namespace único, sem colidir com IDs de auditorias futuras) e a coluna
+**Origem** aponta de volta para o ID técnico — é o de-para entre os dois
+documentos. Os 10 achados de severidade Low (`L1`-`L10`, robustez de baixo
+risco) são agrupados por tema em 3 itens (`SEC-14`/`SEC-15`/`SEC-16`) para não
+inflar a tabela — os IDs individuais continuam existindo, só que no arquivo
+de auditoria, não aqui.
 
 Domínios **Arquitetura** e **Performance**: nenhum achado aberto confirmado
-nesta rodada (grep de padrões arriscados + leitura de código não achou nada)
-— não incluídos abaixo para não inventar item sem evidência.
+nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 
 ### Visão geral
 
-| ID | Domínio | Prioridade | Risco | Valor | Esforço | Owner | Status | Sprint | Source | Validação |
-|----|---------|:---:|:---:|:---:|:---:|---|:---:|:---:|---|---|
-| OBS-1 | Observabilidade | P1 | Baixo | Alto | M | DevOps | Todo | **0** | User Request | QA (dry-run) + Produção |
-| FIN-1 | Financeiro | **P0** | Alto | Muito alto | L | Backend | Todo | 1 | Manual Audit | Automatizado + Fixture |
-| FIN-2 | Financeiro | P1 | Médio | Alto | M | Backend | Todo | 1 | Manual Audit | Automatizado + Fixture |
-| UX-1 | UX | P1 | Médio | Alto | S | Frontend | Todo | 1 | Manual Audit | Automatizado + Manual |
-| SEC-1 | Segurança | P1 | Médio | Alto | L | Backend | Todo | 2 | Manual Audit | Automatizado + Manual |
-| UX-2 | UX | P1 | Baixo | Médio | S | Frontend | Todo | 2 | Manual Audit | Manual |
-| SEC-2 | Segurança | P2 | Baixo | Médio | M | Backend | Todo | 3A | Manual Audit | Automatizado + Manual |
-| FIN-3 | Financeiro | P2 | Baixo | Baixo | S | Frontend | Todo | 3A | Bug Report | Automatizado |
-| UX-3 | UX | P2 | Baixo | Baixo | XS | Frontend | Todo | 3B | Manual Audit | Manual |
-| UX-4 | UX | P2 | Baixo | Baixo | S | Frontend | Todo | 3B | Manual Audit | Manual |
-| UX-5 | UX | P2 | Baixo | Baixo | XS | Frontend | Todo | 3B | Manual Audit | Manual/Decisão |
+| ID | Categoria | Origem | Prioridade | Risco | Valor | Esforço | Owner | Status | Sprint | Source | Validação |
+|----|---|---|:---:|:---:|:---:|:---:|---|:---:|:---:|---|---|
+| OBS-1 | Observabilidade | Manual Audit (roadmap original) | P1 | Baixo | Alto | M | DevOps | Todo | **0** | User Request | QA (dry-run) + Produção |
+| FIN-1 | Financeiro | Manual Audit (roadmap original) | **P0** | Alto | Muito alto | L | Backend | Todo | 1 | Manual Audit | Automatizado + Fixture |
+| SEC-03 | Segurança | H1 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
+| SEC-04 | Segurança | H2 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
+| SEC-05 | Segurança | H3 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
+| FIN-2 | Financeiro | Manual Audit (roadmap original) | P1 | Médio | Alto | M | Backend | Todo | 2 | Manual Audit | Automatizado + Fixture |
+| UX-1 | UX | Manual Audit (roadmap original) | P1 | Médio | Alto | S | Frontend | Todo | 2 | Manual Audit | Automatizado + Manual |
+| SEC-06 | Segurança | H4 | P2 | Baixo | Baixo | S | Backend | Todo | 2 | Security Audit | Decisão + bump de gem |
+| SEC-14 | Segurança | L1+L2+L4+L5 | P2 | Baixo | Baixo | M | Backend | Todo | 2 | Security Audit | RSpec (erro por linha) + teste manual |
+| SEC-01 | Segurança | Manual Audit (roadmap original) | P1 | Médio | Alto | L | Backend | Todo | 3 | Manual Audit | Automatizado + Manual |
+| UX-2 | UX | Manual Audit (roadmap original) | P1 | Baixo | Médio | S | Frontend | Todo | 3 | Manual Audit | Manual |
+| SEC-07 | Segurança | M1 | P1 | Médio | Médio | S | Backend | Todo | 3 | Security Audit | RSpec (token_version pós-troca) |
+| SEC-08 | Segurança | M2 | P1 | Médio | Médio | M | Backend | Todo | 3 | Security Audit | Teste manual (throttle) + RSpec |
+| SEC-09 | Segurança | M3 | P1 | Baixo | Médio | XS | Backend | Todo | 3 | Security Audit | Teste manual (redirect HTTPS) |
+| SEC-02 | Segurança | Manual Audit (roadmap original) | P2 | Baixo | Médio | M | Backend | Todo | 4 | Manual Audit | Automatizado + Manual |
+| SEC-10 | Segurança | M4 | P2 | Baixo | Baixo | XS | Backend | Todo | 4 | Security Audit | `bundler-audit` limpo |
+| SEC-11 | Segurança | M5 | P2 | Baixo | Baixo | S | Frontend | Todo | 4 | Security Audit | `npm audit` limpo |
+| SEC-12 | Segurança | M6 | P2 | Baixo | Médio | S | Frontend | Todo | 4 | Security Audit | Decisão + teste manual |
+| SEC-13 | Segurança | M7 | P2 | Baixo | Médio | S | DevOps | Todo | 4 | Security Audit | Revisão de permissões do workflow |
+| SEC-15 | Segurança | L7+L8+L9 | P2 | Baixo | Baixo | S | DevOps | Todo | 4 | Security Audit | Revisão manual + Dependabot ativo |
+| SEC-16 | Segurança | L3+L6+L10 | P2 | Baixo | Baixo | S | Backend | Todo | 4 | Security Audit | RSpec (timing) + teste manual |
+| FIN-3 | Financeiro | Bug Report | P2 | Baixo | Baixo | S | Frontend | Todo | 5 | Bug Report | Automatizado |
+| UX-3 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | Todo | 5 | Manual Audit | Manual |
+| UX-4 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | S | Frontend | Todo | 5 | Manual Audit | Manual |
+| UX-5 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | Todo | 5 | Manual Audit | Manual/Decisão |
 
 **Progresso**
 
 ```
-Total   ░░░░░░░░░░  0%  (0/11 done)
-P0      ░░░░░░░░░░  0%  (0/1 done)
-P1      ░░░░░░░░░░  0%  (0/5 done)
-P2      ░░░░░░░░░░  0%  (0/5 done)
+Total   ░░░░░░░░░░  0%  (0/25 done)
+P0      ░░░░░░░░░░  0%  (0/4 done)
+P1      ░░░░░░░░░░  0%  (0/8 done)
+P2      ░░░░░░░░░░  0%  (0/13 done)
 ```
 
 ### Sprint 0 — Observabilidade primeiro
@@ -255,7 +271,34 @@ estruturado construído em 2026-07-29, não commitado nem ativado.
   4. Confirmar `environment: production` nos Deployments do Vercel↔GitHub.
 - **Validação:** `workflow_dispatch` de `agent-full-report.yml` em modo `fast` (QA/dry-run) → confirmar PR automático com `reports/` preenchido (produção).
 
-### Sprint 1 — Desbloqueio de uso real (Financeiro + Onboarding)
+### Sprint 1 — Segurança crítica + uso real
+
+Os três achados de BOLA/IDOR abaixo (SEC-03/04/05) entram antes de qualquer
+outra coisa: são P0, permitem que um usuário leia ou altere dado de outro
+usuário, e três subsistemas independentes (orçamento, transações/
+investimentos, importação) foram encontrados com o mesmo padrão de falha —
+alta confiança de que é um problema sistêmico, não um caso isolado.
+
+**SEC-03 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H1 · Source: Security Audit]** — BOLA: `Budget` aceita `category_id` de outro usuário, exposto via `BudgetEngine#summary`.
+- **Onde:** `app/controllers/api/v1/budgets_controller.rb` (`budget_params` sem revalidação) + `app/services/budget_engine.rb#summary` (linhas 25-27, expõe `category.name`/`icon`/`natureza` do FK não validado). Detalhe completo em [`docs/security/audit-2026-07-29.md#h1`](docs/security/audit-2026-07-29.md).
+- **Critério de aceite (nesta ordem):**
+  1. **PoC de reprodução cross-user** — request spec com 2 usuários: usuário A cria budget com `category_id` de uma categoria do usuário B; confirmar que `GET /budgets/summary` de A retorna `category_name`/`category_icon`/`natureza` de B. Isso confirma o problema é reproduzível e que nenhuma outra camada de proteção (ex: validação de model) já bloqueia o caso.
+  2. Só então: revalidar `category_id` contra `current_user.categories` em `create`/`update` de `budgets_controller.rb`.
+- **Validação:** RSpec (request spec do PoC vira o teste de regressão do fix).
+
+**SEC-04 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H2 · Source: Security Audit]** — BOLA: `Transaction`/`Investment` aceitam `account_id`/`category_id`/`member_id` de outro usuário.
+- **Onde:** `app/controllers/api/v1/transactions_controller.rb#update` + `app/controllers/api/v1/investments_controller.rb#create`/`#update` (FKs de `transaction_params`/`investment_params` sem revalidação). Detalhe completo em [`docs/security/audit-2026-07-29.md#h2`](docs/security/audit-2026-07-29.md).
+- **Critério de aceite (nesta ordem):**
+  1. **PoC de reprodução cross-user** — request spec: usuário A edita uma transação/investimento próprio setando `account_id`/`member_id` de B; confirmar que o registro passa a aparecer nos totais da conta de B.
+  2. Só então: revalidar cada FK contra `current_user.<associação>` em ambos os controllers.
+- **Validação:** RSpec (request spec do PoC vira o teste de regressão do fix).
+
+**SEC-05 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H3 · Source: Security Audit]** — Mesmo padrão de BOLA no fluxo de importação (CSV/PDF).
+- **Onde:** `app/controllers/api/v1/imports_controller.rb` → `CsvImportService`/`PdfImportService` → `BankImport::TransactionWriter#write!` (não valida `account_id`/`member_id` contra `@user`). Detalhe completo em [`docs/security/audit-2026-07-29.md#h3`](docs/security/audit-2026-07-29.md).
+- **Critério de aceite (nesta ordem):**
+  1. **PoC de reprodução cross-user** — request spec: usuário A importa um CSV informando `account_id` de B; confirmar que a transação é gravada contra a conta de B.
+  2. Só então: validar `account_id`/`member_id` dentro de `BankImport::TransactionWriter#write!` (ponto único, reusado por CSV e PDF).
+- **Validação:** RSpec (request spec do PoC vira o teste de regressão do fix).
 
 **FIN-1 [P0 · Risco Alto · Valor Muito alto · Owner Backend · Source: Manual Audit]** — Import de PDF só cobre Itaú — Nubank/BTG sem adapter.
 - **Onde:** `app/services/pdf_adapters/registry.rb` (`ADAPTERS = [ItauExtratoAdapter, ItauFaturaAdapter]`).
@@ -264,8 +307,10 @@ estruturado construído em 2026-07-29, não commitado nem ativado.
 - **Critério de aceite:** `NubankFaturaAdapter` e `BtgExtratoAdapter` registrados, com teste de parsing, PDFs de exemplo importam sem erro.
 - **Validação:** RSpec com fixture de PDF real/sintética por banco.
 
+### Sprint 2 — Importação e UX
+
 **FIN-2 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit]** — Import CSV exige colunas/formato fixo em português.
-- **Onde:** `app/services/csv_import_service.rb` (linhas 37-44: `row["Data"]`/`row["Descrição"]`/`row["Valor"]`, `Date.strptime(..., "%d/%m/%Y")` hardcoded).
+- **Onde:** `app/services/csv_import_service.rb` (`row["Data"]`/`row["Descrição"]`/`row["Valor"]`, `Date.strptime(..., "%d/%m/%Y")` hardcoded).
 - **Impacto:** CSV de banco com nomes de coluna/formato de data diferente falha ou quebra.
 - **Dependências:** nenhuma; roda em paralelo com FIN-1.
 - **Critério de aceite:** CSV de pelo menos 2 formatos de exportação diferentes importa sem reformatação manual.
@@ -277,9 +322,13 @@ estruturado construído em 2026-07-29, não commitado nem ativado.
 - **Critério de aceite:** onboarding só lista como "conectável" banco com adapter implementado; badges usam `UiBankIcon`.
 - **Validação:** teste de componente (Vitest) + conferência visual manual.
 
-### Sprint 2 — Segurança de conta + comunicação de sessão
+**SEC-06 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: H4 · Source: Security Audit]** — CVE `activestorage 8.1.3` (mitigado, não usado ativamente). Detalhe em [`docs/security/audit-2026-07-29.md#h4`](docs/security/audit-2026-07-29.md). **Critério de aceite:** bump para `>= 8.1.3.1` ou aceite de risco documentado. **Validação:** `bundler-audit` limpo para esta gem.
 
-**SEC-1 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit]** — Não existe fluxo de recuperação de senha ("esqueci minha senha").
+**SEC-14 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: L1+L2+L4+L5 · Source: Security Audit]** — Robustez de importação: exceção não tratada no parser de CSV (`ArgumentError` em `AmountParser`), exceção não tratada no `#preview` de PDF, sem limite de tamanho de arquivo, sem validação de magic bytes. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 4 achados corrigidos (rescue específico + limite de tamanho + checagem de magic bytes). **Validação:** RSpec com fixture inválida por achado + teste manual.
+
+### Sprint 3 — Autenticação
+
+**SEC-01 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit]** — Não existe fluxo de recuperação de senha ("esqueci minha senha").
 - **Onde:** `config/routes.rb`/`users_controller.rb` só tem troca de senha autenticada (exige `current_password`); sem mailer, sem token de reset, sem rota pública.
 - **Impacto:** usuário que esquece a senha fica sem saída própria.
 - **Dependências:** confirmar que há mecanismo de envio de e-mail configurado no Rails (ActionMailer/SMTP) antes de estimar — não verificado nesta rodada.
@@ -292,13 +341,31 @@ estruturado construído em 2026-07-29, não commitado nem ativado.
 - **Critério de aceite:** usuário vê mensagem "sua sessão expirou" antes/ao ser redirecionado ao login.
 - **Validação:** teste manual (forçar 401).
 
-### Sprint 3A — Estabilidade e Segurança
+**SEC-07 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: M1 · Source: Security Audit]** — JWT não é revogado na troca de senha (`token_version` só incrementa no logout). Detalhe em [`docs/security/audit-2026-07-29.md#m1`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `users_controller.rb#password` incrementa `token_version` também. **Validação:** RSpec (token emitido antes da troca deixa de ser aceito depois).
 
-**SEC-2 [P2 · Risco Baixo · Valor Médio · Owner Backend · Source: Manual Audit]** — JWT sem refresh, só expiração fixa de 30 dias (`app/services/jwt_service.rb`, `EXPIRY = 30.days`; `token_version` invalida no logout, mas não é refresh token). Aceitável para uso solo hoje; endereçar antes de multiusuário futuro. **Critério de aceite:** decisão registrada (aceitar o risco documentadamente, ou implementar refresh token). **Validação:** RSpec + teste manual.
+**SEC-08 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: M2 · Source: Security Audit]** — Ausência de rate limiting (`rack-attack` não presente) em `sign_in`/`sign_up`. Detalhe em [`docs/security/audit-2026-07-29.md#m2`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `rack-attack` adicionado com throttle por IP e por e-mail nas duas rotas. **Validação:** teste manual (N tentativas bloqueadas) + RSpec.
+
+**SEC-09 [P1 · Risco Baixo · Valor Médio · Owner Backend · Origem: M3 · Source: Security Audit]** — `force_ssl` desabilitado em produção (`config/environments/production.rb:25`). Detalhe em [`docs/security/audit-2026-07-29.md#m3`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `config.force_ssl = true` habilitado (confirmar antes que não quebra o health check do proxy). **Validação:** teste manual (requisição HTTP redireciona para HTTPS).
+
+### Sprint 4 — Hardening
+
+**SEC-02 [P2 · Risco Baixo · Valor Médio · Owner Backend · Source: Manual Audit]** — JWT sem refresh, só expiração fixa de 30 dias (`app/services/jwt_service.rb`, `EXPIRY = 30.days`). Aceitável para uso solo hoje; endereçar antes de multiusuário futuro. **Critério de aceite:** decisão registrada (aceitar o risco documentadamente, ou implementar refresh token). **Validação:** RSpec + teste manual.
+
+**SEC-10 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: M4 · Source: Security Audit]** — `loofah`/`rails-html-sanitizer` desatualizados — **hardening contínuo**. Detalhe em [`docs/security/audit-2026-07-29.md#m4`](docs/security/audit-2026-07-29.md). **Critério de aceite:** bump inicial (`loofah >= 2.25.2`, `rails-html-sanitizer >= 1.7.1`); depois disso, manutenção passa a ser automática via Dependabot — depende de SEC-15 corrigir a lacuna de ecossistema npm/bundler no `dependabot.yml` para não precisar reaparecer como item de roadmap a cada bump de rotina. **Validação:** `bundler-audit` limpo.
+
+**SEC-11 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Origem: M5 · Source: Security Audit]** — Dependências npm vulneráveis em `klipper-web`/`quebec-web` (`tar` crítico, `shell-quote`/`svgo` altos) — **hardening contínuo**. Detalhe em [`docs/security/audit-2026-07-29.md#m5`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `npm audit fix` (não-breaking) aplicado nos dois apps; bump breaking de `@nuxt/image` avaliado à parte; manutenção seguinte automática via Dependabot (mesma dependência de SEC-15 que SEC-10). **Validação:** `npm audit --production` limpo (ou só achados aceitos documentadamente).
+
+**SEC-12 [P2 · Risco Baixo · Valor Médio · Owner Frontend · Origem: M6 · Source: Security Audit]** — JWT em cookie não-`httpOnly` (`useApi.ts`, `useCookie`). Detalhe em [`docs/security/audit-2026-07-29.md#m6`](docs/security/audit-2026-07-29.md). **Critério de aceite:** decisão registrada — mover emissão do cookie para o backend como `httpOnly`, ou aceitar o risco documentadamente dado o perfil de uso solo atual. **Validação:** teste manual (cookie não acessível via `document.cookie` após a mudança, se implementada).
+
+**SEC-13 [P2 · Risco Baixo · Valor Médio · Owner DevOps · Origem: M7 · Source: Security Audit]** — Risco de prompt injection indireta (LLM01) em `agent-pr-review.yml` (repo público, PRs de fork processados por agente com Bash + `GH_TOKEN`). Detalhe em [`docs/security/audit-2026-07-29.md#m7`](docs/security/audit-2026-07-29.md). **Critério de aceite:** revisar escopo de permissões do `GH_TOKEN` para PRs de fork, ou restringir a `workflow_dispatch` manual para PRs externos. **Validação:** revisão manual da política de permissões do workflow.
+
+**SEC-15 [P2 · Risco Baixo · Valor Baixo · Owner DevOps · Origem: L7+L8+L9 · Source: Security Audit]** — Robustez de infraestrutura: `config.hosts` irrestrito, GitHub Actions pinadas por tag mutável, Dependabot sem ecossistema `npm`. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (`config.hosts` restrito ao domínio de produção; actions pinadas por SHA; `dependabot.yml` com entrada `npm` para `apps/klipper-web` e `apps/quebec-web`). **Validação:** revisão manual + primeiro PR automático do Dependabot no ecossistema npm.
+
+**SEC-16 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: L3+L6+L10 · Source: Security Audit]** — Robustez de aplicação: timing attack em `sign_in`, troca de e-mail sem reautenticação, Service Worker cacheando resposta financeira em disco. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (tempo constante em `sign_in`; `current_password` exigido para trocar e-mail; cache do Service Worker excluído das rotas `/api/v1/*` ou revisado). **Validação:** RSpec (timing + reauth) + teste manual (Service Worker).
+
+### Sprint 5 — Polimento
 
 **FIN-3 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Bug Report]** — `orcamento.vue` — `budgetSpentRatio ?? 0` conflate "sem orçamento" com "0% gasto". Ver detalhe completo na seção do bug acima (critério de aceite já escrito lá). **Validação:** Vitest.
-
-### Sprint 3B — UX e Dívida Técnica
 
 **UX-3 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit]** — 3 tokens de `tokens.css` ainda provisórios (`--ly2`, `--t4`, `--blt`, comentário "extrapolado"). **Critério de aceite:** valores conferidos contra o draft aprovado e fixados. **Validação:** comparação visual manual.
 
