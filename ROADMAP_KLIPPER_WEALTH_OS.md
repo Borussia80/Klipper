@@ -233,13 +233,13 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | SEC-07 | Segurança | M1 | P1 | Médio | Médio | S | Backend | **Done** | 3 | Security Audit | RSpec (token_version pós-troca) |
 | SEC-08 | Segurança | M2 | P1 | Médio | Médio | M | Backend | **Done** | 3 | Security Audit | Teste manual (throttle) + RSpec |
 | SEC-09 | Segurança | M3 | P1 | Baixo | Médio | XS | Backend | **Done** | 3 | Security Audit | Teste manual (redirect HTTPS) |
-| SEC-02 | Segurança | Manual Audit (roadmap original) | P2 | Baixo | Médio | M | Backend | Todo | 4 | Manual Audit | Automatizado + Manual |
-| SEC-10 | Segurança | M4 | P2 | Baixo | Baixo | XS | Backend | Todo | 4 | Security Audit | `bundler-audit` limpo |
-| SEC-11 | Segurança | M5 | P2 | Baixo | Baixo | S | Frontend | Todo | 4 | Security Audit | `npm audit` limpo |
-| SEC-12 | Segurança | M6 | P2 | Baixo | Médio | S | Frontend | Todo | 4 | Security Audit | Decisão + teste manual |
-| SEC-13 | Segurança | M7 | P2 | Baixo | Médio | S | DevOps | Todo | 4 | Security Audit | Revisão de permissões do workflow |
-| SEC-15 | Segurança | L7+L8+L9 | P2 | Baixo | Baixo | S | DevOps | Todo | 4 | Security Audit | Revisão manual + Dependabot ativo |
-| SEC-16 | Segurança | L3+L6+L10 | P2 | Baixo | Baixo | S | Backend | Todo | 4 | Security Audit | RSpec (timing) + teste manual |
+| SEC-02 | Segurança | Manual Audit (roadmap original) | P2 | Baixo | Médio | M | Backend | **Done** | 4 | Manual Audit | Decisão registrada |
+| SEC-10 | Segurança | M4 | P2 | Baixo | Baixo | XS | Backend | **Done** | 4 | Security Audit | `bundler-audit` limpo |
+| SEC-11 | Segurança | M5 | P2 | Baixo | Baixo | S | Frontend | **Done** | 4 | Security Audit | `npm audit` limpo |
+| SEC-12 | Segurança | M6 | P2 | Baixo | Médio | S | Frontend | **Done** | 4 | Security Audit | Decisão registrada |
+| SEC-13 | Segurança | M7 | P2 | Baixo | Médio | S | DevOps | **Done** | 4 | Security Audit | Revisão de permissões do workflow |
+| SEC-15 | Segurança | L7+L8+L9 | P2 | Baixo | Baixo | S | DevOps | **Parcial** | 4 | Security Audit | Revisão manual + Dependabot ativo |
+| SEC-16 | Segurança | L3+L6+L10 | P2 | Baixo | Baixo | S | Backend | **Done** | 4 | Security Audit | RSpec (timing) + teste manual |
 | FIN-3 | Financeiro | Bug Report | P2 | Baixo | Baixo | S | Frontend | Todo | 5 | Bug Report | Automatizado |
 | UX-3 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | Todo | 5 | Manual Audit | Manual |
 | UX-4 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | S | Frontend | Todo | 5 | Manual Audit | Manual |
@@ -248,10 +248,10 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   █████░░░░░  52%  (13/25 done)
+Total   ████████░░  76%  (19/25 done)
 P0      ██████████  100%  (4/4 done)
 P1      █████████░  88%  (7/8 done)
-P2      ██░░░░░░░░  15%  (2/13 done)
+P2      ██████░░░░  62%  (8/13 done)
 ```
 
 ### Sprint 0 — Observabilidade primeiro
@@ -350,19 +350,19 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
 
 ### Sprint 4 — Hardening
 
-**SEC-02 [P2 · Risco Baixo · Valor Médio · Owner Backend · Source: Manual Audit]** — JWT sem refresh, só expiração fixa de 30 dias (`app/services/jwt_service.rb`, `EXPIRY = 30.days`). Aceitável para uso solo hoje; endereçar antes de multiusuário futuro. **Critério de aceite:** decisão registrada (aceitar o risco documentadamente, ou implementar refresh token). **Validação:** RSpec + teste manual.
+**SEC-02 [P2 · Risco Baixo · Valor Médio · Owner Backend · Source: Manual Audit]** · Status: Done (risco aceito) — JWT sem refresh, só expiração fixa de 30 dias (`app/services/jwt_service.rb`, `EXPIRY = 30.days`). **Decisão (2026-07-30):** risco aceito documentadamente — uso solo atual não justifica a complexidade de refresh token/rotação. Revisitar este item antes de abrir a conta para multiusuário. **Validação:** decisão registrada no roadmap.
 
-**SEC-10 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: M4 · Source: Security Audit]** — `loofah`/`rails-html-sanitizer` desatualizados — **hardening contínuo**. Detalhe em [`docs/security/audit-2026-07-29.md#m4`](docs/security/audit-2026-07-29.md). **Critério de aceite:** bump inicial (`loofah >= 2.25.2`, `rails-html-sanitizer >= 1.7.1`); depois disso, manutenção passa a ser automática via Dependabot — depende de SEC-15 corrigir a lacuna de ecossistema npm/bundler no `dependabot.yml` para não precisar reaparecer como item de roadmap a cada bump de rotina. **Validação:** `bundler-audit` limpo.
+**SEC-10 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: M4 · Source: Security Audit · Status: Done]** — `loofah`/`rails-html-sanitizer` desatualizados — **hardening contínuo**. Detalhe em [`docs/security/audit-2026-07-29.md#m4`](docs/security/audit-2026-07-29.md). **Critério de aceite:** bump inicial (`loofah >= 2.25.2`, `rails-html-sanitizer >= 1.7.1`); depois disso, manutenção passa a ser automática via Dependabot — depende de SEC-15 corrigir a lacuna de ecossistema npm/bundler no `dependabot.yml` para não precisar reaparecer como item de roadmap a cada bump de rotina. **Validação:** `bundler-audit` limpo.
 
-**SEC-11 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Origem: M5 · Source: Security Audit]** — Dependências npm vulneráveis em `klipper-web`/`quebec-web` (`tar` crítico, `shell-quote`/`svgo` altos) — **hardening contínuo**. Detalhe em [`docs/security/audit-2026-07-29.md#m5`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `npm audit fix` (não-breaking) aplicado nos dois apps; bump breaking de `@nuxt/image` avaliado à parte; manutenção seguinte automática via Dependabot (mesma dependência de SEC-15 que SEC-10). **Validação:** `npm audit --production` limpo (ou só achados aceitos documentadamente).
+**SEC-11 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Origem: M5 · Source: Security Audit · Status: Done]** — Dependências npm vulneráveis em `klipper-web`/`quebec-web` (`tar` crítico, `shell-quote`/`svgo` altos) — **hardening contínuo**. Detalhe em [`docs/security/audit-2026-07-29.md#m5`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `npm audit fix` (não-breaking) aplicado nos dois apps; bump breaking de `@nuxt/image` avaliado à parte; manutenção seguinte automática via Dependabot (mesma dependência de SEC-15 que SEC-10). **Validação:** `npm audit --production` limpo (ou só achados aceitos documentadamente).
 
-**SEC-12 [P2 · Risco Baixo · Valor Médio · Owner Frontend · Origem: M6 · Source: Security Audit]** — JWT em cookie não-`httpOnly` (`useApi.ts`, `useCookie`). Detalhe em [`docs/security/audit-2026-07-29.md#m6`](docs/security/audit-2026-07-29.md). **Critério de aceite:** decisão registrada — mover emissão do cookie para o backend como `httpOnly`, ou aceitar o risco documentadamente dado o perfil de uso solo atual. **Validação:** teste manual (cookie não acessível via `document.cookie` após a mudança, se implementada).
+**SEC-12 [P2 · Risco Baixo · Valor Médio · Owner Frontend · Origem: M6 · Source: Security Audit]** · Status: Done (risco aceito) — JWT em cookie não-`httpOnly` (`useApi.ts`, `useCookie`). Detalhe em [`docs/security/audit-2026-07-29.md#m6`](docs/security/audit-2026-07-29.md). **Decisão (2026-07-30):** risco aceito documentadamente — migrar para `httpOnly` tocaria login/logout/useApi/interceptors inteiro, esforço não justificado pelo perfil de uso solo atual. Revisitar antes de multiusuário. **Validação:** decisão registrada no roadmap.
 
-**SEC-13 [P2 · Risco Baixo · Valor Médio · Owner DevOps · Origem: M7 · Source: Security Audit]** — Risco de prompt injection indireta (LLM01) em `agent-pr-review.yml` (repo público, PRs de fork processados por agente com Bash + `GH_TOKEN`). Detalhe em [`docs/security/audit-2026-07-29.md#m7`](docs/security/audit-2026-07-29.md). **Critério de aceite:** revisar escopo de permissões do `GH_TOKEN` para PRs de fork, ou restringir a `workflow_dispatch` manual para PRs externos. **Validação:** revisão manual da política de permissões do workflow.
+**SEC-13 [P2 · Risco Baixo · Valor Médio · Owner DevOps · Origem: M7 · Source: Security Audit · Status: Done]** — Risco de prompt injection indireta (LLM01) em `agent-pr-review.yml` (repo público, PRs de fork processados por agente com Bash + `GH_TOKEN`). Detalhe em [`docs/security/audit-2026-07-29.md#m7`](docs/security/audit-2026-07-29.md). **Critério de aceite:** revisar escopo de permissões do `GH_TOKEN` para PRs de fork, ou restringir a `workflow_dispatch` manual para PRs externos. **Validação:** revisão manual da política de permissões do workflow.
 
-**SEC-15 [P2 · Risco Baixo · Valor Baixo · Owner DevOps · Origem: L7+L8+L9 · Source: Security Audit]** — Robustez de infraestrutura: `config.hosts` irrestrito, GitHub Actions pinadas por tag mutável, Dependabot sem ecossistema `npm`. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (`config.hosts` restrito ao domínio de produção; actions pinadas por SHA; `dependabot.yml` com entrada `npm` para `apps/klipper-web` e `apps/quebec-web`). **Validação:** revisão manual + primeiro PR automático do Dependabot no ecossistema npm.
+**SEC-15 [P2 · Risco Baixo · Valor Baixo · Owner DevOps · Origem: L7+L8+L9 · Source: Security Audit · Status: Parcial (2/3)]** — Robustez de infraestrutura: `config.hosts` irrestrito, GitHub Actions pinadas por tag mutável, Dependabot sem ecossistema `npm`. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (`config.hosts` restrito ao domínio de produção; actions pinadas por SHA; `dependabot.yml` com entrada `npm` para `apps/klipper-web` e `apps/quebec-web`). **Feito (2026-07-30):** actions de `ci.yml`, `agent-pr-review.yml` e `agent-full-report.yml` pinadas por SHA de commit; `dependabot.yml` com entradas `npm` para `apps/klipper-web` e `apps/quebec-web`. **Pendente:** `config.hosts` em `config/environments/production.rb` segue irrestrito — bloqueado por não sabermos ainda o hostname de produção do `klipper-api` (checar no dashboard do Render → klipper-api → Settings → Custom Domains). **Validação:** revisão manual + primeiro PR automático do Dependabot no ecossistema npm.
 
-**SEC-16 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: L3+L6+L10 · Source: Security Audit]** — Robustez de aplicação: timing attack em `sign_in`, troca de e-mail sem reautenticação, Service Worker cacheando resposta financeira em disco. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (tempo constante em `sign_in`; `current_password` exigido para trocar e-mail; cache do Service Worker excluído das rotas `/api/v1/*` ou revisado). **Validação:** RSpec (timing + reauth) + teste manual (Service Worker).
+**SEC-16 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: L3+L6+L10 · Source: Security Audit · Status: Done]** — Robustez de aplicação: timing attack em `sign_in`, troca de e-mail sem reautenticação, Service Worker cacheando resposta financeira em disco. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (tempo constante em `sign_in`; `current_password` exigido para trocar e-mail; cache do Service Worker excluído das rotas `/api/v1/*` ou revisado). **Validação:** RSpec (timing + reauth) + teste manual (Service Worker).
 
 ### Sprint 5 — Polimento
 
