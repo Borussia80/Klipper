@@ -90,4 +90,20 @@ describe('InstrumentReadout', () => {
     expect(wrapper.find('[data-testid="readout-bar"]').exists()).toBe(true)
     expect(wrapper.find('.hero-scale').exists()).toBe(true)
   })
+
+  it('FIN-3: shows a distinct "sem orçamento definido" state when spentRatio is null, instead of an empty bar', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, { props: { ...baseProps, spentRatio: null } })
+    expect(wrapper.find('[data-testid="readout-no-budget"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Sem orçamento definido')
+    expect(wrapper.find('[data-testid="readout-bar"]').exists()).toBe(false)
+    expect(wrapper.find('.hero-scale').exists()).toBe(false)
+  })
+
+  it('FIN-3: renders the bar normally when spentRatio is 0 (real zero spend, distinct from null)', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, { props: { ...baseProps, spentRatio: 0 } })
+    expect(wrapper.find('[data-testid="readout-bar"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="readout-no-budget"]').exists()).toBe(false)
+    const bar = wrapper.find('[data-testid="readout-bar"]')
+    expect(bar.attributes('style')).toContain('width: 0%')
+  })
 })

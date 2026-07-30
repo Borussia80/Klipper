@@ -115,5 +115,5 @@ const reimbursements = computed(() => reimbursementCoverage.value?.categories ??
 const totalAllocated = computed(() => sumAllocated(summary.value))
 const totalSpent = computed(() => sumSpent(summary.value))
 const totalFree = computed(() => freeAmount(totalAllocated.value, totalSpent.value))
-const spentRatio = computed(() => budgetSpentRatio(totalSpent.value, totalAllocated.value) ?? 0)
+const spentRatio = computed(() => budgetSpentRatio(totalSpent.value, totalAllocated.value))
 </script>

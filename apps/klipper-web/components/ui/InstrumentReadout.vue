@@ -8,7 +8,7 @@ const props = withDefaults(defineProps<{
   label: string
   netValue: number
   formattedValue: string
-  spentRatio: number
+  spentRatio: number | null
   detail?: string
   compact?: boolean
   showBar?: boolean
@@ -17,8 +17,9 @@ const props = withDefaults(defineProps<{
   showBar: true,
 })
 
-const pct = computed(() => Math.round(Math.min(1, Math.max(0, props.spentRatio)) * 100))
-const isOver = computed(() => props.spentRatio > 1)
+const hasRatio = computed(() => props.spentRatio !== null)
+const pct = computed(() => Math.round(Math.min(1, Math.max(0, props.spentRatio ?? 0)) * 100))
+const isOver = computed(() => (props.spentRatio ?? 0) > 1)
 const scaleLabel = computed(() =>
   isOver.value ? 'Saídas já superam entradas do ciclo' : 'Dentro da faixa do ciclo'
 )
@@ -32,18 +33,23 @@ const scaleLabel = computed(() =>
       <div v-if="detail" data-testid="readout-detail" class="hero-delta">{{ detail }}</div>
     </div>
     <template v-if="showBar">
-      <div class="hero-bar" role="presentation">
-        <div
-          data-testid="readout-bar"
-          class="fill"
-          :class="{ over: isOver }"
-          :style="{ width: pct + '%' }"
-        ></div>
+      <div v-if="!hasRatio" data-testid="readout-no-budget" class="hero-no-budget">
+        Sem orçamento definido
       </div>
-      <div class="hero-scale">
-        <span>{{ scaleLabel }}</span>
-        <span class="mono">{{ Math.round(spentRatio * 100) }}% da renda</span>
-      </div>
+      <template v-else>
+        <div class="hero-bar" role="presentation">
+          <div
+            data-testid="readout-bar"
+            class="fill"
+            :class="{ over: isOver }"
+            :style="{ width: pct + '%' }"
+          ></div>
+        </div>
+        <div class="hero-scale">
+          <span>{{ scaleLabel }}</span>
+          <span class="mono">{{ Math.round((spentRatio ?? 0) * 100) }}% da renda</span>
+        </div>
+      </template>
     </template>
   </div>
 </template>
@@ -81,6 +87,9 @@ const scaleLabel = computed(() =>
 .hero-scale {
   display: flex; justify-content: space-between; margin-top: 7px;
   font-size: 11.5px; color: var(--t3);
+}
+.hero-no-budget {
+  margin-top: 20px; font-size: 11.5px; color: var(--t3);
 }
 .hero.compact { padding: 14px 16px; }
 .hero.compact .hero-num { font-size: clamp(20px, 3vw, 26px); }
