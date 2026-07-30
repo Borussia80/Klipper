@@ -228,11 +228,11 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | UX-1 | UX | Manual Audit (roadmap original) | P1 | Médio | Alto | S | Frontend | **Done** | 2 | Manual Audit | Automatizado + Manual |
 | SEC-06 | Segurança | H4 | P2 | Baixo | Baixo | S | Backend | **Done** | 2 | Security Audit | Decisão + bump de gem |
 | SEC-14 | Segurança | L1+L2+L4+L5 | P2 | Baixo | Baixo | M | Backend | **Done** | 2 | Security Audit | RSpec (erro por linha) + teste manual |
-| SEC-01 | Segurança | Manual Audit (roadmap original) | P1 | Médio | Alto | L | Backend | Todo | 3 | Manual Audit | Automatizado + Manual |
-| UX-2 | UX | Manual Audit (roadmap original) | P1 | Baixo | Médio | S | Frontend | Todo | 3 | Manual Audit | Manual |
-| SEC-07 | Segurança | M1 | P1 | Médio | Médio | S | Backend | Todo | 3 | Security Audit | RSpec (token_version pós-troca) |
-| SEC-08 | Segurança | M2 | P1 | Médio | Médio | M | Backend | Todo | 3 | Security Audit | Teste manual (throttle) + RSpec |
-| SEC-09 | Segurança | M3 | P1 | Baixo | Médio | XS | Backend | Todo | 3 | Security Audit | Teste manual (redirect HTTPS) |
+| SEC-01 | Segurança | Manual Audit (roadmap original) | P1 | Médio | Alto | L | Backend | **Done** | 3 | Manual Audit | Automatizado + Manual |
+| UX-2 | UX | Manual Audit (roadmap original) | P1 | Baixo | Médio | S | Frontend | **Done** | 3 | Manual Audit | Manual |
+| SEC-07 | Segurança | M1 | P1 | Médio | Médio | S | Backend | **Done** | 3 | Security Audit | RSpec (token_version pós-troca) |
+| SEC-08 | Segurança | M2 | P1 | Médio | Médio | M | Backend | **Done** | 3 | Security Audit | Teste manual (throttle) + RSpec |
+| SEC-09 | Segurança | M3 | P1 | Baixo | Médio | XS | Backend | **Done** | 3 | Security Audit | Teste manual (redirect HTTPS) |
 | SEC-02 | Segurança | Manual Audit (roadmap original) | P2 | Baixo | Médio | M | Backend | Todo | 4 | Manual Audit | Automatizado + Manual |
 | SEC-10 | Segurança | M4 | P2 | Baixo | Baixo | XS | Backend | Todo | 4 | Security Audit | `bundler-audit` limpo |
 | SEC-11 | Segurança | M5 | P2 | Baixo | Baixo | S | Frontend | Todo | 4 | Security Audit | `npm audit` limpo |
@@ -248,9 +248,9 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   ███░░░░░░░  32%  (8/25 done)
+Total   █████░░░░░  52%  (13/25 done)
 P0      ██████████  100%  (4/4 done)
-P1      ███░░░░░░░  25%  (2/8 done)
+P1      █████████░  88%  (7/8 done)
 P2      ██░░░░░░░░  15%  (2/13 done)
 ```
 
@@ -329,24 +329,24 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
 
 ### Sprint 3 — Autenticação
 
-**SEC-01 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit]** — Não existe fluxo de recuperação de senha ("esqueci minha senha").
+**SEC-01 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit]** · Status: Done — Não existe fluxo de recuperação de senha ("esqueci minha senha").
 - **Onde:** `config/routes.rb`/`users_controller.rb` só tem troca de senha autenticada (exige `current_password`); sem mailer, sem token de reset, sem rota pública.
 - **Impacto:** usuário que esquece a senha fica sem saída própria.
 - **Dependências:** confirmar que há mecanismo de envio de e-mail configurado no Rails (ActionMailer/SMTP) antes de estimar — não verificado nesta rodada.
 - **Critério de aceite:** usuário solicita reset por e-mail, recebe link com token de expiração curta, define nova senha sem precisar da antiga.
 - **Validação:** RSpec (geração/expiração de token) + teste manual do fluxo de e-mail ponta a ponta.
 
-**UX-2 [P1 · Risco Baixo · Valor Médio · Owner Frontend · Source: Manual Audit]** — Sessão expirada redireciona ao login silenciosamente, sem aviso.
+**UX-2 [P1 · Risco Baixo · Valor Médio · Owner Frontend · Source: Manual Audit]** · Status: Done — Sessão expirada redireciona ao login silenciosamente, sem aviso.
 - **Onde:** `composables/useApi.ts` (`onResponseError` no 401: zera token + `navigateTo('/login')`, sem toast).
 - **Dependências:** nenhuma.
 - **Critério de aceite:** usuário vê mensagem "sua sessão expirou" antes/ao ser redirecionado ao login.
 - **Validação:** teste manual (forçar 401).
 
-**SEC-07 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: M1 · Source: Security Audit]** — JWT não é revogado na troca de senha (`token_version` só incrementa no logout). Detalhe em [`docs/security/audit-2026-07-29.md#m1`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `users_controller.rb#password` incrementa `token_version` também. **Validação:** RSpec (token emitido antes da troca deixa de ser aceito depois).
+**SEC-07 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: M1 · Source: Security Audit]** · Status: Done — JWT não é revogado na troca de senha (`token_version` só incrementa no logout). Detalhe em [`docs/security/audit-2026-07-29.md#m1`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `users_controller.rb#password` incrementa `token_version` também. **Validação:** RSpec (token emitido antes da troca deixa de ser aceito depois).
 
-**SEC-08 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: M2 · Source: Security Audit]** — Ausência de rate limiting (`rack-attack` não presente) em `sign_in`/`sign_up`. Detalhe em [`docs/security/audit-2026-07-29.md#m2`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `rack-attack` adicionado com throttle por IP e por e-mail nas duas rotas. **Validação:** teste manual (N tentativas bloqueadas) + RSpec.
+**SEC-08 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: M2 · Source: Security Audit]** · Status: Done — Ausência de rate limiting (`rack-attack` não presente) em `sign_in`/`sign_up`. Detalhe em [`docs/security/audit-2026-07-29.md#m2`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `rack-attack` adicionado com throttle por IP e por e-mail nas duas rotas. **Validação:** teste manual (N tentativas bloqueadas) + RSpec.
 
-**SEC-09 [P1 · Risco Baixo · Valor Médio · Owner Backend · Origem: M3 · Source: Security Audit]** — `force_ssl` desabilitado em produção (`config/environments/production.rb:25`). Detalhe em [`docs/security/audit-2026-07-29.md#m3`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `config.force_ssl = true` habilitado (confirmar antes que não quebra o health check do proxy). **Validação:** teste manual (requisição HTTP redireciona para HTTPS).
+**SEC-09 [P1 · Risco Baixo · Valor Médio · Owner Backend · Origem: M3 · Source: Security Audit]** · Status: Done — `force_ssl` desabilitado em produção (`config/environments/production.rb:25`). Detalhe em [`docs/security/audit-2026-07-29.md#m3`](docs/security/audit-2026-07-29.md). **Critério de aceite:** `config.force_ssl = true` habilitado (confirmar antes que não quebra o health check do proxy). **Validação:** teste manual (requisição HTTP redireciona para HTTPS).
 
 ### Sprint 4 — Hardening
 
