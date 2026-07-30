@@ -51,4 +51,10 @@ withDefaults(
 .chip.ok { background: rgba(67,197,158,0.13); color: var(--ok); }
 .chip.warn { background: rgba(230,180,76,0.14); color: var(--warn); }
 .chip.alert { background: rgba(232,115,90,0.14); color: var(--alert); }
+
+@media (max-width: 400px) {
+  .card { padding: 14px 15px; }
+  .kpi-val { font-size: 22px; word-break: break-word; }
+  .kpi-foot { flex-wrap: wrap; }
+}
 </style>

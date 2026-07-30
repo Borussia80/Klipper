@@ -48,4 +48,10 @@ const { formatBRL, formatPercentRaw } = useFormatters()
   padding: 8px 14px; font-weight: 600; font-size: 13px; cursor: pointer;
   flex: none; text-decoration: none; white-space: nowrap;
 }
+
+@media (max-width: 480px) {
+  .alarm { flex-wrap: wrap; }
+  .alarm-txt { flex-basis: 100%; min-width: 0; }
+  .alarm-cta { flex: 1 1 auto; text-align: center; margin-left: 46px; }
+}
 </style>
