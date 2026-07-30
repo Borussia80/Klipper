@@ -221,7 +221,7 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 |----|---|---|:---:|:---:|:---:|:---:|---|:---:|:---:|---|---|
 | OBS-1 | Observabilidade | Manual Audit (roadmap original) | P1 | Baixo | Alto | M | DevOps | Todo | **0** | User Request | QA (dry-run) + Produção |
 | FIN-1 | Financeiro | Manual Audit (roadmap original) | **P0** | Alto | Muito alto | L | Backend | Todo | 1 | Manual Audit | Automatizado + Fixture |
-| SEC-03 | Segurança | H1 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
+| SEC-03 | Segurança | H1 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-04 | Segurança | H2 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-05 | Segurança | H3 | **P0** | Alto | Alto | M | Backend | Todo | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | FIN-2 | Financeiro | Manual Audit (roadmap original) | P1 | Médio | Alto | M | Backend | Todo | 2 | Manual Audit | Automatizado + Fixture |
@@ -248,8 +248,8 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   ░░░░░░░░░░  0%  (0/25 done)
-P0      ░░░░░░░░░░  0%  (0/4 done)
+Total   ░░░░░░░░░░  4%  (1/25 done)
+P0      ███░░░░░░░  25%  (1/4 done)
 P1      ░░░░░░░░░░  0%  (0/8 done)
 P2      ░░░░░░░░░░  0%  (0/13 done)
 ```
@@ -279,7 +279,7 @@ usuário, e três subsistemas independentes (orçamento, transações/
 investimentos, importação) foram encontrados com o mesmo padrão de falha —
 alta confiança de que é um problema sistêmico, não um caso isolado.
 
-**SEC-03 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H1 · Source: Security Audit]** — BOLA: `Budget` aceita `category_id` de outro usuário, exposto via `BudgetEngine#summary`.
+**SEC-03 [P0 · Risco Alto · Valor Alto · Owner Backend · Origem: H1 · Source: Security Audit · Status: Done]** — BOLA: `Budget` aceita `category_id` de outro usuário, exposto via `BudgetEngine#summary`.
 - **Onde:** `app/controllers/api/v1/budgets_controller.rb` (`budget_params` sem revalidação) + `app/services/budget_engine.rb#summary` (linhas 25-27, expõe `category.name`/`icon`/`natureza` do FK não validado). Detalhe completo em [`docs/security/audit-2026-07-29.md#h1`](docs/security/audit-2026-07-29.md).
 - **Critério de aceite (nesta ordem):**
   1. **PoC de reprodução cross-user** — request spec com 2 usuários: usuário A cria budget com `category_id` de uma categoria do usuário B; confirmar que `GET /budgets/summary` de A retorna `category_name`/`category_icon`/`natureza` de B. Isso confirma o problema é reproduzível e que nenhuma outra camada de proteção (ex: validação de model) já bloqueia o caso.

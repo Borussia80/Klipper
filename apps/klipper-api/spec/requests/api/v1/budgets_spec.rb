@@ -94,4 +94,25 @@ RSpec.describe "Budgets API", type: :request do
       expect { budget.reload }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
+
+  describe "SEC-03: BOLA em category_id (cross-user)" do
+    let(:other_user)     { create(:user) }
+    let(:other_category) { create(:category, user: other_user, name: "Categoria Secreta", icon: "lock") }
+
+    it "rejects category_id pertencente a outro usuário na criação" do
+      post "/api/v1/budgets",
+        params: { category_id: other_category.id, amount_limit: 500, period_month: 6, period_year: 2026 }.to_json,
+        headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(Budget.exists?(category_id: other_category.id, user: user)).to be false
+    end
+
+    it "rejects category_id pertencente a outro usuário na atualização" do
+      budget = create(:budget, user: user, category: category)
+      patch "/api/v1/budgets/#{budget.id}",
+        params: { category_id: other_category.id }.to_json, headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(budget.reload.category_id).to eq(category.id)
+    end
+  end
 end

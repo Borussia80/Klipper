@@ -20,6 +20,10 @@ module Api
       end
 
       def create
+        unless current_user.categories.exists?(id: budget_params[:category_id])
+          return render json: { errors: [ "Categoria inválida" ] }, status: :unprocessable_entity
+        end
+
         budget = current_user.budgets.build(budget_params)
         if budget.save
           render json: budget, status: :created
@@ -29,6 +33,10 @@ module Api
       end
 
       def update
+        if budget_params.key?(:category_id) && !current_user.categories.exists?(id: budget_params[:category_id])
+          return render json: { errors: [ "Categoria inválida" ] }, status: :unprocessable_entity
+        end
+
         if @budget.update(budget_params)
           render json: @budget
         else
