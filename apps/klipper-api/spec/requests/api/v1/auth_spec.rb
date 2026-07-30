@@ -88,6 +88,18 @@ RSpec.describe "Auth endpoints", type: :request do
     end
   end
 
+  describe "SEC-16: sign_in em tempo constante (sem vazar por timing se o e-mail existe)" do
+    it "runs a bcrypt comparison even when the e-mail doesn't exist" do
+      expect_any_instance_of(User).to receive(:authenticate).and_call_original
+
+      post "/api/v1/auth/sign_in",
+        params: { email: "nobody@example.com", password: "whatever" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
   describe "SEC-08: throttle de força bruta" do
     it "returns 429 after 5 sign_in attempts for the same e-mail within a minute" do
       5.times do
