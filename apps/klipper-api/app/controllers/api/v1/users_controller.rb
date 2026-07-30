@@ -27,6 +27,7 @@ module Api
         end
 
         if @current_user.update(password: params[:password], password_confirmation: params[:password_confirmation])
+          @current_user.increment!(:token_version)
           render json: { message: "Senha alterada com sucesso" }, status: :ok
         else
           render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_entity

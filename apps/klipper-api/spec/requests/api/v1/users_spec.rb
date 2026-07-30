@@ -83,6 +83,23 @@ RSpec.describe "Api::V1::Users", type: :request do
       post "/api/v1/users/password", params: { current_password: "x", password: "y", password_confirmation: "y" }
       expect(response).to have_http_status(:unauthorized)
     end
+
+    it "revokes the old token by bumping token_version" do
+      expect {
+        post "/api/v1/users/password",
+          params: { current_password: "secret123", password: "newpass456", password_confirmation: "newpass456" },
+          headers: auth_headers
+      }.to change { user.reload.token_version }.by(1)
+    end
+
+    it "rejects the old token on a subsequent request after the password change" do
+      post "/api/v1/users/password",
+        params: { current_password: "secret123", password: "newpass456", password_confirmation: "newpass456" },
+        headers: auth_headers
+
+      get "/api/v1/users/me", headers: auth_headers
+      expect(response).to have_http_status(:unauthorized)
+    end
   end
 
   describe "POST /api/v1/users/logout" do
