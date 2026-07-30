@@ -224,10 +224,10 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | SEC-03 | Segurança | H1 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-04 | Segurança | H2 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-05 | Segurança | H3 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
-| FIN-2 | Financeiro | Manual Audit (roadmap original) | P1 | Médio | Alto | M | Backend | Todo | 2 | Manual Audit | Automatizado + Fixture |
-| UX-1 | UX | Manual Audit (roadmap original) | P1 | Médio | Alto | S | Frontend | Todo | 2 | Manual Audit | Automatizado + Manual |
-| SEC-06 | Segurança | H4 | P2 | Baixo | Baixo | S | Backend | Todo | 2 | Security Audit | Decisão + bump de gem |
-| SEC-14 | Segurança | L1+L2+L4+L5 | P2 | Baixo | Baixo | M | Backend | Todo | 2 | Security Audit | RSpec (erro por linha) + teste manual |
+| FIN-2 | Financeiro | Manual Audit (roadmap original) | P1 | Médio | Alto | M | Backend | **Done** | 2 | Manual Audit | Automatizado + Fixture |
+| UX-1 | UX | Manual Audit (roadmap original) | P1 | Médio | Alto | S | Frontend | **Done** | 2 | Manual Audit | Automatizado + Manual |
+| SEC-06 | Segurança | H4 | P2 | Baixo | Baixo | S | Backend | **Done** | 2 | Security Audit | Decisão + bump de gem |
+| SEC-14 | Segurança | L1+L2+L4+L5 | P2 | Baixo | Baixo | M | Backend | **Done** | 2 | Security Audit | RSpec (erro por linha) + teste manual |
 | SEC-01 | Segurança | Manual Audit (roadmap original) | P1 | Médio | Alto | L | Backend | Todo | 3 | Manual Audit | Automatizado + Manual |
 | UX-2 | UX | Manual Audit (roadmap original) | P1 | Baixo | Médio | S | Frontend | Todo | 3 | Manual Audit | Manual |
 | SEC-07 | Segurança | M1 | P1 | Médio | Médio | S | Backend | Todo | 3 | Security Audit | RSpec (token_version pós-troca) |
@@ -248,10 +248,10 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   ██░░░░░░░░  16%  (4/25 done)
+Total   ███░░░░░░░  32%  (8/25 done)
 P0      ██████████  100%  (4/4 done)
-P1      ░░░░░░░░░░  0%  (0/8 done)
-P2      ░░░░░░░░░░  0%  (0/13 done)
+P1      ███░░░░░░░  25%  (2/8 done)
+P2      ██░░░░░░░░  15%  (2/13 done)
 ```
 
 ### Sprint 0 — Observabilidade primeiro
@@ -310,22 +310,22 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
 
 ### Sprint 2 — Importação e UX
 
-**FIN-2 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit]** — Import CSV exige colunas/formato fixo em português.
+**FIN-2 [P1 · Risco Médio · Valor Alto · Owner Backend · Source: Manual Audit · Status: Done]** — Import CSV exige colunas/formato fixo em português.
 - **Onde:** `app/services/csv_import_service.rb` (`row["Data"]`/`row["Descrição"]`/`row["Valor"]`, `Date.strptime(..., "%d/%m/%Y")` hardcoded).
 - **Impacto:** CSV de banco com nomes de coluna/formato de data diferente falha ou quebra.
 - **Dependências:** nenhuma; roda em paralelo com FIN-1.
 - **Critério de aceite:** CSV de pelo menos 2 formatos de exportação diferentes importa sem reformatação manual.
 - **Validação:** RSpec com fixture por formato de CSV.
 
-**UX-1 [P1 · Risco Médio · Valor Alto · Owner Frontend · Source: Manual Audit]** — Onboarding oferece 6 bancos como "conectáveis", só Itaú funciona; badges com letra hardcoded.
+**UX-1 [P1 · Risco Médio · Valor Alto · Owner Frontend · Source: Manual Audit · Status: Done]** — Onboarding oferece 6 bancos como "conectáveis", só Itaú funciona; badges com letra hardcoded.
 - **Onde:** `pages/onboarding.vue` (array `banks`, badges `label:'N'/'BTG'/...` em vez de `UiBankIcon`, já usado em `contas.vue`).
 - **Dependências:** depende de FIN-1 estar concluído (lista de bancos ofertados deve refletir adapters reais).
 - **Critério de aceite:** onboarding só lista como "conectável" banco com adapter implementado; badges usam `UiBankIcon`.
 - **Validação:** teste de componente (Vitest) + conferência visual manual.
 
-**SEC-06 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: H4 · Source: Security Audit]** — CVE `activestorage 8.1.3` (mitigado, não usado ativamente). Detalhe em [`docs/security/audit-2026-07-29.md#h4`](docs/security/audit-2026-07-29.md). **Critério de aceite:** bump para `>= 8.1.3.1` ou aceite de risco documentado. **Validação:** `bundler-audit` limpo para esta gem.
+**SEC-06 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: H4 · Source: Security Audit · Status: Done]** — CVE `activestorage 8.1.3` (mitigado, não usado ativamente). Detalhe em [`docs/security/audit-2026-07-29.md#h4`](docs/security/audit-2026-07-29.md). **Critério de aceite:** bump para `>= 8.1.3.1` ou aceite de risco documentado. **Validação:** `bundler-audit` limpo para esta gem.
 
-**SEC-14 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: L1+L2+L4+L5 · Source: Security Audit]** — Robustez de importação: exceção não tratada no parser de CSV (`ArgumentError` em `AmountParser`), exceção não tratada no `#preview` de PDF, sem limite de tamanho de arquivo, sem validação de magic bytes. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 4 achados corrigidos (rescue específico + limite de tamanho + checagem de magic bytes). **Validação:** RSpec com fixture inválida por achado + teste manual.
+**SEC-14 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: L1+L2+L4+L5 · Source: Security Audit · Status: Done]** — Robustez de importação: exceção não tratada no parser de CSV (`ArgumentError` em `AmountParser`), exceção não tratada no `#preview` de PDF, sem limite de tamanho de arquivo, sem validação de magic bytes. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 4 achados corrigidos (rescue específico + limite de tamanho + checagem de magic bytes). **Validação:** RSpec com fixture inválida por achado + teste manual.
 
 ### Sprint 3 — Autenticação
 
