@@ -39,7 +39,7 @@ jobs:
       commit: ${{ steps.resolve.outputs.commit }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -82,7 +82,7 @@ jobs:
         agent: ${{ fromJSON(needs.guard.outputs.depth == 'deep' && '["architecture","security","finance","runtime","ux"]' || '["architecture","security","finance"]') }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.guard.outputs.commit }}
 
@@ -92,7 +92,7 @@ jobs:
           echo "OUTPUT_PATH=${{ runner.temp }}/partials/partial-${{ matrix.agent }}.json" >> "$GITHUB_ENV"
 
       - name: "Agente: ${{ matrix.agent }}"
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@c96dd0a84e0232ab86947fca5fe34f1caae8792f # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: |
@@ -114,7 +114,7 @@ jobs:
         run: node .github/scripts/validate-partial.mjs "$OUTPUT_PATH"
 
       - name: Upload do partial
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: partial-${{ matrix.agent }}
           path: ${{ env.OUTPUT_PATH }}
@@ -125,12 +125,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ needs.guard.outputs.commit }}
 
       - name: Baixar todos os partials
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: ${{ runner.temp }}/partials
           pattern: partial-*
@@ -164,7 +164,7 @@ jobs:
 
       - name: Redigir corpo dos ADRs candidatos via Claude
         if: steps.adr-candidates.outputs.list != '[]'
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@c96dd0a84e0232ab86947fca5fe34f1caae8792f # v1
         env:
           ADR_CANDIDATES: ${{ steps.adr-candidates.outputs.list }}
         with:
@@ -205,7 +205,7 @@ jobs:
         run: node .github/scripts/render-report.mjs "${{ runner.temp }}/run-report.json"
 
       - name: Abrir PR automático com o relatório
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
           commit-message: "chore(reports): atualiza relatório de auditoria (${{ github.event_name }}, ${{ needs.guard.outputs.depth }})"
           branch: reports/auto-${{ github.run_id }}

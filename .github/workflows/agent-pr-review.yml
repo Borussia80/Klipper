@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Resolver número do PR
         id: pr
@@ -52,7 +52,7 @@ jobs:
         run: echo "OUTPUT_PATH=${{ runner.temp }}/pr-review.md" >> "$GITHUB_ENV"
 
       - name: Revisão via Claude Code
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@c96dd0a84e0232ab86947fca5fe34f1caae8792f # v1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
