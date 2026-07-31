@@ -4,8 +4,10 @@ export default defineNuxtConfig({
   ssr: true,
 
   runtimeConfig: {
+    apiUrlInternal: '',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000',
+      cookieSecure: '',
     },
   },
 

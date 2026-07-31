@@ -1,14 +1,22 @@
 export function useApi() {
   const config = useRuntimeConfig()
   const { addToast } = useToast()
+  const cookieSecure =
+    config.public.cookieSecure === 'true'
+      ? true
+      : config.public.cookieSecure === 'false'
+        ? false
+        : import.meta.env.PROD
   const token = useCookie<string | null>('klipper_token', {
     sameSite: 'lax',
-    secure: import.meta.env.PROD,
+    secure: cookieSecure,
     maxAge: 60 * 60 * 24 * 30,
   })
 
   const apiFetch = $fetch.create({
-    baseURL: config.public.apiUrl as string,
+    baseURL: (import.meta.server
+      ? config.apiUrlInternal || config.public.apiUrl
+      : config.public.apiUrl) as string,
     onRequest({ options }) {
       if (token.value) {
         options.headers = {

@@ -1,0 +1,11 @@
+:8080 {
+	# Preserva o prefixo /api — as rotas do Rails estão montadas em /api/v1/*,
+	# então aqui tem que ser `handle`, nunca `handle_path` (que removeria o prefixo).
+	handle /api/* {
+		reverse_proxy api:3001
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

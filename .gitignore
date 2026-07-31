@@ -1,5 +1,6 @@
 # Ambiente
 .env
+.env.local
 .venv/
 venv/
 __pycache__/

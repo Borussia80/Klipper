@@ -1,0 +1,65 @@
+# Perfil "local pessoal" do Klipper — stack completa rodando só nesta máquina.
+# Dados reais ficam no volume klipper_local_db, nunca saem daqui.
+# Só o serviço `proxy` publica porta, e só em 127.0.0.1 — db/api/web não são
+# alcançáveis fora da rede interna do Docker. Ver /home/rmilet/.claude/plans/playful-beaming-hickey.md.
+#
+# Uso:
+#   cp .env.local.example .env.local   # preencher POSTGRES_PASSWORD e RAILS_MASTER_KEY
+#   docker compose -f docker-compose.local.yml up -d --build
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: klipper
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD em .env.local}
+      POSTGRES_DB: klipper_local
+    volumes:
+      - klipper_local_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U klipper -d klipper_local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./apps/klipper-api
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://klipper:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD em .env.local}@db:5432/klipper_local
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?defina RAILS_MASTER_KEY em .env.local}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./apps/klipper-web
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      NUXT_PUBLIC_API_URL: /api
+      NUXT_API_URL_INTERNAL: http://api:3001
+      NUXT_PUBLIC_COOKIE_SECURE: "false"
+    depends_on:
+      - api
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - klipper_local_caddy_data:/data
+    depends_on:
+      - web
+      - api
+
+volumes:
+  klipper_local_db:
+  klipper_local_caddy_data:
