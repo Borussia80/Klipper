@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_09_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_30_175529) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -92,6 +92,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_100000) do
     t.index ["user_id"], name: "index_members_on_user_id"
   end
 
+  create_table "net_worth_snapshots", force: :cascade do |t|
+    t.decimal "accounts_total", precision: 14, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.decimal "investments_cost", precision: 14, scale: 2, null: false
+    t.integer "month", null: false
+    t.decimal "net_worth", precision: 14, scale: 2, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.integer "year", null: false
+    t.index ["user_id", "year", "month"], name: "index_net_worth_snapshots_on_user_id_and_year_and_month", unique: true
+    t.index ["user_id"], name: "index_net_worth_snapshots_on_user_id"
+  end
+
   create_table "solid_cache_entries", force: :cascade do |t|
     t.integer "byte_size", null: false
     t.datetime "created_at", null: false
@@ -147,6 +160,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_09_100000) do
   add_foreign_key "investments", "accounts"
   add_foreign_key "investments", "users"
   add_foreign_key "members", "users"
+  add_foreign_key "net_worth_snapshots", "users"
   add_foreign_key "transactions", "accounts"
   add_foreign_key "transactions", "categories"
   add_foreign_key "transactions", "members"

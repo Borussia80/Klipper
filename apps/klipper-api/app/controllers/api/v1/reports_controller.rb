@@ -1,6 +1,8 @@
 module Api
   module V1
     class ReportsController < BaseController
+      PERIOD_MONTHS = { "3m" => 3, "6m" => 6, "1a" => 12 }.freeze
+
       def monthly
         year  = params[:year]&.to_i  || Date.current.year
         month = params[:month]&.to_i || Date.current.month
@@ -92,18 +94,44 @@ module Api
 
         accounts_total   = accounts.sum(:balance).to_f.round(2)
         investments_cost = investments.sum("quantity * average_price").to_f.round(2)
+        net_worth_value  = (accounts_total + investments_cost).round(2)
 
         by_type = investments.group(:investment_type)
           .sum("quantity * average_price")
           .map { |type, cost| { investment_type: type, total_cost: cost.to_f.round(2) } }
           .sort_by { |r| -r[:total_cost] }
 
+        today = Date.current
+        snapshot = @current_user.net_worth_snapshots.find_or_initialize_by(year: today.year, month: today.month)
+        snapshot.update!(
+          accounts_total:    accounts_total,
+          investments_cost:  investments_cost,
+          net_worth:         net_worth_value,
+        )
+
         render json: {
           accounts_total:      accounts_total,
           investments_cost:    investments_cost,
-          net_worth:           (accounts_total + investments_cost).round(2),
+          net_worth:           net_worth_value,
           accounts:            accounts.map { |a| { id: a.id, name: a.name, balance: a.balance.to_f } },
           investments_by_type: by_type,
+        }
+      end
+
+      def net_worth_history
+        snapshots = @current_user.net_worth_snapshots.ordered
+
+        months = PERIOD_MONTHS[params[:period]]
+        if months
+          cutoff = Date.current.prev_month(months - 1)
+          snapshots = snapshots.where(
+            "(year * 12 + month) >= ?", cutoff.year * 12 + cutoff.month
+          )
+        end
+
+        render json: {
+          period: params[:period] || "max",
+          points: snapshots.map { |s| { year: s.year, month: s.month, net_worth: s.net_worth.to_f.round(2) } },
         }
       end
     end

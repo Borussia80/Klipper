@@ -23,6 +23,17 @@ export interface NetWorthReport {
   investments_by_type: { investment_type: string; total_cost: number }[]
 }
 
+export interface NetWorthHistoryPoint {
+  year: number
+  month: number
+  net_worth: number
+}
+
+export interface NetWorthHistoryReport {
+  period: string
+  points: NetWorthHistoryPoint[]
+}
+
 export interface NaturezaSplitRow {
   natureza: 'fixo' | 'cartao_parcelamento' | 'variavel'
   total: number
@@ -77,6 +88,7 @@ export function useReports() {
   const { apiFetch } = useApi()
   const monthly = ref<MonthlyReport | null>(null)
   const netWorth = ref<NetWorthReport | null>(null)
+  const netWorthHistory = ref<NetWorthHistoryReport | null>(null)
   const naturezaSplit = ref<NaturezaSplitReport | null>(null)
   const reimbursementCoverage = ref<ReimbursementCoverageReport | null>(null)
   const debtRanking = ref<DebtRankingReport | null>(null)
@@ -109,6 +121,20 @@ export function useReports() {
       netWorth.value = await apiFetch<NetWorthReport>('/api/v1/reports/net_worth')
     } catch {
       error.value = 'Erro ao carregar patrimônio.'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function fetchNetWorthHistory(period?: '3m' | '6m' | '1a' | 'max') {
+    isLoading.value = true
+    error.value = null
+    try {
+      netWorthHistory.value = await apiFetch<NetWorthHistoryReport>('/api/v1/reports/net_worth_history', {
+        query: period && period !== 'max' ? { period } : {},
+      })
+    } catch {
+      error.value = 'Erro ao carregar histórico de patrimônio.'
     } finally {
       isLoading.value = false
     }
@@ -167,6 +193,7 @@ export function useReports() {
   return {
     monthly,
     netWorth,
+    netWorthHistory,
     naturezaSplit,
     reimbursementCoverage,
     debtRanking,
@@ -174,6 +201,7 @@ export function useReports() {
     error,
     fetchMonthly,
     fetchNetWorth,
+    fetchNetWorthHistory,
     fetchNaturezaSplit,
     fetchReimbursementCoverage,
     fetchDebtRanking,
