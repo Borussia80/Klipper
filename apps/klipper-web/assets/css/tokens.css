@@ -19,7 +19,7 @@
   --sf:    #111A28;      /* superfície de card */
   --sf-hi: #16212F;      /* superfície elevada */
   --ly:    var(--sf-hi); /* nome legado → aponta pro novo */
-  --ly2:   #1D2C3D;      /* camada 2, extrapolado — conferir no screenshot */
+  --ly2:   #1D2C3D;      /* camada 2 */
 
   --bd:    #223145;      /* borda visível — resolve "números sem moldura" */
   --bd-hi: #2E4059;
@@ -28,11 +28,11 @@
   --t1: #EEF3F9;
   --t2: #9FB0C3;
   --t3: #647689;
-  --t4: #4A5A70;         /* extrapolado — conferir no screenshot */
+  --t4: #4A5A70;
 
   --sea: #3BB8C4;                /* nova cor interativa */
   --blue: var(--sea);            /* nome legado → aponta pro novo */
-  --blt:  #63CBD5;                /* tint claro de --sea, extrapolado */
+  --blt:  #63CBD5;                /* tint claro de --sea */
   --bdm:  rgba(59,184,196,0.11);  /* wash de --sea */
 
   --ok:  #43C59E;
