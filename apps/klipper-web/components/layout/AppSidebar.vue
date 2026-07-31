@@ -2,7 +2,7 @@
   <nav
     role="navigation"
     aria-label="Navegação principal"
-    style="border-right:1px solid var(--bd);overflow-y:auto;display:flex;flex-direction:column;padding:12px 0;background:var(--bg-frame)"
+    style="border-right:1px solid var(--bd);overflow-y:auto;padding:12px 0;background:var(--bg-frame)"
   >
     <ul role="list" style="list-style:none;padding:0;margin:0">
       <li>

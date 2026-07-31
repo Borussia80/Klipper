@@ -17,12 +17,12 @@
 const navItems = [
   {
     to: '/dashboard',
-    label: 'Dashboard',
+    label: 'Painel',
     icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>`,
   },
   {
     to: '/transacoes',
-    label: 'Transações',
+    label: 'Movimento',
     icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M3 9h12M3 5h8M3 13h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
   },
   {
@@ -37,7 +37,7 @@ const navItems = [
   },
   {
     to: '/contas',
-    label: 'Contas',
+    label: 'Carteiras',
     icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 8h14" stroke="currentColor" stroke-width="1.4"/><circle cx="5.5" cy="11" r="1" fill="currentColor"/></svg>`,
   },
 ]
@@ -51,13 +51,13 @@ const navItems = [
   left: 0;
   right: 0;
   height: 60px;
-  background: rgba(21, 29, 42, 0.96);
+  background: var(--bg-frame);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--bd);
   z-index: 200;
   align-items: stretch;
-  padding: 0 var(--space-2);
+  padding: 0 8px;
 }
 
 .mobile-nav-item {
@@ -67,7 +67,7 @@ const navItems = [
   align-items: center;
   justify-content: center;
   gap: 3px;
-  color: var(--ink-3);
+  color: var(--t3);
   text-decoration: none;
   transition: color 0.16s;
   padding: 6px 0;
@@ -75,7 +75,7 @@ const navItems = [
 }
 
 .mobile-nav-item.router-link-active {
-  color: var(--accent);
+  color: var(--t1);
 }
 
 .mobile-nav-item.router-link-active::before {
@@ -85,7 +85,7 @@ const navItems = [
   left: 20%;
   right: 20%;
   height: 2px;
-  background: var(--accent);
+  background: var(--brass);
   border-radius: 0 0 2px 2px;
 }
 

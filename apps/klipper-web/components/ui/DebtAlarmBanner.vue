@@ -40,7 +40,7 @@ const { formatBRL, formatPercentRaw } = useFormatters()
   width: 34px; height: 34px; border-radius: 9px;
   background: rgba(232,115,90,0.14); display: grid; place-items: center; flex: none;
 }
-.alarm-txt { flex: 1; }
+.alarm-txt { flex: 1; min-width: 0; }
 .alarm-txt b { color: var(--t1); font-weight: 600; }
 .alarm-txt span { color: var(--t2); font-size: 13px; }
 .alarm-cta {
@@ -51,7 +51,7 @@ const { formatBRL, formatPercentRaw } = useFormatters()
 
 @media (max-width: 480px) {
   .alarm { flex-wrap: wrap; }
-  .alarm-txt { flex-basis: 100%; min-width: 0; }
+  .alarm-txt { flex-basis: 100%; }
   .alarm-cta { flex: 1 1 auto; text-align: center; margin-left: 46px; }
 }
 </style>

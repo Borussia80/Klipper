@@ -36,9 +36,9 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
 }
 
-.shell-header { grid-column: 1 / -1; grid-row: 1; }
-.shell-nav    { grid-column: 1; grid-row: 2; }
-.shell-main   { grid-column: 2; grid-row: 2; }
+.shell-header { grid-column: 1 / -1; grid-row: 1; min-width: 0; }
+.shell-nav    { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; }
+.shell-main   { grid-column: 2; grid-row: 2; min-width: 0; }
 
 /* Linha de leitura única — menos varredura ocular */
 .shell-main > * {
