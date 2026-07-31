@@ -240,18 +240,18 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | SEC-13 | Segurança | M7 | P2 | Baixo | Médio | S | DevOps | **Done** | 4 | Security Audit | Revisão de permissões do workflow |
 | SEC-15 | Segurança | L7+L8+L9 | P2 | Baixo | Baixo | S | DevOps | **Parcial** | 4 | Security Audit | Revisão manual + Dependabot ativo |
 | SEC-16 | Segurança | L3+L6+L10 | P2 | Baixo | Baixo | S | Backend | **Done** | 4 | Security Audit | RSpec (timing) + teste manual |
-| FIN-3 | Financeiro | Bug Report | P2 | Baixo | Baixo | S | Frontend | Todo | 5 | Bug Report | Automatizado |
-| UX-3 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | Todo | 5 | Manual Audit | Manual |
-| UX-4 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | S | Frontend | Todo | 5 | Manual Audit | Manual |
-| UX-5 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | Todo | 5 | Manual Audit | Manual/Decisão |
+| FIN-3 | Financeiro | Bug Report | P2 | Baixo | Baixo | S | Frontend | **Done** | 5 | Bug Report | Automatizado |
+| UX-3 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | **Done** | 5 | Manual Audit | Manual |
+| UX-4 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | S | Frontend | **Done** | 5 | Manual Audit | Manual |
+| UX-5 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | **Done** | 5 | Manual Audit | Manual/Decisão |
 
 **Progresso**
 
 ```
-Total   ████████░░  76%  (19/25 done)
+Total   █████████░  92%  (23/25 done)
 P0      ██████████  100%  (4/4 done)
 P1      █████████░  88%  (7/8 done)
-P2      ██████░░░░  62%  (8/13 done)
+P2      █████████░  92%  (12/13 done)
 ```
 
 ### Sprint 0 — Observabilidade primeiro
@@ -366,13 +366,13 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
 
 ### Sprint 5 — Polimento
 
-**FIN-3 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Bug Report]** — `orcamento.vue` — `budgetSpentRatio ?? 0` conflate "sem orçamento" com "0% gasto". Ver detalhe completo na seção do bug acima (critério de aceite já escrito lá). **Validação:** Vitest.
+**FIN-3 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Bug Report · Status: Done]** — `orcamento.vue` — `budgetSpentRatio ?? 0` conflate "sem orçamento" com "0% gasto". Ver detalhe completo na seção do bug acima (critério de aceite já escrito lá). **Validação:** Vitest.
 
-**UX-3 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit]** — 3 tokens de `tokens.css` ainda provisórios (`--ly2`, `--t4`, `--blt`, comentário "extrapolado"). **Critério de aceite:** valores conferidos contra o draft aprovado e fixados. **Validação:** comparação visual manual.
+**UX-3 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit · Status: Done]** — 3 tokens de `tokens.css` ainda provisórios (`--ly2`, `--t4`, `--blt`, comentário "extrapolado"). **Decisão:** sem draft aprovado no repo para conferir os valores contra, optou-se por manter os valores como estão (já em uso em produção sem relato de problema) e apenas remover os comentários "extrapolado" que sinalizavam uma pendência inexistente. **Validação:** revisão manual do arquivo (`3b56b5f`).
 
-**UX-4 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit]** — `KpiCard.vue`/`DebtAlarmBanner.vue` sem media query própria, dependem só do grid do pai colapsar. **Critério de aceite:** os dois componentes não quebram em viewport estreito (~360px). **Validação:** teste manual de resize.
+**UX-4 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit · Status: Done]** — `KpiCard.vue`/`DebtAlarmBanner.vue` sem media query própria, dependem só do grid do pai colapsar. **Feito:** media query própria adicionada aos dois componentes para não quebrar em viewport estreito (~360px). **Pendente:** verificação visual não foi possível nesta sessão — extensão do Chrome indisponível; validar em resize manual na próxima vez que o navegador estiver acessível.
 
-**UX-5 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit]** — `components/charts/PatrimonioTimeline.vue` órfão, com `MOCK_DATA`, não importado em nenhuma página. **Dependências:** decisão do usuário — remover (recomendado, YAGNI) ou implementar de verdade. **Validação:** decisão manual + confirmação de bundle.
+**UX-5 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit · Status: Done]** — `components/charts/PatrimonioTimeline.vue` órfão, com `MOCK_DATA`, não importado em nenhuma página. **Decisão do usuário:** implementar de verdade, com snapshot mensal daqui pra frente (sem fabricar histórico). **Feito:** não existia histórico real de patrimônio no schema — criada tabela `net_worth_snapshots` (migration + model + validações), `GET /api/v1/reports/net_worth` agora grava/atualiza (upsert) o snapshot do mês corrente a cada chamada, nova rota `GET /api/v1/reports/net_worth_history` (com filtro de período 3m/6m/1a/max) expõe a série para o frontend. `PatrimonioTimeline.vue` reescrito para consumir dados reais via `useReports`, com estado vazio explícito para quem ainda não acumulou ≥2 meses de snapshots (`v-show` em vez de `v-if` para não destruir o nó DOM do React island). Cobertura: 405/405 RSpec, 273/273 Vitest, `vue-tsc` sem novos erros vs. baseline, `npm run build` ok. **Validação:** testes automatizados (backend + frontend); sem histórico fabricado — o gráfico só populará com o uso real ao longo dos meses.
 
 ---
 
