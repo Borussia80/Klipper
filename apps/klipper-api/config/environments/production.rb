@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require_relative "../../lib/allowed_hosts"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -59,13 +60,13 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # Configure as a comma-separated allowlist in the hosting dashboard, e.g.
+  # RAILS_ALLOWED_HOSTS="klipper-api.onrender.com,api.klipper.app".
+  config.hosts = AllowedHosts.from_env(ENV.fetch("RAILS_ALLOWED_HOSTS", ""))
+
+  # Render health checks hit the container host directly, so keep the health
+  # endpoint reachable even when the public Host allowlist is strict.
+  config.host_authorization = { exclude: ->(request) { Api::V1::HealthController.excluded_from_ssl_redirect?(request) } }
 
   # SMTP for transactional email (password reset). Credentials come from env vars
   # set in the hosting dashboard — never committed here.
