@@ -342,7 +342,7 @@ RSpec.describe "Api::V1::Reports", type: :request do
     end
 
     it "filters to the last N months when a period is given" do
-      base = Date.new(2026, 7, 1)
+      base = Date.current.beginning_of_month
       (0..5).each do |i|
         d = base.prev_month(i)
         create(:net_worth_snapshot, user: user, year: d.year, month: d.month, net_worth: 100 * i)
