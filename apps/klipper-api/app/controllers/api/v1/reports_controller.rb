@@ -22,7 +22,7 @@ module Api
               category_name: cat&.name || "Sem categoria",
               category_icon: cat&.icon,
               total:         total.to_f.round(2),
-              count:         txns.where(transaction_type: "debit", category_id: cat_id).count,
+              count:         txns.where(transaction_type: "debit", category_id: cat_id).count
             }
           end
           .sort_by { |r| -r[:total] }
@@ -33,7 +33,7 @@ module Api
           total_debits:  debits.to_f.round(2),
           total_credits: credits.to_f.round(2),
           net:           (credits - debits).to_f.round(2),
-          by_category:   by_category,
+          by_category:   by_category
         }
       end
 
@@ -52,7 +52,7 @@ module Api
           {
             natureza: nat,
             total:    amount.to_f.round(2),
-            pct:      total.positive? ? (amount / total * 100).round(1) : 0.0,
+            pct:      total.positive? ? (amount / total * 100).round(1) : 0.0
           }
         end
 
@@ -60,7 +60,7 @@ module Api
           year:        year,
           month:       month,
           total:       total.to_f.round(2),
-          by_natureza: by_natureza,
+          by_natureza: by_natureza
         }
       end
 
@@ -114,7 +114,7 @@ module Api
           investments_cost:    investments_cost,
           net_worth:           net_worth_value,
           accounts:            accounts.map { |a| { id: a.id, name: a.name, balance: a.balance.to_f } },
-          investments_by_type: by_type,
+          investments_by_type: by_type
         }
       end
 
@@ -131,7 +131,7 @@ module Api
 
         render json: {
           period: params[:period] || "max",
-          points: snapshots.map { |s| { year: s.year, month: s.month, net_worth: s.net_worth.to_f.round(2) } },
+          points: snapshots.map { |s| { year: s.year, month: s.month, net_worth: s.net_worth.to_f.round(2) } }
         }
       end
     end

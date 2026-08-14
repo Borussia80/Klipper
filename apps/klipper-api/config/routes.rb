@@ -19,8 +19,8 @@ Rails.application.routes.draw do
         collection { get :summary }
       end
 
-      resources :quotes, only: [:index]
-      resources :imports, only: [:create] do
+      resources :quotes, only: [ :index ]
+      resources :imports, only: [ :create ] do
         collection do
           post :preview
           post :confirm

@@ -30,7 +30,7 @@ class DebtRankingCalculator
       iof_projetado: account.iof_projetado&.to_f&.round(2),
       encargos: encargos.to_f.round(2),
       saldo_projetado_proximo_mes: (account.saldo_fatura_atual + encargos + iof).to_f.round(2),
-      saldo_atualizado_em: account.saldo_atualizado_em,
+      saldo_atualizado_em: account.saldo_atualizado_em
     }
   end
 end

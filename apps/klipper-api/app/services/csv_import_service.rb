@@ -1,12 +1,12 @@
 class CsvImportService
-  require 'csv'
+  require "csv"
 
   ImportResult = Struct.new(:imported, :duplicates, :errors, keyword_init: true)
 
   DATE_HEADER_ALIASES = %w[data date].freeze
   DESCRIPTION_HEADER_ALIASES = %w[descricao description historico title].freeze
   VALUE_HEADER_ALIASES = %w[valor amount value].freeze
-  DATE_FORMATS = ["%d/%m/%Y", "%Y-%m-%d"].freeze
+  DATE_FORMATS = [ "%d/%m/%Y", "%Y-%m-%d" ].freeze
 
   def initialize(user, file_io, account_id: nil)
     @user = user
@@ -16,11 +16,11 @@ class CsvImportService
 
   def call
     content = @file_io.read
-    rows = CSV.parse(content, headers: true, encoding: 'UTF-8', col_sep: detect_col_sep(content))
+    rows = CSV.parse(content, headers: true, encoding: "UTF-8", col_sep: detect_col_sep(content))
     columns = map_columns(rows.headers)
     unless columns
       return ImportResult.new(imported: 0, duplicates: 0,
-                               errors: ["CSV sem colunas reconhecidas (data/descrição/valor)"])
+                               errors: [ "CSV sem colunas reconhecidas (data/descrição/valor)" ])
     end
 
     imported = 0
@@ -40,7 +40,7 @@ class CsvImportService
 
     ImportResult.new(imported: imported, duplicates: duplicates, errors: errors)
   rescue CSV::MalformedCSVError => e
-    ImportResult.new(imported: 0, duplicates: 0, errors: ["CSV inválido: #{e.message}"])
+    ImportResult.new(imported: 0, duplicates: 0, errors: [ "CSV inválido: #{e.message}" ])
   end
 
   private
