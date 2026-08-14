@@ -101,6 +101,13 @@ RSpec.describe "Auth endpoints", type: :request do
   end
 
   describe "SEC-08: throttle de força bruta" do
+    # Congela o tempo durante cada exemplo: sem isso, as requisições sequenciais
+    # podem cruzar a fronteira de minuto do throttle (Rack::Attack janela de
+    # 1.minute) e o contador zera no meio do teste, tornando-o flaky.
+    around do |example|
+      travel_to(Time.current) { example.run }
+    end
+
     it "returns 429 after 5 sign_in attempts for the same e-mail within a minute" do
       5.times do
         post "/api/v1/auth/sign_in",
