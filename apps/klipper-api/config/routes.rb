@@ -5,6 +5,9 @@ Rails.application.routes.draw do
       post "auth/sign_up",    to: "auth#sign_up"
       post "auth/sign_in",    to: "auth#sign_in"
 
+      post  "password_resets",        to: "password_resets#create"
+      patch "password_resets/:token", to: "password_resets#update"
+
       resources :accounts,      only: %i[index show create update destroy]
       resources :categories,    only: %i[index show create update destroy]
       resources :members,       only: %i[index show create update destroy]
@@ -16,8 +19,8 @@ Rails.application.routes.draw do
         collection { get :summary }
       end
 
-      resources :quotes, only: [:index]
-      resources :imports, only: [:create] do
+      resources :quotes, only: [ :index ]
+      resources :imports, only: [ :create ] do
         collection do
           post :preview
           post :confirm
@@ -27,6 +30,7 @@ Rails.application.routes.draw do
       namespace :reports do
         get :monthly
         get :net_worth
+        get :net_worth_history
         get :natureza_split
         get :reimbursement_coverage
         get :debt_ranking

@@ -27,26 +27,38 @@ export function useBudgets() {
   const budgets = useState<Budget[]>('budgets', () => [])
   const summary = useState<BudgetSummaryRow[]>('budgets.summary', () => [])
   const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   async function fetchBudgets(year?: number, month?: number) {
     isLoading.value = true
+    error.value = null
     try {
       budgets.value = await apiFetch<Budget[]>('/api/v1/budgets', {
         query: year && month ? { year, month } : {},
       })
+    } catch {
+      error.value = 'Erro ao carregar orçamentos.'
     } finally {
       isLoading.value = false
     }
   }
 
   async function fetchSummary(year?: number, month?: number) {
+    isLoading.value = true
+    error.value = null
     const now = new Date()
-    summary.value = await apiFetch<BudgetSummaryRow[]>('/api/v1/budgets/summary', {
-      query: {
-        year: year ?? now.getFullYear(),
-        month: month ?? now.getMonth() + 1,
-      },
-    })
+    try {
+      summary.value = await apiFetch<BudgetSummaryRow[]>('/api/v1/budgets/summary', {
+        query: {
+          year: year ?? now.getFullYear(),
+          month: month ?? now.getMonth() + 1,
+        },
+      })
+    } catch {
+      error.value = 'Erro ao carregar orçamento.'
+    } finally {
+      isLoading.value = false
+    }
   }
 
   async function createBudget(payload: Partial<Budget>) {
@@ -65,5 +77,5 @@ export function useBudgets() {
     addToast('Orçamento removido', 'ok')
   }
 
-  return { budgets, summary, isLoading, fetchBudgets, fetchSummary, createBudget, deleteBudget }
+  return { budgets, summary, isLoading, error, fetchBudgets, fetchSummary, createBudget, deleteBudget }
 }

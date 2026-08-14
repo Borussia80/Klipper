@@ -9,7 +9,7 @@ RSpec.describe "Api::V1::Quotes", type: :request do
     {
       results: [
         { symbol: "PETR4", regularMarketPrice: 38.50, regularMarketChangePercent: 1.23, longName: "Petroleo Brasileiro S.A." },
-        { symbol: "VALE3", regularMarketPrice: 61.20, regularMarketChangePercent: -0.45, longName: "Vale S.A." },
+        { symbol: "VALE3", regularMarketPrice: 61.20, regularMarketChangePercent: -0.45, longName: "Vale S.A." }
       ]
     }.to_json
   end

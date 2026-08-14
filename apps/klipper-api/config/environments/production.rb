@@ -1,4 +1,5 @@
 require "active_support/core_ext/integer/time"
+require_relative "../../lib/allowed_hosts"
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -22,10 +23,11 @@ Rails.application.configure do
   # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # config.force_ssl = true
+  config.force_ssl = true
 
-  # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  # Skip http-to-https redirect for the health check endpoint — Render's prober hits
+  # the container directly and doesn't set X-Forwarded-Proto like the edge proxy does.
+  config.ssl_options = { redirect: { exclude: ->(request) { Api::V1::HealthController.excluded_from_ssl_redirect?(request) } } }
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
@@ -58,11 +60,26 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # Configure as a comma-separated allowlist in the hosting dashboard, e.g.
+  # RAILS_ALLOWED_HOSTS="klipper-api.onrender.com,api.klipper.app".
+  config.hosts = AllowedHosts.from_env(ENV.fetch("RAILS_ALLOWED_HOSTS", ""))
+
+  # Render health checks hit the container host directly, so keep the health
+  # endpoint reachable even when the public Host allowlist is strict.
+  config.host_authorization = { exclude: ->(request) { Api::V1::HealthController.excluded_from_ssl_redirect?(request) } }
+
+  # SMTP for transactional email (password reset). Credentials come from env vars
+  # set in the hosting dashboard — never committed here.
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.smtp_settings = {
+    address:              ENV.fetch("SMTP_ADDRESS", nil),
+    port:                 ENV.fetch("SMTP_PORT", 587).to_i,
+    domain:               ENV.fetch("SMTP_DOMAIN", nil),
+    user_name:            ENV.fetch("SMTP_USERNAME", nil),
+    password:             ENV.fetch("SMTP_PASSWORD", nil),
+    authentication:       :plain,
+    enable_starttls_auto: true
+  }
 end

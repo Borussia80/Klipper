@@ -6,7 +6,7 @@
       letterSpacing: '.09em',
       textTransform: 'uppercase',
       color: 'var(--t4)',
-      fontFamily: mono ? '\'IBM Plex Mono\', monospace' : 'inherit',
+      fontFamily: mono ? '\'Space Grotesk\', monospace' : 'inherit',
       marginBottom: mb,
     }"
   >

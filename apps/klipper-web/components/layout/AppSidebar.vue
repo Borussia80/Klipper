@@ -2,7 +2,7 @@
   <nav
     role="navigation"
     aria-label="Navegação principal"
-    style="border-right:1px solid var(--bd);overflow-y:auto;display:flex;flex-direction:column;padding:12px 0;background:var(--bg-frame)"
+    style="border-right:1px solid var(--bd);overflow-y:auto;padding:12px 0;background:var(--bg-frame)"
   >
     <ul role="list" style="list-style:none;padding:0;margin:0">
       <li>
@@ -52,7 +52,12 @@
         </NuxtLink>
       </li>
 
-      <li><div style="height:1px;background:var(--bd);margin:6px 12px" aria-hidden="true"></div></li>
+      <li>
+        <div class="gh" style="padding:14px 12px 6px">
+          <span class="gl">Patrimônio</span>
+          <span class="gr"></span>
+        </div>
+      </li>
 
       <li>
         <NuxtLink
@@ -66,7 +71,7 @@
             <rect x="6" y="6" width="3" height="7" rx="1" stroke="currentColor" stroke-width="1.4"/>
             <rect x="10" y="3" width="3" height="10" rx="1" stroke="currentColor" stroke-width="1.4"/>
           </svg>
-          Patrimônio
+          Investimentos
         </NuxtLink>
       </li>
       <li>
@@ -119,21 +124,6 @@
 
       <li>
         <NuxtLink
-          to="/kira"
-          class="ni"
-          :class="{ act: route.path.startsWith('/kira') }"
-          :aria-current="route.path.startsWith('/kira') ? 'page' : undefined"
-        >
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-            <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/>
-            <path d="M7.5 2.5v1.5M7.5 11v1.5M2.5 7.5H4M11 7.5h1.5M4.2 4.2l1.1 1.1M9.7 9.7l1.1 1.1M9.7 4.2l-1.1 1.1M4.2 9.7l1.1 1.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-          Kira
-          <span style="margin-left:auto;font-size:9px;background:var(--bdm);color:var(--blue);border-radius:4px;padding:1px 5px;font-weight:600" aria-label="Beta">BETA</span>
-        </NuxtLink>
-      </li>
-      <li>
-        <NuxtLink
           to="/importar"
           class="ni"
           :class="{ act: route.path.startsWith('/importar') }"
@@ -163,7 +153,7 @@
 
     <div style="padding:10px 12px 0">
       <button
-        class="btn btn-p"
+        class="btn nav-cta"
         style="width:100%"
         aria-label="Criar novo lançamento"
         @click="open('novo-lancamento')"
@@ -200,5 +190,14 @@ const alarmCount = computed(
   position: absolute; width: 1px; height: 1px;
   padding: 0; margin: -1px; overflow: hidden;
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+.nav-cta {
+  background: linear-gradient(150deg, var(--brass), #C1904A);
+  color: #241a08;
+  box-shadow: 0 3px 12px rgba(217,168,92,0.22);
+}
+.nav-cta:hover {
+  background: linear-gradient(150deg, #E3B872, var(--brass));
 }
 </style>

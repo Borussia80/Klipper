@@ -37,6 +37,8 @@ class PdfImportService
     PreviewResult.new(rows: [], warnings: [], error: "PDF corrompido ou ilegível")
   rescue PdfAdapters::ParseError => e
     PreviewResult.new(rows: [], warnings: [], error: e.message)
+  rescue Date::Error, ArgumentError => e
+    PreviewResult.new(rows: [], warnings: [], error: "Não foi possível interpretar o extrato: #{e.message}")
   end
 
   def confirm(rows)
@@ -62,13 +64,14 @@ class PdfImportService
 
   def import_row(row)
     row = row.with_indifferent_access
+    signed = BankImport::RowSigner.verify!(row[:token])
 
     BankImport::TransactionWriter.new(@user, account_id: @account_id).write!(
-      description: row[:description],
-      amount: BigDecimal(row[:amount].to_s),
-      occurred_on: Date.parse(row[:occurred_on].to_s),
-      installment_number: row[:installment_number].presence,
-      installment_total: row[:installment_total].presence,
+      description: signed[:description],
+      amount: BigDecimal(signed[:amount].to_s),
+      occurred_on: Date.parse(signed[:occurred_on].to_s),
+      installment_number: signed[:installment_number].presence,
+      installment_total: signed[:installment_total].presence,
       member_id: row[:member_id].presence
     )
   end
@@ -81,16 +84,20 @@ class PdfImportService
   end
 
   def serialize_row(row, suggestions = {})
-    {
+    canonical = {
       occurred_on: row.occurred_on.iso8601,
       description: row.description,
       amount: row.amount.to_s("F"),
       installment_number: row.installment_number,
-      installment_total: row.installment_total,
+      installment_total: row.installment_total
+    }
+
+    canonical.merge(
       page: row.page,
       metadata: row.metadata,
-      suggested_member_id: suggestions[row.metadata[:cardholder]]
-    }
+      suggested_member_id: suggestions[row.metadata[:cardholder]],
+      token: BankImport::RowSigner.sign(canonical)
+    )
   end
 
   def serialize_warning(warning)

@@ -17,8 +17,11 @@ module Api
       end
 
       def create
+        unless valid_transaction_fks?
+          return render json: { errors: [ "Conta, categoria ou portador inválido" ] }, status: :unprocessable_entity
+        end
+
         txn = current_user.transactions.build(transaction_params)
-        txn.account = current_user.accounts.find_by(id: txn.account_id)
         if txn.category_id.blank?
           auto = AutoCategorizerService.call(txn.description.to_s, current_user)
           txn.category = auto if auto
@@ -31,6 +34,10 @@ module Api
       end
 
       def update
+        unless valid_transaction_fks?
+          return render json: { errors: [ "Conta, categoria ou portador inválido" ] }, status: :unprocessable_entity
+        end
+
         if @transaction.update(transaction_params)
           render json: @transaction
         else
@@ -54,6 +61,18 @@ module Api
       def transaction_params
         params.permit(:account_id, :category_id, :member_id, :description, :amount,
           :transaction_type, :occurred_on, :notes, :installment_total, :installment_number)
+      end
+
+
+      def valid_transaction_fks?
+        return false if transaction_params[:account_id].present? &&
+          !current_user.accounts.exists?(id: transaction_params[:account_id])
+        return false if transaction_params[:category_id].present? &&
+          !current_user.categories.exists?(id: transaction_params[:category_id])
+        return false if transaction_params[:member_id].present? &&
+          !current_user.members.exists?(id: transaction_params[:member_id])
+
+        true
       end
     end
   end

@@ -4,8 +4,10 @@ export default defineNuxtConfig({
   ssr: true,
 
   runtimeConfig: {
+    apiUrlInternal: '',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000',
+      cookieSecure: '',
     },
   },
 
@@ -18,8 +20,8 @@ export default defineNuxtConfig({
 
   fonts: {
     families: [
-      { name: 'IBM Plex Sans', provider: 'google', weights: [400, 500, 600] },
-      { name: 'IBM Plex Mono', provider: 'google', weights: [300, 400, 500] },
+      { name: 'Inter', provider: 'google', weights: [400, 500, 600] },
+      { name: 'Space Grotesk', provider: 'google', weights: [400, 500, 600, 700] },
     ],
     defaults: {
       preload: true,
@@ -65,16 +67,11 @@ export default defineNuxtConfig({
     workbox: {
       navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-      runtimeCaching: [
-        {
-          urlPattern: /\/api\/v1\/.*/i,
-          handler: 'NetworkFirst',
-          options: {
-            cacheName: 'klipper-rails-api',
-            expiration: { maxEntries: 100, maxAgeSeconds: 60 },
-          },
-        },
-      ],
+      // SEC-16: /api/v1/* nunca é cacheado pelo Service Worker — são respostas
+      // financeiras (saldos, transações, investimentos) e não devem persistir
+      // em disco via Cache Storage. Sem regra de runtimeCaching, o workbox não
+      // intercepta essas requisições; elas seguem direto pra rede.
+      runtimeCaching: [],
     },
   },
 

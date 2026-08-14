@@ -33,12 +33,28 @@ RSpec.describe "Api::V1::Users", type: :request do
       expect(user.reload.name).to eq("Roberto M. Atualizado")
     end
 
-    it "updates email" do
+    it "updates email when current_password is correct" do
       patch "/api/v1/users/me",
-        params: { email: "novo@example.com" },
+        params: { email: "novo@example.com", current_password: "secret123" },
         headers: auth_headers
       expect(response).to have_http_status(:ok)
       expect(user.reload.email).to eq("novo@example.com")
+    end
+
+    it "returns 422 without current_password when changing email (SEC-16)" do
+      patch "/api/v1/users/me",
+        params: { email: "novo@example.com" },
+        headers: auth_headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(user.reload.email).to eq("roberto@example.com")
+    end
+
+    it "returns 422 with wrong current_password when changing email (SEC-16)" do
+      patch "/api/v1/users/me",
+        params: { email: "novo@example.com", current_password: "wrongpass" },
+        headers: auth_headers
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(user.reload.email).to eq("roberto@example.com")
     end
 
     it "returns 422 with invalid email" do
@@ -81,6 +97,23 @@ RSpec.describe "Api::V1::Users", type: :request do
 
     it "returns 401 without token" do
       post "/api/v1/users/password", params: { current_password: "x", password: "y", password_confirmation: "y" }
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "revokes the old token by bumping token_version" do
+      expect {
+        post "/api/v1/users/password",
+          params: { current_password: "secret123", password: "newpass456", password_confirmation: "newpass456" },
+          headers: auth_headers
+      }.to change { user.reload.token_version }.by(1)
+    end
+
+    it "rejects the old token on a subsequent request after the password change" do
+      post "/api/v1/users/password",
+        params: { current_password: "secret123", password: "newpass456", password_confirmation: "newpass456" },
+        headers: auth_headers
+
+      get "/api/v1/users/me", headers: auth_headers
       expect(response).to have_http_status(:unauthorized)
     end
   end

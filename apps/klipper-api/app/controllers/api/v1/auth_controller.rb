@@ -1,6 +1,10 @@
 module Api
   module V1
     class AuthController < ActionController::API
+      # Comparação de senha em tempo constante mesmo quando o e-mail não existe,
+      # pra não vazar (via latência) se um e-mail está cadastrado ou não.
+      FAKE_PASSWORD_DIGEST = BCrypt::Password.create(SecureRandom.hex(32)).freeze
+
       def sign_up
         user = User.new(sign_up_params)
         if user.save
@@ -14,7 +18,9 @@ module Api
 
       def sign_in
         user = User.find_by(email: params[:email]&.downcase)
-        if user&.authenticate(params[:password])
+        authenticated = (user || User.new(password_digest: FAKE_PASSWORD_DIGEST)).authenticate(params[:password])
+
+        if user && authenticated
           token = JwtService.encode(user_id: user.id, token_version: user.token_version)
           render json: { token: token, user: user_json(user) }
         else

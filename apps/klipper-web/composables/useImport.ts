@@ -14,6 +14,7 @@ export interface PreviewRow {
   metadata: Record<string, unknown>
   suggested_member_id?: number | null
   member_id?: number | null
+  token: string
 }
 
 export interface PreviewWarning {

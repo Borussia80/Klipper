@@ -1,0 +1,28 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "5a14218de733a5cc8a9b863c217c7afafde913d5f9b0bef73e24614f8806fb3a",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/api/v1/transactions_controller.rb",
+      "line": 62,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "note": "Falso positivo: category_id/account_id/member_id são validados por posse via valid_transaction_fks? (current_user.accounts/categories/members.exists?) antes de qualquer save. Não há STI nem associação polimórfica nesse model."
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "b121a5614873f3de6734612e77c352809e124d3054ec614fc13c395c74a4c67f",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/api/v1/investments_controller.rb",
+      "line": 59,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "note": "Falso positivo: investment_type é um enum de string validado via `validates :investment_type, inclusion: { in: INVESTMENT_TYPES }` no model, não é a coluna type de STI. account_id é validado por posse via valid_investment_fk?."
+    }
+  ],
+  "updated": "2026-08-14 19:45:00 -0300",
+  "brakeman_version": "8.0.6"
+}

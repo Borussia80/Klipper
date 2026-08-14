@@ -125,6 +125,14 @@ describe('useReports', () => {
       expect(isLoading.value).toBe(false)
     })
 
+    it('sets error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+      const { useReports } = await import('../useReports')
+      const { error, fetchMonthly } = useReports()
+      await fetchMonthly(2026, 6)
+      expect(error.value).toBe('Erro ao carregar relatório mensal.')
+    })
+
     it('passes year and month as query params when provided', async () => {
       mockApiFetch.mockResolvedValue(makeMonthly())
       const { useReports } = await import('../useReports')
@@ -181,6 +189,14 @@ describe('useReports', () => {
       await fetchNetWorth()
       expect(isLoading.value).toBe(false)
     })
+
+    it('sets error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+      const { useReports } = await import('../useReports')
+      const { error, fetchNetWorth } = useReports()
+      await fetchNetWorth()
+      expect(error.value).toBe('Erro ao carregar patrimônio.')
+    })
   })
 
   describe('fetchNaturezaSplit', () => {
@@ -203,6 +219,14 @@ describe('useReports', () => {
       const { isLoading, fetchNaturezaSplit } = useReports()
       await fetchNaturezaSplit(2026, 6)
       expect(isLoading.value).toBe(false)
+    })
+
+    it('sets error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+      const { useReports } = await import('../useReports')
+      const { error, fetchNaturezaSplit } = useReports()
+      await fetchNaturezaSplit(2026, 6)
+      expect(error.value).toBe('Erro ao carregar composição de gastos.')
     })
 
     it('passes year and month as query params when provided', async () => {
@@ -261,6 +285,14 @@ describe('useReports', () => {
       const { isLoading, fetchReimbursementCoverage } = useReports()
       await fetchReimbursementCoverage(2026, 7)
       expect(isLoading.value).toBe(false)
+    })
+
+    it('sets error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+      const { useReports } = await import('../useReports')
+      const { error, fetchReimbursementCoverage } = useReports()
+      await fetchReimbursementCoverage(2026, 7)
+      expect(error.value).toBe('Erro ao carregar cobertura de reembolso.')
     })
 
     it('passes year, month and category_id as query params when provided', async () => {
@@ -335,6 +367,14 @@ describe('useReports', () => {
       const { isLoading, fetchDebtRanking } = useReports()
       await fetchDebtRanking()
       expect(isLoading.value).toBe(false)
+    })
+
+    it('sets error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+      const { useReports } = await import('../useReports')
+      const { error, fetchDebtRanking } = useReports()
+      await fetchDebtRanking()
+      expect(error.value).toBe('Erro ao carregar prioridade de quitação.')
     })
 
     it('calls the debt_ranking endpoint with no query params', async () => {

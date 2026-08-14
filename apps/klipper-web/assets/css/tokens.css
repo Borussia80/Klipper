@@ -1,47 +1,55 @@
-/* Klipper design tokens — HMI de alta performance (ISA-101, tema escuro calmo)
+/* Klipper design tokens — direção "náutica premium" (azul-marinho + latão)
  *
  * REGRA DE RACIONALIZAÇÃO DE COR (não violar):
- * Nenhum elemento estático usa cor semântica. Cor aparece exclusivamente em:
+ * Nenhum elemento estático usa cor semântica fora de contexto. Cor aparece em:
  *   1. O instrumento primário da tela (--ok, um por página)
  *   2. Condições anormais que pedem ação do usuário (--warn / --alert)
- *   3. Elementos interativos (--blue: CTA, links, foco)
- * Todo o resto é escala de cinza (--t1..--t4) com hierarquia por tamanho/posição.
+ *   3. Elementos interativos (--blue → --sea: CTA, links, foco)
+ *   4. Marca, CTA principal e indicador de item ativo (--brass)
+ *   5. Paleta categórica fixa em contextos de composição (ex.: split
+ *      fixo/cartão/variável, ranking de dívida) — --sea/--alert/--brass como
+ *      cores fixas por categoria, não decoração livre.
+ * Todo o resto é escala neutra (--t1..--t4) com hierarquia por tamanho/posição.
+ * Toda superfície de dado vive dentro de um card com --bd/--bd-hi visível —
+ * não repetir o erro do tema anterior (números soltos sem moldura).
  */
 :root {
-  --bg:       #161819;   /* canvas grafite neutro */
-  --bg-frame: #111314;   /* nav + topbar — moldura estrutural */
-  --sf:  #1E2122;        /* superfície de card */
-  --ly:  #282C2E;        /* camada elevada */
-  --ly2: #32373A;        /* camada 2 */
+  --bg:       #0A0F1A;   /* canvas azul-marinho profundo */
+  --bg-frame: #070B12;   /* nav + topbar — moldura estrutural */
+  --sf:    #111A28;      /* superfície de card */
+  --sf-hi: #16212F;      /* superfície elevada */
+  --ly:    var(--sf-hi); /* nome legado → aponta pro novo */
+  --ly2:   #1D2C3D;      /* camada 2 */
 
-  --bd:  rgba(255,255,255,0.05);
-  --bd2: rgba(255,255,255,0.09);
+  --bd:    #223145;      /* borda visível — resolve "números sem moldura" */
+  --bd-hi: #2E4059;
+  --bd2:   var(--bd-hi); /* nome legado → aponta pro novo */
 
-  --t1: #EDEFF0;   /* 15.9:1 (AAA) */
-  --t2: #AEB4B8;   /* 8.3:1 (AAA) */
-  --t3: #7D848A;   /* 4.6:1 (AA large / ≥14px bold) */
-  --t4: #565D63;   /* 2.6:1 (decorativo apenas) */
+  --t1: #EEF3F9;
+  --t2: #9FB0C3;
+  --t3: #647689;
+  --t4: #4A5A70;
 
-  /* Contrast ratios sobre --bg (#161819):
-     --t1: 15.9:1 (AAA) | --t2: 8.3:1 (AAA) | --t3: 4.6:1 (AA large) | --t4: decorativo */
+  --sea: #3BB8C4;                /* nova cor interativa */
+  --blue: var(--sea);            /* nome legado → aponta pro novo */
+  --blt:  #63CBD5;                /* tint claro de --sea */
+  --bdm:  rgba(59,184,196,0.11);  /* wash de --sea */
 
-  --blue: #5B9BD5;              /* aço dessaturado — SÓ interativo */
-  --blt:  #7FB3E3;
-  --bdm:  rgba(91,155,213,0.11);
+  --ok:  #43C59E;
+  --okd: rgba(67,197,158,0.13);
 
-  --ok:  #3FBF8F;               /* SÓ instrumento primário + confirmações */
-  --okd: rgba(63,191,143,0.11);
+  --warn: #E6B44C;
+  --wnd:  rgba(230,180,76,0.14);
 
-  --warn: #E0A33E;              /* SÓ alarme acionável — prioridade média */
-  --wnd:  rgba(224,163,62,0.11);
+  --alert: #E8735A;
+  --ald:   rgba(232,115,90,0.14);
 
-  --alert: #E06A4C;             /* SÓ alarme acionável — prioridade alta */
-  --ald:   rgba(224,106,76,0.11);
+  --brass:     #D9A85C;   /* marca, CTA, item ativo, glow do hero, categórica "Variáveis" */
+  --brass-dim: #6E5836;
 
-  --pur: #9B8CDB;               /* categórica de charts (classe de ativo), não semântica */
-
-  --nav: 228px;
-  --r:   6px;
+  --nav:  232px;
+  --r:    14px;
+  --r-sm: 9px;
 
   /* Instituições financeiras (identidade de marca em listas, não semântica) */
   --bank-nubank: #8A05BE;
@@ -52,6 +60,6 @@
   --crypto: #F4C030;
 
   /* Chart surfaces (React islands não têm acesso direto a CSS vars) */
-  --chart-bg:     #1E2122;
-  --chart-border: #32373A;
+  --chart-bg:     #111A28;
+  --chart-border: #16212F;
 }

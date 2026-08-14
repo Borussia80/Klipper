@@ -8,7 +8,7 @@
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
         <button class="sel-chip">
-          Junho 2026
+          {{ fmtMonthFull() }}
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 4L5 6.5 7.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <button class="btn btn-g" @click="open('nova-categoria')">
@@ -22,8 +22,23 @@
     </div>
 
     <div style="padding:0 20px 32px">
+      <!-- Error banner -->
+      <div v-if="error" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin:16px 0">
+        {{ error }}
+      </div>
+
+      <!-- Hero: livre no ciclo, com barra de estouro -->
+      <UiInstrumentReadout
+        compact
+        label="Livre no ciclo"
+        :net-value="totalFree"
+        :formatted-value="formatBRL(totalFree)"
+        :spent-ratio="spentRatio"
+        style="margin-top:20px"
+      />
+
       <!-- Summary tiles -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:10px 0 20px">
         <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px">
           <div class="plbl" style="margin-bottom:4px">Alocado</div>
           <div class="mono" style="font-size:18px;font-weight:500;color:var(--t1)">{{ formatBRL(totalAllocated) }}</div>
@@ -31,10 +46,6 @@
         <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px">
           <div class="plbl" style="margin-bottom:4px">Gasto</div>
           <div class="mono" style="font-size:18px;font-weight:500;color:var(--warn)">{{ formatBRL(totalSpent) }}</div>
-        </div>
-        <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px">
-          <div class="plbl" style="margin-bottom:4px">Livre</div>
-          <div class="mono" style="font-size:18px;font-weight:500;color:var(--ok)">{{ formatBRL(totalFree) }}</div>
         </div>
       </div>
 
@@ -70,7 +81,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { summary, isLoading, fetchSummary } = useBudgets()
+const { summary, isLoading, error, fetchSummary } = useBudgets()
 const { fetchCategories } = useCategories()
 const { reimbursementCoverage, fetchReimbursementCoverage } = useReports()
 const { formatBRL, fmtMonthFull, daysLeftInMonth } = useFormatters()
@@ -101,7 +112,8 @@ const categories = computed(() =>
 
 const reimbursements = computed(() => reimbursementCoverage.value?.categories ?? [])
 
-const totalAllocated = computed(() => summary.value.reduce((s, r) => s + Number(r.amount_limit), 0))
-const totalSpent = computed(() => summary.value.reduce((s, r) => s + Number(r.spent), 0))
-const totalFree = computed(() => totalAllocated.value - totalSpent.value)
+const totalAllocated = computed(() => sumAllocated(summary.value))
+const totalSpent = computed(() => sumSpent(summary.value))
+const totalFree = computed(() => freeAmount(totalAllocated.value, totalSpent.value))
+const spentRatio = computed(() => budgetSpentRatio(totalSpent.value, totalAllocated.value))
 </script>

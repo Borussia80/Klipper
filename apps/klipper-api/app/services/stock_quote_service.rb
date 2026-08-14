@@ -1,4 +1,4 @@
-require 'net/http'
+require "net/http"
 
 class StockQuoteService
   BRAPI_URL = "https://brapi.dev/api/quote"
@@ -19,7 +19,7 @@ class StockQuoteService
       data = JSON.parse(response)
       {
         quotes: parse_results(data),
-        cached_at: Time.current.iso8601,
+        cached_at: Time.current.iso8601
       }
     end
   end
@@ -32,7 +32,7 @@ class StockQuoteService
         ticker:     r["symbol"],
         price:      r["regularMarketPrice"],
         change_pct: r["regularMarketChangePercent"],
-        name:       r["longName"] || r["shortName"],
+        name:       r["longName"] || r["shortName"]
       }
     end
   end

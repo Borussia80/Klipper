@@ -26,6 +26,7 @@ onMounted(() => {
     <main class="shell-main" style="overflow-y:auto;background:var(--bg);display:flex;flex-direction:column">
       <slot />
     </main>
+    <LayoutMobileNav />
     <UiModalMount />
     <UiToastStack />
   </div>

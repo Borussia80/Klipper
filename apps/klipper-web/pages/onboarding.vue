@@ -18,7 +18,7 @@
       <div style="background:var(--sf);border:1px solid var(--bd2);border-radius:12px;padding:32px">
 
         <!-- Step label -->
-        <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-family:'IBM Plex Mono',monospace;margin-bottom:20px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-family:'Space Grotesk',monospace;margin-bottom:20px">
           Passo {{ currentStep }} de 3
         </div>
 
@@ -40,25 +40,22 @@
               @click="toggleBank(bank.id)"
               @keydown.enter.space.prevent="toggleBank(bank.id)"
             >
-              <div
-                class="bank-logo"
-                :style="{ background: bank.bg, color: bank.fg, fontSize: bank.smallText ? '9px' : '14px', fontWeight: 700 }"
-              >
-                {{ bank.label }}
-              </div>
+              <UiBankIcon :institution="bank.name" :size="36" />
               <div style="font-size:11px;color:var(--t2);margin-top:6px">{{ bank.name }}</div>
             </div>
           </div>
 
-          <!-- Import OFX/CSV -->
+          <!-- Import OFX/CSV — chega no Sprint 2 (adapters de import) -->
           <button
             class="btn"
-            style="width:100%;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t3);font-size:12px;margin-bottom:24px"
+            style="width:100%;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t4);font-size:12px;margin-bottom:24px;cursor:not-allowed;opacity:.6"
+            disabled
+            title="Em breve — importe seu extrato depois do onboarding, em /importar"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            Importar extrato (OFX / CSV)
+            Importar extrato (em breve)
           </button>
 
           <!-- Actions -->
@@ -81,33 +78,32 @@
           <div style="font-size:22px;font-weight:300;letter-spacing:-.02em;color:var(--t1);margin-bottom:6px">Seus investimentos</div>
           <div style="font-size:13px;color:var(--t3);margin-bottom:24px">Importamos seu extrato da B3</div>
 
-          <!-- Drop zone -->
+          <!-- Import de investimentos — chega no Sprint 2, não fake-interativo -->
           <div
-            class="drop-zone"
-            :class="{ 'drop-zone--active': isDragOver }"
-            style="border:2px dashed var(--bd2);border-radius:12px;padding:48px 24px;text-align:center;cursor:pointer;margin-bottom:20px;transition:border-color .15s, background .15s"
-            @dragover.prevent="isDragOver = true"
-            @dragleave="isDragOver = false"
-            @drop.prevent="handleDrop"
+            style="border:2px dashed var(--bd2);border-radius:12px;padding:48px 24px;text-align:center;margin-bottom:20px;opacity:.6"
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--t4);margin:0 auto 10px;display:block">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            <div style="font-size:13px;color:var(--t2);margin-bottom:4px">Arraste o arquivo CEI / B3</div>
-            <div style="font-size:12px;color:var(--t4)">ou clique para selecionar · CSV, OFX, XLS</div>
+            <div style="font-size:13px;color:var(--t2);margin-bottom:4px">Importação de extrato B3 em breve</div>
+            <div style="font-size:12px;color:var(--t4)">Você pode cadastrar seus investimentos depois, em /investimentos</div>
           </div>
 
           <!-- Alt actions -->
           <div style="display:flex;gap:10px;margin-bottom:24px">
             <button
               class="btn"
-              style="flex:1;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t3);font-size:12px"
+              style="flex:1;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t4);font-size:12px;cursor:not-allowed;opacity:.6"
+              disabled
+              title="Em breve"
             >
               Conectar com corretora
             </button>
             <button
               class="btn"
-              style="flex:1;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t3);font-size:12px"
+              style="flex:1;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t4);font-size:12px;cursor:not-allowed;opacity:.6"
+              disabled
+              title="Em breve — cadastre em /investimentos"
             >
               Adicionar manualmente
             </button>
@@ -147,13 +143,13 @@
           <div style="margin-bottom:24px">
             <label style="display:block;font-size:11px;color:var(--t3);margin-bottom:8px;font-weight:500">Quanto quero guardar por mês</label>
             <div style="display:flex;align-items:center;gap:8px;background:var(--ly);border:1px solid var(--bd2);border-radius:var(--r);padding:0 12px;height:44px">
-              <span style="font-size:13px;color:var(--t3);font-family:'IBM Plex Mono',monospace">R$</span>
+              <span style="font-size:13px;color:var(--t3);font-family:'Space Grotesk',monospace">R$</span>
               <input
                 v-model="savingsGoal"
                 type="text"
                 inputmode="numeric"
                 placeholder="0,00"
-                style="flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--t1);font-family:'IBM Plex Mono',monospace"
+                style="flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--t1);font-family:'Space Grotesk',monospace"
                 aria-label="Meta de poupança mensal em reais"
               >
             </div>
@@ -162,7 +158,10 @@
           <!-- Actions -->
           <div style="display:flex;justify-content:space-between">
             <button class="btn" style="background:transparent;border:1px solid var(--bd2);color:var(--t3);height:40px" @click="prev">← Voltar</button>
-            <button class="btn btn-p" style="height:40px;padding:0 20px;font-size:12px" @click="finish">Começar a usar Klipper →</button>
+            <button class="btn btn-p" style="height:40px;padding:0 20px;font-size:12px" :disabled="isFinishing" @click="finish">
+              <span v-if="isFinishing" class="btn-spinner" />
+              <span v-else>Começar a usar Klipper →</span>
+            </button>
           </div>
         </template>
 
@@ -174,28 +173,26 @@
 <script setup lang="ts">
 definePageMeta({ layout: false })
 
+const { completeOnboarding } = useOnboarding()
+const { addToast } = useToast()
+
 const currentStep = ref(1)
 const selectedBanks = ref<string[]>([])
 const selectedGoal = ref<string | null>(null)
 const savingsGoal = ref('')
-const isDragOver = ref(false)
+const isFinishing = ref(false)
 
 interface Bank {
   id: string
   name: string
-  label: string
-  bg: string
-  fg: string
-  smallText?: boolean
 }
 
+// Só bancos com adapter de import implementado (app/services/pdf_adapters/registry.rb).
+// Adicionar aqui só depois do adapter existir — ver FIN-1/UX-1 no roadmap.
 const banks: Bank[] = [
-  { id: 'nubank',    name: 'Nubank',    label: 'N',   bg: 'var(--bank-nubank)', fg: '#fff' },
-  { id: 'itau',      name: 'Itaú',      label: 'I',   bg: 'var(--bank-itau)',   fg: '#fff' },
-  { id: 'btg',       name: 'BTG',       label: 'BTG', bg: 'var(--bank-btg)',    fg: '#4A9EFF', smallText: true },
-  { id: 'bradesco',  name: 'Bradesco',  label: 'B',   bg: '#CC0000',            fg: '#fff' },
-  { id: 'santander', name: 'Santander', label: 'S',   bg: '#EC0000',            fg: '#fff' },
-  { id: 'c6',        name: 'C6 Bank',   label: 'C6',  bg: '#242424',            fg: '#F4C430' },
+  { id: 'nubank', name: 'Nubank' },
+  { id: 'itau',   name: 'Itaú' },
+  { id: 'btg',    name: 'BTG' },
 ]
 
 interface Goal {
@@ -219,11 +216,6 @@ function toggleBank(id: string) {
   }
 }
 
-function handleDrop(_e: DragEvent) {
-  isDragOver.value = false
-  // File handling — requires backend integration
-}
-
 function next() {
   if (currentStep.value < 3) currentStep.value++
 }
@@ -233,7 +225,20 @@ function prev() {
 }
 
 async function finish() {
-  await navigateTo('/dashboard')
+  isFinishing.value = true
+  try {
+    const bankNames = banks
+      .filter((bank) => selectedBanks.value.includes(bank.id))
+      .map((bank) => bank.name)
+    const goal = goals.find((g) => g.id === selectedGoal.value) ?? null
+
+    await completeOnboarding({ bankNames, goal, savingsGoal: savingsGoal.value })
+    await navigateTo('/dashboard')
+  } catch {
+    addToast('Não foi possível concluir o onboarding. Tente novamente.', 'alert')
+  } finally {
+    isFinishing.value = false
+  }
 }
 </script>
 
@@ -255,16 +260,6 @@ async function finish() {
 .bank-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .bank-card--selected { border-color: var(--blue); background: var(--bdm); }
 
-.bank-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: .02em;
-}
-
 .goal-card {
   display: flex;
   align-items: center;
@@ -279,7 +274,4 @@ async function finish() {
 .goal-card:hover { border-color: rgba(43,125,244,0.35); }
 .goal-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .goal-card--selected { border-color: var(--blue); background: var(--bdm); }
-
-.drop-zone:hover { border-color: var(--bd2); }
-.drop-zone--active { border-color: var(--blue) !important; background: var(--bdm); }
 </style>

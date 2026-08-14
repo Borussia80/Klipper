@@ -23,6 +23,17 @@ export interface NetWorthReport {
   investments_by_type: { investment_type: string; total_cost: number }[]
 }
 
+export interface NetWorthHistoryPoint {
+  year: number
+  month: number
+  net_worth: number
+}
+
+export interface NetWorthHistoryReport {
+  period: string
+  points: NetWorthHistoryPoint[]
+}
+
 export interface NaturezaSplitRow {
   natureza: 'fixo' | 'cartao_parcelamento' | 'variavel'
   total: number
@@ -77,13 +88,16 @@ export function useReports() {
   const { apiFetch } = useApi()
   const monthly = ref<MonthlyReport | null>(null)
   const netWorth = ref<NetWorthReport | null>(null)
+  const netWorthHistory = ref<NetWorthHistoryReport | null>(null)
   const naturezaSplit = ref<NaturezaSplitReport | null>(null)
   const reimbursementCoverage = ref<ReimbursementCoverageReport | null>(null)
   const debtRanking = ref<DebtRankingReport | null>(null)
   const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   async function fetchMonthly(year?: number, month?: number, memberId?: number) {
     isLoading.value = true
+    error.value = null
     try {
       const now = new Date()
       monthly.value = await apiFetch<MonthlyReport>('/api/v1/reports/monthly', {
@@ -93,6 +107,8 @@ export function useReports() {
           member_id: memberId,
         },
       })
+    } catch {
+      error.value = 'Erro ao carregar relatório mensal.'
     } finally {
       isLoading.value = false
     }
@@ -100,8 +116,25 @@ export function useReports() {
 
   async function fetchNetWorth() {
     isLoading.value = true
+    error.value = null
     try {
       netWorth.value = await apiFetch<NetWorthReport>('/api/v1/reports/net_worth')
+    } catch {
+      error.value = 'Erro ao carregar patrimônio.'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function fetchNetWorthHistory(period?: '3m' | '6m' | '1a' | 'max') {
+    isLoading.value = true
+    error.value = null
+    try {
+      netWorthHistory.value = await apiFetch<NetWorthHistoryReport>('/api/v1/reports/net_worth_history', {
+        query: period && period !== 'max' ? { period } : {},
+      })
+    } catch {
+      error.value = 'Erro ao carregar histórico de patrimônio.'
     } finally {
       isLoading.value = false
     }
@@ -109,6 +142,7 @@ export function useReports() {
 
   async function fetchNaturezaSplit(year?: number, month?: number, memberId?: number) {
     isLoading.value = true
+    error.value = null
     try {
       const now = new Date()
       naturezaSplit.value = await apiFetch<NaturezaSplitReport>('/api/v1/reports/natureza_split', {
@@ -118,6 +152,8 @@ export function useReports() {
           member_id: memberId,
         },
       })
+    } catch {
+      error.value = 'Erro ao carregar composição de gastos.'
     } finally {
       isLoading.value = false
     }
@@ -125,6 +161,7 @@ export function useReports() {
 
   async function fetchReimbursementCoverage(year?: number, month?: number, categoryId?: number) {
     isLoading.value = true
+    error.value = null
     try {
       const now = new Date()
       reimbursementCoverage.value = await apiFetch<ReimbursementCoverageReport>('/api/v1/reports/reimbursement_coverage', {
@@ -134,6 +171,8 @@ export function useReports() {
           category_id: categoryId,
         },
       })
+    } catch {
+      error.value = 'Erro ao carregar cobertura de reembolso.'
     } finally {
       isLoading.value = false
     }
@@ -141,8 +180,11 @@ export function useReports() {
 
   async function fetchDebtRanking() {
     isLoading.value = true
+    error.value = null
     try {
       debtRanking.value = await apiFetch<DebtRankingReport>('/api/v1/reports/debt_ranking')
+    } catch {
+      error.value = 'Erro ao carregar prioridade de quitação.'
     } finally {
       isLoading.value = false
     }
@@ -151,12 +193,15 @@ export function useReports() {
   return {
     monthly,
     netWorth,
+    netWorthHistory,
     naturezaSplit,
     reimbursementCoverage,
     debtRanking,
     isLoading,
+    error,
     fetchMonthly,
     fetchNetWorth,
+    fetchNetWorthHistory,
     fetchNaturezaSplit,
     fetchReimbursementCoverage,
     fetchDebtRanking,

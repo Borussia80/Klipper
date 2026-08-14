@@ -300,5 +300,66 @@ RSpec.describe "Api::V1::Reports", type: :request do
       json = JSON.parse(response.body)
       expect(json["investments_by_type"]).to be_an(Array)
     end
+
+    it "creates a snapshot for the current month on first call" do
+      expect {
+        get "/api/v1/reports/net_worth", headers: auth_headers
+      }.to change { NetWorthSnapshot.where(user: user).count }.from(0).to(1)
+
+      snapshot = NetWorthSnapshot.find_by(user: user, year: Date.current.year, month: Date.current.month)
+      expect(snapshot.net_worth.to_f).to be_within(0.01).of(29500.50)
+    end
+
+    it "updates the existing snapshot instead of duplicating it when called again in the same month" do
+      get "/api/v1/reports/net_worth", headers: auth_headers
+      create(:account, user: user, balance: 999.50)
+
+      expect {
+        get "/api/v1/reports/net_worth", headers: auth_headers
+      }.not_to change { NetWorthSnapshot.where(user: user).count }
+
+      snapshot = NetWorthSnapshot.find_by(user: user, year: Date.current.year, month: Date.current.month)
+      expect(snapshot.net_worth.to_f).to be_within(0.01).of(30500.00)
+    end
+  end
+
+  describe "GET /api/v1/reports/net_worth_history" do
+    it "returns 401 without token" do
+      get "/api/v1/reports/net_worth_history"
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns snapshots ordered chronologically" do
+      create(:net_worth_snapshot, user: user, year: 2026, month: 5, net_worth: 1000)
+      create(:net_worth_snapshot, user: user, year: 2026, month: 3, net_worth: 800)
+      create(:net_worth_snapshot, user: user, year: 2026, month: 4, net_worth: 900)
+
+      get "/api/v1/reports/net_worth_history", headers: auth_headers
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["points"].map { |p| p["month"] }).to eq([ 3, 4, 5 ])
+      expect(json["points"].last["net_worth"].to_f).to be_within(0.01).of(1000.0)
+    end
+
+    it "filters to the last N months when a period is given" do
+      base = Date.current.beginning_of_month
+      (0..5).each do |i|
+        d = base.prev_month(i)
+        create(:net_worth_snapshot, user: user, year: d.year, month: d.month, net_worth: 100 * i)
+      end
+
+      get "/api/v1/reports/net_worth_history?period=3m", headers: auth_headers
+      json = JSON.parse(response.body)
+      expect(json["points"].length).to eq(3)
+    end
+
+    it "does not include other users' snapshots" do
+      other = create(:user)
+      create(:net_worth_snapshot, user: other)
+
+      get "/api/v1/reports/net_worth_history", headers: auth_headers
+      json = JSON.parse(response.body)
+      expect(json["points"]).to be_empty
+    end
   end
 end

@@ -102,6 +102,23 @@
           </div>
         </div>
 
+        <!-- Timeline -->
+        <div class="tile" style="margin-bottom:20px;padding:16px 12px 8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 10px">
+            <div class="plbl">Evolução</div>
+            <div class="tab-bar">
+              <button
+                v-for="p in periodOptions"
+                :key="p.value"
+                class="tab-btn"
+                :class="{ active: historyPeriod === p.value }"
+                @click="historyPeriod = p.value"
+              >{{ p.label }}</button>
+            </div>
+          </div>
+          <ChartsPatrimonioTimeline :data="timelineData" />
+        </div>
+
         <!-- Breakdown tiles -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
           <div class="tile">
@@ -164,9 +181,11 @@
 </template>
 
 <script setup lang="ts">
+import type { NetWorthHistoryPoint } from '~/composables/useReports'
+
 definePageMeta({ layout: 'app' })
 
-const { monthly, netWorth, isLoading, fetchMonthly, fetchNetWorth } = useReports()
+const { monthly, netWorth, netWorthHistory, isLoading, fetchMonthly, fetchNetWorth, fetchNetWorthHistory } = useReports()
 const { members, fetchMembers } = useMembers()
 const { formatBRL } = useFormatters()
 
@@ -175,6 +194,23 @@ const activeYear = ref(now.getFullYear())
 const activeMonth = ref(now.getMonth() + 1)
 const activeMemberId = ref<number | undefined>(undefined)
 const tab = ref<'mensal' | 'patrimonio'>('mensal')
+
+const historyPeriod = ref<'3m' | '6m' | '1a' | 'max'>('6m')
+const periodOptions = [
+  { value: '3m', label: '3M' },
+  { value: '6m', label: '6M' },
+  { value: '1a', label: '1A' },
+  { value: 'max', label: 'Máx' },
+] as const
+
+const MONTH_ABBR = [ 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez' ]
+
+const timelineData = computed(() =>
+  (netWorthHistory.value?.points ?? []).map((p: NetWorthHistoryPoint) => ({
+    date: `${MONTH_ABBR[p.month - 1]}/${String(p.year).slice(-2)}`,
+    value: p.net_worth,
+  }))
+)
 
 const monthLabel = computed(() =>
   new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(
@@ -228,13 +264,22 @@ watch([activeYear, activeMonth, activeMemberId], ([y, m, memberId]) => {
 })
 
 watch(tab, (t) => {
-  if (t === 'mensal') fetchMonthly(activeYear.value, activeMonth.value, activeMemberId.value)
-  else fetchNetWorth()
+  if (t === 'mensal') {
+    fetchMonthly(activeYear.value, activeMonth.value, activeMemberId.value)
+  } else {
+    fetchNetWorth()
+    fetchNetWorthHistory(historyPeriod.value)
+  }
+})
+
+watch(historyPeriod, (p: typeof historyPeriod.value) => {
+  if (tab.value === 'patrimonio') fetchNetWorthHistory(p)
 })
 
 onMounted(() => {
   fetchMonthly(activeYear.value, activeMonth.value, activeMemberId.value)
   fetchNetWorth()
+  fetchNetWorthHistory(historyPeriod.value)
   fetchMembers()
 })
 </script>

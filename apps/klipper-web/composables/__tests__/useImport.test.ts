@@ -79,6 +79,7 @@ describe('useImport', () => {
           page: 1,
           metadata: {},
           suggested_member_id: null,
+          token: 'signed-token-abc',
         },
       ],
       warnings: [],
@@ -141,6 +142,7 @@ describe('useImport', () => {
         installment_total: null,
         page: 1,
         metadata: {},
+        token: 'signed-token-abc',
       },
     ]
 
@@ -183,6 +185,19 @@ describe('useImport', () => {
       expect(mockApiFetch).toHaveBeenCalledWith(
         '/api/v1/imports/confirm',
         expect.objectContaining({ method: 'POST', body: { rows: rowsWithMember, account_id: 7 } }),
+      )
+    })
+
+    it('SEC-17: keeps the signed token intact when member_id is set on a row', async () => {
+      const { confirmImport } = useImport()
+      const rowsWithMember = [ { ...rows[0], member_id: 12 } ]
+      await confirmImport(rowsWithMember, 7)
+
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v1/imports/confirm',
+        expect.objectContaining({
+          body: expect.objectContaining({ rows: [ expect.objectContaining({ token: 'signed-token-abc' }) ] }),
+        }),
       )
     })
   })

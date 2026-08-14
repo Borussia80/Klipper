@@ -44,6 +44,16 @@ describe('useCategories', () => {
     mockAddToast.mockReset()
   })
 
+  describe('fetchCategories', () => {
+    it('sets isLoading to false and error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+      const { isLoading, error, fetchCategories } = useCategories()
+      await fetchCategories()
+      expect(isLoading.value).toBe(false)
+      expect(error.value).toBe('Erro ao carregar categorias.')
+    })
+  })
+
   describe('updateCategory', () => {
     it('replaces the matching category in state with the API response', async () => {
       mockApiFetch.mockResolvedValueOnce([makeCategory({ id: 1, reimbursed_by_category_id: null })])

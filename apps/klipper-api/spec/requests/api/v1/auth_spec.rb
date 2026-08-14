@@ -87,4 +87,68 @@ RSpec.describe "Auth endpoints", type: :request do
       end
     end
   end
+
+  describe "SEC-16: sign_in em tempo constante (sem vazar por timing se o e-mail existe)" do
+    it "runs a bcrypt comparison even when the e-mail doesn't exist" do
+      expect_any_instance_of(User).to receive(:authenticate).and_call_original
+
+      post "/api/v1/auth/sign_in",
+        params: { email: "nobody@example.com", password: "whatever" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  describe "SEC-08: throttle de força bruta" do
+    # Congela o tempo durante cada exemplo: sem isso, as requisições sequenciais
+    # podem cruzar a fronteira de minuto do throttle (Rack::Attack janela de
+    # 1.minute) e o contador zera no meio do teste, tornando-o flaky.
+    around do |example|
+      travel_to(Time.current) { example.run }
+    end
+
+    it "returns 429 after 5 sign_in attempts for the same e-mail within a minute" do
+      5.times do
+        post "/api/v1/auth/sign_in",
+          params: { email: "victim@example.com", password: "wrongpass" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+      end
+
+      post "/api/v1/auth/sign_in",
+        params: { email: "victim@example.com", password: "wrongpass" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:too_many_requests)
+      expect(json_response[:error]).to be_present
+    end
+
+    it "does not throttle sign_in attempts for a different e-mail" do
+      5.times do
+        post "/api/v1/auth/sign_in",
+          params: { email: "victim@example.com", password: "wrongpass" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+      end
+
+      post "/api/v1/auth/sign_in",
+        params: { email: "someone-else@example.com", password: "wrongpass" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns 429 after 20 auth requests from the same IP within a minute" do
+      20.times do |i|
+        post "/api/v1/auth/sign_in",
+          params: { email: "attacker#{i}@example.com", password: "wrongpass" }.to_json,
+          headers: { "Content-Type" => "application/json" }
+      end
+
+      post "/api/v1/auth/sign_in",
+        params: { email: "attacker21@example.com", password: "wrongpass" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:too_many_requests)
+    end
+  end
 end

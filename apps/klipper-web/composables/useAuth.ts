@@ -48,7 +48,27 @@ export function useAuth() {
     user.value = await apiFetch<User>('/api/v1/users/me')
   }
 
+  async function requestPasswordReset(email: string) {
+    await apiFetch('/api/v1/password_resets', { method: 'POST', body: { email } })
+  }
+
+  async function confirmPasswordReset(resetToken: string, password: string, passwordConfirmation: string) {
+    await apiFetch(`/api/v1/password_resets/${resetToken}`, {
+      method: 'PATCH',
+      body: { password, password_confirmation: passwordConfirmation },
+    })
+  }
+
   const isAuthenticated = computed(() => !!token.value)
 
-  return { user, login, signUp, logout, fetchCurrentUser, isAuthenticated }
+  return {
+    user,
+    login,
+    signUp,
+    logout,
+    fetchCurrentUser,
+    requestPasswordReset,
+    confirmPasswordReset,
+    isAuthenticated,
+  }
 }

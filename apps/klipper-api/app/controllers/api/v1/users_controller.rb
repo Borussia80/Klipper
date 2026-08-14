@@ -8,6 +8,11 @@ module Api
       end
 
       def update
+        if changing_email? && !@current_user.authenticate(params[:current_password])
+          render json: { error: "Senha atual incorreta" }, status: :unprocessable_entity
+          return
+        end
+
         if @current_user.update(update_params)
           render json: user_json(@current_user), status: :ok
         else
@@ -27,6 +32,7 @@ module Api
         end
 
         if @current_user.update(password: params[:password], password_confirmation: params[:password_confirmation])
+          @current_user.increment!(:token_version)
           render json: { message: "Senha alterada com sucesso" }, status: :ok
         else
           render json: { errors: @current_user.errors.full_messages }, status: :unprocessable_entity
@@ -42,6 +48,10 @@ module Api
 
       def update_params
         params.permit(:name, :email)
+      end
+
+      def changing_email?
+        update_params[:email].present? && update_params[:email] != @current_user.email
       end
 
       def user_json(user)

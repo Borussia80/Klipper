@@ -1,78 +1,96 @@
 <script setup lang="ts">
 /**
- * Instrumento primário da tela (padrão HMI, ISA-101).
- * Um por página: o número que responde a pergunta da tela, com barra de
- * faixa estilo bargraph. Único elemento da tela autorizado a usar --ok.
+ * Hero faceplate do dashboard (direção náutica premium).
+ * Instrumento primário: resultado do mês, com moldura, gradiente e barra
+ * de faixa — nunca um número solto no vazio.
  */
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   label: string
-  value: string
-  ratio: number
+  netValue: number
+  formattedValue: string
+  spentRatio: number | null
   detail?: string
-}>()
+  compact?: boolean
+  showBar?: boolean
+}>(), {
+  compact: false,
+  showBar: true,
+})
 
-const pct = computed(() => Math.round(Math.min(1, Math.max(0, props.ratio)) * 100))
+const hasRatio = computed(() => props.spentRatio !== null)
+const pct = computed(() => Math.round(Math.min(1, Math.max(0, props.spentRatio ?? 0)) * 100))
+const isOver = computed(() => (props.spentRatio ?? 0) > 1)
+const scaleLabel = computed(() =>
+  isOver.value ? 'Saídas já superam entradas do ciclo' : 'Dentro da faixa do ciclo'
+)
 </script>
 
 <template>
-  <div>
-    <div class="plbl" style="margin-bottom:10px">{{ label }}</div>
-    <div class="mono readout-value">{{ value }}</div>
-
-    <div class="readout-track" role="presentation">
-      <div
-        data-testid="readout-bar"
-        class="readout-fill"
-        :style="{ width: pct + '%' }"
-      ></div>
+  <div class="hero" :class="{ compact }">
+    <div class="hero-lbl">{{ label }}</div>
+    <div class="hero-row">
+      <div class="hero-num mono" :class="netValue < 0 ? 'neg' : 'pos'">{{ formattedValue }}</div>
+      <div v-if="detail" data-testid="readout-detail" class="hero-delta">{{ detail }}</div>
     </div>
-
-    <div v-if="detail" data-testid="readout-detail" class="readout-detail">
-      {{ detail }}
-    </div>
+    <template v-if="showBar">
+      <div v-if="!hasRatio" data-testid="readout-no-budget" class="hero-no-budget">
+        Sem orçamento definido
+      </div>
+      <template v-else>
+        <div class="hero-bar" role="presentation">
+          <div
+            data-testid="readout-bar"
+            class="fill"
+            :class="{ over: isOver }"
+            :style="{ width: pct + '%' }"
+          ></div>
+        </div>
+        <div class="hero-scale">
+          <span>{{ scaleLabel }}</span>
+          <span class="mono">{{ Math.round((spentRatio ?? 0) * 100) }}% da renda</span>
+        </div>
+      </template>
+    </template>
   </div>
 </template>
 
 <style scoped>
-.readout-value {
-  font-size: clamp(44px, 8vw, 72px);
-  font-weight: 300;
-  letter-spacing: -0.03em;
-  line-height: 0.95;
-  color: var(--ok);
-}
-
-.readout-track {
-  margin-top: 20px;
-  height: 3px;
-  background: var(--ly);
-  border-radius: 2px;
+.hero {
+  background: linear-gradient(160deg, #13202E, #0E1622);
+  border: 1px solid var(--bd-hi);
+  border-radius: var(--r);
+  padding: 26px 28px;
   position: relative;
+  overflow: hidden;
 }
-
-/* ticks de faixa (min / meio / max), discretos como num bargraph */
-.readout-track::before,
-.readout-track::after {
+.hero::after {
   content: '';
-  position: absolute;
-  top: -3px;
-  width: 1px;
-  height: 9px;
-  background: var(--bd2);
+  position: absolute; top: -40%; right: -10%; width: 340px; height: 340px;
+  background: radial-gradient(circle, rgba(217,168,92,0.10), transparent 62%);
+  pointer-events: none;
 }
-.readout-track::before { left: 50%; }
-.readout-track::after  { right: 0; }
-
-.readout-fill {
-  height: 100%;
-  background: var(--ok);
-  border-radius: 2px;
-  opacity: 0.7;
+.hero-lbl {
+  font-size: 12px; color: var(--t3); text-transform: uppercase;
+  letter-spacing: .09em; font-weight: 600;
 }
-
-.readout-detail {
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--t3);
+.hero-row { display: flex; align-items: flex-end; gap: 20px; margin-top: 8px; flex-wrap: wrap; }
+.hero-num { font-size: clamp(36px, 6vw, 52px); font-weight: 600; line-height: 1; }
+.hero-num.pos { color: var(--ok); }
+.hero-num.neg { color: var(--alert); }
+.hero-delta { font-size: 13px; color: var(--t2); padding-bottom: 6px; }
+.hero-bar {
+  margin-top: 20px; height: 8px; border-radius: 5px;
+  background: #0A121C; border: 1px solid var(--bd); overflow: hidden; display: flex;
 }
+.hero-bar .fill { height: 100%; background: linear-gradient(90deg, var(--brass), #C7954C); }
+.hero-bar .fill.over { background: linear-gradient(90deg, var(--warn), var(--alert)); }
+.hero-scale {
+  display: flex; justify-content: space-between; margin-top: 7px;
+  font-size: 11.5px; color: var(--t3);
+}
+.hero-no-budget {
+  margin-top: 20px; font-size: 11.5px; color: var(--t3);
+}
+.hero.compact { padding: 14px 16px; }
+.hero.compact .hero-num { font-size: clamp(20px, 3vw, 26px); }
 </style>

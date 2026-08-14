@@ -1,66 +1,28 @@
 <template>
-  <div ref="mountEl" class="timeline-host" />
+  <div v-show="hasData" ref="mountEl" class="timeline-host" />
+  <div v-show="!hasData" class="timeline-empty" data-testid="timeline-empty">
+    Ainda não há histórico suficiente para o gráfico. O patrimônio é registrado a cada
+    visita a esta página — volte em alguns meses para ver a evolução aqui.
+  </div>
 </template>
 
 <script setup lang="ts">
 /**
  * PatrimonioTimeline — React island.
- * Full-width area chart of net worth over time with period switching.
+ * Full-width area chart of net worth over time. Dados vêm de snapshots mensais
+ * reais (net_worth_snapshots), registrados daqui pra frente — sem histórico
+ * retroativo fabricado.
  */
 
-const props = defineProps<{ period: '3m' | '6m' | '1a' | 'max' }>()
+const props = defineProps<{ data: { date: string; value: number }[] }>()
 const mountEl = ref<HTMLDivElement | null>(null)
+const hasData = computed(() => props.data.length >= 2)
 let root: any = null
-
-// Mock data per period
-const MOCK_DATA: Record<string, { date: string; value: number }[]> = {
-  '3m': [
-    { date: 'Abr', value: 458000 },
-    { date: 'Mai', value: 471000 },
-    { date: 'Jun', value: 487320 },
-  ],
-  '6m': [
-    { date: 'Jan', value: 420000 },
-    { date: 'Fev', value: 435000 },
-    { date: 'Mar', value: 441000 },
-    { date: 'Abr', value: 452000 },
-    { date: 'Mai', value: 471000 },
-    { date: 'Jun', value: 487320 },
-  ],
-  '1a': [
-    { date: 'Jul', value: 380000 },
-    { date: 'Ago', value: 390000 },
-    { date: 'Set', value: 395000 },
-    { date: 'Out', value: 405000 },
-    { date: 'Nov', value: 410000 },
-    { date: 'Dez', value: 420000 },
-    { date: 'Jan', value: 435000 },
-    { date: 'Fev', value: 441000 },
-    { date: 'Mar', value: 452000 },
-    { date: 'Abr', value: 458000 },
-    { date: 'Mai', value: 471000 },
-    { date: 'Jun', value: 487320 },
-  ],
-  max: [
-    { date: '2023', value: 250000 },
-    { date: 'Fev', value: 270000 },
-    { date: 'Mai', value: 295000 },
-    { date: 'Ago', value: 310000 },
-    { date: '2024', value: 340000 },
-    { date: 'Mar', value: 365000 },
-    { date: 'Jun', value: 380000 },
-    { date: 'Set', value: 395000 },
-    { date: 'Dez', value: 420000 },
-    { date: '2025', value: 435000 },
-    { date: 'Mar', value: 452000 },
-    { date: 'Jun', value: 487320 },
-  ],
-}
 
 const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 0 })
 
 async function mount() {
-  if (!mountEl.value) return
+  if (!mountEl.value || props.data.length < 2) return
 
   const React = (await import('react')).default
   const { createRoot } = await import('react-dom/client')
@@ -68,7 +30,7 @@ async function mount() {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   } = await import('recharts')
 
-  const data = MOCK_DATA[props.period]
+  const data = props.data
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
@@ -145,7 +107,7 @@ async function mount() {
 }
 
 onMounted(mount)
-watch(() => props.period, mount)
+watch(() => props.data, mount, { deep: true })
 onUnmounted(() => root?.unmount())
 </script>
 
@@ -153,5 +115,10 @@ onUnmounted(() => root?.unmount())
 .timeline-host {
   width: 100%;
   height: 200px;
+}
+.timeline-empty {
+  display: flex; align-items: center; justify-content: center;
+  height: 200px; padding: 0 24px; text-align: center;
+  color: var(--t3); font-size: 13px; line-height: 1.5;
 }
 </style>
