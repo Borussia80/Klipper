@@ -124,21 +124,6 @@
 
       <li>
         <NuxtLink
-          to="/kira"
-          class="ni"
-          :class="{ act: route.path.startsWith('/kira') }"
-          :aria-current="route.path.startsWith('/kira') ? 'page' : undefined"
-        >
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-            <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/>
-            <path d="M7.5 2.5v1.5M7.5 11v1.5M2.5 7.5H4M11 7.5h1.5M4.2 4.2l1.1 1.1M9.7 9.7l1.1 1.1M9.7 4.2l-1.1 1.1M4.2 9.7l1.1 1.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-          Kira
-          <span style="margin-left:auto;font-size:9px;background:var(--bdm);color:var(--blue);border-radius:4px;padding:1px 5px;font-weight:600" aria-label="Beta">BETA</span>
-        </NuxtLink>
-      </li>
-      <li>
-        <NuxtLink
           to="/importar"
           class="ni"
           :class="{ act: route.path.startsWith('/importar') }"
