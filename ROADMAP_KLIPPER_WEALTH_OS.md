@@ -244,15 +244,22 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | UX-3 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | **Done** | 5 | Manual Audit | Manual |
 | UX-4 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | S | Frontend | **Done** | 5 | Manual Audit | Manual |
 | UX-5 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | **Done** | 5 | Manual Audit | Manual/Decisão |
+| SEC-17 | Segurança | M8 | P1 | Médio | Médio | M | Backend | **Done** | 6 | Security Audit | **PoC (request spec)** + Automatizado |
+| SEC-18 | Segurança | L11 | P2 | Baixo | Baixo | XS | Frontend/Backend | **Done** | 6 | Security Audit | Decisão registrada |
 
 **Progresso**
 
 ```
-Total   █████████░  92%  (23/25 done)
+Total   █████████░  93%  (25/27 done)
 P0      ██████████  100%  (4/4 done)
-P1      █████████░  88%  (7/8 done)
-P2      █████████░  92%  (12/13 done)
+P1      █████████░  89%  (8/9 done)
+P2      ██████████  100%  (13/13 done)
 ```
+
+Pendência única para 27/27: `SEC-15` segue **Parcial** — código commitado nesta
+sessão (`config.hosts` restrito via `AllowedHosts.from_env`), mas depende de
+configurar `RAILS_ALLOWED_HOSTS` no dashboard do Render com o hostname real de
+produção (ação externa, fora do alcance do agente — ver checklist pós-deploy).
 
 ### Sprint 0 — Observabilidade primeiro
 
@@ -360,7 +367,7 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
 
 **SEC-13 [P2 · Risco Baixo · Valor Médio · Owner DevOps · Origem: M7 · Source: Security Audit · Status: Done]** — Risco de prompt injection indireta (LLM01) em `agent-pr-review.yml` (repo público, PRs de fork processados por agente com Bash + `GH_TOKEN`). Detalhe em [`docs/security/audit-2026-07-29.md#m7`](docs/security/audit-2026-07-29.md). **Critério de aceite:** revisar escopo de permissões do `GH_TOKEN` para PRs de fork, ou restringir a `workflow_dispatch` manual para PRs externos. **Validação:** revisão manual da política de permissões do workflow.
 
-**SEC-15 [P2 · Risco Baixo · Valor Baixo · Owner DevOps · Origem: L7+L8+L9 · Source: Security Audit · Status: Parcial (2/3)]** — Robustez de infraestrutura: `config.hosts` irrestrito, GitHub Actions pinadas por tag mutável, Dependabot sem ecossistema `npm`. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (`config.hosts` restrito ao domínio de produção; actions pinadas por SHA; `dependabot.yml` com entrada `npm` para `apps/klipper-web` e `apps/quebec-web`). **Feito (2026-07-30):** actions de `ci.yml`, `agent-pr-review.yml` e `agent-full-report.yml` pinadas por SHA de commit; `dependabot.yml` com entradas `npm` para `apps/klipper-web` e `apps/quebec-web`. **Pendente:** `config.hosts` em `config/environments/production.rb` segue irrestrito — bloqueado por não sabermos ainda o hostname de produção do `klipper-api` (checar no dashboard do Render → klipper-api → Settings → Custom Domains). **Validação:** revisão manual + primeiro PR automático do Dependabot no ecossistema npm.
+**SEC-15 [P2 · Risco Baixo · Valor Baixo · Owner DevOps · Origem: L7+L8+L9 · Source: Security Audit · Status: Parcial (2/3)]** — Robustez de infraestrutura: `config.hosts` irrestrito, GitHub Actions pinadas por tag mutável, Dependabot sem ecossistema `npm`. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (`config.hosts` restrito ao domínio de produção; actions pinadas por SHA; `dependabot.yml` com entrada `npm` para `apps/klipper-web` e `apps/quebec-web`). **Feito (2026-07-30):** actions de `ci.yml`, `agent-pr-review.yml` e `agent-full-report.yml` pinadas por SHA de commit; `dependabot.yml` com entradas `npm` para `apps/klipper-web` e `apps/quebec-web`. **Feito (2026-08-14):** código de `config.hosts` implementado e commitado — `lib/allowed_hosts.rb` (`AllowedHosts.from_env`) + `config/environments/production.rb` lendo `RAILS_ALLOWED_HOSTS`; fail-open confirmado (hosts vazio não bloqueia nada), seguro de deployar mesmo antes da env var existir. **Pendente:** configurar `RAILS_ALLOWED_HOSTS` no dashboard do Render (klipper-api → Settings → Environment) com o hostname real de produção — ação externa, só o usuário tem acesso ao dashboard; sem isso a restrição fica pronta mas inativa. **Validação:** `spec/lib/allowed_hosts_spec.rb` verde + revisão manual + primeiro PR automático do Dependabot no ecossistema npm.
 
 **SEC-16 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: L3+L6+L10 · Source: Security Audit · Status: Done]** — Robustez de aplicação: timing attack em `sign_in`, troca de e-mail sem reautenticação, Service Worker cacheando resposta financeira em disco. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (tempo constante em `sign_in`; `current_password` exigido para trocar e-mail; cache do Service Worker excluído das rotas `/api/v1/*` ou revisado). **Validação:** RSpec (timing + reauth) + teste manual (Service Worker).
 
@@ -379,6 +386,22 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
 Verificado visualmente em Chrome (~500px, abaixo do breakpoint de 768px): sidebar oculto, barra inferior fixa funcional (navegação entre as 5 rotas, indicador de item ativo, `padding-bottom` do conteúdo não sobrepõe a barra), topbar sem corte, `DebtAlarmBanner` sem clipping. Desktop (1400px) re-verificado sem regressão. 273/273 Vitest, `vue-tsc` sem novos erros vs. baseline. **Validação:** verificação visual manual (Chrome) + testes automatizados.
 
 **UX-5 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Source: Manual Audit · Status: Done]** — `components/charts/PatrimonioTimeline.vue` órfão, com `MOCK_DATA`, não importado em nenhuma página. **Decisão do usuário:** implementar de verdade, com snapshot mensal daqui pra frente (sem fabricar histórico). **Feito:** não existia histórico real de patrimônio no schema — criada tabela `net_worth_snapshots` (migration + model + validações), `GET /api/v1/reports/net_worth` agora grava/atualiza (upsert) o snapshot do mês corrente a cada chamada, nova rota `GET /api/v1/reports/net_worth_history` (com filtro de período 3m/6m/1a/max) expõe a série para o frontend. `PatrimonioTimeline.vue` reescrito para consumir dados reais via `useReports`, com estado vazio explícito para quem ainda não acumulou ≥2 meses de snapshots (`v-show` em vez de `v-if` para não destruir o nó DOM do React island). Cobertura: 405/405 RSpec, 273/273 Vitest, `vue-tsc` sem novos erros vs. baseline, `npm run build` ok. **Validação:** testes automatizados (backend + frontend); sem histórico fabricado — o gráfico só populará com o uso real ao longo dos meses.
+
+---
+
+### Sprint 6 — Auditoria de segurança 2026-08-14 (plano de teste de regra de negócio)
+
+Rodada focada em confirmar que toda regra de negócio financeira é processada
+no backend (nunca confiada ao frontend) e que os endpoints seguem fechados.
+Confirmou que `H1`/`H2`/`H3` (`SEC-03`/`04`/`05`) seguem corrigidos. Achado
+novo, categoria não coberta na auditoria de 2026-07-29: dado financeiro
+"processado" (linha de extrato já parseada) reenviado pelo cliente e aceito
+sem revalidação contra o documento fonte. Detalhe completo em
+[`docs/security/audit-2026-08-14.md`](docs/security/audit-2026-08-14.md).
+
+**SEC-17 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: M8 · Source: Security Audit · Status: Done]** — `imports/confirm` não revalida `amount`/`description`/`occurred_on` contra o PDF original. `account_id`/`member_id` já são validados por posse (`SEC-05`), mas os valores financeiros da linha em si vinham direto de `params` sem vínculo ao `preview` que os gerou — um usuário podia capturar a resposta de `POST /imports/preview` e reenviar `POST /imports/confirm` com valores adulterados. **Feito:** `BankImport::RowSigner` (novo, `app/services/bank_import/row_signer.rb`) assina os 5 campos financeiros no `preview` via `Rails.application.message_verifier(:bank_import_row)` com TTL de 30min; `confirm` decodifica o token e persiste só os valores decodificados — qualquer campo solto reenviado pelo cliente é ignorado, não rejeitado (token ausente/adulterado/expirado é que gera erro de linha). **Validação:** PoC (request spec, `spec/requests/api/v1/imports_spec.rb`) reproduzindo a adulteração + regressão automatizada (`row_signer_spec.rb`, specs de `pdf_import_service` e request migrados).
+
+**SEC-18 [P2 · Risco Baixo · Valor Baixo · Owner Frontend/Backend · Origem: L11 · Source: Security Audit · Status: Done]** — `pages/kira.vue` chama `POST /api/v1/kira/chat`, rota inexistente no backend (zero ocorrência em `routes.rb`/`app/controllers`; só resquício em `log/test.log`). Sem impacto de segurança (a chamada falhava com 404). **Feito:** removido o link "Kira" do `AppSidebar.vue` — a tela fica sem entrada de navegação até o backend ser implementado; `pages/kira.vue` não foi deletado. **Validação:** decisão registrada; sem regressão nos testes de frontend (274/274).
 
 ---
 
