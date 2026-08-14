@@ -182,8 +182,8 @@ RSpec.describe "Api::V1::Imports", type: :request do
   describe "POST /api/v1/imports/confirm" do
     let(:rows) do
       [
-        { occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50" },
-        { occurred_on: "2026-06-10", description: "LOJADOIS", amount: "-15.50" }
+        signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50"),
+        signed_row(occurred_on: "2026-06-10", description: "LOJADOIS", amount: "-15.50")
       ]
     end
 
@@ -240,8 +240,8 @@ RSpec.describe "Api::V1::Imports", type: :request do
     let(:other_member)  { create(:member, user: other_user) }
     let(:rows) do
       [
-        { occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50" },
-        { occurred_on: "2026-06-10", description: "LOJADOIS", amount: "-15.50" }
+        signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50"),
+        signed_row(occurred_on: "2026-06-10", description: "LOJADOIS", amount: "-15.50")
       ]
     end
 
@@ -291,6 +291,90 @@ RSpec.describe "Api::V1::Imports", type: :request do
         expect(json["errors"].length).to eq(2)
         expect(json["errors"]).to all(include("Portador inválido"))
       end
+    end
+  end
+
+  describe "SEC-17: assinatura por linha em imports/confirm" do
+    let(:extrato_file) do
+      Rack::Test::UploadedFile.new(pdf_fixture_path("itau_extrato.pdf").to_s, "application/pdf")
+    end
+
+    def preview_rows
+      with_pdf_fixture("itau_extrato.pdf") do
+        post "/api/v1/imports/preview", params: { file: extrato_file }, headers: auth_headers
+      end
+      JSON.parse(response.body)["rows"]
+    end
+
+    it "cada linha do preview inclui um token assinado" do
+      rows = preview_rows
+
+      expect(rows).not_to be_empty
+      rows.each { |row| expect(row["token"]).to be_a(String) }
+    end
+
+    it "confirma o fluxo legítimo preview -> confirm e persiste os valores reais do documento" do
+      rows = preview_rows
+      first = rows.first
+
+      post "/api/v1/imports/confirm", params: { rows: rows }, headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["errors"]).to be_empty
+      expect(json["imported"] + json["duplicates"]).to eq(rows.size)
+
+      tx = user.transactions.find_by(description: first["description"])
+      expect(tx.amount.to_s("F")).to eq(BigDecimal(first["amount"]).abs.to_s("F"))
+    end
+
+    it "adulterar amount/description/occurred_on no confirm não altera o que é persistido" do
+      rows = preview_rows
+      original = rows.first
+      tampered = rows.dup
+      tampered[0] = original.merge(
+        "amount" => "-999999.00",
+        "description" => "VALOR FORJADO",
+        "occurred_on" => "2000-01-01"
+      )
+
+      post "/api/v1/imports/confirm", params: { rows: tampered }, headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["errors"]).to be_empty
+      expect(json["imported"] + json["duplicates"]).to eq(rows.size)
+
+      persisted = user.transactions.find_by(description: original["description"])
+      expect(persisted).to be_present
+      expect(persisted.amount.to_s("F")).to eq(BigDecimal(original["amount"]).abs.to_s("F"))
+      expect(user.transactions.find_by(description: "VALOR FORJADO")).to be_nil
+    end
+
+    it "rejeita e reporta erro de linha quando o token está ausente" do
+      rows = preview_rows
+      without_token = rows.dup
+      without_token[0] = rows.first.except("token")
+
+      post "/api/v1/imports/confirm", params: { rows: without_token }, headers: auth_headers
+
+      json = JSON.parse(response.body)
+      expect(json["errors"].size).to eq(1)
+      expect(json["imported"] + json["duplicates"]).to eq(rows.size - 1)
+    end
+
+    it "expira o token após 30 minutos e rejeita a linha" do
+      rows = preview_rows
+
+      travel 31.minutes do
+        expect {
+          post "/api/v1/imports/confirm", params: { rows: rows }, headers: auth_headers
+        }.not_to change { user.transactions.count }
+      end
+
+      json = JSON.parse(response.body)
+      expect(json["imported"]).to eq(0)
+      expect(json["errors"].size).to eq(rows.size)
     end
   end
 end

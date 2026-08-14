@@ -39,6 +39,7 @@ RSpec.describe PdfImportService do
         expect(row[:occurred_on]).to match(/\A\d{4}-\d{2}-\d{2}\z/)
         expect(row[:amount]).to be_a(String)
         expect(row[:description]).to be_a(String)
+        expect(row[:token]).to be_a(String)
       end
     end
 
@@ -115,8 +116,8 @@ RSpec.describe PdfImportService do
   describe "#confirm" do
     it "persiste as linhas confirmadas como transações" do
       rows = [
-        { "occurred_on" => "2026-06-25", "description" => "JoaoEMaria", "amount" => "-37.50" },
-        { "occurred_on" => "2026-06-10", "description" => "LOJADOIS", "amount" => "-15.50" }
+        signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50"),
+        signed_row(occurred_on: "2026-06-10", description: "LOJADOIS", amount: "-15.50")
       ]
 
       result = service.confirm(rows)
@@ -130,8 +131,8 @@ RSpec.describe PdfImportService do
 
     it "acumula erro por linha sem interromper as demais" do
       rows = [
-        { "occurred_on" => "data-invalida", "description" => "RUIM", "amount" => "-10.00" },
-        { "occurred_on" => "2026-06-10", "description" => "BOA", "amount" => "-15.50" }
+        signed_row(occurred_on: "data-invalida", description: "RUIM", amount: "-10.00"),
+        signed_row(occurred_on: "2026-06-10", description: "BOA", amount: "-15.50")
       ]
 
       result = service.confirm(rows)
@@ -143,8 +144,8 @@ RSpec.describe PdfImportService do
 
     it "aceita installment_number/installment_total quando presentes" do
       rows = [
-        { "occurred_on" => "2026-06-25", "description" => "PARCELADO", "amount" => "-100.00",
-          "installment_number" => 2, "installment_total" => 6 }
+        signed_row(occurred_on: "2026-06-25", description: "PARCELADO", amount: "-100.00",
+                   installment_number: 2, installment_total: 6)
       ]
 
       service.confirm(rows)
@@ -156,7 +157,7 @@ RSpec.describe PdfImportService do
 
     it "não duplica quando a mesma linha é confirmada duas vezes" do
       rows = [
-        { "occurred_on" => "2026-06-25", "description" => "JoaoEMaria", "amount" => "-37.50" }
+        signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50")
       ]
 
       service.confirm(rows)
@@ -168,9 +169,90 @@ RSpec.describe PdfImportService do
     end
 
     it "reporta zero duplicatas na primeira confirmação" do
-      rows = [{ "occurred_on" => "2026-06-25", "description" => "JoaoEMaria", "amount" => "-37.50" }]
+      rows = [ signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50") ]
       result = service.confirm(rows)
       expect(result.duplicates).to eq(0)
+    end
+
+    it "SEC-17: ignora um amount adulterado após o preview e persiste o valor assinado" do
+      row = signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50")
+      tampered = row.merge("amount" => "-999999.00")
+
+      result = service.confirm([ tampered ])
+
+      expect(result.imported).to eq(1)
+      tx = user.transactions.find_by(description: "JoaoEMaria")
+      expect(tx.amount).to eq(BigDecimal("37.50"))
+    end
+
+    it "SEC-17: ignora uma description adulterada após o preview e persiste o valor assinado" do
+      row = signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50")
+      tampered = row.merge("description" => "OUTRA COISA")
+
+      result = service.confirm([ tampered ])
+
+      expect(result.imported).to eq(1)
+      expect(user.transactions.find_by(description: "JoaoEMaria")).to be_present
+      expect(user.transactions.find_by(description: "OUTRA COISA")).to be_nil
+    end
+
+    it "SEC-17: ignora um occurred_on adulterado após o preview e persiste o valor assinado" do
+      row = signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50")
+      tampered = row.merge("occurred_on" => "2026-01-01")
+
+      result = service.confirm([ tampered ])
+
+      expect(result.imported).to eq(1)
+      tx = user.transactions.find_by(description: "JoaoEMaria")
+      expect(tx.occurred_on.iso8601).to eq("2026-06-25")
+    end
+
+    it "SEC-17: persiste os valores assinados no token, não os valores soltos reenviados no restante da row" do
+      row = signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50")
+      spoofed = row.merge("amount" => "-1.00", "description" => "FALSO")
+
+      service.confirm([ spoofed ])
+
+      tx = user.transactions.find_by(description: "JoaoEMaria")
+      expect(tx).to be_present
+      expect(tx.amount).to eq(BigDecimal("37.50"))
+      expect(user.transactions.find_by(description: "FALSO")).to be_nil
+    end
+
+    it "SEC-17: acumula erro de linha quando o token está ausente, sem travar o lote" do
+      rows = [
+        { "occurred_on" => "2026-06-25", "description" => "SEM TOKEN", "amount" => "-10.00" },
+        signed_row(occurred_on: "2026-06-10", description: "COM TOKEN", amount: "-15.50")
+      ]
+
+      result = service.confirm(rows)
+
+      expect(result.imported).to eq(1)
+      expect(result.errors.size).to eq(1)
+      expect(user.transactions.find_by(description: "COM TOKEN")).to be_present
+      expect(user.transactions.find_by(description: "SEM TOKEN")).to be_nil
+    end
+
+    it "SEC-17: em lote misto, processa as linhas com token válido e rejeita só a de token inválido" do
+      valid_a = signed_row(occurred_on: "2026-06-25", description: "VALIDA A", amount: "-10.00")
+      invalid_token = signed_row(occurred_on: "2026-06-25", description: "VALIDA B", amount: "-20.00")
+                        .merge("token" => "token-forjado-invalido")
+      valid_c = signed_row(occurred_on: "2026-06-25", description: "VALIDA C", amount: "-30.00")
+
+      result = service.confirm([ valid_a, invalid_token, valid_c ])
+
+      expect(result.imported).to eq(2)
+      expect(result.errors.size).to eq(1)
+      expect(user.transactions.count).to eq(2)
+    end
+
+    it "SEC-17: rejeita um token expirado" do
+      row = signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50")
+
+      result = travel(31.minutes) { service.confirm([ row ]) }
+
+      expect(result.imported).to eq(0)
+      expect(user.transactions.count).to eq(0)
     end
   end
 end
