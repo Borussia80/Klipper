@@ -12,7 +12,7 @@ services:
       - key: RAILS_MASTER_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://klipper-app.vercel.app
+        value: https://klipper-app.vercel.app,https://klipper.quebec.com.br,https://www.klipper.quebec.com.br
       - key: RAILS_LOG_TO_STDOUT
         value: "true"
       - key: RAILS_SERVE_STATIC_FILES
