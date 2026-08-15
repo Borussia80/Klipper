@@ -26,6 +26,7 @@ sintoma descrito.
 | 403 em qualquer rota da API, corpo simples (não é JSON de validação) | Status 403 | `RAILS_ALLOWED_HOSTS` configurado no Render com um hostname que não bate com o `Host` real da requisição — protege a própria API, não o domínio do frontend | `config.hosts` em `apps/klipper-api/config/environments/production.rb` + `RAILS_ALLOWED_HOSTS` no Render |
 | Botão/tela chama a API e recebe 404 | Status 404 | Rota não implementada no backend (frontend chamando um endpoint que nunca existiu — já aconteceu com `/api/v1/kira/chat`) | `apps/klipper-api/config/routes.rb` — se for feature ainda não implementada, desconectar do frontend até ter backend |
 | Tela branca / erro genérico em produção, mas funciona local (`npm run dev`) | Function da Vercel retorna 500; log da função mostra `ERR_MODULE_NOT_FOUND` | Dependência duplicada/órfã no lockfile — o npm não deduplicou, e o build do Nitro empacotou a versão errada na Function | Rodar `NITRO_PRESET=vercel npm run build` local (reproduz o build exato da Vercel) e conferir `.vercel/output/functions/.../node_modules` |
+| **Toda** rota da API dá 403 com corpo vazio, `text/html` — inclusive GET em rotas que nem existem — exceto `/api/v1/health` | Status 403, corpo com 0 bytes, sem JSON de erro | `RAILS_ALLOWED_HOSTS` no Render não bate com o `Host` real da requisição (`ActionDispatch::HostAuthorization` bloqueia antes de chegar no router; `/api/v1/health` é a única rota com `exclude:` configurado em `production.rb:73`) | Conferir `RAILS_ALLOWED_HOSTS` no Render (`klipper-api` → Environment) — precisa ser o hostname que a requisição de fato usa pra chegar na API (ex.: `klipper-api.onrender.com`), sem `https://`, sem barra |
 
 ## Casos resolvidos (histórico)
 
@@ -37,6 +38,14 @@ sintoma descrito.
   `vue` duplicada no lockfile (versão órfã não satisfazia o range pedido por
   `nuxt`/`@nuxt/nitro-server`), Nitro empacotou a versão errada na Function.
   Corrigido com `overrides` em `apps/klipper-web/package.json` (commit `5e8041d`).
+- **2026-08-15** — `RAILS_ALLOWED_HOSTS` configurado no Render (fechamento do
+  SEC-15) com um valor que não bate com o `Host` real das requisições —
+  `ActionDispatch::HostAuthorization` passou a bloquear com 403 toda rota da API
+  exceto `/api/v1/health` (única com `exclude:` explícito). Cadastro e login
+  continuavam quebrados mesmo depois do fix de CORS, porque essa era uma segunda
+  causa independente bloqueando a mesma chamada. Correção é manual no dashboard
+  do Render (`klipper-api` → Environment → `RAILS_ALLOWED_HOSTS`), não tem commit
+  associado.
 
 ## Adicionando uma nova linha
 
