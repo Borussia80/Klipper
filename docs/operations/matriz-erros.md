@@ -47,6 +47,16 @@ sintoma descrito.
   causa independente bloqueando a mesma chamada. Correção é manual no dashboard
   do Render (`klipper-api` → Environment → `RAILS_ALLOWED_HOSTS`), não tem commit
   associado.
+- **2026-08-15** — `NUXT_PUBLIC_API_URL` ausente no ambiente de build da Vercel —
+  terceira causa independente atrás da mesma mensagem genérica de cadastro, depois
+  de CORS e `RAILS_ALLOWED_HOSTS` já corrigidos. `nuxt.config.ts:9` caía no
+  fallback `http://localhost:3000`, então o frontend em produção chamava a API
+  local do desenvolvedor em vez do Render — confirmado reproduzindo o cadastro ao
+  vivo no navegador e capturando a requisição real na aba Network. Corrigido
+  manualmente no dashboard da Vercel (projeto `klipper` → Settings → Environment
+  Variables → `NUXT_PUBLIC_API_URL=https://klipper-api.onrender.com`) + redeploy;
+  sem commit de código associado. Validado: cadastro completo até o Painel
+  autenticado.
 
 ## Adicionando uma nova linha
 
