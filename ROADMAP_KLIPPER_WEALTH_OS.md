@@ -238,7 +238,7 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | SEC-11 | Segurança | M5 | P2 | Baixo | Baixo | S | Frontend | **Done** | 4 | Security Audit | `npm audit` limpo |
 | SEC-12 | Segurança | M6 | P2 | Baixo | Médio | S | Frontend | **Done** | 4 | Security Audit | Decisão registrada |
 | SEC-13 | Segurança | M7 | P2 | Baixo | Médio | S | DevOps | **Done** | 4 | Security Audit | Revisão de permissões do workflow |
-| SEC-15 | Segurança | L7+L8+L9 | P2 | Baixo | Baixo | S | DevOps | **Parcial** | 4 | Security Audit | Revisão manual + Dependabot ativo |
+| SEC-15 | Segurança | L7+L8+L9 | P2 | Baixo | Baixo | S | DevOps | **Done** | 4 | Security Audit | Revisão manual + Dependabot ativo |
 | SEC-16 | Segurança | L3+L6+L10 | P2 | Baixo | Baixo | S | Backend | **Done** | 4 | Security Audit | RSpec (timing) + teste manual |
 | FIN-3 | Financeiro | Bug Report | P2 | Baixo | Baixo | S | Frontend | **Done** | 5 | Bug Report | Automatizado |
 | UX-3 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | **Done** | 5 | Manual Audit | Manual |
@@ -252,16 +252,16 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   █████████░  93%  (25/27 done)
+Total   █████████░  90%  (26/29 done)
 P0      ██████████  100%  (4/4 done)
 P1      █████████░  89%  (8/9 done)
-P2      ██████████  100%  (13/13 done)
+P2      █████████░  88%  (14/16 done)
 ```
 
-Pendência única para 27/27: `SEC-15` segue **Parcial** — código commitado nesta
-sessão (`config.hosts` restrito via `AllowedHosts.from_env`), mas depende de
-configurar `RAILS_ALLOWED_HOSTS` no dashboard do Render com o hostname real de
-produção (ação externa, fora do alcance do agente — ver checklist pós-deploy).
+`SEC-15` fechado (2026-08-15): `RAILS_ALLOWED_HOSTS` configurado no Render pelo
+usuário. Restam 3 `Todo`: `OBS-1` (falta só confirmar `environment: production`
+nos Deployments Vercel↔GitHub) e `SEC-19`/`SEC-20` (backlog Sprint 7, pedido
+pelo usuário pós-merge — CSP restritiva e trilha de auditoria de import/export).
 
 ### Sprint 0 — Observabilidade primeiro
 
@@ -274,10 +274,10 @@ estruturado construído em 2026-07-29, não commitado nem ativado.
 - **Onde:** `.github/workflows/{agent-pr-review,agent-full-report}.yml`, `.github/claude-prompts/`, `.github/scripts/`, `reports/`, `docs/adrs/` — todos untracked.
 - **Dependências:** nenhuma técnica; requer decisão do usuário sobre commitar.
 - **Critério de aceite (execução, não desenho):**
-  1. Commit dos arquivos já criados.
-  2. Secret `CLAUDE_CODE_OAUTH_TOKEN`/`anthropic_api_key` configurado no repo.
-  3. GitHub → Settings → Actions: "Allow GitHub Actions to create and approve pull requests" + "Read and write permissions" habilitados.
-  4. Confirmar `environment: production` nos Deployments do Vercel↔GitHub.
+  1. ✅ Commit dos arquivos já criados.
+  2. ✅ Secret `CLAUDE_CODE_OAUTH_TOKEN` configurado no repo (2026-08-15, confirmado via `gh secret list`).
+  3. ✅ GitHub → Settings → Actions: "Allow GitHub Actions to create and approve pull requests" habilitado (2026-08-15).
+  4. Confirmar `environment: production` nos Deployments do Vercel↔GitHub — **pendente**.
 - **Validação:** `workflow_dispatch` de `agent-full-report.yml` em modo `fast` (QA/dry-run) → confirmar PR automático com `reports/` preenchido (produção).
 
 ### Sprint 1 — Segurança crítica + uso real
@@ -369,7 +369,7 @@ alta confiança de que é um problema sistêmico, não um caso isolado.
 
 **SEC-13 [P2 · Risco Baixo · Valor Médio · Owner DevOps · Origem: M7 · Source: Security Audit · Status: Done]** — Risco de prompt injection indireta (LLM01) em `agent-pr-review.yml` (repo público, PRs de fork processados por agente com Bash + `GH_TOKEN`). Detalhe em [`docs/security/audit-2026-07-29.md#m7`](docs/security/audit-2026-07-29.md). **Critério de aceite:** revisar escopo de permissões do `GH_TOKEN` para PRs de fork, ou restringir a `workflow_dispatch` manual para PRs externos. **Validação:** revisão manual da política de permissões do workflow.
 
-**SEC-15 [P2 · Risco Baixo · Valor Baixo · Owner DevOps · Origem: L7+L8+L9 · Source: Security Audit · Status: Parcial (2/3)]** — Robustez de infraestrutura: `config.hosts` irrestrito, GitHub Actions pinadas por tag mutável, Dependabot sem ecossistema `npm`. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (`config.hosts` restrito ao domínio de produção; actions pinadas por SHA; `dependabot.yml` com entrada `npm` para `apps/klipper-web` e `apps/quebec-web`). **Feito (2026-07-30):** actions de `ci.yml`, `agent-pr-review.yml` e `agent-full-report.yml` pinadas por SHA de commit; `dependabot.yml` com entradas `npm` para `apps/klipper-web` e `apps/quebec-web`. **Feito (2026-08-14):** código de `config.hosts` implementado e commitado — `lib/allowed_hosts.rb` (`AllowedHosts.from_env`) + `config/environments/production.rb` lendo `RAILS_ALLOWED_HOSTS`; fail-open confirmado (hosts vazio não bloqueia nada), seguro de deployar mesmo antes da env var existir. **Pendente:** configurar `RAILS_ALLOWED_HOSTS` no dashboard do Render (klipper-api → Settings → Environment) com o hostname real de produção — ação externa, só o usuário tem acesso ao dashboard; sem isso a restrição fica pronta mas inativa. **Validação:** `spec/lib/allowed_hosts_spec.rb` verde + revisão manual + primeiro PR automático do Dependabot no ecossistema npm.
+**SEC-15 [P2 · Risco Baixo · Valor Baixo · Owner DevOps · Origem: L7+L8+L9 · Source: Security Audit · Status: Parcial (2/3)]** — Robustez de infraestrutura: `config.hosts` irrestrito, GitHub Actions pinadas por tag mutável, Dependabot sem ecossistema `npm`. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (`config.hosts` restrito ao domínio de produção; actions pinadas por SHA; `dependabot.yml` com entrada `npm` para `apps/klipper-web` e `apps/quebec-web`). **Feito (2026-07-30):** actions de `ci.yml`, `agent-pr-review.yml` e `agent-full-report.yml` pinadas por SHA de commit; `dependabot.yml` com entradas `npm` para `apps/klipper-web` e `apps/quebec-web`. **Feito (2026-08-14):** código de `config.hosts` implementado e commitado — `lib/allowed_hosts.rb` (`AllowedHosts.from_env`) + `config/environments/production.rb` lendo `RAILS_ALLOWED_HOSTS`; fail-open confirmado (hosts vazio não bloqueia nada), seguro de deployar mesmo antes da env var existir. **Feito (2026-08-15):** `RAILS_ALLOWED_HOSTS=klipper-api.onrender.com` configurado no dashboard do Render (klipper-api → Settings → Environment) pelo usuário. **Validação:** `spec/lib/allowed_hosts_spec.rb` verde + revisão manual + primeiro PR automático do Dependabot no ecossistema npm. (Não foi possível confirmar de fora via HTTP — o edge/Cloudflare do próprio Render intercepta Host header adulterado antes de chegar no Rails, mascarando o teste; confiança baseada em env var confirmada + cobertura de teste unitário.)
 
 **SEC-16 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: L3+L6+L10 · Source: Security Audit · Status: Done]** — Robustez de aplicação: timing attack em `sign_in`, troca de e-mail sem reautenticação, Service Worker cacheando resposta financeira em disco. Detalhe de cada achado em [`docs/security/audit-2026-07-29.md`](docs/security/audit-2026-07-29.md). **Critério de aceite:** os 3 achados corrigidos (tempo constante em `sign_in`; `current_password` exigido para trocar e-mail; cache do Service Worker excluído das rotas `/api/v1/*` ou revisado). **Validação:** RSpec (timing + reauth) + teste manual (Service Worker).
 
