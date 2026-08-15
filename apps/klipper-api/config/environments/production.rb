@@ -23,7 +23,11 @@ Rails.application.configure do
   # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  # Exceção: o perfil local pessoal (docker-compose.local.yml) roda atrás do
+  # Caddy só em 127.0.0.1, sem TLS — force_ssl geraria 308 para https:// que
+  # essa stack nunca serve. KLIPPER_LOCAL_PROFILE só existe nesse cenário;
+  # em produção (Render) a env var não é definida e o redirect segue ativo.
+  config.force_ssl = !ENV["KLIPPER_LOCAL_PROFILE"]
 
   # Skip http-to-https redirect for the health check endpoint — Render's prober hits
   # the container directly and doesn't set X-Forwarded-Proto like the edge proxy does.
