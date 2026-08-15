@@ -31,6 +31,9 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://klipper:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD em .env.local}@db:5432/klipper_local
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?defina RAILS_MASTER_KEY em .env.local}
+      # Desliga config.force_ssl (ver production.rb) — o Caddy deste perfil
+      # não termina TLS, só existe em 127.0.0.1.
+      KLIPPER_LOCAL_PROFILE: "true"
     depends_on:
       db:
         condition: service_healthy
@@ -42,7 +45,10 @@ services:
     environment:
       PORT: 3000
       HOST: 0.0.0.0
-      NUXT_PUBLIC_API_URL: /api
+      # Vazio de propósito: os composables já chamam apiFetch('/api/v1/...')
+      # com o prefixo incluso — setar "/api" aqui gera path duplicado
+      # (/api/api/v1/...) e a requisição nunca chega no Caddy.
+      NUXT_PUBLIC_API_URL: ""
       NUXT_API_URL_INTERNAL: http://api:3001
       NUXT_PUBLIC_COOKIE_SECURE: "false"
     depends_on:
