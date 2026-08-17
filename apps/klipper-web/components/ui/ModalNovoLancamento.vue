@@ -98,7 +98,7 @@
     <button
       class="btn btn-p cta"
       type="button"
-      :disabled="isLoading"
+      :disabled="isLoading || !isValid"
       @click="submit"
     >
       <span v-if="isLoading" class="btn-spinner" />
@@ -134,7 +134,7 @@ const valor = ref('')
 const descricao = ref('')
 const categoria = ref<number | null>(null)
 const conta = ref<number | null>(null)
-const data = ref(new Date().toISOString().split('T')[0])
+const data = ref(todayISO())
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
@@ -151,6 +151,8 @@ function validate(): string | null {
   if (isFutureDate(data.value)) return 'A data não pode ser futura'
   return null
 }
+
+const isValid = computed(() => validate() === null)
 
 async function submit() {
   error.value = validate()

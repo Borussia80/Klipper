@@ -16,6 +16,14 @@ RSpec.describe Transaction, type: :model do
     it { is_expected.to validate_numericality_of(:amount).is_greater_than(0) }
     it { is_expected.to validate_inclusion_of(:transaction_type).in_array(Transaction::TRANSACTION_TYPES) }
     it { is_expected.to validate_presence_of(:occurred_on) }
+
+    it "is invalid with a future occurred_on" do
+      expect(build(:transaction, occurred_on: Time.zone.today + 1)).not_to be_valid
+    end
+
+    it "is valid with occurred_on equal to today" do
+      expect(build(:transaction, occurred_on: Time.zone.today)).to be_valid
+    end
   end
 
   describe "installment validation" do

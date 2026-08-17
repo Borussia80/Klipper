@@ -14,8 +14,8 @@ module Api
       end
 
       def summary
-        year  = params.fetch(:year,  Date.today.year).to_i
-        month = params.fetch(:month, Date.today.month).to_i
+        year  = params.fetch(:year,  Time.zone.today.year).to_i
+        month = params.fetch(:month, Time.zone.today.month).to_i
         render json: BudgetEngine.new(current_user, year, month).summary
       end
 

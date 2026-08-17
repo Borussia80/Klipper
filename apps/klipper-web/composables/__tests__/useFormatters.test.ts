@@ -5,7 +5,7 @@
  * call the exported function directly. No mocking required.
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { useFormatters } from '../useFormatters'
+import { useFormatters, isFutureDate, todayISO } from '../useFormatters'
 
 describe('useFormatters', () => {
   const { formatBRL, formatBRLCompact, formatPercent, formatPercentRaw, deltaClass, deltaSign } =
@@ -242,5 +242,48 @@ describe('daysLeftInMonth', () => {
     vi.setSystemTime(new Date(2026, 5, 30))
     const { daysLeftInMonth } = useFormatters()
     expect(daysLeftInMonth()).toBe(0)
+  })
+})
+
+describe('todayISO / isFutureDate — boundary de meia-noite em America/Sao_Paulo (UTC-3)', () => {
+  const originalTZ = process.env.TZ
+
+  afterEach(() => {
+    vi.useRealTimers()
+    process.env.TZ = originalTZ
+  })
+
+  it('todayISO() usa o dia calendário local, não o dia UTC', () => {
+    process.env.TZ = 'America/Sao_Paulo'
+    vi.useFakeTimers()
+    // 23:30 local em 15/08/2026 == 02:30 UTC de 16/08/2026 — o bug antigo
+    // (new Date().toISOString().split('T')[0]) retornaria '2026-08-16' aqui.
+    vi.setSystemTime(new Date('2026-08-15T23:30:00-03:00'))
+    expect(todayISO()).toBe('2026-08-15')
+    expect(new Date().toISOString().split('T')[0]).toBe('2026-08-16')
+  })
+
+  it('isFutureDate() nunca rejeita o resultado de todayISO() como futuro', () => {
+    process.env.TZ = 'America/Sao_Paulo'
+    const instants = [
+      '2026-08-15T00:00:00-03:00',
+      '2026-08-15T12:00:00-03:00',
+      '2026-08-15T21:00:01-03:00',
+      '2026-08-15T23:59:59-03:00',
+    ]
+    for (const instant of instants) {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date(instant))
+      expect(isFutureDate(todayISO())).toBe(false)
+      vi.useRealTimers()
+    }
+  })
+
+  it('isFutureDate() rejeita o dia seguinte local mesmo perto da virada de UTC', () => {
+    process.env.TZ = 'America/Sao_Paulo'
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-15T23:30:00-03:00'))
+    expect(isFutureDate('2026-08-15')).toBe(false)
+    expect(isFutureDate('2026-08-16')).toBe(true)
   })
 })

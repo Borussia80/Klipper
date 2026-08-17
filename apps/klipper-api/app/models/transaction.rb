@@ -15,6 +15,7 @@ class Transaction < ApplicationRecord
   validates :transaction_type, inclusion: { in: TRANSACTION_TYPES }
   validates :occurred_on, presence: true
   validate  :installment_fields_consistent
+  validate  :occurred_on_not_in_future
 
   scope :debits,   -> { where(transaction_type: "debit") }
   scope :credits,  -> { where(transaction_type: "credit") }
@@ -29,5 +30,10 @@ class Transaction < ApplicationRecord
     elsif installment_number > installment_total
       errors.add(:installment_number, "cannot exceed installment_total")
     end
+  end
+
+  def occurred_on_not_in_future
+    return if occurred_on.blank?
+    errors.add(:occurred_on, "não pode ser uma data futura") if occurred_on > Time.zone.today
   end
 end

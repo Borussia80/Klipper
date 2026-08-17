@@ -103,6 +103,14 @@ RSpec.describe "Transactions API", type: :request do
       post "/api/v1/transactions", params: { account_id: account.id, amount: -1 }.to_json, headers: headers
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    it "rejects a future occurred_on and does not persist the transaction" do
+      future_params = valid_params.merge(occurred_on: (Time.zone.today + 1).to_s)
+      expect do
+        post "/api/v1/transactions", params: future_params.to_json, headers: headers
+      end.not_to change(Transaction, :count)
+      expect(response).to have_http_status(:unprocessable_content)
+    end
   end
 
   describe "PATCH /api/v1/transactions/:id" do

@@ -84,7 +84,7 @@
       class="btn btn-p"
       style="height:40px;width:100%;font-size:13px;font-weight:600"
       type="button"
-      :disabled="isLoading"
+      :disabled="isLoading || !isValid"
       @click="submit"
     >
       <span v-if="isLoading" class="btn-spinner" />
@@ -104,7 +104,7 @@ const tipoOp = ref<'compra' | 'venda'>('compra')
 const ativo = ref('')
 const quantidade = ref('')
 const preco = ref('')
-const data = ref(new Date().toISOString().split('T')[0])
+const data = ref(todayISO())
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
@@ -117,6 +117,8 @@ function validate(): string | null {
   if (isFutureDate(data.value)) return 'A data não pode ser futura'
   return null
 }
+
+const isValid = computed(() => validate() === null)
 
 async function submit() {
   error.value = validate()
@@ -134,7 +136,7 @@ async function submit() {
     ativo.value = ''
     quantidade.value = ''
     preco.value = ''
-    data.value = new Date().toISOString().split('T')[0]
+    data.value = todayISO()
     emit('close')
   } catch {
     addToast('Erro ao salvar. Tente novamente.', 'alert')

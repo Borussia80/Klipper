@@ -104,3 +104,12 @@ export function isFutureDate(dateStr: string): boolean {
   const today = new Date()
   return new Date(y, m - 1, d) > new Date(today.getFullYear(), today.getMonth(), today.getDate())
 }
+
+// Local calendar date (not UTC) — must stay in sync with isFutureDate's "today".
+export function todayISO(): string {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
