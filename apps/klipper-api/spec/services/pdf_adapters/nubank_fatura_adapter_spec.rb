@@ -87,6 +87,26 @@ RSpec.describe PdfAdapters::NubankFaturaAdapter do
       expect { described_class.new([ fake_page(text) ]).parse }.to raise_error(PdfAdapters::ParseError, /Nenhum lançamento/)
     end
 
+    it "SEC-21: rejeita rapidamente linha >500 chars sem backtracking catastrófico no TRANSACTION_ROW" do
+      long_desc = "SUPERLOJA" * 250
+      text = <<~TEXT
+        EMISSÃO E ENVIO 03 JUL 2026
+        TRANSAÇÕES            DE 03 JUN A 03 JUL
+        19 JUN        •••• 5680  #{long_desc}                  R$ 159,73
+        10 JUN           Pagamento em 10 JUN                 -R$ 160,00
+      TEXT
+
+      adapter = described_class.new([ fake_page(text) ])
+
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      result = adapter.parse
+      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+
+      expect(elapsed).to be < 1.0, "linha longa travou o regex por #{elapsed.round(2)}s"
+      expect(result.rows.size).to eq(1)
+      expect(result.rows.first.description).to eq("Pagamento em 10 JUN")
+    end
+
     it "extrai lançamentos reais da fatura Nubank" do
       with_pdf_fixture("nubank_fatura.pdf") do |path|
         result = described_class.new(pages_for(path)).parse

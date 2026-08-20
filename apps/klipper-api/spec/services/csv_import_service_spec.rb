@@ -146,4 +146,56 @@ RSpec.describe CsvImportService, type: :service do
     expect(result.imported).to eq(0)
     expect(result.errors.first).to match(/colunas reconhecidas/)
   end
+
+  describe "SEC-22: CSV Formula Injection protection" do
+    it "prefixa com apostrofe a descricao que comeca com =" do
+      content = <<~CSV
+        Data,Descrição,Valor
+        01/06/2026,=2+2,-10.00
+      CSV
+      run(content)
+      tx = user.transactions.find_by(amount: 10.00)
+      expect(tx.description).to eq("'=2+2")
+    end
+
+    it "prefixa com apostrofe a descricao que comeca com +" do
+      content = <<~CSV
+        Data,Descrição,Valor
+        01/06/2026,+SUM(A1,25.99
+      CSV
+      run(content)
+      tx = user.transactions.find_by(amount: 25.99)
+      expect(tx.description).to eq("'+SUM(A1")
+    end
+
+    it "prefixa com apostrofe a descricao que comeca com -" do
+      content = <<~CSV
+        Data,Descrição,Valor
+        01/06/2026,-cmd|calc.exe!A1,30.00
+      CSV
+      run(content)
+      tx = user.transactions.find_by(amount: 30.00)
+      expect(tx.description).to eq("'-cmd|calc.exe!A1")
+    end
+
+    it "prefixa com apostrofe a descricao que comeca com @" do
+      content = <<~CSV
+        Data,Descrição,Valor
+        01/06/2026,@SUM(A1:A10),-10.00
+      CSV
+      run(content)
+      tx = user.transactions.find_by(amount: 10.00)
+      expect(tx.description).to eq("'@SUM(A1:A10)")
+    end
+
+    it "nao altera descricao normal sem caractere-gatilho" do
+      content = <<~CSV
+        Data,Descrição,Valor
+        01/06/2026,COMPRA NORMAL,-10.00
+      CSV
+      run(content)
+      tx = user.transactions.find_by(amount: 10.00)
+      expect(tx.description).to eq("COMPRA NORMAL")
+    end
+  end
 end

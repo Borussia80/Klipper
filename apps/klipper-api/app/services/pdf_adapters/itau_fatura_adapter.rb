@@ -13,6 +13,7 @@ module PdfAdapters
     COLUMN_SPLIT_X = 350
 
     TRANSACTION_ROW = /\A(\d{2})\/(\d{2})\s+(.+?)\s+(-?[\d.]+,\d{2})\z/
+    MAX_LINE_LENGTH = 400
     CARDHOLDER_ROW = /\A(.+?)\(final\s*(\d{3,6})\)\z/i
     PRINCIPAL_JUROS = /principal\s*\(r\$\s*([\d.,]+)\s*\)\s*\+\s*juros\s*\(r\$\s*([\d.,]+)\s*\)/i
     CONVERSION_RATE_LINE = /d.{0,2}lar\s*de\s*convers/i
@@ -73,6 +74,7 @@ module PdfAdapters
       end
 
       return if @section == :none || @section == :proximas_faturas
+      return if text.length > MAX_LINE_LENGTH
 
       if (m = CARDHOLDER_ROW.match(text))
         @cardholder[side] = "#{m[1].strip} (final #{m[2]})"

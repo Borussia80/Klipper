@@ -25,6 +25,7 @@ module PdfAdapters
     EMISSAO_LINE = /EMISS.{1,3}O\s+E\s+ENVIO\s+(\d{2})\s+([A-ZÇ]{3})\s+(\d{4})/i
     TRANSACOES_HEADER = /\ATRANSA.{1,3}ES\s+DE\s+\d{2}\s+[A-ZÇ]{3}\s+A\s+\d{2}\s+[A-ZÇ]{3}/i
     TRANSACTION_ROW = /\A(\d{2})\s+([A-ZÇ]{3})\s+(?:[••]+\s*(\d{3,4})\s+)?(.+?)\s+((?:-|−)?R\$\s?[\d.,]+)\z/i
+    MAX_LINE_LENGTH = 500
     HEADER_ROW = /\A([A-ZÀ-Úa-zà-ú][\wÀ-ÿ .]*?)\s+((?:-|−)?R\$\s?[\d.,]+)\z/
     NON_CARDHOLDER_HEADERS = [ "pagamentos" ].freeze
 
@@ -50,6 +51,7 @@ module PdfAdapters
 
           @in_transactions = true if TRANSACOES_HEADER.match?(line)
           next unless @in_transactions
+          next if line.length > MAX_LINE_LENGTH
 
           if (match = TRANSACTION_ROW.match(line))
             rows << build_row(match, page_number, line)

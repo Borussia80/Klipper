@@ -89,6 +89,26 @@ RSpec.describe PdfAdapters::ItauFaturaAdapter do
       expect { described_class.new([ page ]).parse }.to raise_error(PdfAdapters::ParseError, /Nenhum lançamento/)
     end
 
+    it "SEC-21: rejeita rapidamente linha >400 chars sem backtracking catastrófico no TRANSACTION_ROW" do
+      emission = "Emissão: 02/07/2026"
+      long_desc = "MEGALOJA" * 250
+      rows = {
+        100 => [ [ 10, "Lançamentos:comprasesaques" ] ],
+        90  => [ [ 10, "01/02 #{long_desc}" ] ],
+        80  => [ [ 10, "05/12 LOJATESTE 20,00" ] ]
+      }
+
+      adapter = described_class.new([ fake_page(emission, rows) ])
+
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      result = adapter.parse
+      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+
+      expect(elapsed).to be < 1.0, "linha longa travou o regex por #{elapsed.round(2)}s"
+      expect(result.rows.size).to eq(1)
+      expect(result.rows.first.description).to eq("LOJATESTE")
+    end
+
     it "extrai lançamentos reais da fatura Itaú (compras e saques, internacional, produtos e serviços)" do
       with_pdf_fixture("itau_fatura.pdf") do |path|
         result = described_class.new(pages_for(path)).parse

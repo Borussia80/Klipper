@@ -7,6 +7,7 @@ class CsvImportService
   DESCRIPTION_HEADER_ALIASES = %w[descricao description historico title].freeze
   VALUE_HEADER_ALIASES = %w[valor amount value].freeze
   DATE_FORMATS = [ "%d/%m/%Y", "%Y-%m-%d" ].freeze
+  FORMULA_TRIGGER_CHARS = %w[= + - @].freeze
 
   def initialize(user, file_io, account_id: nil)
     @user = user
@@ -79,7 +80,7 @@ class CsvImportService
     occurred_on = parse_date(raw_date)
 
     outcome = BankImport::TransactionWriter.new(@user, account_id: @account_id).write!(
-      description: desc,
+      description: sanitize_description(desc),
       amount:      value,
       occurred_on: occurred_on
     )
@@ -101,5 +102,12 @@ class CsvImportService
       next
     end
     raise Date::Error, "unrecognized date format"
+  end
+
+  def sanitize_description(desc)
+    return desc if desc.blank?
+
+    first_char = desc[0]
+    FORMULA_TRIGGER_CHARS.include?(first_char) ? "'#{desc}" : desc
   end
 end

@@ -70,6 +70,24 @@ RSpec.describe PdfAdapters::BtgExtratoAdapter do
       expect { described_class.new([ fake_page(text) ]).parse }.to raise_error(PdfAdapters::ParseError, /Nenhum lançamento/)
     end
 
+    it "SEC-21: rejeita rapidamente linha >500 chars sem backtracking catastrófico no TRANSACTION_ROW" do
+      long_desc = "RENDIMENTOS" * 300
+      text = <<~TEXT
+        Cont#{NUL} corrente - Movimentação
+        15/06/26           #{long_desc}                      -            5,74             6,87
+        30/06/26           RENDIMENTOS - À VISTA s/ FII XP LOG CI - XPLG11                                5,74             6,87
+      TEXT
+
+      adapter = described_class.new([ fake_page(text) ])
+
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      result = adapter.parse
+      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+
+      expect(elapsed).to be < 1.0, "linha longa travou o regex por #{elapsed.round(2)}s"
+      expect(result.rows.size).to eq(1)
+    end
+
     it "extrai lançamentos reais do extrato BTG" do
       with_pdf_fixture("btg_extrato.pdf") do |path|
         result = described_class.new(pages_for(path)).parse

@@ -7,6 +7,7 @@ module PdfAdapters
     # exclusão de "SALDO DO DIA" são tolerantes a texto sem espaços internos.
     ROW_REGEX = /\A(\d{2}\/\d{2}\/\d{4})\s+(.+?)\s+(-?[\d.]+,\d{2})\z/
     SALDO_DIA_NORMALIZED = "saldododia".freeze
+    MAX_LINE_LENGTH = 300
 
     def self.matches?(full_text)
       !!(full_text =~ /agência:\d+conta:/i)
@@ -22,6 +23,7 @@ module PdfAdapters
         page.text.each_line do |raw_line|
           line = raw_line.strip
           next if line.empty?
+          next if line.length > MAX_LINE_LENGTH
 
           match = ROW_REGEX.match(line)
           unless match

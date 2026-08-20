@@ -64,5 +64,19 @@ RSpec.describe PdfAdapters::ItauExtratoAdapter do
       expect(result.warnings.size).to eq(1)
       expect(result.warnings.first.reason).to include("não reconhecida")
     end
+
+    it "SEC-21: rejeita rapidamente linha >400 chars sem backtracking catastrófico no ROW_REGEX" do
+      long_desc = "LOJA" * 250
+      line = "15/06/2026 #{long_desc}\n30/12/2025 PIXTRANSFTESTE30/12                                   -50,00"
+
+      adapter = described_class.new(fake_pages(line))
+
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      result = adapter.parse
+      elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+
+      expect(elapsed).to be < 1.0, "linha longa travou o regex por #{elapsed.round(2)}s"
+      expect(result.rows.size).to eq(1)
+    end
   end
 end

@@ -91,6 +91,26 @@ RSpec.describe PdfImportService do
       expect(result.rows.first[:suggested_member_id]).to eq(member.id)
     end
 
+    it "SEC-21: rejeita PDF com mais de 500 páginas" do
+      many_pages = Array.new(501) { Struct.new(:text).new("page text") }
+      fake_reader = instance_double(PDF::Reader, pages: many_pages)
+      allow(PDF::Reader).to receive(:new).and_return(fake_reader)
+
+      result = service.preview(StringIO.new("fake"))
+
+      expect(result.error?).to eq(true)
+      expect(result.error).to match(/páginas|limite|500/i)
+    end
+
+    it "SEC-21: aplica timeout na leitura do PDF e retorna erro claro" do
+      allow(PDF::Reader).to receive(:new).and_raise(Timeout::Error, "execution expired")
+
+      result = service.preview(StringIO.new("fake"))
+
+      expect(result.error?).to eq(true)
+      expect(result.error).to match(/tempo.*leitura|timeout/i)
+    end
+
     it "sugere nil quando não há cardholder correspondente a nenhum portador" do
       fake_page = Struct.new(:text).new("texto qualquer")
       fake_reader = instance_double(PDF::Reader, pages: [ fake_page ])
@@ -253,6 +273,19 @@ RSpec.describe PdfImportService do
 
       expect(result.imported).to eq(0)
       expect(user.transactions.count).to eq(0)
+    end
+
+    it "SEC-23 (investigado e revertido): respeita o member_id escolhido pelo usuário na tela de confirmação" do
+      chosen_member = create(:member, user: user, name: "Maria Clara")
+
+      row = signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50")
+      confirmed_by_user = row.merge("member_id" => chosen_member.id)
+
+      result = service.confirm([ confirmed_by_user ])
+
+      expect(result.imported).to eq(1)
+      tx = user.transactions.find_by(description: "JoaoEMaria")
+      expect(tx.member_id).to eq(chosen_member.id)
     end
   end
 end

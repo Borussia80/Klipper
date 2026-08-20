@@ -248,19 +248,20 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | SEC-18 | Segurança | L11 | P2 | Baixo | Baixo | XS | Frontend/Backend | **Done** | 6 | Security Audit | Decisão registrada |
 | SEC-19 | Segurança | Pós-merge (cookie não-httpOnly) | P2 | Baixo | Médio | S | Frontend/Backend | **Done** | 7 | User Request | Console sem violações de CSP + regressão manual |
 | SEC-20 | Segurança | Pós-merge (rastreabilidade de import/export) | P2 | Baixo | Médio | M | Backend | **Done** | 7 | User Request | RSpec (log gerado) + revisão de performance |
-| SEC-21 | Segurança | Strix scan (white-box, 2026-08-20) | P1 | Médio | Médio | S | Backend | Todo | 8 | Strix (auto-pentest) | RSpec (regressão de tempo) + benchmark manual |
-| SEC-22 | Segurança | Strix scan (white-box, 2026-08-20) | P2 | Baixo | Baixo | S | Backend | Todo | 8 | Strix (auto-pentest) | RSpec |
-| SEC-23 | Segurança | Strix scan (white-box, 2026-08-20) | P2 | Baixo | Baixo | XS | Backend | Todo | 8 | Strix (auto-pentest) | RSpec |
+| SEC-21 | Segurança | Strix scan (white-box, 2026-08-20) | P3 | Nenhum | Baixo | S | Backend | **Done** | 8 | Strix (auto-pentest) | Benchmark manual (achado original refutado) |
+| SEC-22 | Segurança | Strix scan (white-box, 2026-08-20) | P2 | Baixo | Baixo | S | Backend | **Done** | 8 | Strix (auto-pentest) | RSpec |
+| SEC-23 | Segurança | Strix scan (white-box, 2026-08-20) | P4 | Nenhum | Nenhum | — | Backend | **Done** (revertido) | 8 | Strix (auto-pentest) | RSpec (regressão de UX evitada) |
 | SEC-24 | Segurança | `npm audit` (drift pós-SEC-11) | P2 | Baixo | Baixo | XS | Frontend | **Done** | 8 | Manual Audit | `npm audit` limpo (não-breaking) |
-| SEC-25 | Segurança | `bundler-audit` (drift pós-SEC-10) | P2 | Baixo | Baixo | XS | Backend | Todo | 8 | Manual Audit | `bundler-audit` limpo |
+| SEC-25 | Segurança | `bundler-audit` (drift pós-SEC-10) | P2 | Baixo | Baixo | XS | Backend | **Done** | 8 | Manual Audit | `bundler-audit` limpo |
 
 **Progresso**
 
 ```
-Total   ████████░░  85%  (29/34 done)
+Total   ██████████  100%  (34/34 done)
 P0      ██████████  100%  (4/4 done)
-P1      █████████░  90%  (9/10 done)
-P2      ████████░░  80%  (16/20 done)
+P1      ██████████  100%  (9/9 done)
+P2      ██████████  100%  (19/19 done)
+P3+P4   ██████████  100%  (2/2 done)   — SEC-21/SEC-23, achados refutados/revertidos do Strix
 ```
 
 `SEC-15` fechado (2026-08-15): `RAILS_ALLOWED_HOSTS` configurado no Render pelo
@@ -270,13 +271,20 @@ auditoria de import/export, backlog Sprint 7 pedido pelo usuário pós-merge.
 Vercel: todo deployment originado de push em `main` sai com `target:
 "production"` e alias nos domínios de produção (`klipper.quebec.com.br`
 incluso); branches do Dependabot corretamente saem como preview (`target:
-null`). `SEC-21`-`SEC-25` (Sprint 8) abertos em 2026-08-20 a partir de um
-scan white-box do Strix (`usestrix/strix`, agente autônomo de pentest) contra
-`apps/klipper-api` e `apps/klipper-web` — 5 achados revisados e confirmados
-manualmente contra o código antes de entrar no backlog (um 6º achado do
-Strix, JWT de 30 dias, foi descartado por já ser o `SEC-02`, com risco aceito
-documentado; a severidade do achado de `member_id` foi rebaixada de Medium
-pra Baixo depois de confirmar que `TransactionWriter` já valida posse).
+null`). `SEC-21`-`SEC-25` (Sprint 8) abertos e fechados em 2026-08-20 a partir
+de um scan white-box do Strix (`usestrix/strix`, agente autônomo de pentest)
+contra `apps/klipper-api` e `apps/klipper-web`. Dos 5 achados que entraram no
+backlog, só **3 se confirmaram reais** (`SEC-22` CSV injection, `SEC-24`/
+`SEC-25` drift de dependência) — `SEC-21` (ReDoS) foi **refutado**: minha
+primeira "confirmação" com benchmark tinha um bug (`Timeout.timeout` sem
+`require "timeout"`, `NameError` mascarado de timeout), reteste rigoroso não
+reproduziu nada. `SEC-23` (`member_id` fora da assinatura do SEC-17) era real
+mas o fix inicial (implementado e revertido no mesmo dia) quebrava a
+correção manual de portador em `importar.vue` — o campo é editável por
+design, não deveria ter sido tratado como os outros 5 campos imutáveis do
+`RowSigner`. Um 6º achado do Strix (JWT de 30 dias) foi descartado de saída
+por já ser o `SEC-02`, com risco aceito documentado. Ver as entradas
+individuais abaixo pra detalhe de cada investigação.
 
 **Smoke test de produção passou (2026-08-15)** — validação end-to-end pós
 cadeia de fixes de deploy (`CORS_ORIGINS`, `RAILS_ALLOWED_HOSTS`,
@@ -445,15 +453,15 @@ no backlog — um achado do Strix (JWT de 30 dias) foi descartado por
 duplicar o `SEC-02` já decidido, e a severidade de `SEC-23` foi rebaixada
 depois de confirmar uma camada de defesa já existente.
 
-**SEC-21 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Todo]** — ReDoS nos 4 adapters de PDF (`btg_extrato_adapter.rb`, `itau_extrato_adapter.rb`, `itau_fatura_adapter.rb`, `nubank_fatura_adapter.rb`) via regex `\A...(.+?)\s+...\z` sem limite de tamanho de linha antes do match. **Confirmado com benchmark manual:** uma linha de 500 caracteres sem sufixo de valor válido já trava >5s (backtracking catastrófico); 2000 caracteres projeta minutos. Endpoint afetado: `POST /api/v1/imports/preview`, atacável por qualquer usuário autenticado via PDF malicioso dentro do limite de 10MB do `FileGuard`. `PdfImportService#preview` também lê todas as páginas sem limite/timeout — PDF com milhares de páginas finas é um segundo vetor de DoS. **Critério de aceite:** guarda de tamanho de linha (~300-400 chars, variável por adapter) antes de cada regex; `MAX_PDF_PAGES` + timeout em `PdfImportService#preview`. **Validação:** RSpec com fixture de linha longa (tempo de execução limitado) + benchmark manual confirmando ausência de backtracking.
+**SEC-21 [P3 · Risco Nenhum (refutado) · Valor Baixo · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Todo]** — ~~ReDoS nos 4 adapters de PDF~~. **Achado original refutado (2026-08-20).** O Strix reportou ReDoS via regex `\A...(.+?)\s+...\z`, com um PoC citando "15+ segundos" de travamento em 2000 caracteres — número nunca de fato executado (característica de LLM fabricando saída de benchmark plausível). Uma primeira verificação minha pareceu confirmar isso (linha de 500 chars "travando" >5s), mas o script tinha um bug: usava `Timeout.timeout` sem `require "timeout"`, gerando `NameError` (constante indefinida) que o `rescue` genérico capturou e reportou como timeout — falso positivo. Reteste rigoroso (`require "timeout"` correto, inputs adversariais de até 50.000 caracteres desenhados pra maximizar ambiguidade de backtracking) mostrou os 4 regex completando em <1ms em todos os casos — esperado, já que cada regex tem só **um** grupo lazy (`(.+?)`), não o padrão de quantificadores aninhados/sobrepostos que causa blowup exponencial de verdade; no máximo linear/quadrático, irrelevante pro tamanho de linha real de um PDF. **Mantido no backlog (P3, sem risco):** as guardas de tamanho de linha que já foram implementadas (~300-500 chars por adapter) não fazem mal — defesa em profundidade barata — mas não corrigem uma vulnerabilidade real, então não justificam esforço adicional. **O que É legítimo e foi mantido:** `MAX_PDF_PAGES`/timeout em `PdfImportService#preview` — ler milhares de páginas de PDF sem limite é gasto de recurso real, independente da questão do regex. **Lição registrada:** nunca aceitar "confirmei com benchmark" sem reexecutar o script na íntegra e conferir os requires — um `NameError` mascarado de timeout quase virou uma entrada permanente e incorreta no roadmap.
 
-**SEC-22 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Todo]** — CSV Formula Injection: `CsvImportService#import_row` (`app/services/csv_import_service.rb:69-83`) não sanitiza células iniciadas com `=`, `+`, `-`, `@` antes de persistir `description`. Risco real hoje é limitado — não existe export de CSV no Klipper, o vetor exige o próprio usuário copiar dado pra planilha manualmente — mas é defesa em profundidade barata (OWASP CSV Injection). **Critério de aceite:** prefixar `'` em valores que começam com caractere-gatilho, antes de `TransactionWriter#write!`. **Validação:** RSpec cobrindo import de CSV com célula `=2+2` e confirmando que o valor persistido vem prefixado.
+**SEC-22 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Done]** — CSV Formula Injection: `CsvImportService#import_row` (`app/services/csv_import_service.rb:69-83`) não sanitiza células iniciadas com `=`, `+`, `-`, `@` antes de persistir `description`. Risco real hoje é limitado — não existe export de CSV no Klipper, o vetor exige o próprio usuário copiar dado pra planilha manualmente — mas é defesa em profundidade barata (OWASP CSV Injection). **Critério de aceite:** prefixar `'` em valores que começam com caractere-gatilho, antes de `TransactionWriter#write!`. **Feito (2026-08-20):** `sanitize_description` em `CsvImportService`, prefixa `'` nos 4 caracteres-gatilho. **Validação:** 5 specs novos (um por caractere-gatilho + caso negativo) — 488/488 RSpec verde.
 
-**SEC-23 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Todo]** — `member_id` fica fora do hash assinado pelo `RowSigner` (SEC-17) em `PdfImportService#serialize_row`/`#import_row` (`app/services/pdf_import_service.rb:75,86-93`) — um cliente pode reenviar um `member_id` diferente do que o preview sugeriu, sem detecção. **Severidade rebaixada de Medium (proposta pelo Strix) pra Baixa** após confirmar que `BankImport::TransactionWriter#write!:12` já valida que `member_id` pertence a `@user.members` — não é IDOR entre usuários, só permite reatribuir a transação a outro portador do próprio usuário (algo já possível via UI). **Critério de aceite:** incluir `member_id` no `canonical` hash assinado, e usar o valor assinado (não `row[:member_id]`) em `import_row`. **Validação:** RSpec confirmando que um `member_id` adulterado pós-preview é ignorado (usa o do token).
+**SEC-23 [P4 · Risco Nenhum (by design) · Valor Nenhum · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Done (revertido)]** — `member_id` fica fora do hash assinado pelo `RowSigner` (SEC-17) em `PdfImportService#serialize_row`/`#import_row`. **Fix inicial implementado e depois revertido (2026-08-20):** a primeira versão (assinar `member_id` como os outros 5 campos, travando no valor sugerido pelo preview) quebrava a tela de confirmação de import (`importar.vue:264`), onde o usuário corrige manualmente o portador auto-detectado antes de confirmar — o fix travava a escolha do usuário no valor da sugestão automática, ignorando silenciosamente a correção manual. **member_id é, por design, um campo editável pelo usuário** (diferente dos outros 5 campos, que são fato financeiro imutável rastreado ao PDF original) — não deveria ter sido tratado com o mesmo padrão do SEC-17. O risco real que o Strix apontou (cliente adulterando `member_id`) já era e continua coberto por `BankImport::TransactionWriter#write!:12` (valida posse contra `@user.members` — nunca permite atribuir a portador de outro usuário). **Validação:** revertido `serialize_row`/`import_row` ao comportamento original (com comentário explicando a decisão), teste de regressão do SEC-05 (cross-user `member_id` → erro "Portador inválido", 0 importado) restaurado, novo teste confirma que a correção manual do usuário é respeitada. 488/488 RSpec verde.
 
 **SEC-24 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Origem: Manual Audit (`npm audit`, drift pós-SEC-11) · Source: Manual Audit · Status: Done]** — `npm audit` em `apps/klipper-web` mostra 8 vulnerabilidades (2 moderate, 6 high) — novas desde o último `npm audit fix` do SEC-11: `fast-uri` (high, host confusion via backslash), `js-yaml` (high, `CVE-2026-59870`, CPU quadrático em `!!omap`), `nanoid` (high, `GHSA-2v37-7h3g-55p8`, loop infinito com `size: 0` — é o achado que o Strix reportou como `CVE-2026-67213`, número não confirmado independentemente), `sharp`/libvips (high, múltiplos CVEs, requer bump breaking de `@nuxt/image`), `esbuild` (moderate, requer bump breaking de `@nuxt/fonts`). **Critério de aceite:** `npm audit fix` (não-breaking) resolve `fast-uri`/`js-yaml`/`nanoid`; bump breaking de `@nuxt/fonts`/`@nuxt/image` fica como decisão separada (mesmo padrão do SEC-11). **Feito (2026-08-20):** `npm audit fix` sem `--force` — `fast-uri` 3.1.4→3.1.5, `js-yaml` 4.3.0→4.3.1, `nanoid` 3.3.16→3.3.18; só `package-lock.json` mudou. Restam 5 achados (2 moderate `esbuild`, 3 high `sharp`) que exigem bump breaking — não cobertos aqui, ficam como item futuro se o usuário decidir encarar a quebra do `@nuxt/fonts`/`@nuxt/image`. **Validação:** `npm audit` confirma 8→5 (só os que exigem `--force`) + 302/302 Vitest + `npm run build` limpo, verificado de forma independente.
 
-**SEC-25 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: Manual Audit (`bundler-audit`, drift pós-SEC-10) · Source: Manual Audit · Status: Todo]** — gem `mail` em `2.9.0` (`Gemfile.lock`) tem advisory `GHSA-mvxr-6m87-mv2q` (medium — spoofing de endereço de e-mail via encoded-word RFC 2047 malformado), fix em `>= 2.9.1`. **Critério de aceite:** `bundle update mail`. **Validação:** `bundler-audit check` limpo pra essa gem.
+**SEC-25 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: Manual Audit (`bundler-audit`, drift pós-SEC-10) · Source: Manual Audit · Status: Done]** — gem `mail` em `2.9.0` (`Gemfile.lock`) tem advisory `GHSA-mvxr-6m87-mv2q` (medium — spoofing de endereço de e-mail via encoded-word RFC 2047 malformado), fix em `>= 2.9.1`. **Critério de aceite:** `bundle update mail`. **Feito (2026-08-20):** `mail` 2.9.0→2.9.1 (`net-imap` também bumpou como dependência transitiva, 0.6.4.1→0.6.6). **Validação:** `bundler-audit check` limpo.
 
 ---
 
