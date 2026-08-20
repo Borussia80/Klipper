@@ -246,22 +246,23 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | UX-5 | UX | Manual Audit (roadmap original) | P2 | Baixo | Baixo | XS | Frontend | **Done** | 5 | Manual Audit | Manual/Decisão |
 | SEC-17 | Segurança | M8 | P1 | Médio | Médio | M | Backend | **Done** | 6 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-18 | Segurança | L11 | P2 | Baixo | Baixo | XS | Frontend/Backend | **Done** | 6 | Security Audit | Decisão registrada |
-| SEC-19 | Segurança | Pós-merge (cookie não-httpOnly) | P2 | Baixo | Médio | S | Frontend/Backend | Todo | 7 | User Request | Console sem violações de CSP + regressão manual |
-| SEC-20 | Segurança | Pós-merge (rastreabilidade de import/export) | P2 | Baixo | Médio | M | Backend | Todo | 7 | User Request | RSpec (log gerado) + revisão de performance |
+| SEC-19 | Segurança | Pós-merge (cookie não-httpOnly) | P2 | Baixo | Médio | S | Frontend/Backend | **Done** | 7 | User Request | Console sem violações de CSP + regressão manual |
+| SEC-20 | Segurança | Pós-merge (rastreabilidade de import/export) | P2 | Baixo | Médio | M | Backend | **Done** | 7 | User Request | RSpec (log gerado) + revisão de performance |
 
 **Progresso**
 
 ```
-Total   █████████░  90%  (26/29 done)
+Total   ██████████  97%  (28/29 done)
 P0      ██████████  100%  (4/4 done)
 P1      █████████░  89%  (8/9 done)
-P2      █████████░  88%  (14/16 done)
+P2      ██████████  100%  (16/16 done)
 ```
 
 `SEC-15` fechado (2026-08-15): `RAILS_ALLOWED_HOSTS` configurado no Render pelo
-usuário. Restam 3 `Todo`: `OBS-1` (falta só confirmar `environment: production`
-nos Deployments Vercel↔GitHub) e `SEC-19`/`SEC-20` (backlog Sprint 7, pedido
-pelo usuário pós-merge — CSP restritiva e trilha de auditoria de import/export).
+usuário. `SEC-19`/`SEC-20` fechados (2026-08-20) — CSP restritiva e trilha de
+auditoria de import/export, backlog Sprint 7 pedido pelo usuário pós-merge.
+Resta 1 `Todo`: `OBS-1` (falta só confirmar `environment: production` nos
+Deployments Vercel↔GitHub).
 
 **Smoke test de produção passou (2026-08-15)** — validação end-to-end pós
 cadeia de fixes de deploy (`CORS_ORIGINS`, `RAILS_ALLOWED_HOSTS`,
@@ -415,9 +416,9 @@ sem revalidação contra o documento fonte. Detalhe completo em
 
 **SEC-18 [P2 · Risco Baixo · Valor Baixo · Owner Frontend/Backend · Origem: L11 · Source: Security Audit · Status: Done]** — `pages/kira.vue` chama `POST /api/v1/kira/chat`, rota inexistente no backend (zero ocorrência em `routes.rb`/`app/controllers`; só resquício em `log/test.log`). Sem impacto de segurança (a chamada falhava com 404). **Feito:** removido o link "Kira" do `AppSidebar.vue` — a tela fica sem entrada de navegação até o backend ser implementado; `pages/kira.vue` não foi deletado. **Validação:** decisão registrada; sem regressão nos testes de frontend (274/274).
 
-**SEC-19 [P2 · Risco Baixo · Valor Médio · Owner Frontend/Backend · Origem: pós-merge, cookie `klipper_token` não-`httpOnly` · Source: User Request · Status: Todo]** — CSP restritiva para reduzir a superfície de XSS. O token JWT (`apps/klipper-web/composables/useApi.ts`) é lido em JS pelo cliente (não é `httpOnly`, por design — precisa montar o header `Authorization`), então um XSS hoje teria caminho livre pra roubar sessão; hoje não há vetor de XSS ativo conhecido (único `v-html` do frontend, em `MobileNav.vue`, renderiza ícone estático, não dado de usuário), mas CSP é defesa em profundidade pra esse cenário. **Escopo:** cabeçalho `Content-Security-Policy` (`script-src 'self'`, `style-src 'self' 'unsafe-inline'`, `connect-src 'self'`, `frame-ancestors 'none'`, `upgrade-insecure-requests`) — decidir se aplicado via `nitro`/middleware do Nuxt ou via proxy (Caddy local já existe como precedente). **Critério de aceite:** app funcional em uso normal, zero violação de CSP no console, sem quebrar recurso externo necessário (checar fontes, `@nuxt/image`, chamadas à API). **Validação:** revisão manual do console em cada tela + regressão de `npm run test`.
+**SEC-19 [P2 · Risco Baixo · Valor Médio · Owner Frontend/Backend · Origem: pós-merge, cookie `klipper_token` não-`httpOnly` · Source: User Request · Status: Done]** — CSP restritiva para reduzir a superfície de XSS. O token JWT (`apps/klipper-web/composables/useApi.ts`) é lido em JS pelo cliente (não é `httpOnly`, por design — precisa montar o header `Authorization`), então um XSS hoje teria caminho livre pra roubar sessão; hoje não há vetor de XSS ativo conhecido (único `v-html` do frontend, em `MobileNav.vue`, renderiza ícone estático, não dado de usuário), mas CSP é defesa em profundidade pra esse cenário. **Escopo:** cabeçalho `Content-Security-Policy` (`script-src 'self'`, `style-src 'self' 'unsafe-inline'`, `connect-src 'self'`, `frame-ancestors 'none'`, `upgrade-insecure-requests`) — decidir se aplicado via `nitro`/middleware do Nuxt ou via proxy (Caddy local já existe como precedente). **Critério de aceite:** app funcional em uso normal, zero violação de CSP no console, sem quebrar recurso externo necessário (checar fontes, `@nuxt/image`, chamadas à API). **Feito (2026-08-20):** `server/middleware/csp.ts` (Nitro) — descartado o Caddyfile porque é só proxy local, não participa do deploy Vercel. Primeira versão com `script-src 'self'` puro quebrava a hidratação SSR do Nuxt (o próprio framework injeta `<script>window.__NUXT__=...</script>` inline); corrigido com nonce criptográfico por requisição (`server/plugins/csp-nonce.ts`, hook Nitro `render:html`), verificado manualmente batendo o nonce do header com o atributo `nonce=""` do script na mesma requisição via build de produção real. **Validação:** verificação manual (build de produção + curl, nonce conferido) + 302/302 Vitest.
 
-**SEC-20 [P2 · Risco Baixo · Valor Médio · Owner Backend · Origem: pós-merge, rastreabilidade de import/export · Source: User Request · Status: Todo]** — trilha de auditoria para operações em lote (`imports/confirm`, exports de relatório) que hoje não deixam registro de quem/quando/quantos-registros. **Escopo:** log enxuto (tabela nova ou reaproveitar padrão existente) para eventos `IMPORT_DATA`/`EXPORT_DATA` — timestamp, tipo, quantidade de registros afetados, status (sucesso/falha), checksum/hash do arquivo de origem; endpoint interno pra consulta do histórico. Entrada deve ser imutável (sem update/destroy exposto). **Critério de aceite:** toda importação/exportação gera 1 entrada de log, sem impacto perceptível na performance de upload/download. **Validação:** RSpec cobrindo geração do log (sucesso e falha) + checagem informal de latência antes/depois.
+**SEC-20 [P2 · Risco Baixo · Valor Médio · Owner Backend · Origem: pós-merge, rastreabilidade de import/export · Source: User Request · Status: Done]** — trilha de auditoria para operações em lote (`imports/confirm`, exports de relatório) que hoje não deixam registro de quem/quando/quantos-registros. **Escopo:** log enxuto (tabela nova ou reaproveitar padrão existente) para eventos `IMPORT_DATA`/`EXPORT_DATA` — timestamp, tipo, quantidade de registros afetados, status (sucesso/falha), checksum/hash do arquivo de origem; endpoint interno pra consulta do histórico. Entrada deve ser imutável (sem update/destroy exposto). **Critério de aceite:** toda importação/exportação gera 1 entrada de log, sem impacto perceptível na performance de upload/download. **Feito (2026-08-20):** tabela `audit_logs` sem `updated_at` (imutabilidade reforçada no schema) + `AuditLog#readonly?` (bloqueia update) + `before_destroy` levantando `ActiveRecord::ReadOnlyRecord`; `ImportsController` grava em `create`/`confirm` (sucesso e falha, com checksum SHA256 do CSV fonte quando aplicável); `ReportsController` grava via `after_action` nos 6 endpoints de relatório (só sucesso — `after_action` não dispara se a action levantar exceção, então falha de exportação não fica coberta hoje); `GET /api/v1/audit_logs` somente leitura, escopado por usuário. **Validação:** RSpec (RED confirmado antes do código) — 476/476 (443 prévios + 33 novos).
 
 ---
 
