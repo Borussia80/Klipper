@@ -88,7 +88,7 @@
     </div>
 
     <button
-      class="btn btn-p"
+      class="btn btn-p cta"
       style="height:40px;width:100%;font-size:13px;font-weight:600"
       type="button"
       :disabled="isLoading"
@@ -106,6 +106,7 @@ const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
 const { incomes, fetchCategories, createCategory } = useCategories()
+const { createBudget } = useBudgets()
 
 onMounted(() => fetchCategories())
 
@@ -151,8 +152,8 @@ const categoryType = computed(() => ICON_TO_CATEGORY_TYPE[selectedIcon.value] ??
 
 function validate(): string | null {
   if (!nome.value.trim()) return 'Informe o nome da categoria'
-  const l = parseFloat(limite.value.replace(',', '.'))
-  if (!limite.value || isNaN(l) || l <= 0) return 'Informe um limite mensal válido'
+  const l = parseBRLAmount(limite.value)
+  if (l === null || l <= 0) return 'Informe um limite mensal válido'
   return null
 }
 
@@ -161,7 +162,7 @@ async function submit() {
   if (error.value) return
   isLoading.value = true
   try {
-    await createCategory({
+    const category = await createCategory({
       name: nome.value.trim(),
       icon: selectedIcon.value || 'wallet',
       category_type: categoryType.value,
@@ -169,6 +170,21 @@ async function submit() {
       natureza: selectedNatureza.value,
       reimbursed_by_category_id: categoryType.value === 'expense' ? reimbursedByCategoryId.value : null,
     })
+
+    const now = new Date()
+    try {
+      await createBudget({
+        category_id: category.id,
+        amount_limit: parseBRLAmount(limite.value)!.toFixed(2),
+        period_month: now.getMonth() + 1,
+        period_year: now.getFullYear(),
+      })
+    } catch {
+      // Categoria já existe — não faz sentido travar o usuário no modal só por causa
+      // do limite. O toast deixa explícito que o limite NÃO foi salvo (sem sucesso falso).
+      addToast('Categoria criada, mas não foi possível definir o limite mensal. Ajuste em Orçamento.', 'alert')
+    }
+
     nome.value = ''
     limite.value = ''
     selectedIcon.value = 'shopping'

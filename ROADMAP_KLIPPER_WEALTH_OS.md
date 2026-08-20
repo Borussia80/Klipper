@@ -263,6 +263,16 @@ usuário. Restam 3 `Todo`: `OBS-1` (falta só confirmar `environment: production
 nos Deployments Vercel↔GitHub) e `SEC-19`/`SEC-20` (backlog Sprint 7, pedido
 pelo usuário pós-merge — CSP restritiva e trilha de auditoria de import/export).
 
+**Smoke test de produção passou (2026-08-15)** — validação end-to-end pós
+cadeia de fixes de deploy (`CORS_ORIGINS`, `RAILS_ALLOWED_HOSTS`,
+`NUXT_PUBLIC_API_URL`, ver [`docs/operations/matriz-erros.md`](docs/operations/matriz-erros.md)):
+`/api/v1/health` 200, preflight CORS liberado pro domínio custom, `klipper.quebec.com.br`
+e `klipper-app.vercel.app` redirecionando corretamente pra `/login` sem sessão,
+Painel autenticado com 10/10 chamadas de API em 200 batendo em
+`klipper-api.onrender.com` (não mais `localhost`), navegação Painel → Transações
+sem erros de console. Confiança agora inclui confirmação externa via browser real,
+não só env var + teste unitário.
+
 ### Sprint 0 — Observabilidade primeiro
 
 Ativar o agente de relatório **antes** de começar a mexer em código —

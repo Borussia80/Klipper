@@ -85,6 +85,59 @@ RSpec.describe "Investments API", type: :request do
     end
   end
 
+  describe "POST /api/v1/investments — operation_type e occurred_on (P0.1/P0.2)" do
+    let(:base_params) do
+      {
+        ticker: "IVVB11",
+        name: "IVVB11",
+        investment_type: "etf",
+        currency: "BRL"
+      }
+    end
+
+    it "persists operation_type and occurred_on from the payload" do
+      post "/api/v1/investments",
+        params: base_params.merge(quantity: 10, average_price: 100,
+          operation_type: "buy", occurred_on: "2026-08-01").to_json,
+        headers: headers
+      expect(response).to have_http_status(:created)
+      expect(json_response[:operation_type]).to eq("buy")
+      expect(json_response[:occurred_on]).to eq("2026-08-01")
+    end
+
+    it "rejects a sell with no prior position, without persisting it" do
+      expect {
+        post "/api/v1/investments",
+          params: base_params.merge(quantity: 10, average_price: 100, operation_type: "sell").to_json,
+          headers: headers
+      }.not_to change(Investment, :count)
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "accepts a sell that does not exceed the held position" do
+      post "/api/v1/investments",
+        params: base_params.merge(quantity: 10, average_price: 100, operation_type: "buy").to_json,
+        headers: headers
+      expect(response).to have_http_status(:created)
+
+      post "/api/v1/investments",
+        params: base_params.merge(quantity: 4, average_price: 120, operation_type: "sell").to_json,
+        headers: headers
+      expect(response).to have_http_status(:created)
+
+      get "/api/v1/investments/portfolio", headers: headers
+      expect(json_response[:total_cost].to_f).to eq(520.0)
+    end
+
+    it "rejects an occurred_on in the future" do
+      post "/api/v1/investments",
+        params: base_params.merge(quantity: 10, average_price: 100,
+          occurred_on: (Time.zone.today + 1).to_s).to_json,
+        headers: headers
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
   describe "PATCH /api/v1/investments/:id" do
     let(:investment) { create(:investment, user: user, quantity: 10) }
 

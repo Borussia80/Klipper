@@ -4,6 +4,8 @@ export interface Investment {
   ticker: string | null
   name: string
   investment_type: string
+  operation_type: 'buy' | 'sell'
+  occurred_on: string
   quantity: string
   average_price: string
   currency: string

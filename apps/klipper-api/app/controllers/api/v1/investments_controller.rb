@@ -57,7 +57,7 @@ module Api
 
       def investment_params
         params.permit(:account_id, :ticker, :name, :investment_type,
-          :quantity, :average_price, :currency)
+          :quantity, :average_price, :currency, :operation_type, :occurred_on)
       end
 
 

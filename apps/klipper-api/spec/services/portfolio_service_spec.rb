@@ -5,6 +5,9 @@ RSpec.describe PortfolioService, type: :service do
 
   subject(:service) { described_class.new(user) }
 
+  # Todas as linhas abaixo são operation_type: "buy" (default da factory), então a soma
+  # sinalizada de total_cost coincide com a soma bruta antiga — este bloco caracteriza
+  # o caso comum (só compras) e continua valendo com a mesma semântica de antes do fix.
   context "with investments" do
     before do
       create(:investment, user: user, investment_type: "stock",
@@ -43,6 +46,25 @@ RSpec.describe PortfolioService, type: :service do
         result = service.allocation
         costs = result.map { |r| r[:total_cost] }
         expect(costs).to eq(costs.sort.reverse)
+      end
+    end
+  end
+
+  # total_cost passa a ser custo LÍQUIDO da posição (buy soma, sell subtrai), não mais a
+  # soma bruta de todo lançamento histórico — este é o comportamento pós-fix do P0.1.
+  context "with buy and sell operations on the same ticker" do
+    before do
+      create(:investment, user: user, ticker: "IVVB11",
+        quantity: 10, average_price: 100)             # +1000
+      create(:investment, :sell, user: user, ticker: "IVVB11",
+        quantity: 4, average_price: 120)               # -480
+    end
+
+    describe "#totals" do
+      it "nets the sell against the buy instead of summing both as cost" do
+        result = service.totals
+        expect(result[:total_positions]).to eq(2)
+        expect(result[:total_cost]).to eq(520.0) # 1000 - 480, não 1480
       end
     end
   end

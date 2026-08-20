@@ -32,8 +32,8 @@ export function useOnboarding() {
       color: '#6B93AE',
     })
 
-    const amount = parseFloat(input.savingsGoal.replace(',', '.'))
-    if (isNaN(amount) || amount <= 0) return
+    const amount = parseBRLAmount(input.savingsGoal)
+    if (amount === null || amount <= 0) return
 
     const now = new Date()
     await createBudget({

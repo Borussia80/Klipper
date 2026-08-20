@@ -59,7 +59,16 @@
             <div :style="`width:8px;height:8px;border-radius:2px;background:${typeColor(inv.investment_type)}`"></div>
           </div>
           <div>
-            <div style="font-size:13px;font-weight:600;color:var(--t1)">{{ inv.ticker || inv.name }}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:6px">
+              {{ inv.ticker || inv.name }}
+              <span
+                :style="inv.operation_type === 'sell'
+                  ? 'font-size:9px;font-weight:600;color:var(--alert);background:var(--ald);border-radius:4px;padding:1px 5px;text-transform:uppercase;letter-spacing:.04em'
+                  : 'font-size:9px;font-weight:600;color:var(--ok);background:rgba(13,184,120,0.12);border-radius:4px;padding:1px 5px;text-transform:uppercase;letter-spacing:.04em'"
+              >
+                {{ inv.operation_type === 'sell' ? 'Venda' : 'Compra' }}
+              </span>
+            </div>
             <div style="font-size:11px;color:var(--t3)">{{ typeLabel(inv.investment_type) }} · {{ inv.quantity }} un.</div>
           </div>
           <div style="text-align:right">

@@ -145,8 +145,8 @@ const ctaLabel = computed(() => {
 })
 
 function validate(): string | null {
-  const v = parseFloat(valor.value.replace(',', '.'))
-  if (!valor.value || isNaN(v) || v <= 0) return 'Informe um valor válido'
+  const v = parseBRLAmount(valor.value)
+  if (v === null || v <= 0) return 'Informe um valor válido'
   if (!descricao.value.trim()) return 'Informe uma descrição'
   if (isFutureDate(data.value)) return 'A data não pode ser futura'
   return null
@@ -160,7 +160,7 @@ async function submit() {
 
   isLoading.value = true
   try {
-    const amount = parseFloat(valor.value.replace(',', '.'))
+    const amount = parseBRLAmount(valor.value)!
     const txType = tipo.value === 'receita' ? 'credit' : tipo.value === 'transferencia' ? 'transfer' : 'debit'
     await createTransaction({
       account_id: conta.value ?? undefined,

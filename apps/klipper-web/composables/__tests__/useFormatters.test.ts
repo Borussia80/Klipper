@@ -5,7 +5,7 @@
  * call the exported function directly. No mocking required.
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { useFormatters, isFutureDate, todayISO } from '../useFormatters'
+import { useFormatters, isFutureDate, todayISO, parseBRLAmount } from '../useFormatters'
 
 describe('useFormatters', () => {
   const { formatBRL, formatBRLCompact, formatPercent, formatPercentRaw, deltaClass, deltaSign } =
@@ -285,5 +285,26 @@ describe('todayISO / isFutureDate — boundary de meia-noite em America/Sao_Paul
     vi.setSystemTime(new Date('2026-08-15T23:30:00-03:00'))
     expect(isFutureDate('2026-08-15')).toBe(false)
     expect(isFutureDate('2026-08-16')).toBe(true)
+  })
+})
+
+describe('parseBRLAmount', () => {
+  it.each([
+    ['1234,56', 1234.56],
+    ['1.234,56', 1234.56],
+    ['1234.56', 1234.56],
+    ['1,234.56', null], // formato americano — o bug original truncava isso em silêncio
+    ['1.234.56', null],
+    ['R$ 1.234,56', 1234.56],
+    ['  1.234,56  ', 1234.56],
+    ['-1234,56', -1234.56],
+    ['0', 0],
+    ['0,00', 0],
+    ['abc', null],
+    ['', null],
+    ['1,234,56', null],
+    ['1.234.567,89', 1234567.89],
+  ])('parseBRLAmount(%j) === %j', (input, expected) => {
+    expect(parseBRLAmount(input)).toBe(expected)
   })
 })

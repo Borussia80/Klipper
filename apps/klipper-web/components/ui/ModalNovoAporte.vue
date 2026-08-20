@@ -81,7 +81,7 @@
     </div>
 
     <button
-      class="btn btn-p"
+      class="btn btn-p cta"
       style="height:40px;width:100%;font-size:13px;font-weight:600"
       type="button"
       :disabled="isLoading || !isValid"
@@ -112,8 +112,8 @@ function validate(): string | null {
   if (!ativo.value.trim()) return 'Informe o ativo'
   const q = parseFloat(quantidade.value)
   if (!quantidade.value || isNaN(q) || q <= 0) return 'Informe uma quantidade válida'
-  const p = parseFloat(preco.value.replace(',', '.'))
-  if (!preco.value || isNaN(p) || p <= 0) return 'Informe um preço válido'
+  const p = parseBRLAmount(preco.value)
+  if (p === null || p <= 0) return 'Informe um preço válido'
   if (isFutureDate(data.value)) return 'A data não pode ser futura'
   return null
 }
@@ -129,8 +129,10 @@ async function submit() {
       ticker: ativo.value.trim().toUpperCase(),
       name: ativo.value.trim().toUpperCase(),
       investment_type: 'stock',
+      operation_type: tipoOp.value === 'venda' ? 'sell' : 'buy',
+      occurred_on: data.value,
       quantity: parseFloat(quantidade.value),
-      average_price: parseFloat(preco.value.replace(',', '.')),
+      average_price: parseBRLAmount(preco.value)!,
       currency: 'BRL',
     })
     ativo.value = ''
@@ -138,8 +140,9 @@ async function submit() {
     preco.value = ''
     data.value = todayISO()
     emit('close')
-  } catch {
-    addToast('Erro ao salvar. Tente novamente.', 'alert')
+  } catch (e: any) {
+    const backendMessage = e?.data?.errors?.[0]
+    addToast(backendMessage ?? 'Erro ao salvar. Tente novamente.', 'alert')
   } finally {
     isLoading.value = false
   }

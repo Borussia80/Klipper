@@ -105,6 +105,20 @@ export function isFutureDate(dateStr: string): boolean {
   return new Date(y, m - 1, d) > new Date(today.getFullYear(), today.getMonth(), today.getDate())
 }
 
+// Aceita só dois formatos sem ambiguidade: BR com milhar+decimal (1.234,56)
+// ou decimal simples com ponto (1234.56). Qualquer outra coisa — inclusive o
+// formato americano com milhar (1,234.56), que colidia com o replace(',', '.')
+// ingênuo e truncava o valor em silêncio — retorna null em vez de adivinhar.
+export function parseBRLAmount(input: string): number | null {
+  const s = input.trim().replace(/^R\$\s*/, '')
+  if (!s) return null
+  const brPattern = /^-?(\d{1,3}(\.\d{3})*|\d+)(,\d{1,2})?$/
+  const plainPattern = /^-?\d+(\.\d{1,2})?$/
+  if (brPattern.test(s)) return parseFloat(s.replace(/\./g, '').replace(',', '.'))
+  if (plainPattern.test(s)) return parseFloat(s)
+  return null
+}
+
 // Local calendar date (not UTC) — must stay in sync with isFutureDate's "today".
 export function todayISO(): string {
   const now = new Date()

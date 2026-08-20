@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_30_175529) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_17_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -72,6 +72,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_30_175529) do
     t.string "currency", default: "BRL", null: false
     t.string "investment_type", default: "stock", null: false
     t.string "name", null: false
+    t.date "occurred_on", null: false
+    t.string "operation_type", default: "buy", null: false
     t.decimal "quantity", precision: 15, scale: 6, default: "0.0", null: false
     t.string "ticker"
     t.datetime "updated_at", null: false
