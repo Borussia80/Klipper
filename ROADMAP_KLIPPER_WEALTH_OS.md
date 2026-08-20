@@ -248,14 +248,19 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 | SEC-18 | Segurança | L11 | P2 | Baixo | Baixo | XS | Frontend/Backend | **Done** | 6 | Security Audit | Decisão registrada |
 | SEC-19 | Segurança | Pós-merge (cookie não-httpOnly) | P2 | Baixo | Médio | S | Frontend/Backend | **Done** | 7 | User Request | Console sem violações de CSP + regressão manual |
 | SEC-20 | Segurança | Pós-merge (rastreabilidade de import/export) | P2 | Baixo | Médio | M | Backend | **Done** | 7 | User Request | RSpec (log gerado) + revisão de performance |
+| SEC-21 | Segurança | Strix scan (white-box, 2026-08-20) | P1 | Médio | Médio | S | Backend | Todo | 8 | Strix (auto-pentest) | RSpec (regressão de tempo) + benchmark manual |
+| SEC-22 | Segurança | Strix scan (white-box, 2026-08-20) | P2 | Baixo | Baixo | S | Backend | Todo | 8 | Strix (auto-pentest) | RSpec |
+| SEC-23 | Segurança | Strix scan (white-box, 2026-08-20) | P2 | Baixo | Baixo | XS | Backend | Todo | 8 | Strix (auto-pentest) | RSpec |
+| SEC-24 | Segurança | `npm audit` (drift pós-SEC-11) | P2 | Baixo | Baixo | XS | Frontend | Todo | 8 | Manual Audit | `npm audit` limpo (não-breaking) |
+| SEC-25 | Segurança | `bundler-audit` (drift pós-SEC-10) | P2 | Baixo | Baixo | XS | Backend | Todo | 8 | Manual Audit | `bundler-audit` limpo |
 
 **Progresso**
 
 ```
-Total   ██████████  100%  (29/29 done)
+Total   ████████░░  85%  (29/34 done)
 P0      ██████████  100%  (4/4 done)
-P1      ██████████  100%  (9/9 done)
-P2      ██████████  100%  (16/16 done)
+P1      █████████░  90%  (9/10 done)
+P2      ████████░░  80%  (16/20 done)
 ```
 
 `SEC-15` fechado (2026-08-15): `RAILS_ALLOWED_HOSTS` configurado no Render pelo
@@ -265,7 +270,13 @@ auditoria de import/export, backlog Sprint 7 pedido pelo usuário pós-merge.
 Vercel: todo deployment originado de push em `main` sai com `target:
 "production"` e alias nos domínios de produção (`klipper.quebec.com.br`
 incluso); branches do Dependabot corretamente saem como preview (`target:
-null`). Backlog zerado — 29/29.
+null`). `SEC-21`-`SEC-25` (Sprint 8) abertos em 2026-08-20 a partir de um
+scan white-box do Strix (`usestrix/strix`, agente autônomo de pentest) contra
+`apps/klipper-api` e `apps/klipper-web` — 5 achados revisados e confirmados
+manualmente contra o código antes de entrar no backlog (um 6º achado do
+Strix, JWT de 30 dias, foi descartado por já ser o `SEC-02`, com risco aceito
+documentado; a severidade do achado de `member_id` foi rebaixada de Medium
+pra Baixo depois de confirmar que `TransactionWriter` já valida posse).
 
 **Smoke test de produção passou (2026-08-15)** — validação end-to-end pós
 cadeia de fixes de deploy (`CORS_ORIGINS`, `RAILS_ALLOWED_HOSTS`,
@@ -422,6 +433,27 @@ sem revalidação contra o documento fonte. Detalhe completo em
 **SEC-19 [P2 · Risco Baixo · Valor Médio · Owner Frontend/Backend · Origem: pós-merge, cookie `klipper_token` não-`httpOnly` · Source: User Request · Status: Done]** — CSP restritiva para reduzir a superfície de XSS. O token JWT (`apps/klipper-web/composables/useApi.ts`) é lido em JS pelo cliente (não é `httpOnly`, por design — precisa montar o header `Authorization`), então um XSS hoje teria caminho livre pra roubar sessão; hoje não há vetor de XSS ativo conhecido (único `v-html` do frontend, em `MobileNav.vue`, renderiza ícone estático, não dado de usuário), mas CSP é defesa em profundidade pra esse cenário. **Escopo:** cabeçalho `Content-Security-Policy` (`script-src 'self'`, `style-src 'self' 'unsafe-inline'`, `connect-src 'self'`, `frame-ancestors 'none'`, `upgrade-insecure-requests`) — decidir se aplicado via `nitro`/middleware do Nuxt ou via proxy (Caddy local já existe como precedente). **Critério de aceite:** app funcional em uso normal, zero violação de CSP no console, sem quebrar recurso externo necessário (checar fontes, `@nuxt/image`, chamadas à API). **Feito (2026-08-20):** `server/middleware/csp.ts` (Nitro) — descartado o Caddyfile porque é só proxy local, não participa do deploy Vercel. Primeira versão com `script-src 'self'` puro quebrava a hidratação SSR do Nuxt (o próprio framework injeta `<script>window.__NUXT__=...</script>` inline); corrigido com nonce criptográfico por requisição (`server/plugins/csp-nonce.ts`, hook Nitro `render:html`), verificado manualmente batendo o nonce do header com o atributo `nonce=""` do script na mesma requisição via build de produção real. **Validação:** verificação manual (build de produção + curl, nonce conferido) + 302/302 Vitest.
 
 **SEC-20 [P2 · Risco Baixo · Valor Médio · Owner Backend · Origem: pós-merge, rastreabilidade de import/export · Source: User Request · Status: Done]** — trilha de auditoria para operações em lote (`imports/confirm`, exports de relatório) que hoje não deixam registro de quem/quando/quantos-registros. **Escopo:** log enxuto (tabela nova ou reaproveitar padrão existente) para eventos `IMPORT_DATA`/`EXPORT_DATA` — timestamp, tipo, quantidade de registros afetados, status (sucesso/falha), checksum/hash do arquivo de origem; endpoint interno pra consulta do histórico. Entrada deve ser imutável (sem update/destroy exposto). **Critério de aceite:** toda importação/exportação gera 1 entrada de log, sem impacto perceptível na performance de upload/download. **Feito (2026-08-20):** tabela `audit_logs` sem `updated_at` (imutabilidade reforçada no schema) + `AuditLog#readonly?` (bloqueia update) + `before_destroy` levantando `ActiveRecord::ReadOnlyRecord`; `ImportsController` grava em `create`/`confirm` (sucesso e falha, com checksum SHA256 do CSV fonte quando aplicável); `ReportsController` grava via `after_action` nos 6 endpoints de relatório (só sucesso — `after_action` não dispara se a action levantar exceção, então falha de exportação não fica coberta hoje); `GET /api/v1/audit_logs` somente leitura, escopado por usuário. **Validação:** RSpec (RED confirmado antes do código) — 476/476 (443 prévios + 33 novos).
+
+### Sprint 8 — Achados do scan Strix (white-box, 2026-08-20)
+
+Rodada com `usestrix/strix` (agente autônomo de pentest) em modo white-box
+(análise de código-fonte, sem alvo de rede — duas tentativas de black-box
+contra a stack local falharam por instabilidade do sandbox do Strix ao
+conectar na rede Docker do Klipper, não por problema no Klipper). Todos os
+achados abaixo foram revisados manualmente contra o código antes de entrar
+no backlog — um achado do Strix (JWT de 30 dias) foi descartado por
+duplicar o `SEC-02` já decidido, e a severidade de `SEC-23` foi rebaixada
+depois de confirmar uma camada de defesa já existente.
+
+**SEC-21 [P1 · Risco Médio · Valor Médio · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Todo]** — ReDoS nos 4 adapters de PDF (`btg_extrato_adapter.rb`, `itau_extrato_adapter.rb`, `itau_fatura_adapter.rb`, `nubank_fatura_adapter.rb`) via regex `\A...(.+?)\s+...\z` sem limite de tamanho de linha antes do match. **Confirmado com benchmark manual:** uma linha de 500 caracteres sem sufixo de valor válido já trava >5s (backtracking catastrófico); 2000 caracteres projeta minutos. Endpoint afetado: `POST /api/v1/imports/preview`, atacável por qualquer usuário autenticado via PDF malicioso dentro do limite de 10MB do `FileGuard`. `PdfImportService#preview` também lê todas as páginas sem limite/timeout — PDF com milhares de páginas finas é um segundo vetor de DoS. **Critério de aceite:** guarda de tamanho de linha (~300-400 chars, variável por adapter) antes de cada regex; `MAX_PDF_PAGES` + timeout em `PdfImportService#preview`. **Validação:** RSpec com fixture de linha longa (tempo de execução limitado) + benchmark manual confirmando ausência de backtracking.
+
+**SEC-22 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Todo]** — CSV Formula Injection: `CsvImportService#import_row` (`app/services/csv_import_service.rb:69-83`) não sanitiza células iniciadas com `=`, `+`, `-`, `@` antes de persistir `description`. Risco real hoje é limitado — não existe export de CSV no Klipper, o vetor exige o próprio usuário copiar dado pra planilha manualmente — mas é defesa em profundidade barata (OWASP CSV Injection). **Critério de aceite:** prefixar `'` em valores que começam com caractere-gatilho, antes de `TransactionWriter#write!`. **Validação:** RSpec cobrindo import de CSV com célula `=2+2` e confirmando que o valor persistido vem prefixado.
+
+**SEC-23 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: Strix scan · Source: Strix (auto-pentest) · Status: Todo]** — `member_id` fica fora do hash assinado pelo `RowSigner` (SEC-17) em `PdfImportService#serialize_row`/`#import_row` (`app/services/pdf_import_service.rb:75,86-93`) — um cliente pode reenviar um `member_id` diferente do que o preview sugeriu, sem detecção. **Severidade rebaixada de Medium (proposta pelo Strix) pra Baixa** após confirmar que `BankImport::TransactionWriter#write!:12` já valida que `member_id` pertence a `@user.members` — não é IDOR entre usuários, só permite reatribuir a transação a outro portador do próprio usuário (algo já possível via UI). **Critério de aceite:** incluir `member_id` no `canonical` hash assinado, e usar o valor assinado (não `row[:member_id]`) em `import_row`. **Validação:** RSpec confirmando que um `member_id` adulterado pós-preview é ignorado (usa o do token).
+
+**SEC-24 [P2 · Risco Baixo · Valor Baixo · Owner Frontend · Origem: Manual Audit (`npm audit`, drift pós-SEC-11) · Source: Manual Audit · Status: Todo]** — `npm audit` em `apps/klipper-web` mostra 8 vulnerabilidades (2 moderate, 6 high) — novas desde o último `npm audit fix` do SEC-11: `fast-uri` (high, host confusion via backslash), `js-yaml` (high, `CVE-2026-59870`, CPU quadrático em `!!omap`), `nanoid` (high, `GHSA-2v37-7h3g-55p8`, loop infinito com `size: 0` — é o achado que o Strix reportou como `CVE-2026-67213`, número não confirmado independentemente), `sharp`/libvips (high, múltiplos CVEs, requer bump breaking de `@nuxt/image`), `esbuild` (moderate, requer bump breaking de `@nuxt/fonts`). **Critério de aceite:** `npm audit fix` (não-breaking) resolve `fast-uri`/`js-yaml`/`nanoid`; bump breaking de `@nuxt/fonts`/`@nuxt/image` fica como decisão separada (mesmo padrão do SEC-11). **Validação:** `npm audit` sem os 3 achados não-breaking; achados breaking documentados como aceitos ou agendados.
+
+**SEC-25 [P2 · Risco Baixo · Valor Baixo · Owner Backend · Origem: Manual Audit (`bundler-audit`, drift pós-SEC-10) · Source: Manual Audit · Status: Todo]** — gem `mail` em `2.9.0` (`Gemfile.lock`) tem advisory `GHSA-mvxr-6m87-mv2q` (medium — spoofing de endereço de e-mail via encoded-word RFC 2047 malformado), fix em `>= 2.9.1`. **Critério de aceite:** `bundle update mail`. **Validação:** `bundler-audit check` limpo pra essa gem.
 
 ---
 
