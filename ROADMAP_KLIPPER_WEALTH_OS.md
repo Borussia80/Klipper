@@ -219,7 +219,7 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 
 | ID | Categoria | Origem | Prioridade | Risco | Valor | Esforço | Owner | Status | Sprint | Source | Validação |
 |----|---|---|:---:|:---:|:---:|:---:|---|:---:|:---:|---|---|
-| OBS-1 | Observabilidade | Manual Audit (roadmap original) | P1 | Baixo | Alto | M | DevOps | Todo | **0** | User Request | QA (dry-run) + Produção |
+| OBS-1 | Observabilidade | Manual Audit (roadmap original) | P1 | Baixo | Alto | M | DevOps | **Done** | **0** | User Request | QA (dry-run) + Produção |
 | FIN-1 | Financeiro | Manual Audit (roadmap original) | **P0** | Alto | Muito alto | L | Backend | **Done** | 1 | Manual Audit | Automatizado + Fixture |
 | SEC-03 | Segurança | H1 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
 | SEC-04 | Segurança | H2 | **P0** | Alto | Alto | M | Backend | **Done** | 1 | Security Audit | **PoC (request spec)** + Automatizado |
@@ -252,17 +252,20 @@ nesta rodada — não incluídos abaixo para não inventar item sem evidência.
 **Progresso**
 
 ```
-Total   ██████████  97%  (28/29 done)
+Total   ██████████  100%  (29/29 done)
 P0      ██████████  100%  (4/4 done)
-P1      █████████░  89%  (8/9 done)
+P1      ██████████  100%  (9/9 done)
 P2      ██████████  100%  (16/16 done)
 ```
 
 `SEC-15` fechado (2026-08-15): `RAILS_ALLOWED_HOSTS` configurado no Render pelo
 usuário. `SEC-19`/`SEC-20` fechados (2026-08-20) — CSP restritiva e trilha de
 auditoria de import/export, backlog Sprint 7 pedido pelo usuário pós-merge.
-Resta 1 `Todo`: `OBS-1` (falta só confirmar `environment: production` nos
-Deployments Vercel↔GitHub).
+`OBS-1` fechado (2026-08-20) — `environment: production` confirmado via API do
+Vercel: todo deployment originado de push em `main` sai com `target:
+"production"` e alias nos domínios de produção (`klipper.quebec.com.br`
+incluso); branches do Dependabot corretamente saem como preview (`target:
+null`). Backlog zerado — 29/29.
 
 **Smoke test de produção passou (2026-08-15)** — validação end-to-end pós
 cadeia de fixes de deploy (`CORS_ORIGINS`, `RAILS_ALLOWED_HOSTS`,
@@ -280,7 +283,7 @@ Ativar o agente de relatório **antes** de começar a mexer em código —
 qualquer mudança feita a partir daqui já entra no histórico/tendência do
 sistema de auditoria automática, em vez de nascer sem rastro.
 
-**OBS-1 [P1 · Risco Baixo · Valor Alto · Owner DevOps · Source: User Request]** — Agente de relatório
+**OBS-1 [P1 · Risco Baixo · Valor Alto · Owner DevOps · Source: User Request · Status: Done]** — Agente de relatório
 estruturado construído em 2026-07-29, não commitado nem ativado.
 - **Onde:** `.github/workflows/{agent-pr-review,agent-full-report}.yml`, `.github/claude-prompts/`, `.github/scripts/`, `reports/`, `docs/adrs/` — todos untracked.
 - **Dependências:** nenhuma técnica; requer decisão do usuário sobre commitar.
@@ -288,7 +291,7 @@ estruturado construído em 2026-07-29, não commitado nem ativado.
   1. ✅ Commit dos arquivos já criados.
   2. ✅ Secret `CLAUDE_CODE_OAUTH_TOKEN` configurado no repo (2026-08-15, confirmado via `gh secret list`).
   3. ✅ GitHub → Settings → Actions: "Allow GitHub Actions to create and approve pull requests" habilitado (2026-08-15).
-  4. Confirmar `environment: production` nos Deployments do Vercel↔GitHub — **pendente**.
+  4. ✅ `environment: production` nos Deployments do Vercel↔GitHub — confirmado (2026-08-20) via API do Vercel (`get_project`/`list_deployments` no projeto `klipper`, team `robertos-projects-ecea69db`): o deployment mais recente (`dpl_EVLDky4JCgerodRM3vjr1xftebRQ`, origem `githubCommitRef: "main"`) tem `target: "production"`, `state: READY`, e alias inclui `klipper.quebec.com.br`; o padrão se repete em todo deploy de `main` no histórico, enquanto branches do Dependabot saem corretamente como preview (`target: null`).
 - **Validação:** `workflow_dispatch` de `agent-full-report.yml` em modo `fast` (QA/dry-run) → confirmar PR automático com `reports/` preenchido (produção).
 
 ### Sprint 1 — Segurança crítica + uso real
