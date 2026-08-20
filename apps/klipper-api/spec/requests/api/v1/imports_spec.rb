@@ -377,4 +377,64 @@ RSpec.describe "Api::V1::Imports", type: :request do
       expect(json["errors"].size).to eq(rows.size)
     end
   end
+
+  describe "audit logging" do
+    it "creates an IMPORT_DATA audit log entry on successful CSV import" do
+      expect {
+        post "/api/v1/imports", params: { file: csv_file }, headers: auth_headers
+      }.to change { AuditLog.where(event_type: "IMPORT_DATA", status: "success").count }.by(1)
+
+      log = AuditLog.last
+      expect(log.user_id).to eq(user.id)
+      expect(log.record_count).to eq(3)
+      expect(log.event_type).to eq("IMPORT_DATA")
+      expect(log.status).to eq("success")
+    end
+
+    it "creates an IMPORT_DATA audit log entry on successful PDF confirm" do
+      rows = [
+        signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50"),
+        signed_row(occurred_on: "2026-06-10", description: "LOJADOIS", amount: "-15.50")
+      ]
+
+      expect {
+        post "/api/v1/imports/confirm", params: { rows: rows }, headers: auth_headers
+      }.to change { AuditLog.where(event_type: "IMPORT_DATA", status: "success").count }.by(1)
+
+      log = AuditLog.last
+      expect(log.user_id).to eq(user.id)
+      expect(log.record_count).to eq(2)
+      expect(log.event_type).to eq("IMPORT_DATA")
+      expect(log.status).to eq("success")
+    end
+
+    it "creates a failure audit log when CSV import has errors" do
+      expect {
+        post "/api/v1/imports", params: { file: csv_file, account_id: 99999 }, headers: auth_headers
+      }.to change { AuditLog.where(event_type: "IMPORT_DATA", status: "failure").count }.by(1)
+
+      log = AuditLog.last
+      expect(log.user_id).to eq(user.id)
+      expect(log.record_count).to eq(0)
+      expect(log.event_type).to eq("IMPORT_DATA")
+      expect(log.status).to eq("failure")
+    end
+
+    it "creates a failure audit log when PDF confirm has errors" do
+      rows = [
+        signed_row(occurred_on: "2026-06-25", description: "JoaoEMaria", amount: "-37.50"),
+        signed_row(occurred_on: "2026-06-10", description: "LOJADOIS", amount: "-15.50")
+      ]
+      rows_without_token = rows.map { |r| r.except("token") }
+
+      expect {
+        post "/api/v1/imports/confirm", params: { rows: rows_without_token }, headers: auth_headers
+      }.to change { AuditLog.where(event_type: "IMPORT_DATA", status: "failure").count }.by(1)
+
+      log = AuditLog.last
+      expect(log.user_id).to eq(user.id)
+      expect(log.event_type).to eq("IMPORT_DATA")
+      expect(log.status).to eq("failure")
+    end
+  end
 end

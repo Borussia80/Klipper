@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_17_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_20_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,6 +32,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_000000) do
     t.bigint "user_id", null: false
     t.index ["user_id", "active"], name: "index_accounts_on_user_id_and_active"
     t.index ["user_id"], name: "index_accounts_on_user_id"
+  end
+
+  create_table "audit_logs", force: :cascade do |t|
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.string "event_type", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.integer "record_count", default: 0, null: false
+    t.string "status", default: "success", null: false
+    t.bigint "user_id", null: false
+    t.index ["created_at"], name: "index_audit_logs_on_created_at"
+    t.index ["user_id", "event_type", "created_at"], name: "index_audit_logs_on_user_event_created"
+    t.index ["user_id"], name: "index_audit_logs_on_user_id"
   end
 
   create_table "budgets", force: :cascade do |t|
@@ -155,6 +168,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_17_000000) do
   end
 
   add_foreign_key "accounts", "users"
+  add_foreign_key "audit_logs", "users"
   add_foreign_key "budgets", "categories"
   add_foreign_key "budgets", "users"
   add_foreign_key "categories", "categories", column: "reimbursed_by_category_id"

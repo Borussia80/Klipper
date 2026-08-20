@@ -362,4 +362,69 @@ RSpec.describe "Api::V1::Reports", type: :request do
       expect(json["points"]).to be_empty
     end
   end
+
+  describe "audit logging" do
+    it "creates an EXPORT_DATA audit log on monthly report" do
+      create(:transaction, user: user, amount: 100, transaction_type: "debit", occurred_on: Date.current)
+
+      expect {
+        get "/api/v1/reports/monthly", headers: auth_headers
+      }.to change { AuditLog.where(event_type: "EXPORT_DATA", status: "success").count }.by(1)
+
+      log = AuditLog.last
+      expect(log.user_id).to eq(user.id)
+      expect(log.event_type).to eq("EXPORT_DATA")
+      expect(log.status).to eq("success")
+      expect(log.record_count).to be > 0
+    end
+
+    it "creates an EXPORT_DATA audit log on natureza_split report" do
+      fixo = create(:category, :fixo, user: user)
+      create(:transaction, user: user, amount: 100, transaction_type: "debit",
+             occurred_on: Date.current, category: fixo)
+
+      expect {
+        get "/api/v1/reports/natureza_split", headers: auth_headers
+      }.to change { AuditLog.where(event_type: "EXPORT_DATA", status: "success").count }.by(1)
+
+      log = AuditLog.last
+      expect(log.user_id).to eq(user.id)
+      expect(log.event_type).to eq("EXPORT_DATA")
+    end
+
+    it "creates an EXPORT_DATA audit log on reimbursement_coverage report" do
+      income  = create(:category, :income, user: user, name: "Reembolso")
+      expense = create(:category, user: user, name: "Terapia", reimbursed_by_category: income)
+      create(:transaction, user: user, amount: 400, transaction_type: "debit",
+             occurred_on: Date.current, category: expense)
+
+      expect {
+        get "/api/v1/reports/reimbursement_coverage", headers: auth_headers
+      }.to change { AuditLog.where(event_type: "EXPORT_DATA", status: "success").count }.by(1)
+    end
+
+    it "creates an EXPORT_DATA audit log on debt_ranking report" do
+      create(:account, :credit_card, :with_debt_data, user: user)
+
+      expect {
+        get "/api/v1/reports/debt_ranking", headers: auth_headers
+      }.to change { AuditLog.where(event_type: "EXPORT_DATA", status: "success").count }.by(1)
+    end
+
+    it "creates an EXPORT_DATA audit log on net_worth report" do
+      create(:account, user: user, balance: 1000)
+
+      expect {
+        get "/api/v1/reports/net_worth", headers: auth_headers
+      }.to change { AuditLog.where(event_type: "EXPORT_DATA", status: "success").count }.by(1)
+    end
+
+    it "creates an EXPORT_DATA audit log on net_worth_history report" do
+      create(:net_worth_snapshot, user: user)
+
+      expect {
+        get "/api/v1/reports/net_worth_history", headers: auth_headers
+      }.to change { AuditLog.where(event_type: "EXPORT_DATA", status: "success").count }.by(1)
+    end
+  end
 end

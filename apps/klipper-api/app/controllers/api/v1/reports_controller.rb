@@ -1,6 +1,11 @@
 module Api
   module V1
     class ReportsController < BaseController
+      after_action :log_export_audit_event, only: %i[
+        monthly natureza_split reimbursement_coverage debt_ranking
+        net_worth net_worth_history
+      ]
+
       PERIOD_MONTHS = { "3m" => 3, "6m" => 6, "1a" => 12 }.freeze
 
       def monthly
@@ -26,6 +31,8 @@ module Api
             }
           end
           .sort_by { |r| -r[:total] }
+
+        @export_record_count = txns.count
 
         render json: {
           year:          year,
@@ -56,6 +63,8 @@ module Api
           }
         end
 
+        @export_record_count = txns.count
+
         render json: {
           year:        year,
           month:       month,
@@ -81,11 +90,16 @@ module Api
           )
         end
 
+        @export_record_count = rows.size
+
         render json: { year: year, month: month, categories: rows }
       end
 
       def debt_ranking
-        render json: { cards: DebtRankingCalculator.new(@current_user).ranking }
+        ranking = DebtRankingCalculator.new(@current_user).ranking
+        @export_record_count = ranking.size
+
+        render json: { cards: ranking }
       end
 
       def net_worth
@@ -109,6 +123,8 @@ module Api
           net_worth:         net_worth_value,
         )
 
+        @export_record_count = accounts.count + investments.count
+
         render json: {
           accounts_total:      accounts_total,
           investments_cost:    investments_cost,
@@ -129,10 +145,23 @@ module Api
           )
         end
 
+        @export_record_count = snapshots.count
+
         render json: {
           period: params[:period] || "max",
           points: snapshots.map { |s| { year: s.year, month: s.month, net_worth: s.net_worth.to_f.round(2) } }
         }
+      end
+
+      private
+
+      def log_export_audit_event
+        AuditLog.create!(
+          user: @current_user,
+          event_type: "EXPORT_DATA",
+          status: "success",
+          record_count: @export_record_count || 0
+        )
       end
     end
   end
