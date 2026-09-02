@@ -12,7 +12,11 @@ export default defineNuxtConfig({
   },
 
   modules: [
-    '@nuxt/image',
+    // '@nuxt/image' removido: nenhum <NuxtImg>/<NuxtPicture>/useImage() no app
+    // (as 4 tags são <img> HTML puro sobre arquivo estático em public/). O módulo
+    // fazia o preset node-server emitir `import 'ipx'`, e o ipx puxa sharp/libvips
+    // por download do GitHub releases — que falha no build Docker e derrubava o
+    // container em loop de ERR_MODULE_NOT_FOUND.
     '@nuxt/fonts',
     '@nuxt/eslint',
     '@vite-pwa/nuxt',
