@@ -92,6 +92,12 @@ jobs:
                   d = json.loads(linha)
               except json.JSONDecodeError:
                   continue
+              if isinstance(d, str):
+                  if d.strip():
+                      print(d)
+                  continue
+              if not isinstance(d, dict):
+                  continue
               if d.get("type") == "result":
                   print("=== result ===")
                   print(d.get("result") or "(campo result vazio)")
