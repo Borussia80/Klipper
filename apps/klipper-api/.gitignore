@@ -2,7 +2,7 @@
 /spec/fixtures/pdf/*.pdf
 
 # Rails — logs, cache e tmp (padrão do framework, restaurado nesta sessão)
-/log/*.log
+/log/*.log*
 /tmp/*
 !/tmp/.keep
 !/tmp/fixtures
