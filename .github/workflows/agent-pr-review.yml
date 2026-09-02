@@ -53,6 +53,7 @@ jobs:
         run: echo "OUTPUT_PATH=${{ runner.temp }}/pr-review.md" >> "$GITHUB_ENV"
 
       - name: Revisão via Claude Code
+        id: claude
         uses: anthropics/claude-code-action@c96dd0a84e0232ab86947fca5fe34f1caae8792f # v1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,6 +74,29 @@ jobs:
             Escreva o comentário Markdown final (só o conteúdo do comentário,
             sem texto antes ou depois) no arquivo indicado pela variável de
             ambiente OUTPUT_PATH.
+
+      # TEMPORARIO — remover apos diagnosticar o is_error:true do agente.
+      # A action esconde a mensagem de erro ate em modo debug; so grava o JSONL
+      # em execution_file, que nao sobe como artifact. Imprime apenas o campo
+      # `result` do registro de resultado: a mensagem da API, nada mais.
+      - name: Erro do agente (diagnostico temporario)
+        if: failure()
+        run: |
+          python3 - "${{ steps.claude.outputs.execution_file }}" <<'PY'
+          import json, sys
+          for linha in open(sys.argv[1]):
+              linha = linha.strip()
+              if not linha:
+                  continue
+              try:
+                  d = json.loads(linha)
+              except json.JSONDecodeError:
+                  continue
+              if d.get("type") == "result":
+                  print("=== result ===")
+                  print(d.get("result") or "(campo result vazio)")
+                  print("=== subtype:", d.get("subtype"), "| is_error:", d.get("is_error"), "===")
+          PY
 
       - name: Publicar comentário no PR
         env:
