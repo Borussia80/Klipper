@@ -14,15 +14,15 @@
     {
       "warning_type": "Mass Assignment",
       "warning_code": 105,
-      "fingerprint": "b121a5614873f3de6734612e77c352809e124d3054ec614fc13c395c74a4c67f",
+      "fingerprint": "0f14253314dbd837188e1ef3864ee26b4e8931ba0b0d8f8118916906cb19cec1",
       "check_name": "PermitAttributes",
       "message": "Potentially dangerous key allowed for mass assignment",
       "file": "app/controllers/api/v1/investments_controller.rb",
       "line": 59,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "note": "Falso positivo: investment_type é um enum de string validado via `validates :investment_type, inclusion: { in: INVESTMENT_TYPES }` no model, não é a coluna type de STI. account_id é validado por posse via valid_investment_fk?."
+      "note": "Falso positivo (user_input :account_id): validado por posse via valid_investment_fk? (current_user.accounts.exists?) antes do save, tanto em create quanto em update; o registro em si vem sempre de current_user.investments. Cenário BOLA coberto por spec/requests/api/v1/investments_spec.rb:152 (SEC-04), que testa account_id de outro usuário na criação e na atualização. investment_type é enum de string validado por inclusion no model, não é a coluna type de STI."
     }
   ],
-  "updated": "2026-08-14 19:45:00 -0300",
+  "updated": "2026-09-02 10:05:00 -0300",
   "brakeman_version": "8.0.6"
 }
