@@ -28,7 +28,7 @@
     "unstorage": "^1.17.5"
   },
   "devDependencies": {
-    "@nuxt/eslint": "^1.16.0",
+    "@nuxt/eslint": "^1.17.0",
     "@nuxt/test-utils": "^4.0.3",
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
