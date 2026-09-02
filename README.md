@@ -49,7 +49,7 @@ serviço nenhum além do proxy.
 
 ```bash
 cp .env.local.example .env.local   # preencher POSTGRES_PASSWORD e RAILS_MASTER_KEY
-docker compose -f docker-compose.local.yml up -d --build
+docker compose --env-file .env.local -f docker-compose.local.yml up -d --build
 ```
 
 ---

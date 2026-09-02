@@ -5,7 +5,10 @@
 #
 # Uso:
 #   cp .env.local.example .env.local   # preencher POSTGRES_PASSWORD e RAILS_MASTER_KEY
-#   docker compose -f docker-compose.local.yml up -d --build
+#   docker compose --env-file .env.local -f docker-compose.local.yml up -d --build
+#
+# O --env-file é obrigatório: o Compose só lê `.env` por padrão, nunca `.env.local`.
+# Sem ele a interpolação falha com "required variable POSTGRES_PASSWORD is missing".
 
 services:
   db:
