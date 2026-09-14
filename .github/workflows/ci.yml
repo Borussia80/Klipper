@@ -70,3 +70,32 @@ jobs:
       - name: Run RSpec
         run: bundle exec rspec --format progress
         working-directory: apps/klipper-api
+
+  # Vitest do klipper-web. Só a suíte de testes bloqueia por enquanto: `lint`
+  # (6 erros) e `typecheck` (37 erros em 19 arquivos) acusam dívida anterior a
+  # este job, e parte dela vive em arquivos que serão removidos — kira.vue no
+  # lint, os três componentes de gráfico no typecheck. Entram no CI depois
+  # dessas remoções, quando o que sobrar for o que de fato precisa de conserto.
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/klipper-web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/klipper-web
+      # vitest.config.ts usa `environment: 'nuxt'`, e tsconfig.json estende
+      # ./.nuxt/tsconfig.json — que só existe depois do prepare. Sem este passo
+      # todos os 38 arquivos falham no checkout limpo com ERR_MODULE_NOT_FOUND;
+      # local passa porque .nuxt já está no disco. Não há postinstall no
+      # package.json que faça isso por conta própria.
+      - name: Prepare Nuxt
+        run: npx nuxt prepare
+        working-directory: apps/klipper-web
+      - name: Run Vitest
+        run: npm run test
+        working-directory: apps/klipper-web
