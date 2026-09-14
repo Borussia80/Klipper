@@ -68,7 +68,7 @@ Regras que já funcionaram nas sessões de backend e continuam valendo: pedir o 
 **Objetivo:** fechar a consistência no resto.
 
 **Escopo:**
-- Investimentos, Portadores, Relatórios, Kira, Importar: herdam tokens (já vêm coesas da Fatia 0) + ganham estrutura de card onde ainda estiver solto.
+- Investimentos, Portadores, Relatórios, Importar: herdam tokens (já vêm coesas da Fatia 0) + ganham estrutura de card onde ainda estiver solto.
 - Modais (drawer): manter a mecânica atual (focus trap, ARIA — já funciona), trocar só a pele para o padrão do mockup. Remover a stripe azul decorativa do topo.
 - Estado vazio de cada tela: uma frase que convida à ação ("Nenhum lançamento ainda — importe um extrato para começar"), não um vazio morto.
 
