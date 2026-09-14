@@ -93,7 +93,9 @@
 const props = defineProps<{ data: { date: string; value: number }[] }>()
 
 const HEIGHT = 200
-const PAD = { top: 8, right: 8, bottom: 24, left: 72 }
+// right precisa acomodar metade do último rótulo do eixo X, que é centrado no
+// ponto: com folga menor que isso ele vaza por cima da borda do card.
+const PAD = { top: 8, right: 28, bottom: 24, left: 72 }
 const FALLBACK_WIDTH = 640
 const MAX_X_LABELS = 7
 
@@ -188,14 +190,20 @@ const yTicks = computed(() => {
 /**
  * Com muitos meses os rótulos se sobrepõem, então mostra um subconjunto
  * espaçado — sempre incluindo o primeiro e o último, que são os que ancoram a
- * leitura do período.
+ * leitura do período. Distribui os índices em vez de filtrar por passo fixo:
+ * o passo fixo forçava o último rótulo para dentro de um intervalo já ocupado
+ * e ele acabava colado no vizinho.
  */
 const xTicks = computed(() => {
   const n = points.value.length
-  const stride = Math.max(1, Math.ceil(n / MAX_X_LABELS))
-  return points.value
-    .filter((_, i) => i % stride === 0 || i === n - 1)
-    .map(p => ({ x: p.x, label: p.date }))
+  if (!n) return []
+  const count = Math.min(n, MAX_X_LABELS)
+  if (count === 1) return [ { x: points.value[0]!.x, label: points.value[0]!.date } ]
+
+  return Array.from({ length: count }, (_, k) => {
+    const p = points.value[Math.round((k * (n - 1)) / (count - 1))]!
+    return { x: p.x, label: p.date }
+  })
 })
 
 const hovered = computed(() =>
@@ -262,7 +270,6 @@ onUnmounted(() => observer?.disconnect())
   width: 100%;
   height: 100%;
   display: block;
-  overflow: visible;
 }
 
 .grid-line {
