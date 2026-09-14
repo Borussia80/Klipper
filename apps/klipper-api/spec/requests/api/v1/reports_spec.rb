@@ -78,6 +78,87 @@ RSpec.describe "Api::V1::Reports", type: :request do
     end
   end
 
+  describe "GET /api/v1/reports/monthly — agregação por categoria" do
+    # Uma query por categoria não quebra teste nenhum: só fica mais lenta
+    # conforme o usuário cria categorias, que é quando ninguém está medindo.
+    # Por isso o teste é sobre o *crescimento*, não sobre um número absoluto.
+    def seed(owner, n_categorias, lancamentos_por_categoria: 1)
+      conta = create(:account, user: owner)
+      n_categorias.times do |i|
+        cat = create(:category, user: owner, name: "Cat#{i}", icon: "food")
+        lancamentos_por_categoria.times do
+          create(:transaction, user: owner, account: conta, category: cat,
+                 amount: 10.00, transaction_type: "debit", occurred_on: "2026-06-10")
+        end
+      end
+    end
+
+    it "não dispara query por categoria" do
+      poucas = create(:user)
+      muitas = create(:user)
+      seed(poucas, 2)
+      seed(muitas, 12)
+
+      q_poucas = count_queries do
+        get "/api/v1/reports/monthly?year=2026&month=6", headers: auth_headers_for(poucas)
+      end
+      q_muitas = count_queries do
+        get "/api/v1/reports/monthly?year=2026&month=6", headers: auth_headers_for(muitas)
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(q_muitas.size).to eq(q_poucas.size),
+        "6x mais categorias disparou #{q_muitas.size - q_poucas.size} queries a mais — " \
+        "#{q_poucas.size} para 2 categorias, #{q_muitas.size} para 12"
+    end
+
+    # `count` e `category_icon` não tinham asserção nenhuma até aqui: a
+    # agregação podia devolvê-los errados sem a suíte perceber.
+    it "conta os lançamentos de cada categoria" do
+      owner = create(:user)
+      seed(owner, 2, lancamentos_por_categoria: 3)
+
+      get "/api/v1/reports/monthly?year=2026&month=6", headers: auth_headers_for(owner)
+      linhas = JSON.parse(response.body)["by_category"]
+
+      expect(linhas.size).to eq(2)
+      expect(linhas.map { |l| l["count"] }).to all(eq(3))
+      expect(linhas.map { |l| l["category_icon"] }).to all(eq("food"))
+      expect(linhas.map { |l| l["total"].to_f }).to all(be_within(0.01).of(30.00))
+    end
+
+    it "conta os lançamentos sem categoria" do
+      owner = create(:user)
+      conta = create(:account, user: owner)
+      2.times do
+        create(:transaction, user: owner, account: conta, category: nil,
+               amount: 25.00, transaction_type: "debit", occurred_on: "2026-06-10")
+      end
+
+      get "/api/v1/reports/monthly?year=2026&month=6", headers: auth_headers_for(owner)
+      sem_cat = JSON.parse(response.body)["by_category"].find { |l| l["category_name"] == "Sem categoria" }
+
+      expect(sem_cat["count"]).to eq(2)
+      expect(sem_cat["category_id"]).to be_nil
+      expect(sem_cat["category_icon"]).to be_nil
+    end
+
+    it "ordena as categorias da maior para a menor despesa" do
+      owner = create(:user)
+      conta = create(:account, user: owner)
+      { "Pouco" => 10.00, "Muito" => 900.00, "Medio" => 100.00 }.each do |nome, valor|
+        cat = create(:category, user: owner, name: nome, icon: "food")
+        create(:transaction, user: owner, account: conta, category: cat,
+               amount: valor, transaction_type: "debit", occurred_on: "2026-06-10")
+      end
+
+      get "/api/v1/reports/monthly?year=2026&month=6", headers: auth_headers_for(owner)
+      nomes = JSON.parse(response.body)["by_category"].map { |l| l["category_name"] }
+
+      expect(nomes).to eq(%w[Muito Medio Pouco])
+    end
+  end
+
   describe "GET /api/v1/reports/natureza_split" do
     let(:fixo)               { create(:category, :fixo, user: user, name: "Aluguel") }
     let(:cartao_parcelamento) { create(:category, :cartao_parcelamento, user: user, name: "Cartão") }
@@ -236,6 +317,64 @@ RSpec.describe "Api::V1::Reports", type: :request do
       expect(row["coverage_pct"].to_f).to be_within(0.1).of(30.0)
       expect(row["historical_avg_pct"].to_f).to be_within(0.1).of(80.0)
       expect(row["alert"]).to be true
+    end
+  end
+
+  describe "GET /api/v1/reports/reimbursement_coverage — custo por categoria" do
+    # Cada categoria custava duas queries por mês da janela histórica, mais o
+    # nome da categoria de reembolso: o endpoint ficava mais caro a cada
+    # vínculo que o usuário configura.
+    def seed_vinculo(owner, quantos)
+      conta = create(:account, user: owner)
+      quantos.times do |i|
+        receita = create(:category, :income, user: owner, name: "Reemb#{i}")
+        despesa = create(:category, user: owner, name: "Desp#{i}", icon: "health",
+                         reimbursed_by_category: receita)
+        # histórico em todos os meses da janela, senão o cálculo pula meses
+        # sem gasto e o custo real fica escondido
+        (0..6).each do |back|
+          d = Date.new(2026, 7, 15).prev_month(back)
+          create(:transaction, user: owner, account: conta, category: despesa,
+                 transaction_type: "debit", amount: 100.00, occurred_on: d)
+          create(:transaction, user: owner, account: conta, category: receita,
+                 transaction_type: "credit", amount: 80.00, occurred_on: d)
+        end
+      end
+    end
+
+    it "não dispara query por categoria vinculada" do
+      poucas = create(:user)
+      muitas = create(:user)
+      seed_vinculo(poucas, 1)
+      seed_vinculo(muitas, 6)
+
+      q_poucas = count_queries do
+        get "/api/v1/reports/reimbursement_coverage?year=2026&month=7", headers: auth_headers_for(poucas)
+      end
+      q_muitas = count_queries do
+        get "/api/v1/reports/reimbursement_coverage?year=2026&month=7", headers: auth_headers_for(muitas)
+      end
+
+      expect(response).to have_http_status(:ok)
+      expect(q_muitas.size).to eq(q_poucas.size),
+        "6x mais vínculos disparou #{q_muitas.size - q_poucas.size} queries a mais — " \
+        "#{q_poucas.size} para 1 vínculo, #{q_muitas.size} para 6"
+    end
+
+    it "mantém o cálculo correto com vários vínculos" do
+      owner = create(:user)
+      seed_vinculo(owner, 3)
+
+      get "/api/v1/reports/reimbursement_coverage?year=2026&month=7", headers: auth_headers_for(owner)
+      linhas = JSON.parse(response.body)["categories"]
+
+      expect(linhas.size).to eq(3)
+      expect(linhas.map { |l| l["spent"].to_f }).to all(be_within(0.01).of(100.0))
+      expect(linhas.map { |l| l["reimbursed"].to_f }).to all(be_within(0.01).of(80.0))
+      expect(linhas.map { |l| l["coverage_pct"].to_f }).to all(be_within(0.1).of(80.0))
+      expect(linhas.map { |l| l["historical_avg_pct"].to_f }).to all(be_within(0.1).of(80.0))
+      expect(linhas.map { |l| l["months_considered"] }).to all(eq(6))
+      expect(linhas.map { |l| l["alert"] }).to all(be false)
     end
   end
 

@@ -17,20 +17,24 @@ module Api
         debits  = txns.where(transaction_type: "debit").sum(:amount)
         credits = txns.where(transaction_type: "credit").sum(:amount)
 
-        by_category = txns.where(transaction_type: "debit")
-          .group(:category_id)
-          .sum(:amount)
-          .map do |cat_id, total|
-            cat = cat_id ? @current_user.categories.find_by(id: cat_id) : nil
-            {
-              category_id:   cat_id,
-              category_name: cat&.name || "Sem categoria",
-              category_icon: cat&.icon,
-              total:         total.to_f.round(2),
-              count:         txns.where(transaction_type: "debit", category_id: cat_id).count
-            }
-          end
-          .sort_by { |r| -r[:total] }
+        # Três queries fixas — somas, contagens e as categorias de uma vez —
+        # em vez de um `find_by` e um `count` por linha do agrupamento, que
+        # faziam o custo subir junto com o número de categorias do usuário.
+        debit_txns = txns.where(transaction_type: "debit")
+        totals     = debit_txns.group(:category_id).sum(:amount)
+        counts     = debit_txns.group(:category_id).count
+        categories = @current_user.categories.where(id: totals.keys.compact).index_by(&:id)
+
+        by_category = totals.map do |cat_id, total|
+          cat = categories[cat_id]
+          {
+            category_id:   cat_id,
+            category_name: cat&.name || "Sem categoria",
+            category_icon: cat&.icon,
+            total:         total.to_f.round(2),
+            count:         counts[cat_id].to_i
+          }
+        end.sort_by { |r| -r[:total] }
 
         @export_record_count = txns.count
 
@@ -78,11 +82,19 @@ module Api
         month = params[:month]&.to_i || Date.current.month
 
         categories = @current_user.categories.expenses.active.with_reimbursement_link
+          .includes(:reimbursed_by_category)
         categories = categories.where(id: params[:category_id]) if params[:category_id]
+
+        # As somas da janela inteira saem de uma query só, compartilhada por
+        # todas as categorias, em vez de duas por mês dentro de cada uma.
+        reference_date = Date.new(year, month, 1)
+        sums = ReimbursementCoverageCalculator.monthly_sums(
+          @current_user, categories, reference_date: reference_date
+        )
 
         rows = categories.map do |category|
           ReimbursementCoverageCalculator.new(
-            @current_user, category, reference_date: Date.new(year, month, 1)
+            @current_user, category, reference_date: reference_date, monthly_sums: sums
           ).call.merge(
             category_name: category.name,
             category_icon: category.icon,
