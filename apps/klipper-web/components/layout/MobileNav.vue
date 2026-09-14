@@ -51,6 +51,7 @@ const navItems = [
   left: 0;
   right: 0;
   height: 60px;
+  height: calc(60px + env(safe-area-inset-bottom));
   background: var(--bg-frame);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -58,6 +59,7 @@ const navItems = [
   z-index: 200;
   align-items: stretch;
   padding: 0 8px;
+  padding: 0 8px env(safe-area-inset-bottom);
 }
 
 .mobile-nav-item {

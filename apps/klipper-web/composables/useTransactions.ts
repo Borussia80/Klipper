@@ -61,10 +61,10 @@ export function useTransactions() {
     return data
   }
 
-  async function deleteTransaction(id: number) {
+  async function deleteTransaction(id: number, options: { silent?: boolean } = {}) {
     await apiFetch(`/api/v1/transactions/${id}`, { method: 'DELETE' })
     transactions.value = transactions.value.filter((t) => t.id !== id)
-    addToast('Lançamento removido', 'ok')
+    if (!options.silent) addToast('Lançamento removido', 'ok')
   }
 
   const totalDebits = computed(() =>

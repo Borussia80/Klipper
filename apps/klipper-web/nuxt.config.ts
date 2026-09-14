@@ -35,12 +35,13 @@ export default defineNuxtConfig({
   css: ['~/assets/css/tokens.css', '~/assets/css/main.css'],
 
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: { lang: 'pt-BR' },
       title: 'Klipper — Wealth OS',
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         {
           name: 'description',
           content:

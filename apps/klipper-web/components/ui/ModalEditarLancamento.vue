@@ -1,5 +1,10 @@
 <template>
-  <UiBaseModal title="Novo lançamento" :open="open" @close="$emit('close')">
+  <UiBaseModal
+    title="Editar lançamento"
+    :subtitle="transaction ? transaction.description : undefined"
+    :open="open"
+    @close="$emit('close')"
+  >
 
     <!-- Type toggle -->
     <div class="tipo-toggle">
@@ -98,48 +103,49 @@
     <button
       class="btn btn-p cta"
       type="button"
-      :disabled="isLoading || !isValid"
+      :disabled="isLoading || !isValid || !transaction"
       @click="submit"
     >
       <span v-if="isLoading" class="btn-spinner" />
-      <span v-else>{{ ctaLabel }}</span>
+      <span v-else>Salvar</span>
     </button>
 
   </UiBaseModal>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ open: boolean }>()
+import type { Transaction } from '~/composables/useTransactions'
+
+const props = defineProps<{ open: boolean; transaction: Transaction | null }>()
 const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
-const { createTransaction } = useTransactions()
+const { updateTransaction } = useTransactions()
 const {
   accounts, categories, isLoadingData, tipoOpcoes,
   tipo, valor, descricao, categoria, conta, data, error,
-  validate, isValid, buildPayload,
+  validate, isValid, buildPayload, fillFrom,
 } = useLancamentoForm()
 
 const isLoading = ref(false)
 
-const ctaLabel = computed(() => {
-  if (tipo.value === 'receita') return 'Registrar receita'
-  if (tipo.value === 'transferencia') return 'Registrar transferência'
-  return 'Registrar gasto'
-})
+watch(
+  () => props.transaction,
+  (transaction) => {
+    if (transaction) fillFrom(transaction)
+  },
+  { immediate: true },
+)
 
 async function submit() {
+  if (!props.transaction) return
   error.value = validate()
   if (error.value) return
 
   isLoading.value = true
   try {
-    await createTransaction(buildPayload())
+    await updateTransaction(props.transaction.id, buildPayload())
     emit('close')
-    valor.value = ''
-    descricao.value = ''
-    conta.value = null
-    categoria.value = null
   } catch {
     addToast('Erro ao salvar. Tente novamente.', 'alert')
   } finally {

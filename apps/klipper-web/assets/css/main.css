@@ -19,6 +19,20 @@ a { color: inherit; text-decoration: none; }
 
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
 
+/* ── Route page transitions ── */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(3px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+
 /* ── Typography helpers ── */
 .mono {
   font-family: 'Space Grotesk', monospace;
@@ -114,28 +128,31 @@ a { color: inherit; text-decoration: none; }
   display: grid; grid-template-columns: 36px 1fr auto;
   align-items: center; gap: 12px;
   padding: 10px 8px; margin: 0 -8px;
-  border-radius: var(--r); cursor: pointer; transition: background .1s;
+  border-radius: var(--r); cursor: pointer; transition: background .1s, transform .1s;
 }
 .txr:hover { background: var(--sf); }
+.txr:active { background: var(--sf); transform: scale(0.98); }
 
 .hr {
   display: grid; grid-template-columns: 40px 1fr auto auto;
   align-items: center; gap: 12px;
   padding: 12px 8px; margin: 0 -8px;
-  border-radius: var(--r); cursor: pointer; transition: background .1s;
+  border-radius: var(--r); cursor: pointer; transition: background .1s, transform .1s;
   border-bottom: 1px solid var(--bd);
 }
 .hr:last-child { border-bottom: none; }
 .hr:hover { background: var(--sf); }
+.hr:active { background: var(--sf); transform: scale(0.98); }
 
 /* ── Account cards ── */
 .ac {
   background: var(--sf); border: 1px solid var(--bd2);
   border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
   display: flex; align-items: center; gap: 14px; cursor: pointer;
-  transition: border-color .12s, background .12s;
+  transition: border-color .12s, background .12s, transform .1s;
 }
 .ac:hover { border-color: rgba(91,155,213,0.35); background: var(--ly); }
+.ac:active { background: var(--ly); transform: scale(0.98); }
 
 /* ── Budget cards ── */
 .bc {
@@ -236,7 +253,7 @@ kbd {
     grid-template-rows: 48px 1fr;
   }
   .shell-nav   { display: none; }
-  .shell-main  { grid-column: 1; grid-row: 2; padding-bottom: 60px; }
+  .shell-main  { grid-column: 1; grid-row: 2; padding-bottom: 60px; padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
 }
 
 /* ── Button loading / disabled ── */

@@ -10,16 +10,17 @@
     <div style="flex:1;padding:0 16px">
       <button
         role="search"
-        aria-label="Buscar transações (⌘K)"
+        aria-label="Buscar transações e comandos (⌘K)"
         aria-keyshortcuts="Meta+k"
         class="tb-search-btn"
-        style="display:flex;align-items:center;gap:8px;background:var(--sf);border:1px solid var(--bd2);border-radius:7px;padding:6px 12px;cursor:text;width:100%;font-family:inherit;text-align:left"
+        style="display:flex;align-items:center;gap:8px;background:var(--sf);border:1px solid var(--bd2);border-radius:7px;padding:6px 12px;cursor:pointer;width:100%;font-family:inherit;text-align:left"
+        @click="useModal().open('command-palette')"
       >
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <circle cx="7" cy="7" r="4.5" stroke="var(--t4)" stroke-width="1.5"/>
           <path d="M10.5 10.5L13.5 13.5" stroke="var(--t4)" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        <span class="tb-search-label" style="font-size:12px;color:var(--t4);flex:1">Buscar lançamentos, categorias, contas…</span>
+        <span class="tb-search-label" style="font-size:12px;color:var(--t4);flex:1">Buscar comandos, páginas, lançamentos…</span>
         <span class="tb-search-kbd" aria-hidden="true" style="font-size:10px;color:var(--t4);background:var(--ly);border:1px solid var(--bd2);border-radius:3px;padding:1px 5px;font-family:'Space Grotesk',monospace">⌘K</span>
       </button>
     </div>

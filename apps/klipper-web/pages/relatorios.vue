@@ -80,7 +80,7 @@
             :key="String(cat.category_id)"
             class="cat-row"
           >
-            <div class="cat-icon">{{ cat.category_icon ?? '📦' }}</div>
+            <div class="cat-icon"><UiAppIcon :name="cat.category_icon ?? 'budget'" :size="16" /></div>
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:500;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                 {{ cat.category_name }}
@@ -148,7 +148,7 @@
             :key="acc.id"
             class="cat-row"
           >
-            <div class="cat-icon">🏦</div>
+            <div class="cat-icon"><UiAppIcon name="bank" :size="16" /></div>
             <div style="flex:1;min-width:0;font-size:13px;font-weight:500;color:var(--t1)">{{ acc.name }}</div>
             <div class="mono" style="font-size:13px;font-weight:500;color:var(--t1)">{{ formatBRL(acc.balance) }}</div>
           </div>
@@ -162,7 +162,7 @@
             :key="inv.investment_type"
             class="cat-row"
           >
-            <div class="cat-icon">📈</div>
+            <div class="cat-icon"><UiAppIcon name="investment" :size="16" /></div>
             <div style="flex:1;min-width:0;font-size:13px;font-weight:500;color:var(--t1)">{{ investmentLabel(inv.investment_type) }}</div>
             <div class="mono" style="font-size:13px;font-weight:500;color:var(--t1)">{{ formatBRL(inv.total_cost) }}</div>
           </div>
@@ -382,7 +382,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  color: var(--t2);
   flex-shrink: 0;
 }
 </style>

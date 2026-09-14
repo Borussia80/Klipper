@@ -14,7 +14,8 @@ import {
   PhDownloadSimple, PhBrain, PhQuestion, PhArrowsClockwise,
   PhWarningCircle, PhCheckCircle, PhInfo, PhX,
   PhHandbag, PhCurrencyCircleDollar, PhPiggyBank, PhChartLine,
-  PhArrowUUpRight, PhArrowUDownLeft, PhShoppingBag,
+  PhArrowUUpRight, PhArrowUDownLeft, PhShoppingBag, PhTrash,
+  PhRows, PhGridFour,
 } from '@phosphor-icons/vue'
 
 const ICONS: Record<string, Component> = {
@@ -76,6 +77,9 @@ const ICONS: Record<string, Component> = {
   success: PhCheckCircle,
   info: PhInfo,
   close: PhX,
+  trash: PhTrash,
+  rows: PhRows,
+  grid: PhGridFour,
   'trend-up': PhTrendUp,
   'chart-bar': PhChartBar,
   'arrow-up': PhArrowUUpRight,

@@ -1,4 +1,23 @@
-type ModalName = 'novo-lancamento' | 'nova-conta' | 'novo-aporte' | 'nova-categoria' | 'novo-portador' | 'editar-categoria' | 'editar-cartao'
+export type ModalName =
+  | 'command-palette'
+  | 'novo-lancamento'
+  | 'nova-conta'
+  | 'novo-aporte'
+  | 'nova-categoria'
+  | 'novo-portador'
+  | 'editar-categoria'
+  | 'editar-cartao'
+  | 'editar-lancamento'
+  | 'confirm-delete'
+
+export interface ConfirmDeletePayload {
+  title?: string
+  description?: string
+  itemName?: string
+  resourceType?: string
+  confirmLabel?: string
+  onConfirm: () => Promise<void> | void
+}
 
 const activeModal = ref<ModalName | null>(null)
 const modalPayload = ref<unknown>(null)
