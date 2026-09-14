@@ -1,6 +1,9 @@
 module Api
   module V1
     class TransactionsController < BaseController
+      PER_PAGE_DEFAULT = 100
+      PER_PAGE_MAX = 200
+
       before_action :set_transaction, only: %i[show update destroy]
 
       def index
@@ -9,7 +12,7 @@ module Api
         txns = txns.where(account_id: params[:account_id]) if params[:account_id]
         txns = txns.where(member_id: params[:member_id]) if params[:member_id]
         txns = txns.where(transaction_type: params[:type]) if params[:type]
-        render json: txns.order(occurred_on: :desc, id: :desc)
+        render json: paginate(txns.order(occurred_on: :desc, id: :desc))
       end
 
       def show
@@ -51,6 +54,28 @@ module Api
       end
 
       private
+
+      # O recorte vai em headers e o corpo continua sendo o array puro: um
+      # envelope mudaria o contrato de `index` para todo cliente já existente.
+      # `page`/`per_page` vêm do cliente, então ambos são saneados aqui — sem
+      # teto, `per_page` grande desfaz a proteção que a paginação existe pra dar,
+      # e `page` não-positivo viraria offset negativo.
+      def paginate(scope)
+        per_page = params[:per_page].to_i
+        per_page = per_page.positive? ? [ per_page, PER_PAGE_MAX ].min : PER_PAGE_DEFAULT
+
+        page = params[:page].to_i
+        page = 1 unless page.positive?
+
+        total = scope.count
+
+        response.headers["X-Total-Count"] = total.to_s
+        response.headers["X-Page"] = page.to_s
+        response.headers["X-Per-Page"] = per_page.to_s
+        response.headers["X-Total-Pages"] = (total.to_f / per_page).ceil.to_s
+
+        scope.limit(per_page).offset((page - 1) * per_page)
+      end
 
       def set_transaction
         @transaction = current_user.transactions.find(params[:id])

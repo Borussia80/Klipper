@@ -20,6 +20,14 @@ export interface TransactionFilters {
   type?: string
 }
 
+/**
+ * A API recorta `GET /transactions` em páginas. Nenhuma tela do app
+ * exibe um recorte — a lista alimenta filtros e somas locais — então buscamos
+ * até esgotar as páginas. Parar antes faria as somas mostrarem um parcial sem
+ * erro visível. 200 é o teto que o servidor aceita: menos páginas, menos idas.
+ */
+const PER_PAGE = 200
+
 export function useTransactions() {
   const { apiFetch } = useApi()
   const { addToast } = useToast()
@@ -31,9 +39,23 @@ export function useTransactions() {
     isLoading.value = true
     error.value = null
     try {
-      transactions.value = await apiFetch<Transaction[]>('/api/v1/transactions', {
-        query: filters,
-      })
+      const all: Transaction[] = []
+      let page = 1
+      let totalPages = 1
+
+      do {
+        const res = await apiFetch.raw<Transaction[]>('/api/v1/transactions', {
+          query: { ...filters, page, per_page: PER_PAGE },
+        })
+        const batch = res._data ?? []
+        all.push(...batch)
+        // header ausente (API ainda sem paginação) conta como página única
+        totalPages = Number(res.headers.get('X-Total-Pages')) || 1
+        if (!batch.length) break
+        page += 1
+      } while (page <= totalPages)
+
+      transactions.value = all
     } catch {
       error.value = 'Erro ao carregar lançamentos.'
     } finally {

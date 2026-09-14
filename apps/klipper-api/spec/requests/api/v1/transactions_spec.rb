@@ -55,6 +55,99 @@ RSpec.describe "Transactions API", type: :request do
     end
   end
 
+  # Sem teto, `index` serializa o extrato inteiro do usuário numa
+  # resposta só — cresce sem limite e sem sinal de alerta. A contagem e o
+  # recorte vão em headers, não num envelope, porque o corpo continua sendo o
+  # array que os clientes já consomem.
+  describe "GET /api/v1/transactions — paginação" do
+    let!(:june_txn) do
+      create(:transaction, user: user, account: account, category: category,
+        occurred_on: Date.new(2026, 6, 15))
+    end
+    let!(:may_txn) do
+      create(:transaction, user: user, account: account, category: category,
+        occurred_on: Date.new(2026, 5, 10))
+    end
+
+    it "recorta a resposta em per_page itens" do
+      get "/api/v1/transactions?per_page=1", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response.length).to eq(1)
+      expect(json_response.first[:id]).to eq(june_txn.id)
+    end
+
+    it "anuncia o total, a página e o tamanho nos headers" do
+      get "/api/v1/transactions?per_page=1", headers: headers
+
+      expect(response.headers["X-Total-Count"]).to eq("2")
+      expect(response.headers["X-Page"]).to eq("1")
+      expect(response.headers["X-Per-Page"]).to eq("1")
+      expect(response.headers["X-Total-Pages"]).to eq("2")
+    end
+
+    it "entrega a página seguinte sem repetir a anterior" do
+      get "/api/v1/transactions?per_page=1&page=2", headers: headers
+
+      expect(json_response.length).to eq(1)
+      expect(json_response.first[:id]).to eq(may_txn.id)
+      expect(response.headers["X-Page"]).to eq("2")
+    end
+
+    it "devolve página vazia além da última, sem erro" do
+      get "/api/v1/transactions?per_page=1&page=99", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response).to eq([])
+      expect(response.headers["X-Total-Count"]).to eq("2")
+    end
+
+    it "conta o total já filtrado, não a coleção inteira" do
+      get "/api/v1/transactions?year=2026&month=6&per_page=1", headers: headers
+
+      expect(response.headers["X-Total-Count"]).to eq("1")
+      expect(response.headers["X-Total-Pages"]).to eq("1")
+    end
+
+    it "usa 100 por página quando o cliente não pede tamanho" do
+      get "/api/v1/transactions", headers: headers
+
+      expect(response.headers["X-Per-Page"]).to eq("100")
+      expect(json_response.length).to eq(2)
+    end
+
+    # per_page vem do cliente: sem teto, `per_page=999999` desfaz a proteção
+    # que a paginação existe para dar.
+    it "limita per_page ao teto mesmo se o cliente pedir mais" do
+      get "/api/v1/transactions?per_page=9999", headers: headers
+
+      expect(response.headers["X-Per-Page"]).to eq("200")
+    end
+
+    it "trata page inválido como a primeira página" do
+      get "/api/v1/transactions?page=0&per_page=1", headers: headers
+
+      expect(response.headers["X-Page"]).to eq("1")
+      expect(json_response.first[:id]).to eq(june_txn.id)
+    end
+
+    it "trata per_page inválido como o padrão" do
+      get "/api/v1/transactions?per_page=abc", headers: headers
+
+      expect(response.headers["X-Per-Page"]).to eq("100")
+    end
+
+    # Header de resposta que não está em `expose` é invisível ao JavaScript do
+    # navegador: o Rails responderia certo e o cliente leria `null`, sem erro
+    # em lugar nenhum.
+    it "expõe os headers de paginação ao navegador" do
+      get "/api/v1/transactions", headers: headers.merge("Origin" => "http://localhost:3001")
+
+      exposed = response.headers["Access-Control-Expose-Headers"].to_s
+      expect(exposed).to include("X-Total-Count", "X-Page", "X-Per-Page", "X-Total-Pages")
+    end
+  end
+
   describe "GET /api/v1/transactions/:id" do
     let(:txn) { create(:transaction, user: user, account: account, category: category) }
 

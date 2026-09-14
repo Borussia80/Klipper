@@ -5,6 +5,8 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     resource "*",
       headers: :any,
       methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
-      expose: [ "Authorization" ]
+      # Header de resposta fora desta lista é invisível ao JavaScript do
+      # navegador: a API responderia certo e o cliente leria `null`.
+      expose: [ "Authorization", "X-Total-Count", "X-Page", "X-Per-Page", "X-Total-Pages" ]
   end
 end

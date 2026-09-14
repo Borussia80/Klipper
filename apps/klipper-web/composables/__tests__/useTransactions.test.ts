@@ -2,13 +2,29 @@
  * useTransactions tests — verifies state management, computed aggregates,
  * and API integration with mocked dependencies.
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 
 // ── mock setup ──────────────────────────────────────────────────────────────
 
-const mockApiFetch = vi.fn()
+type AnyMock = Mock<(...args: unknown[]) => unknown>
+const mockApiFetch = vi.fn() as unknown as AnyMock & { raw: AnyMock }
 const mockAddToast = vi.fn()
+
+/**
+ * `fetchTransactions` precisa dos headers de paginação, então chama
+ * `apiFetch.raw`. O duplê padrão reembala o retorno de `mockApiFetch` numa
+ * resposta sem headers — exatamente o que uma API sem paginação devolveria —
+ * para que os testes que só querem uma lista continuem mockando `mockApiFetch`.
+ */
+async function defaultRaw(...args: unknown[]) {
+  return { _data: await mockApiFetch(...args), headers: new Headers() }
+}
+mockApiFetch.raw = vi.fn(defaultRaw)
+
+function pagina(data: unknown, headers: Record<string, string> = {}) {
+  return { _data: data, headers: new Headers(headers) }
+}
 
 mockNuxtImport('useApi', () => () => ({
   apiFetch: mockApiFetch,
@@ -67,6 +83,8 @@ function makeTx(overrides: Partial<{
 describe('useTransactions', () => {
   beforeEach(() => {
     mockApiFetch.mockReset()
+    mockApiFetch.raw.mockReset()
+    mockApiFetch.raw.mockImplementation(defaultRaw)
     mockAddToast.mockReset()
   })
 
@@ -109,9 +127,94 @@ describe('useTransactions', () => {
       mockApiFetch.mockResolvedValue([])
       const { fetchTransactions } = useTransactions()
       await fetchTransactions({ year: 2026, month: 6 })
-      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/transactions', {
-        query: { year: 2026, month: 6 },
+      expect(mockApiFetch.raw).toHaveBeenCalledWith('/api/v1/transactions', {
+        query: expect.objectContaining({ year: 2026, month: 6 }),
       })
+    })
+  })
+
+  // ── paginação ──────────────────────────────────────────────────────────────
+
+  /**
+   * A API passou a recortar `index` em páginas. Nenhuma tela do app
+   * exibe um recorte — a lista alimenta filtros e somas locais — então o
+   * composable percorre as páginas até esgotar. Truncar aqui faria as somas
+   * exibirem um parcial sem erro visível.
+   */
+  describe('paginação', () => {
+    it('concatena as páginas seguintes até esgotar', async () => {
+      mockApiFetch.raw
+        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '3' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })], { 'X-Total-Pages': '3' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 3 })], { 'X-Total-Pages': '3' }))
+
+      const { transactions, fetchTransactions } = useTransactions()
+      await fetchTransactions()
+
+      expect(mockApiFetch.raw).toHaveBeenCalledTimes(3)
+      expect(transactions.value.map((t) => t.id)).toEqual([1, 2, 3])
+    })
+
+    it('pede as páginas em ordem, uma por chamada', async () => {
+      mockApiFetch.raw
+        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '2' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })], { 'X-Total-Pages': '2' }))
+
+      const { fetchTransactions } = useTransactions()
+      await fetchTransactions()
+
+      const paginas = mockApiFetch.raw.mock.calls.map(
+        (c) => (c[1] as { query: { page: number } }).query.page
+      )
+      expect(paginas).toEqual([1, 2])
+    })
+
+    it('faz uma só chamada quando tudo cabe na primeira página', async () => {
+      mockApiFetch.raw.mockResolvedValueOnce(
+        pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '1' })
+      )
+
+      const { fetchTransactions } = useTransactions()
+      await fetchTransactions()
+
+      expect(mockApiFetch.raw).toHaveBeenCalledTimes(1)
+    })
+
+    it('para na primeira página se a API não anunciar paginação', async () => {
+      mockApiFetch.raw.mockResolvedValue(pagina([makeTx({ id: 1 })]))
+
+      const { transactions, fetchTransactions } = useTransactions()
+      await fetchTransactions()
+
+      expect(mockApiFetch.raw).toHaveBeenCalledTimes(1)
+      expect(transactions.value).toHaveLength(1)
+    })
+
+    // O laço só termina por dado que vem da resposta; página vazia encerra
+    // mesmo que o header prometa mais, senão um total errado gira sem fim.
+    it('para numa página vazia mesmo se o header prometer mais', async () => {
+      mockApiFetch.raw
+        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '9999' }))
+        .mockResolvedValueOnce(pagina([], { 'X-Total-Pages': '9999' }))
+
+      const { transactions, fetchTransactions } = useTransactions()
+      await fetchTransactions()
+
+      expect(mockApiFetch.raw).toHaveBeenCalledTimes(2)
+      expect(transactions.value).toHaveLength(1)
+    })
+
+    it('mantém os filtros em todas as páginas', async () => {
+      mockApiFetch.raw
+        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '2' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })], { 'X-Total-Pages': '2' }))
+
+      const { fetchTransactions } = useTransactions()
+      await fetchTransactions({ year: 2026, month: 6 })
+
+      for (const call of mockApiFetch.raw.mock.calls) {
+        expect((call[1] as { query: object }).query).toMatchObject({ year: 2026, month: 6 })
+      }
     })
   })
 
