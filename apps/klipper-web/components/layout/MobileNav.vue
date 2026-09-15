@@ -1,7 +1,26 @@
 <template>
-  <nav class="mobile-nav" aria-label="Navegação mobile">
+  <div class="mobile-nav-shell">
+    <div v-if="moreOpen" class="more-backdrop" aria-hidden="true" @click="moreOpen = false" />
+    <section v-if="moreOpen" class="more-sheet" aria-label="Mais páginas">
+      <div class="more-sheet-header">
+        <span>Mais</span>
+        <button type="button" class="more-close" aria-label="Fechar mais páginas" @click="moreOpen = false">×</button>
+      </div>
+      <NuxtLink
+        v-for="item in moreItems"
+        :key="item.to"
+        :to="item.to"
+        class="more-item"
+        @click="moreOpen = false"
+      >
+        <span class="mnav-icon" v-html="item.icon" aria-hidden="true" />
+        <span>{{ item.label }}</span>
+      </NuxtLink>
+    </section>
+
+    <nav class="mobile-nav" aria-label="Navegação mobile">
     <NuxtLink
-      v-for="item in navItems"
+      v-for="item in fixedItems"
       :key="item.to"
       :to="item.to"
       class="mobile-nav-item"
@@ -10,11 +29,25 @@
       <span class="mnav-icon" v-html="item.icon" aria-hidden="true" />
       <span class="mnav-label">{{ item.label }}</span>
     </NuxtLink>
-  </nav>
+      <button
+        type="button"
+        class="mobile-nav-item more-trigger"
+        :class="{ active: moreOpen }"
+        aria-label="Mais páginas"
+        :aria-expanded="moreOpen"
+        @click="moreOpen = !moreOpen"
+      >
+        <span class="mnav-icon more-dots" aria-hidden="true">•••</span>
+        <span class="mnav-label">Mais</span>
+      </button>
+    </nav>
+  </div>
 </template>
 
 <script setup lang="ts">
-const navItems = [
+const moreOpen = ref(false)
+
+const fixedItems = [
   {
     to: '/dashboard',
     label: 'Painel',
@@ -35,6 +68,29 @@ const navItems = [
     label: 'Investimentos',
     icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M2 14l4-5 4 2 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="4" r="1.5" fill="currentColor"/></svg>`,
   },
+]
+
+const moreItems = [
+  {
+    to: '/relatorios',
+    label: 'Relatórios',
+    icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M3 14V8m4 6V4m4 10V6m4 8V2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+  },
+  {
+    to: '/importar',
+    label: 'Importar',
+    icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M9 2v9m0 0 3-3m-3 3L6 8M3 13v2h12v-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  },
+  {
+    to: '/portadores',
+    label: 'Portadores',
+    icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M3 15c.8-2.5 2.8-3.8 6-3.8s5.2 1.3 6 3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+  },
+  {
+    to: '/configuracoes',
+    label: 'Configurações',
+    icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M9 2v2m0 10v2M2 9h2m10 0h2M4 4l1.5 1.5m7 7L14 14m0-10-1.5 1.5m-7 7L4 14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>`,
+  },
   {
     to: '/contas',
     label: 'Carteiras',
@@ -44,6 +100,10 @@ const navItems = [
 </script>
 
 <style scoped>
+.mobile-nav-shell {
+  display: none;
+}
+
 .mobile-nav {
   display: none;
   position: fixed;
@@ -60,6 +120,67 @@ const navItems = [
   align-items: stretch;
   padding: 0 8px;
   padding: 0 8px env(safe-area-inset-bottom);
+}
+
+.more-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 9, 16, 0.48);
+  z-index: 198;
+}
+
+.more-sheet {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(68px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 14px;
+  background: var(--sf);
+  border: 1px solid var(--bd2);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32);
+  z-index: 199;
+}
+
+.more-sheet-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--t1);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 2px 4px;
+}
+
+.more-close {
+  border: 0;
+  background: transparent;
+  color: var(--t3);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  color: var(--t2);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.more-item.router-link-active {
+  color: var(--t1);
+  border-color: var(--brass);
 }
 
 .mobile-nav-item {
@@ -105,6 +226,7 @@ const navItems = [
 }
 
 @media (max-width: 768px) {
+  .mobile-nav-shell { display: block; }
   .mobile-nav { display: flex; }
 }
 </style>
