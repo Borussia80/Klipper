@@ -1,20 +1,36 @@
 version: 2
+# Agrupar minor/patch num PR por ecossistema: sem isso cada bump vira um PR
+# isolado (24 abertos em 15/09/2026) e o custo de revisar passa a ser maior que
+# o de atualizar. Major fica de fora dos grupos de propósito — muda contrato e
+# merece PR próprio.
 updates:
 - package-ecosystem: bundler
   directory: "/apps/klipper-api"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
+  groups:
+    klipper-api:
+      patterns: [ "*" ]
+      update-types: [ minor, patch ]
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
+  groups:
+    actions:
+      patterns: [ "*" ]
+      update-types: [ minor, patch ]
 - package-ecosystem: npm
   directory: "/apps/klipper-web"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
+  groups:
+    klipper-web:
+      patterns: [ "*" ]
+      update-types: [ minor, patch ]
   ignore:
   # @types/node segue o Node do CI (22, em ci.yml), não a última major publicada:
   # tipos de um runtime que não roda aqui descrevem APIs que não existem.
@@ -25,6 +41,10 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
+  groups:
+    quebec-web:
+      patterns: [ "*" ]
+      update-types: [ minor, patch ]
   ignore:
   - dependency-name: "@types/node"
     update-types: [ version-update:semver-major ]
