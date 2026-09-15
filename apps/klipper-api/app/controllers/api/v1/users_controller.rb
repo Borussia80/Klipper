@@ -3,9 +3,25 @@ module Api
     class UsersController < BaseController
       include ActionController::Cookies
       before_action :authenticate_request!
+      after_action :log_export_audit_event, only: :export
 
       def me
         render json: user_json(@current_user), status: :ok
+      end
+
+      def export
+        records = {
+          accounts: @current_user.accounts.to_a,
+          categories: @current_user.categories.to_a,
+          transactions: @current_user.transactions.to_a,
+          budgets: @current_user.budgets.to_a,
+          investments: @current_user.investments.to_a,
+          members: @current_user.members.to_a,
+          net_worth_snapshots: @current_user.net_worth_snapshots.to_a
+        }
+        @export_record_count = records.values.sum(&:size)
+
+        render json: records.transform_values { |rows| rows.map(&:serializable_hash) }.merge(user: user_json(@current_user))
       end
 
       def update
@@ -58,6 +74,15 @@ module Api
 
       def user_json(user)
         { id: user.id, email: user.email, name: user.name, created_at: user.created_at }
+      end
+
+      def log_export_audit_event
+        AuditLog.create!(
+          user: @current_user,
+          event_type: "EXPORT_DATA",
+          status: "success",
+          record_count: @export_record_count
+        )
       end
     end
   end

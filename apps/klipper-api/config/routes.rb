@@ -40,6 +40,7 @@ Rails.application.routes.draw do
 
       resource :users, only: [] do
         get   :me,       on: :collection
+        get   "me/export", to: "users#export"
         patch :me,       on: :collection, action: :update
         post  :password, on: :collection
         post  :logout,   on: :collection

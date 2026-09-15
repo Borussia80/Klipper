@@ -22,6 +22,41 @@ RSpec.describe "Api::V1::Users", type: :request do
     end
   end
 
+  describe "GET /api/v1/users/me/export" do
+    it "exports all user data without credentials and records the event" do
+      account = create(:account, user: user)
+      category = create(:category, user: user)
+      member = create(:member, user: user)
+      create(:transaction, user: user, account: account, category: category, member: member)
+      create(:budget, user: user, category: category)
+      create(:investment, user: user, account: account)
+      create(:net_worth_snapshot, user: user)
+      other = create(:user)
+      create(:account, user: other)
+
+      expect {
+        get "/api/v1/users/me/export", headers: auth_headers
+      }.to change { AuditLog.where(user: user, event_type: "EXPORT_DATA", status: "success").count }.by(1)
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json.fetch("user").keys).not_to include("password_digest", "password_salt", "token_version")
+      expect(json.fetch("accounts").map { |account_data| account_data.fetch("id") }).to eq([ account.id ])
+      expect(json.fetch("categories").size).to eq(1)
+      expect(json.fetch("transactions").size).to eq(1)
+      expect(json.fetch("budgets").size).to eq(1)
+      expect(json.fetch("investments").size).to eq(1)
+      expect(json.fetch("members").size).to eq(1)
+      expect(json.fetch("net_worth_snapshots").size).to eq(1)
+    end
+
+    it "returns 401 without a token" do
+      get "/api/v1/users/me/export"
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
   describe "PATCH /api/v1/users/me" do
     it "updates name and returns updated user" do
       patch "/api/v1/users/me",
