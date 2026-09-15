@@ -26,7 +26,7 @@ module Api
 
       def destroy
         unless @current_user.authenticate(params[:current_password])
-          render json: { error: "Senha atual incorreta" }, status: :unauthorized
+          render json: { error: "Senha atual incorreta" }, status: :unprocessable_entity
           return
         end
 

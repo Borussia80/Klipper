@@ -5,11 +5,14 @@ class User < ApplicationRecord
     password_salt&.last(10)
   end
 
+  # A ordem importa na exclusão da conta: o Rails registra um before_destroy por
+  # associação na ordem de declaração, e transactions/investments/budgets têm FK
+  # para accounts, categories e members. Os filhos precisam morrer primeiro.
+  has_many :transactions, dependent: :destroy
+  has_many :investments,  dependent: :destroy
+  has_many :budgets,      dependent: :destroy
   has_many :accounts,     dependent: :destroy
   has_many :categories,   dependent: :destroy
-  has_many :transactions, dependent: :destroy
-  has_many :budgets,      dependent: :destroy
-  has_many :investments,  dependent: :destroy
   has_many :members,      dependent: :destroy
   has_many :net_worth_snapshots, dependent: :destroy
   has_many :audit_logs, dependent: :delete_all

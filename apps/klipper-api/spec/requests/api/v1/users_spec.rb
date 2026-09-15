@@ -184,20 +184,38 @@ RSpec.describe "Api::V1::Users", type: :request do
         .and change(AuditLog, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)
-      expect(response.headers["Set-Cookie"]).to include("klipper_refresh=")
+      expect(response.headers["Set-Cookie"]).to match(/klipper_refresh=;.*expires=Thu, 01 Jan 1970/i)
     end
 
-    it "returns 401 when the current password is missing" do
+    it "destroys an account that already has accounts, categories and transactions" do
+      account  = create(:account, user: user)
+      category = create(:category, user: user)
+      member   = create(:member, user: user)
+      create(:transaction, user: user, account: account, category: category, member: member)
+      create(:investment, user: user, account: account)
+      create(:budget, user: user, category: category)
+      create(:net_worth_snapshot, user: user)
+
+      expect {
+        delete "/api/v1/users/me", params: { current_password: "secret123" }, headers: auth_headers
+      }.to change(User, :count).by(-1)
+        .and change(Transaction, :count).by(-1)
+        .and change(Account, :count).by(-1)
+
+      expect(response).to have_http_status(:no_content)
+    end
+
+    it "returns 422 when the current password is missing" do
       delete "/api/v1/users/me", headers: auth_headers
 
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:unprocessable_entity)
       expect(user.reload).to be_present
     end
 
-    it "returns 401 when the current password is incorrect" do
+    it "returns 422 when the current password is incorrect" do
       delete "/api/v1/users/me", params: { current_password: "wrongpass" }, headers: auth_headers
 
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:unprocessable_entity)
       expect(user.reload).to be_present
     end
 
