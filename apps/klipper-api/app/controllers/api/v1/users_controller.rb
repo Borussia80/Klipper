@@ -24,6 +24,17 @@ module Api
         render json: records.transform_values { |rows| rows.map(&:serializable_hash) }.merge(user: user_json(@current_user))
       end
 
+      def destroy
+        unless @current_user.authenticate(params[:current_password])
+          render json: { error: "Senha atual incorreta" }, status: :unauthorized
+          return
+        end
+
+        @current_user.destroy!
+        cookies.delete(:klipper_refresh, path: "/api/v1/auth")
+        head :no_content
+      end
+
       def update
         if changing_email? && !@current_user.authenticate(params[:current_password])
           render json: { error: "Senha atual incorreta" }, status: :unprocessable_entity

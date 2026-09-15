@@ -42,6 +42,7 @@ Rails.application.routes.draw do
         get   :me,       on: :collection
         get   "me/export", to: "users#export"
         patch :me,       on: :collection, action: :update
+        delete "me",    to: "users#destroy"
         post  :password, on: :collection
         post  :logout,   on: :collection
       end

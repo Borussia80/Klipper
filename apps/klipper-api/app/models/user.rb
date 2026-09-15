@@ -12,7 +12,7 @@ class User < ApplicationRecord
   has_many :investments,  dependent: :destroy
   has_many :members,      dependent: :destroy
   has_many :net_worth_snapshots, dependent: :destroy
-  has_many :audit_logs
+  has_many :audit_logs, dependent: :delete_all
   validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :password, length: { minimum: 8 }, allow_nil: true
 

@@ -173,6 +173,41 @@ RSpec.describe "Api::V1::Users", type: :request do
     end
   end
 
+  describe "DELETE /api/v1/users/me" do
+    it "destroys the account and its audit logs with the current password" do
+      create(:audit_log, user: user)
+
+      expect {
+        delete "/api/v1/users/me", params: { current_password: "secret123" },
+          headers: auth_headers.merge("Cookie" => "klipper_refresh=existing")
+      }.to change(User, :count).by(-1)
+        .and change(AuditLog, :count).by(-1)
+
+      expect(response).to have_http_status(:no_content)
+      expect(response.headers["Set-Cookie"]).to include("klipper_refresh=")
+    end
+
+    it "returns 401 when the current password is missing" do
+      delete "/api/v1/users/me", headers: auth_headers
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(user.reload).to be_present
+    end
+
+    it "returns 401 when the current password is incorrect" do
+      delete "/api/v1/users/me", params: { current_password: "wrongpass" }, headers: auth_headers
+
+      expect(response).to have_http_status(:unauthorized)
+      expect(user.reload).to be_present
+    end
+
+    it "returns 401 without a token" do
+      delete "/api/v1/users/me", params: { current_password: "secret123" }
+
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
   describe "stale token_version (revoked session)" do
     it "returns 401 when the token's token_version no longer matches the user's" do
       stale_token = JwtService.encode(user_id: user.id, token_version: user.token_version)
