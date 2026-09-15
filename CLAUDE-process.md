@@ -24,9 +24,9 @@
 
 | Letra | Atributo | Regra concreta neste repo |
 |---|---|---|
-| **F** | Fast | Suite completa < 10 s. I/O de rede (yfinance, BCB, Supabase) sempre mockado. Testes lentos marcados `@pytest.mark.slow`. |
-| **I** | Independent | Nenhum teste depende de estado de outro. Fixtures `autouse` isolam `st.session_state`, cache Redis (`fakeredis` dedicado), circuit breakers (`cb.reset()` no setup) e repositórios (dados sintéticos). |
-| **R** | Repeatable | Mesmo resultado em qualquer máquina, sem internet. `date.today()` substituído por datas absolutas futuras (ex: `date(2030, 1, 1)`). APIs externas sempre mockadas com `unittest.mock.patch` ou `MagicMock`. |
+| **F** | Fast | RSpec/Vitest devem ser rápidos. I/O de rede e serviços externos sempre mockados. |
+| **I** | Independent | Nenhum teste depende de estado de outro. RSpec isola o banco e Vitest reseta mocks/estado a cada teste. |
+| **R** | Repeatable | Mesmo resultado em qualquer máquina, sem internet. Datas são fixadas e APIs externas são mockadas. |
 | **S** | Self-Validating | Passa ou falha — sem inspeção de stdout ou log. `assert` com mensagem clara obrigatório. `print()` dentro de teste é proibido. |
 | **T** | Timely | Teste escrito **antes** do código de produção. Esta é a propriedade mais violada e a mais importante. |
 
@@ -51,7 +51,7 @@ Toda sessão com Claude Code é pair programming assistido. Roberto define **o q
 ### Integração Contínua
 GitHub Actions em todo push:
 ```
-Ruff (lint) → mypy (tipos) → pytest (testes) → cobertura ≥ 80%
+Brakeman/Bundler Audit → RuboCop → RSpec → ESLint → vue-tsc → Vitest
 ```
 Nenhum merge com CI vermelho. "Vou corrigir depois do merge" não existe.
 
@@ -78,33 +78,6 @@ Não é sprint separado. Acontece no passo **Refactor** de cada ciclo TDD.
 
 ## TEMPLATE DE NOVO MÓDULO
 
-```python
-# core/meu_modulo.py
-"""Uma frase descrevendo a única responsabilidade deste módulo."""
-
-# imports
-
-class MinhaClasse:
-    """Responsabilidade: [uma frase]."""
-
-    def metodo_publico(self, ...) -> ...:
-        """Comportamento esperado em uma frase."""
-        ...
-```
-
-```python
-# tests/test_meu_modulo.py
-"""Testes TDD para core/meu_modulo.py."""
-import pytest
-from unittest.mock import patch, MagicMock
-from datetime import date
-
-class TestMinhaClasse:
-    def test_comportamento_esperado(self):
-        # Arrange
-        ...
-        # Act
-        resultado = ...
-        # Assert
-        assert resultado == esperado, "mensagem clara do que falhou"
-```
+Backend: `app/services/minha_regra.rb` + `spec/services/minha_regra_spec.rb`.
+Frontend: `composables/useMinhaRegra.ts` + `composables/__tests__/useMinhaRegra.test.ts`.
+Em ambos os casos, o teste de comportamento deve existir e falhar antes da implementação.

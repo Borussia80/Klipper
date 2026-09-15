@@ -6,7 +6,7 @@
 ## IDENTIDADE
 
 **Klipper** — Wealth Operating System pessoal de Roberto Milet.
-Stack: **PWA Nuxt 4 (Vercel) + API Rails 8 (PostgreSQL)** · LiteLLM
+Stack: **SPA/PWA Nuxt 3.21 (Vercel) + API Rails 8 (PostgreSQL)**
 Prod: PWA em Vercel · Repo: https://github.com/Borussia80/Klipper
 Local: `/home/rmilet/Base/01-Projetos/11-Klipper/Klipper`
 
@@ -14,9 +14,9 @@ Local: `/home/rmilet/Base/01-Projetos/11-Klipper/Klipper`
 
 ```
 apps/
-  klipper-web/    ← Nuxt 4 (Vue 3, SSR, PWA) — frontend
+  klipper-web/    ← Nuxt 3.21 (Vue 3, SPA, PWA) — frontend
   klipper-api/    ← Rails 8 (PostgreSQL, JWT) — backend
-  quebec-web/     ← Nuxt 4 — landing page institucional
+  quebec-web/     ← Nuxt 3.21 — landing page institucional
 ```
 
 > **Stacks removidas:** Streamlit, Next.js, FastAPI, Railway.
@@ -36,7 +36,7 @@ apps/
 ## EXECUÇÃO LOCAL
 
 ```bash
-# Frontend (Nuxt 4)
+# Frontend (Nuxt 3.21, SPA)
 cd apps/klipper-web
 npm run dev          # localhost:3000
 npm run test         # Vitest

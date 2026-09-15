@@ -11,6 +11,18 @@ no código, não mais como lista de pendências.
 
 Este arquivo deve viver na raiz do repo (ou em `docs/`) e ser referenciado no `CLAUDE.md` do projeto, para que qualquer sessão do Claude Code o leia antes de propor mudanças.
 
+## Feature de produto — Método Kakebo
+
+**Estado atual: feature especificada; implementação pendente.** O Kakebo entra
+como um ciclo mensal de consciência financeira, complementar ao orçamento por
+categoria e à classificação `natureza` já existentes. A especificação completa,
+com os quatro pilares, as quatro perguntas obrigatórias e os critérios de aceite,
+está em [`docs/KAKEBO.md`](docs/KAKEBO.md).
+
+O primeiro incremento deve criar a persistência do mês Kakebo e o resumo por
+pilar no backend antes da tela `/kakebo`. Não usar `localStorage` para dados
+financeiros ou respostas de fechamento.
+
 ---
 
 ## Como usar este roadmap com o Claude Code

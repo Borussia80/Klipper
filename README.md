@@ -3,7 +3,7 @@
 Sistema pessoal de gestão financeira e patrimonial. Matemática ancora. Narrativa sem
 evidência não altera decisão. Código sem teste não entra.
 
-**Stack:** Nuxt 4 (Vue 3, SSR, PWA) · Rails 8 (PostgreSQL, JWT) · Vercel · Render · Neon
+**Stack:** Nuxt 3.21 (Vue 3, SPA/PWA) · Rails 8 (PostgreSQL, JWT) · Vercel · Render · Neon
 
 **Produção:** https://klipper.quebec.com.br · **Repo:** https://github.com/Borussia80/Klipper
 
@@ -13,9 +13,9 @@ evidência não altera decisão. Código sem teste não entra.
 
 ```
 apps/
-  klipper-web/    ← Nuxt 4 — frontend (dashboard, transações, orçamento, investimentos, import)
+  klipper-web/    ← Nuxt 3.21 — frontend (dashboard, transações, orçamento, investimentos, import)
   klipper-api/    ← Rails 8 — backend (API JSON, JWT, PostgreSQL)
-  quebec-web/     ← Nuxt 4 — landing page institucional
+  quebec-web/     ← Nuxt 3.21 — landing page institucional
 ```
 
 Cada app tem seu próprio `package.json`/`Gemfile` e roda independente. Não existem mais
@@ -95,6 +95,8 @@ hook — só roda em planos pagos).
 | Contexto de sessão / arquitetura | `CLAUDE.md` |
 | Processo de desenvolvimento (TDD, F.I.R.S.T., SRP) | `CLAUDE-process.md` |
 | Roadmap de produto + backlog de segurança | `ROADMAP_KLIPPER_WEALTH_OS.md` |
+| Plano de execução da auditoria de 14/09/2026 | `PLANO_EXECUCAO_KLIPPER_2026-09-14.md` |
+| Feature Kakebo — especificação do ciclo mensal | `docs/KAKEBO.md` |
 | Auditorias de segurança | `docs/security/` |
 | ADRs | `docs/adrs/` |
 | Runbook de erros de operação/deploy | `docs/operations/matriz-erros.md` |
