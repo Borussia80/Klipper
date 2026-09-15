@@ -1,5 +1,5 @@
 <template>
-  <!-- Redirects to dashboard -->
+  <div aria-hidden="true" />
 </template>
 
 <script setup lang="ts">

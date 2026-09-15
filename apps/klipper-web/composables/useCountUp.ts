@@ -35,7 +35,7 @@ export function useCountUp(target: Ref<number>, duration = 420) {
 
   watch(
     target,
-    (newVal, oldVal) => {
+    (newVal: number, oldVal: number | undefined) => {
       const from = oldVal ?? newVal * 0.88
       animate(from, newVal)
     },

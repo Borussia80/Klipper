@@ -131,7 +131,7 @@ const isLoading = ref(false)
 
 watch(
   () => props.transaction,
-  (transaction) => {
+  (transaction: Transaction | null) => {
     if (transaction) fillFrom(transaction)
   },
   { immediate: true },

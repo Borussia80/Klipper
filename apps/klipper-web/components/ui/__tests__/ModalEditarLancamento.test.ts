@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { DOMWrapper, type VueWrapper } from '@vue/test-utils'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import ModalEditarLancamento from '../ModalEditarLancamento.vue'
+import type { Transaction } from '~/composables/useTransactions'
 
 const mockAddToast = vi.fn()
 const mockUpdateTransaction = vi.fn()
@@ -34,7 +35,7 @@ mockNuxtImport('useTransactions', () => () => ({
   updateTransaction: mockUpdateTransaction,
 }))
 
-function makeTransaction(overrides = {}) {
+function makeTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 42,
     account_id: 1,
@@ -54,7 +55,7 @@ function makeTransaction(overrides = {}) {
 let wrapper: VueWrapper | null = null
 const body = new DOMWrapper(document.body)
 
-async function mountModal(props: Record<string, unknown>) {
+async function mountModal(props: { open: boolean; transaction: Transaction | null }) {
   wrapper = await mountSuspended(ModalEditarLancamento, { props, attachTo: document.body })
   return wrapper
 }

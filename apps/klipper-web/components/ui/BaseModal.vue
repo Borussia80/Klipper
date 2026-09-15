@@ -18,7 +18,7 @@ const triggerEl = ref<HTMLElement | null>(null)
 
 watch(
   () => props.open,
-  (open) => {
+  (open: boolean) => {
     if (open) {
       document.addEventListener('keydown', onKeydown)
       triggerEl.value = document.activeElement as HTMLElement

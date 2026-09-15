@@ -53,7 +53,7 @@ const error = ref<string | null>(null)
 
 watch(
   () => props.category,
-  (category) => {
+  (category: Category | null) => {
     reimbursedByCategoryId.value = category?.reimbursed_by_category_id ?? null
     error.value = null
   },

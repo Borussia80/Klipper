@@ -109,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ open: boolean }>()
+const { open } = defineProps<{ open: boolean }>()
 const emit = defineEmits(['close'])
 
 const { addToast } = useToast()

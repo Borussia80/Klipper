@@ -131,8 +131,8 @@ async function submit() {
       investment_type: 'stock',
       operation_type: tipoOp.value === 'venda' ? 'sell' : 'buy',
       occurred_on: data.value,
-      quantity: parseFloat(quantidade.value),
-      average_price: parseBRLAmount(preco.value)!,
+      quantity: String(parseFloat(quantidade.value)),
+      average_price: String(parseBRLAmount(preco.value)! ),
       currency: 'BRL',
     })
     ativo.value = ''
@@ -140,8 +140,9 @@ async function submit() {
     preco.value = ''
     data.value = todayISO()
     emit('close')
-  } catch (e: any) {
-    const backendMessage = e?.data?.errors?.[0]
+  } catch (e: unknown) {
+    const details = e as { data?: { errors?: string[] } }
+    const backendMessage = details.data?.errors?.[0]
     addToast(backendMessage ?? 'Erro ao salvar. Tente novamente.', 'alert')
   } finally {
     isLoading.value = false

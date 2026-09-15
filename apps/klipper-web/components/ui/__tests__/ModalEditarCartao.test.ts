@@ -13,6 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { DOMWrapper, type VueWrapper } from '@vue/test-utils'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import ModalEditarCartao from '../ModalEditarCartao.vue'
+import type { Account } from '~/composables/useAccounts'
 
 const mockAddToast = vi.fn()
 const mockUpdateAccount = vi.fn()
@@ -51,7 +52,7 @@ function makeAccount(overrides = {}) {
 let wrapper: VueWrapper | null = null
 const body = new DOMWrapper(document.body)
 
-async function mountModal(props: Record<string, unknown>) {
+async function mountModal(props: { open: boolean; account: Account | null }) {
   wrapper = await mountSuspended(ModalEditarCartao, { props, attachTo: document.body })
   return wrapper
 }

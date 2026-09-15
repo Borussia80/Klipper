@@ -62,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+import type { MemberSpend } from '~/composables/useMemberSpending'
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
 const { members, isLoading, error, fetchMembers } = useMembers()
@@ -79,5 +80,5 @@ onMounted(async () => {
 
 const titulares = computed(() => members.value.filter((m) => m.relationship === 'titular'))
 const dependentes = computed(() => members.value.filter((m) => m.relationship === 'dependente'))
-const spendByMember = computed(() => new Map(memberSpends.value.map((s) => [s.memberId, s.totalDebits])))
+const spendByMember = computed(() => new Map(memberSpends.value.map((s: MemberSpend) => [s.memberId, s.totalDebits])))
 </script>

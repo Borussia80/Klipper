@@ -198,6 +198,8 @@
 </template>
 
 <script setup lang="ts">
+import type { PreviewResponse, PreviewRow } from '~/composables/useImport'
+
 definePageMeta({ layout: 'app' })
 
 const router = useRouter()
@@ -242,7 +244,7 @@ onMounted(() => {
   fetchMembers()
 })
 
-watch(preview, (value) => {
+watch(preview, (value: PreviewResponse | null) => {
   checkedRows.value = value ? [...value.rows] : []
   selectedMemberByGroup.value = {}
   if (!value) return
@@ -260,8 +262,8 @@ function onGroupMemberChange(cardholder: string, event: Event) {
   const value = (event.target as HTMLSelectElement).value
   const memberId = value ? Number(value) : undefined
   selectedMemberByGroup.value[cardholder] = memberId
-  const group = groupedRows.value.find((g) => g.cardholder === cardholder)
-  group?.rows.forEach((row) => { row.member_id = memberId })
+  const group = groupedRows.value.find((g: RowGroup) => g.cardholder === cardholder)
+  group?.rows.forEach((row: PreviewRow) => { row.member_id = memberId })
 }
 
 function isPdfFile(file: File | null): boolean {

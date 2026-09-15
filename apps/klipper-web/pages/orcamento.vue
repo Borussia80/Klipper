@@ -49,7 +49,9 @@
         </div>
       </div>
 
-      <UiSkeletonCard v-if="isLoading" v-for="n in 4" :key="n" style="margin-bottom:8px" />
+      <template v-if="isLoading">
+        <UiSkeletonCard v-for="n in 4" :key="n" style="margin-bottom:8px" />
+      </template>
       <template v-else>
         <UiBudgetCategoryCard v-for="cat in categories" :key="cat.name" v-bind="cat" />
         <div v-if="!categories.length" style="padding:40px 0;text-align:center;color:var(--t4);font-size:13px">

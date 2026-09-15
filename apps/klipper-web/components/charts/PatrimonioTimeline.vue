@@ -167,7 +167,7 @@ const points = computed(() =>
 )
 
 const linePath = computed(() =>
-  points.value.map((p, i) => `${i === 0 ? 'M' : 'L'}${r(p.x)},${r(p.y)}`).join(' '),
+  points.value.map((p: (typeof points.value)[number], i: number) => `${i === 0 ? 'M' : 'L'}${r(p.x)},${r(p.y)}`).join(' '),
 )
 
 const areaPath = computed(() => {

@@ -137,6 +137,7 @@
 </template>
 
 <script setup lang="ts">
+import type { NaturezaSplitRow } from '~/composables/useReports'
 definePageMeta({ layout: 'app' })
 
 const {
@@ -225,8 +226,8 @@ const showDebtAlarm = computed(() => isDebtAlarmVisible(debtRanking.value))
 const incomeHighlight = computed(() => pickIncomeHighlight(transactions.value, categories.value))
 const incomeCategory = computed(() => categories.value.find((c) => c.id === incomeHighlight.value?.category_id) ?? null)
 
-const fixoRow = computed(() => naturezaSplit.value?.by_natureza.find((r) => r.natureza === 'fixo' && r.total > 0) ?? null)
-const cartaoRow = computed(() => naturezaSplit.value?.by_natureza.find((r) => r.natureza === 'cartao_parcelamento' && r.total > 0) ?? null)
+const fixoRow = computed(() => naturezaSplit.value?.by_natureza.find((r: NaturezaSplitRow) => r.natureza === 'fixo' && r.total > 0) ?? null)
+const cartaoRow = computed(() => naturezaSplit.value?.by_natureza.find((r: NaturezaSplitRow) => r.natureza === 'cartao_parcelamento' && r.total > 0) ?? null)
 
 const fixoPct = computed(() => pctOfIncome(fixoRow.value?.total ?? 0, totalCredits.value))
 const cartaoPct = computed(() => pctOfIncome(cartaoRow.value?.total ?? 0, totalCredits.value))
@@ -235,7 +236,7 @@ const kpiCount = computed(() => [incomeHighlight.value, fixoRow.value, cartaoRow
 
 const splitBars = computed(() =>
   mapNaturezaSplitToBars(
-    (naturezaSplit.value?.by_natureza ?? []).filter((r) => r.total > 0),
+    (naturezaSplit.value?.by_natureza ?? []).filter((r: NaturezaSplitRow) => r.total > 0),
     { fixo: 'var(--sea)', cartao_parcelamento: 'var(--alert)', variavel: 'var(--brass)' }
   )
 )

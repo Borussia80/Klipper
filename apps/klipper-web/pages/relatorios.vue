@@ -259,11 +259,11 @@ function investmentLabel(type: string): string {
   return INVESTMENT_LABELS[type] ?? type
 }
 
-watch([activeYear, activeMonth, activeMemberId], ([y, m, memberId]) => {
+watch([activeYear, activeMonth, activeMemberId], ([y, m, memberId]: [number, number, number | undefined]) => {
   if (tab.value === 'mensal') fetchMonthly(y, m, memberId)
 })
 
-watch(tab, (t) => {
+watch(tab, (t: 'mensal' | 'patrimonio') => {
   if (t === 'mensal') {
     fetchMonthly(activeYear.value, activeMonth.value, activeMemberId.value)
   } else {

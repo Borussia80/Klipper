@@ -104,7 +104,7 @@ const error = ref<string | null>(null)
 
 watch(
   () => props.account,
-  (account) => {
+  (account: Account | null) => {
     saldoFaturaAtual.value = account?.saldo_fatura_atual ? Number(account.saldo_fatura_atual) : null
     pagamentoMinimo.value = account?.pagamento_minimo ? Number(account.pagamento_minimo) : null
     jurosRotativoAm.value = account?.juros_rotativo_am ? Number(account.juros_rotativo_am) : null

@@ -246,7 +246,7 @@ const activeItemId = computed(() => {
 
 watch(
   () => props.open,
-  (isOpen) => {
+  (isOpen: boolean) => {
     if (isOpen) {
       query.value = ''
       selectedIndex.value = 0

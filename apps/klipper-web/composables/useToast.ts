@@ -16,7 +16,7 @@ export function useToast() {
   }
 
   function removeToast(id: string) {
-    toasts.value = toasts.value.filter((t) => t.id !== id)
+    toasts.value = toasts.value.filter((t: Toast) => t.id !== id)
   }
 
   return { toasts: readonly(toasts), addToast, removeToast }

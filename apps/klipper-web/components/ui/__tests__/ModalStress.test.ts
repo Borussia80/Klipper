@@ -13,7 +13,6 @@ import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import ModalNovoLancamento from '../ModalNovoLancamento.vue'
 import ModalNovaCategoria from '../ModalNovaCategoria.vue'
 import ModalConfirmDelete from '../ModalConfirmDelete.vue'
-import ModalEditarCartao from '../ModalEditarCartao.vue'
 
 const mockAddToast = vi.fn()
 const mockCreateTransaction = vi.fn()
