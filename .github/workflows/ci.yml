@@ -71,11 +71,8 @@ jobs:
         run: bundle exec rspec --format progress
         working-directory: apps/klipper-api
 
-  # Vitest do klipper-web. Só a suíte de testes bloqueia por enquanto: `lint`
-  # (6 erros) e `typecheck` (37 erros em 19 arquivos) acusam dívida anterior a
-  # este job, e parte dela vive em arquivos que serão removidos — kira.vue no
-  # lint, os três componentes de gráfico no typecheck. Entram no CI depois
-  # dessas remoções, quando o que sobrar for o que de fato precisa de conserto.
+  # Portão completo do frontend: mudanças em Vue/TypeScript só entram com
+  # lint, tipos e comportamento verificados no mesmo checkout.
   web:
     runs-on: ubuntu-latest
     steps:
@@ -95,6 +92,12 @@ jobs:
       # package.json que faça isso por conta própria.
       - name: Prepare Nuxt
         run: npx nuxt prepare
+        working-directory: apps/klipper-web
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: apps/klipper-web
+      - name: Run typecheck
+        run: npm run typecheck
         working-directory: apps/klipper-web
       - name: Run Vitest
         run: npm run test
