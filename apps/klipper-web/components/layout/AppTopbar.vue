@@ -1,3 +1,7 @@
+<script setup lang="ts">
+const { isOffline } = useConnectionStatus()
+</script>
+
 <template>
   <header role="banner" style="display:flex;align-items:center;background:var(--bg-frame);border-bottom:1px solid var(--bd);z-index:100;position:relative">
     <!-- Brand -->
@@ -27,6 +31,10 @@
 
     <!-- Right actions -->
     <div style="flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 16px;height:100%">
+      <span v-if="isOffline" class="connection-indicator" role="status">
+        <span class="connection-dot" aria-hidden="true" />
+        Sem conexão
+      </span>
       <button class="btn btn-p" aria-label="Criar novo lançamento" @click="useModal().open('novo-lancamento')">
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
           <line x1="5.5" y1="1" x2="5.5" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -51,6 +59,22 @@
 
 .tb-brand { width: var(--nav); flex-shrink: 0; }
 .tb-search-btn { max-width: 380px; }
+
+.connection-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--warn);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.connection-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
 
 @media (max-width: 768px) {
   .tb-brand { width: auto; padding: 0 12px; border-right: none; }

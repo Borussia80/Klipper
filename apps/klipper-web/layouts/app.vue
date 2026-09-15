@@ -3,6 +3,7 @@ import { GLOBAL_SHORTCUTS } from '~/composables/useKeyboardShortcuts'
 
 const { open, activeModal } = useModal()
 const router = useRouter()
+const { isOffline } = useConnectionStatus()
 
 onMounted(() => {
   function handleKeyboard(e: KeyboardEvent) {
@@ -57,7 +58,8 @@ onMounted(() => {
     <LayoutAppTopbar class="shell-header" />
     <LayoutAppSidebar class="shell-nav" />
     <main class="shell-main" style="overflow-y:auto;background:var(--bg);display:flex;flex-direction:column">
-      <slot />
+      <LayoutOfflineScreen v-if="isOffline" />
+      <slot v-else />
     </main>
     <LayoutMobileNav />
     <UiModalMount />
