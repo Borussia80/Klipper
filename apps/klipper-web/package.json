@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@edusites/bancos-brasil": "^1.2.0",
-    "@lucide/vue": "^1.21.0",
+    "@lucide/vue": "^1.45.0",
     "@nuxt/fonts": "^0.10.3",
     "@phosphor-icons/vue": "^2.2.1",
     "lucide-vue-next": "^1.0.0",
