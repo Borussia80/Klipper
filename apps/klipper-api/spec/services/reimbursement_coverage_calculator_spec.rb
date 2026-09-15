@@ -65,20 +65,39 @@ RSpec.describe ReimbursementCoverageCalculator, type: :service do
     expect(result[:historical_avg_pct]).to eq(100.0)
   end
 
-  it "flags alert: true when current coverage falls below half of the historical average" do
-    # 6 historical months averaging 80% coverage
+  it "flags alert: true when coverage stays below half of the historical average" do
+    # 2026-01..04 at 80% coverage
+    (3..6).each do |i|
+      d = reference_date.prev_month(i)
+      debit_in(year: d.year, month: d.month, amount: 100)
+      credit_in(year: d.year, month: d.month, amount: 80)
+    end
+    # then three months in a row at 30% — a drop that holds, not a late payment
+    (1..2).each do |i|
+      d = reference_date.prev_month(i)
+      debit_in(year: d.year, month: d.month, amount: 100)
+      credit_in(year: d.year, month: d.month, amount: 30)
+    end
+    debit_in(year: 2026, month: 7, amount: 100)
+    credit_in(year: 2026, month: 7, amount: 30)
+
+    expect(result[:historical_avg_pct]).to eq(63.3)
+    expect(result[:coverage_pct]).to eq(30.0)
+    expect(result[:alert]).to be true
+  end
+
+  it "flags alert: false when a single month's reimbursement is merely late" do
+    # 6 historical months at 80% coverage
     (1..6).each do |i|
       d = reference_date.prev_month(i)
       debit_in(year: d.year, month: d.month, amount: 100)
       credit_in(year: d.year, month: d.month, amount: 80)
     end
-    # current month drops to 30% coverage — below 50% of 80%
+    # the convênio hasn't paid July yet: the month reads 0%, but nothing is wrong
     debit_in(year: 2026, month: 7, amount: 100)
-    credit_in(year: 2026, month: 7, amount: 30)
 
-    expect(result[:historical_avg_pct]).to eq(80.0)
-    expect(result[:coverage_pct]).to eq(30.0)
-    expect(result[:alert]).to be true
+    expect(result[:coverage_pct]).to eq(0.0)
+    expect(result[:alert]).to be false
   end
 
   it "flags alert: false when the drop is small" do

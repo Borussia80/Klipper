@@ -1,6 +1,7 @@
 class ReimbursementCoverageCalculator
   DEFAULT_MONTHS = 6
   ALERT_RATIO = 0.5
+  ALERT_WINDOW_MONTHS = 3
 
   # Soma, numa query só, débitos e créditos de todas as categorias envolvidas
   # ao longo de toda a janela. Quem calcula várias categorias monta isto uma
@@ -62,15 +63,42 @@ class ReimbursementCoverageCalculator
       coverage_pct:        coverage_pct&.to_f&.round(1),
       historical_avg_pct:  historical_avg_pct&.to_f&.round(1),
       months_considered:   historical_pcts.size,
-      alert:               alert?(coverage_pct, historical_avg_pct)
+      alert:               alert?
     }
   end
 
   private
 
-  def alert?(coverage_pct, historical_avg_pct)
-    return false if coverage_pct.nil? || historical_avg_pct.nil?
-    coverage_pct < historical_avg_pct * ALERT_RATIO
+  # `spent` e `reimbursed` confrontam débito e crédito da mesma competência, e o
+  # convênio costuma pagar no mês seguinte ao do gasto: um pagamento atrasado tem
+  # a mesma assinatura de uma glosa. O alerta então acumula — os meses recentes
+  # contra os anteriores da janela, cada lado somado antes de virar razão, para
+  # que um crédito que caiu fora do mês continue na conta. O preço é detectar uma
+  # glosa real alguns meses mais tarde, quando ela já se sustenta.
+  def alert?
+    recent   = pooled_coverage(recent_months)
+    baseline = pooled_coverage(baseline_months)
+    return false if recent.nil? || baseline.nil?
+
+    recent < baseline * ALERT_RATIO
+  end
+
+  # A razão do bloco inteiro, não a média das razões mensais: assim um mês sem
+  # crédito nenhum não entra como um 0% que puxa a média sozinho.
+  def pooled_coverage(months)
+    spent = months.sum { |(y, m)| spent_in(y, m) }
+    return nil unless spent.positive?
+
+    months.sum { |(y, m)| reimbursed_in(y, m) } / spent * 100
+  end
+
+  def recent_months
+    ref = @reference_date.to_date
+    ([ [ ref.year, ref.month ] ] + historical_months).first(ALERT_WINDOW_MONTHS)
+  end
+
+  def baseline_months
+    historical_months - recent_months
   end
 
   # Chamado sozinho, o calculator ainda monta o próprio conjunto — só que numa
