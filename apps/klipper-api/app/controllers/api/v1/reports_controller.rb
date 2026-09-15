@@ -127,14 +127,6 @@ module Api
           .map { |type, cost| { investment_type: type, total_cost: cost.to_f.round(2) } }
           .sort_by { |r| -r[:total_cost] }
 
-        today = Date.current
-        snapshot = @current_user.net_worth_snapshots.find_or_initialize_by(year: today.year, month: today.month)
-        snapshot.update!(
-          accounts_total:    accounts_total,
-          investments_cost:  investments_cost,
-          net_worth:         net_worth_value,
-        )
-
         @export_record_count = accounts.count + investments.count
 
         render json: {

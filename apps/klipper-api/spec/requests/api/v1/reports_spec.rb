@@ -440,25 +440,10 @@ RSpec.describe "Api::V1::Reports", type: :request do
       expect(json["investments_by_type"]).to be_an(Array)
     end
 
-    it "creates a snapshot for the current month on first call" do
-      expect {
-        get "/api/v1/reports/net_worth", headers: auth_headers
-      }.to change { NetWorthSnapshot.where(user: user).count }.from(0).to(1)
-
-      snapshot = NetWorthSnapshot.find_by(user: user, year: Date.current.year, month: Date.current.month)
-      expect(snapshot.net_worth.to_f).to be_within(0.01).of(29500.50)
-    end
-
-    it "updates the existing snapshot instead of duplicating it when called again in the same month" do
-      get "/api/v1/reports/net_worth", headers: auth_headers
-      create(:account, user: user, balance: 999.50)
-
+    it "does not create a snapshot as a side effect" do
       expect {
         get "/api/v1/reports/net_worth", headers: auth_headers
       }.not_to change { NetWorthSnapshot.where(user: user).count }
-
-      snapshot = NetWorthSnapshot.find_by(user: user, year: Date.current.year, month: Date.current.month)
-      expect(snapshot.net_worth.to_f).to be_within(0.01).of(30500.00)
     end
   end
 
