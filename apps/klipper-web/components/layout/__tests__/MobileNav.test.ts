@@ -3,17 +3,35 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import MobileNav from '../MobileNav.vue'
 
 describe('MobileNav.vue', () => {
-  it('mantém quatro entradas fixas e reúne as páginas secundárias em Mais', async () => {
+  it('disponibiliza os destinos principais na barra', async () => {
     const wrapper = await mountSuspended(MobileNav)
 
-    expect(wrapper.findAll('.mobile-nav-item')).toHaveLength(5)
-    expect(wrapper.findAll('.mobile-nav-item:not(.more-trigger)').map((item) => item.attributes('href')))
-      .toEqual(['/dashboard', '/transacoes', '/orcamento', '/investimentos'])
+    expect(wrapper.get('a[aria-label="Painel"]').attributes('href')).toBe('/dashboard')
+    expect(wrapper.get('a[aria-label="Movimento"]').attributes('href')).toBe('/transacoes')
+    expect(wrapper.get('a[aria-label="Orçamento"]').attributes('href')).toBe('/orcamento')
+    expect(wrapper.get('a[aria-label="Investimentos"]').attributes('href')).toBe('/investimentos')
+  })
 
-    await wrapper.find('.more-trigger').trigger('click')
+  it('só mostra os destinos secundários depois de abrir Mais', async () => {
+    const wrapper = await mountSuspended(MobileNav)
 
-    expect(wrapper.find('.more-sheet').exists()).toBe(true)
-    expect(wrapper.findAll('.more-item').map((item) => item.attributes('href')))
-      .toEqual(['/relatorios', '/importar', '/portadores', '/configuracoes', '/contas'])
+    expect(wrapper.find('a[href="/relatorios"]').exists()).toBe(false)
+
+    await wrapper.get('button[aria-label="Mais páginas"]').trigger('click')
+
+    expect(wrapper.get('a[href="/relatorios"]')).toBeTruthy()
+    expect(wrapper.get('a[href="/importar"]')).toBeTruthy()
+    expect(wrapper.get('a[href="/portadores"]')).toBeTruthy()
+    expect(wrapper.get('a[href="/configuracoes"]')).toBeTruthy()
+    expect(wrapper.get('a[href="/contas"]')).toBeTruthy()
+  })
+
+  it('fecha a folha ao escolher um destino secundário', async () => {
+    const wrapper = await mountSuspended(MobileNav)
+    await wrapper.get('button[aria-label="Mais páginas"]').trigger('click')
+
+    await wrapper.get('a[href="/relatorios"]').trigger('click')
+
+    expect(wrapper.find('section[aria-label="Mais páginas"]').exists()).toBe(false)
   })
 })
