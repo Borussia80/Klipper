@@ -13,10 +13,12 @@ import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 const mockAddToast = vi.fn()
 const mockNavigateTo = vi.fn()
 const mockToken = ref<string | null>(null)
+const mockTrack = vi.fn(<T>(call: () => Promise<T>) => call())
 
 mockNuxtImport('useToast', () => () => ({ addToast: mockAddToast }))
 mockNuxtImport('navigateTo', () => (...args: unknown[]) => mockNavigateTo(...args))
 mockNuxtImport('useCookie', () => () => mockToken)
+mockNuxtImport('useServerWaking', () => () => ({ track: mockTrack }))
 
 function unauthorizedError() {
   return Object.assign(new Error('Unauthorized'), {
@@ -37,6 +39,7 @@ describe('useApi', () => {
   beforeEach(() => {
     mockAddToast.mockReset()
     mockNavigateTo.mockReset()
+    mockTrack.mockClear()
     mockToken.value = null
     mockRawFetch = Object.assign(vi.fn(), { raw: vi.fn() })
 
@@ -127,6 +130,32 @@ describe('useApi', () => {
     expect(mockAddToast).not.toHaveBeenCalled()
     expect(mockNavigateTo).not.toHaveBeenCalled()
     expect(mockToken.value).toBe('jwt-token')
+  })
+
+  it('conta a espera do aviso de servidor acordando, inclusive no raw', async () => {
+    mockRawFetch.mockResolvedValueOnce([{ id: 1 }])
+    mockRawFetch.raw.mockResolvedValueOnce({ _data: [], headers: new Headers() })
+
+    const { apiFetch } = useApi()
+    await apiFetch('/api/v1/transactions')
+    await apiFetch.raw('/api/v1/transactions')
+
+    expect(mockTrack).toHaveBeenCalledTimes(2)
+  })
+
+  // A espera é uma só do ponto de vista de quem olha a tela: renovar o token
+  // no meio não pode apagar e reacender o aviso.
+  it('conta uma espera só quando o 401 dispara renovação e repetição', async () => {
+    mockToken.value = 'jwt-expirado'
+    mockRawFetch
+      .mockRejectedValueOnce(unauthorizedError())
+      .mockResolvedValueOnce({ token: 'jwt-novo' })
+      .mockResolvedValueOnce([{ id: 1 }])
+
+    const { apiFetch } = useApi()
+    await apiFetch('/api/v1/transactions')
+
+    expect(mockTrack).toHaveBeenCalledTimes(1)
   })
 
   it('configures exponential retries for a waking API', () => {

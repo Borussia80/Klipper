@@ -8,6 +8,7 @@ function isUnauthorized(error: unknown): boolean {
 export function useApi() {
   const config = useRuntimeConfig()
   const { addToast } = useToast()
+  const { track } = useServerWaking()
   const cookieSecure =
     config.public.cookieSecure === 'true'
       ? true
@@ -76,16 +77,20 @@ export function useApi() {
 
   // `raw` passa pela mesma renovação: é por ele que `useTransactions` percorre
   // os cursores, e um 401 no meio da varredura descartaria a lista inteira.
+  //
+  // `track` fica por fora de tudo: as tentativas de retry e a renovação do
+  // token são uma espera só para quem olha a tela, e contá-las em separado
+  // faria o aviso de servidor acordando apagar e reacender no meio.
   const apiFetch = Object.assign(
     <T>(
       request: Parameters<typeof rawFetch>[0],
       options?: Parameters<typeof rawFetch>[1],
-    ): Promise<T> => withRenewal(request, () => rawFetch<T>(request, options)),
+    ): Promise<T> => track(() => withRenewal(request, () => rawFetch<T>(request, options))),
     {
       raw: <T>(
         request: Parameters<typeof rawFetch.raw>[0],
         options?: Parameters<typeof rawFetch.raw>[1],
-      ) => withRenewal(request, () => rawFetch.raw<T>(request, options)),
+      ) => track(() => withRenewal(request, () => rawFetch.raw<T>(request, options))),
     },
   )
 
