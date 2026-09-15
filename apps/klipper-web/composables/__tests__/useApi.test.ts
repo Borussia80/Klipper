@@ -1,10 +1,10 @@
 /**
- * useApi tests — UX-2: a 401 response should surface a "session expired" toast
- * before redirecting to /login, but only when there was a token to begin with.
+ * useApi tests — SEC-1: o access token dura 15 minutos, então um 401 quase
+ * sempre significa "expirou". O cliente renova pelo refresh HttpOnly e repete
+ * a chamada sem o usuário perceber; só desloga quando o refresh é recusado.
  *
- * We capture the config object passed to `$fetch.create` and invoke its
- * `onResponseError` hook directly, since triggering a real 401 would require
- * a live HTTP layer.
+ * Capturamos a função devolvida por `$fetch.create` para simular as respostas
+ * da rede, já que um 401 real exigiria camada HTTP viva.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
@@ -18,51 +18,124 @@ mockNuxtImport('useToast', () => () => ({ addToast: mockAddToast }))
 mockNuxtImport('navigateTo', () => (...args: unknown[]) => mockNavigateTo(...args))
 mockNuxtImport('useCookie', () => () => mockToken)
 
+function unauthorizedError() {
+  return Object.assign(new Error('Unauthorized'), {
+    response: { status: 401 },
+    statusCode: 401,
+  })
+}
+
 describe('useApi', () => {
-  let capturedConfig: { onResponseError: (ctx: { response: { status: number } }) => void }
+  let capturedConfig: {
+    retry?: number
+    retryStatusCodes?: number[]
+    retryDelay?: (ctx: { options: { retry?: number } }) => number
+    timeout?: number
+  }
+  let mockRawFetch: ReturnType<typeof vi.fn> & { raw: ReturnType<typeof vi.fn> }
 
   beforeEach(() => {
     mockAddToast.mockReset()
     mockNavigateTo.mockReset()
     mockToken.value = null
+    mockRawFetch = Object.assign(vi.fn(), { raw: vi.fn() })
 
     vi.stubGlobal('$fetch', {
       create: vi.fn((config: typeof capturedConfig) => {
         capturedConfig = config
-        return vi.fn()
+        return mockRawFetch
       }),
     })
   })
 
-  it('shows a session-expired toast and redirects to /login on 401 when a token was present', () => {
-    mockToken.value = 'jwt-token'
-    useApi()
+  it('renews the token and replays the request when the access token expired', async () => {
+    mockToken.value = 'jwt-expirado'
+    mockRawFetch
+      .mockRejectedValueOnce(unauthorizedError())
+      .mockResolvedValueOnce({ token: 'jwt-novo' })
+      .mockResolvedValueOnce([{ id: 1 }])
 
-    capturedConfig.onResponseError({ response: { status: 401 } })
+    const { apiFetch } = useApi()
+    const data = await apiFetch('/api/v1/transactions')
+
+    expect(data).toEqual([{ id: 1 }])
+    expect(mockToken.value).toBe('jwt-novo')
+    expect(mockRawFetch).toHaveBeenNthCalledWith(2, '/api/v1/auth/refresh', { method: 'POST' })
+    expect(mockNavigateTo).not.toHaveBeenCalled()
+    expect(mockAddToast).not.toHaveBeenCalled()
+  })
+
+  it('shows a session-expired toast and redirects to /login when the refresh is refused', async () => {
+    mockToken.value = 'jwt-expirado'
+    mockRawFetch.mockRejectedValue(unauthorizedError())
+
+    const { apiFetch } = useApi()
+    await expect(apiFetch('/api/v1/transactions')).rejects.toThrow()
 
     expect(mockToken.value).toBeNull()
     expect(mockAddToast).toHaveBeenCalledWith('Sua sessão expirou. Faça login novamente.', 'warn')
     expect(mockNavigateTo).toHaveBeenCalledWith('/login')
   })
 
-  it('redirects to /login on 401 without a toast when there was no token', () => {
+  it('redirects to /login without a toast when there was no token', async () => {
     mockToken.value = null
-    useApi()
+    mockRawFetch.mockRejectedValue(unauthorizedError())
 
-    capturedConfig.onResponseError({ response: { status: 401 } })
+    const { apiFetch } = useApi()
+    await expect(apiFetch('/api/v1/transactions')).rejects.toThrow()
 
     expect(mockAddToast).not.toHaveBeenCalled()
     expect(mockNavigateTo).toHaveBeenCalledWith('/login')
   })
 
-  it('does nothing special for non-401 errors', () => {
+  it('renews the token and replays a raw request too', async () => {
+    mockToken.value = 'jwt-expirado'
+    const page = { _data: [{ id: 1 }], headers: new Headers() }
+    mockRawFetch.raw
+      .mockRejectedValueOnce(unauthorizedError())
+      .mockResolvedValueOnce(page)
+    mockRawFetch.mockResolvedValueOnce({ token: 'jwt-novo' })
+
+    const { apiFetch } = useApi()
+    const res = await apiFetch.raw('/api/v1/transactions')
+
+    expect(res).toBe(page)
+    expect(mockToken.value).toBe('jwt-novo')
+    expect(mockNavigateTo).not.toHaveBeenCalled()
+  })
+
+  it('never tries to refresh the refresh call itself', async () => {
+    mockToken.value = 'jwt-expirado'
+    mockRawFetch.mockRejectedValue(unauthorizedError())
+
+    const { apiFetch } = useApi()
+    await expect(apiFetch('/api/v1/auth/refresh', { method: 'POST' })).rejects.toThrow()
+
+    expect(mockRawFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('does nothing special for non-401 errors', async () => {
     mockToken.value = 'jwt-token'
-    useApi()
+    mockRawFetch.mockRejectedValue(
+      Object.assign(new Error('Server error'), { response: { status: 500 }, statusCode: 500 })
+    )
 
-    capturedConfig.onResponseError({ response: { status: 500 } })
+    const { apiFetch } = useApi()
+    await expect(apiFetch('/api/v1/transactions')).rejects.toThrow()
 
+    expect(mockRawFetch).toHaveBeenCalledTimes(1)
     expect(mockAddToast).not.toHaveBeenCalled()
     expect(mockNavigateTo).not.toHaveBeenCalled()
     expect(mockToken.value).toBe('jwt-token')
+  })
+
+  it('configures exponential retries for a waking API', () => {
+    useApi()
+
+    expect(capturedConfig.retry).toBe(2)
+    expect(capturedConfig.retryStatusCodes).toEqual([502, 503, 504])
+    expect(capturedConfig.timeout).toBe(15_000)
+    expect(capturedConfig.retryDelay?.({ options: { retry: 2 } })).toBe(500)
+    expect(capturedConfig.retryDelay?.({ options: { retry: 1 } })).toBe(1000)
   })
 })

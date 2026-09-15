@@ -1,6 +1,7 @@
 module Api
   module V1
     class UsersController < BaseController
+      include ActionController::Cookies
       before_action :authenticate_request!
 
       def me
@@ -41,6 +42,7 @@ module Api
 
       def logout
         @current_user.increment!(:token_version)
+        cookies.delete(:klipper_refresh, path: "/api/v1/auth")
         render json: { message: "Sessão encerrada" }, status: :ok
       end
 

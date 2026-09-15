@@ -63,7 +63,25 @@ RSpec.describe "Auth endpoints", type: :request do
 
         decoded = JwtService.decode(json_response[:token])
         expect(decoded[:token_version]).to eq(user.token_version)
+        expect(decoded[:token_type]).to eq("access")
+        expect(decoded[:exp]).to be_within(5).of(15.minutes.from_now.to_i)
+        expect(response.headers["Set-Cookie"]).to include("klipper_refresh=")
+        expect(response.headers["Set-Cookie"]).to include("httponly")
       end
+    end
+
+    it "renews the access token from the HttpOnly refresh cookie" do
+      post "/api/v1/auth/sign_in",
+        params: { email: "user@example.com", password: "password123" }.to_json,
+        headers: { "Content-Type" => "application/json" }
+
+      refresh_cookie = response.headers["Set-Cookie"]
+      post "/api/v1/auth/refresh", headers: { "Cookie" => refresh_cookie }
+
+      expect(response).to have_http_status(:ok)
+      decoded = JwtService.decode(json_response[:token])
+      expect(decoded[:token_type]).to eq("access")
+      expect(json_response[:token]).not_to eq(refresh_cookie)
     end
 
     context "with wrong password" do

@@ -4,6 +4,7 @@ Rails.application.routes.draw do
       get  "health",          to: "health#index"
       post "auth/sign_up",    to: "auth#sign_up"
       post "auth/sign_in",    to: "auth#sign_in"
+      post "auth/refresh",    to: "auth#refresh"
 
       post  "password_resets",        to: "password_resets#create"
       patch "password_resets/:token", to: "password_resets#update"

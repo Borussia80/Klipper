@@ -367,8 +367,15 @@ RSpec.describe "Api::V1::Imports", type: :request do
       rows = preview_rows
 
       travel 31.minutes do
+        # Header emitido dentro da viagem: o access token dura 15 minutos, e um
+        # emitido antes chegaria expirado — o 401 testaria o JWT no lugar da
+        # assinatura de linha, que é o assunto deste exemplo.
+        fresh_headers = {
+          "Authorization" => "Bearer #{JwtService.encode(user_id: user.id, token_version: user.token_version)}"
+        }
+
         expect {
-          post "/api/v1/imports/confirm", params: { rows: rows }, headers: auth_headers
+          post "/api/v1/imports/confirm", params: { rows: rows }, headers: fresh_headers
         }.not_to change { user.transactions.count }
       end
 
