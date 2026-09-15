@@ -21,12 +21,11 @@ export interface TransactionFilters {
 }
 
 /**
- * A API recorta `GET /transactions` em páginas. Nenhuma tela do app
- * exibe um recorte — a lista alimenta filtros e somas locais — então buscamos
- * até esgotar as páginas. Parar antes faria as somas mostrarem um parcial sem
- * erro visível. 200 é o teto que o servidor aceita: menos páginas, menos idas.
+ * A API recorta `GET /transactions` por cursor. A lista alimenta filtros e
+ * somas locais, então buscamos até esgotar os cursores para não exibir um
+ * parcial sem erro visível.
  */
-const PER_PAGE = 200
+const PER_PAGE = 50
 
 export function useTransactions() {
   const { apiFetch } = useApi()
@@ -40,20 +39,17 @@ export function useTransactions() {
     error.value = null
     try {
       const all: Transaction[] = []
-      let page = 1
-      let totalPages = 1
+      let cursor: string | undefined
 
       do {
         const res = await apiFetch.raw<Transaction[]>('/api/v1/transactions', {
-          query: { ...filters, page, per_page: PER_PAGE },
+          query: { ...filters, per_page: PER_PAGE, ...(cursor ? { cursor } : {}) },
         })
         const batch = res._data ?? []
         all.push(...batch)
-        // header ausente (API ainda sem paginação) conta como página única
-        totalPages = Number(res.headers.get('X-Total-Pages')) || 1
         if (!batch.length) break
-        page += 1
-      } while (page <= totalPages)
+        cursor = res.headers.get('X-Next-Cursor') || undefined
+      } while (cursor)
 
       transactions.value = all
     } catch {

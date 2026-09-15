@@ -1,7 +1,7 @@
 module Api
   module V1
     class TransactionsController < BaseController
-      PER_PAGE_DEFAULT = 100
+      PER_PAGE_DEFAULT = 50
       PER_PAGE_MAX = 200
 
       before_action :set_transaction, only: %i[show update destroy]
@@ -12,7 +12,9 @@ module Api
         txns = txns.where(account_id: params[:account_id]) if params[:account_id]
         txns = txns.where(member_id: params[:member_id]) if params[:member_id]
         txns = txns.where(transaction_type: params[:type]) if params[:type]
-        render json: paginate(txns.order(occurred_on: :desc, id: :desc))
+        render json: paginate_by_cursor(txns.order(occurred_on: :desc, id: :desc))
+      rescue ArgumentError
+        render_error("Cursor inválido", status: :bad_request)
       end
 
       def show
@@ -55,26 +57,44 @@ module Api
 
       private
 
-      # O recorte vai em headers e o corpo continua sendo o array puro: um
-      # envelope mudaria o contrato de `index` para todo cliente já existente.
-      # `page`/`per_page` vêm do cliente, então ambos são saneados aqui — sem
-      # teto, `per_page` grande desfaz a proteção que a paginação existe pra dar,
-      # e `page` não-positivo viraria offset negativo.
-      def paginate(scope)
+      # O cursor carrega a última chave da ordenação (data + id). Assim, novos
+      # lançamentos não deslocam a próxima página nem fazem um registro repetir.
+      # O corpo continua sendo um array para preservar o contrato existente.
+      def paginate_by_cursor(scope)
         per_page = params[:per_page].to_i
         per_page = per_page.positive? ? [ per_page, PER_PAGE_MAX ].min : PER_PAGE_DEFAULT
 
-        page = params[:page].to_i
-        page = 1 unless page.positive?
+        if params[:cursor].present?
+          occurred_on, id = decode_cursor(params[:cursor])
+          scope = scope.where(
+            "occurred_on < :date OR (occurred_on = :date AND id < :id)",
+            date: occurred_on, id: id
+          )
+        end
 
-        total = scope.count
+        rows = scope.limit(per_page + 1).to_a
+        has_next = rows.length > per_page
+        rows = rows.first(per_page)
 
-        response.headers["X-Total-Count"] = total.to_s
-        response.headers["X-Page"] = page.to_s
         response.headers["X-Per-Page"] = per_page.to_s
-        response.headers["X-Total-Pages"] = (total.to_f / per_page).ceil.to_s
+        response.headers["X-Next-Cursor"] = has_next && rows.last ? encode_cursor(rows.last) : ""
 
-        scope.limit(per_page).offset((page - 1) * per_page)
+        rows
+      end
+
+      def encode_cursor(transaction)
+        Base64.urlsafe_encode64(
+          "#{transaction.occurred_on.iso8601}|#{transaction.id}",
+          padding: false
+        )
+      end
+
+      def decode_cursor(cursor)
+        raw = Base64.urlsafe_decode64(cursor.to_s)
+        date, id = raw.split("|", 2)
+        raise ArgumentError unless date.present? && id.to_i.positive?
+
+        [ Date.iso8601(date), id.to_i ]
       end
 
       def set_transaction

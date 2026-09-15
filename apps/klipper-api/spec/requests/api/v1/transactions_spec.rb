@@ -55,11 +55,7 @@ RSpec.describe "Transactions API", type: :request do
     end
   end
 
-  # Sem teto, `index` serializa o extrato inteiro do usuário numa
-  # resposta só — cresce sem limite e sem sinal de alerta. A contagem e o
-  # recorte vão em headers, não num envelope, porque o corpo continua sendo o
-  # array que os clientes já consomem.
-  describe "GET /api/v1/transactions — paginação" do
+  describe "GET /api/v1/transactions — paginação por cursor" do
     let!(:june_txn) do
       create(:transaction, user: user, account: account, category: category,
         occurred_on: Date.new(2026, 6, 15))
@@ -69,50 +65,57 @@ RSpec.describe "Transactions API", type: :request do
         occurred_on: Date.new(2026, 5, 10))
     end
 
-    it "recorta a resposta em per_page itens" do
+    it "recorta a resposta em per_page itens e anuncia o próximo cursor" do
       get "/api/v1/transactions?per_page=1", headers: headers
 
       expect(response).to have_http_status(:ok)
       expect(json_response.length).to eq(1)
       expect(json_response.first[:id]).to eq(june_txn.id)
+      expect(response.headers["X-Next-Cursor"]).to be_present
     end
 
-    it "anuncia o total, a página e o tamanho nos headers" do
+    it "anuncia o tamanho nos headers" do
       get "/api/v1/transactions?per_page=1", headers: headers
 
-      expect(response.headers["X-Total-Count"]).to eq("2")
-      expect(response.headers["X-Page"]).to eq("1")
       expect(response.headers["X-Per-Page"]).to eq("1")
-      expect(response.headers["X-Total-Pages"]).to eq("2")
     end
 
     it "entrega a página seguinte sem repetir a anterior" do
-      get "/api/v1/transactions?per_page=1&page=2", headers: headers
+      get "/api/v1/transactions?per_page=1", headers: headers
+      cursor = response.headers["X-Next-Cursor"]
+      get "/api/v1/transactions?per_page=1&cursor=#{CGI.escape(cursor)}", headers: headers
 
       expect(json_response.length).to eq(1)
       expect(json_response.first[:id]).to eq(may_txn.id)
-      expect(response.headers["X-Page"]).to eq("2")
+      expect(response.headers["X-Next-Cursor"]).to eq("")
     end
 
-    it "devolve página vazia além da última, sem erro" do
-      get "/api/v1/transactions?per_page=1&page=99", headers: headers
+    # Cursor que o cliente guardou e ficou obsoleto — a aba passou a noite
+    # aberta, os lançamentos daquela faixa sumiram — aponta para antes de tudo
+    # que existe hoje. Janela vazia é resposta normal, não erro. Reenviar o
+    # `X-Next-Cursor` vazio do fim não serve para testar isso: vazio e ausente
+    # são a mesma coisa para a API, e o cliente para de pedir quando o recebe.
+    it "devolve uma página vazia quando o cursor está além do fim" do
+      esgotado = Base64.urlsafe_encode64("2000-01-01|1", padding: false)
+
+      get "/api/v1/transactions?per_page=1&cursor=#{CGI.escape(esgotado)}", headers: headers
 
       expect(response).to have_http_status(:ok)
       expect(json_response).to eq([])
-      expect(response.headers["X-Total-Count"]).to eq("2")
+      expect(response.headers["X-Next-Cursor"]).to eq("")
     end
 
-    it "conta o total já filtrado, não a coleção inteira" do
+    it "mantém os filtros ao avançar pelo cursor" do
       get "/api/v1/transactions?year=2026&month=6&per_page=1", headers: headers
 
-      expect(response.headers["X-Total-Count"]).to eq("1")
-      expect(response.headers["X-Total-Pages"]).to eq("1")
+      expect(json_response.length).to eq(1)
+      expect(json_response.first[:id]).to eq(june_txn.id)
     end
 
-    it "usa 100 por página quando o cliente não pede tamanho" do
+    it "usa 50 por página quando o cliente não pede tamanho" do
       get "/api/v1/transactions", headers: headers
 
-      expect(response.headers["X-Per-Page"]).to eq("100")
+      expect(response.headers["X-Per-Page"]).to eq("50")
       expect(json_response.length).to eq(2)
     end
 
@@ -124,27 +127,39 @@ RSpec.describe "Transactions API", type: :request do
       expect(response.headers["X-Per-Page"]).to eq("200")
     end
 
-    it "trata page inválido como a primeira página" do
-      get "/api/v1/transactions?page=0&per_page=1", headers: headers
-
-      expect(response.headers["X-Page"]).to eq("1")
-      expect(json_response.first[:id]).to eq(june_txn.id)
-    end
-
     it "trata per_page inválido como o padrão" do
       get "/api/v1/transactions?per_page=abc", headers: headers
 
-      expect(response.headers["X-Per-Page"]).to eq("100")
+      expect(response.headers["X-Per-Page"]).to eq("50")
     end
 
-    # Header de resposta que não está em `expose` é invisível ao JavaScript do
-    # navegador: o Rails responderia certo e o cliente leria `null`, sem erro
-    # em lugar nenhum.
     it "expõe os headers de paginação ao navegador" do
       get "/api/v1/transactions", headers: headers.merge("Origin" => "http://localhost:3001")
 
       exposed = response.headers["Access-Control-Expose-Headers"].to_s
-      expect(exposed).to include("X-Total-Count", "X-Page", "X-Per-Page", "X-Total-Pages")
+      expect(exposed).to include("X-Next-Cursor", "X-Per-Page")
+    end
+
+    it "recorta 120 lançamentos em 50 e não repete nem pula registros" do
+      user.transactions.delete_all
+      120.times do |index|
+        create(:transaction, user: user, account: account, category: category,
+          occurred_on: Date.new(2026, 1, 1) + index, description: "txn-#{index}")
+      end
+
+      ids = []
+      cursor = nil
+      loop do
+        query = "per_page=50#{cursor ? "&cursor=#{CGI.escape(cursor)}" : ""}"
+        get "/api/v1/transactions?#{query}", headers: headers
+        ids.concat(json_response.map { |txn| txn[:id] })
+        cursor = response.headers["X-Next-Cursor"].presence
+        break unless cursor
+      end
+
+      expect(ids.length).to eq(120)
+      expect(ids.uniq.length).to eq(ids.length)
+      expect(ids).to eq(user.transactions.order(occurred_on: :desc, id: :desc).pluck(:id))
     end
   end
 

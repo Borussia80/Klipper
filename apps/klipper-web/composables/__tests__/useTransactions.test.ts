@@ -135,18 +135,12 @@ describe('useTransactions', () => {
 
   // ── paginação ──────────────────────────────────────────────────────────────
 
-  /**
-   * A API passou a recortar `index` em páginas. Nenhuma tela do app
-   * exibe um recorte — a lista alimenta filtros e somas locais — então o
-   * composable percorre as páginas até esgotar. Truncar aqui faria as somas
-   * exibirem um parcial sem erro visível.
-   */
-  describe('paginação', () => {
+  describe('paginação por cursor', () => {
     it('concatena as páginas seguintes até esgotar', async () => {
       mockApiFetch.raw
-        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '3' }))
-        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })], { 'X-Total-Pages': '3' }))
-        .mockResolvedValueOnce(pagina([makeTx({ id: 3 })], { 'X-Total-Pages': '3' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Next-Cursor': 'cursor-1' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })], { 'X-Next-Cursor': 'cursor-2' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 3 })]))
 
       const { transactions, fetchTransactions } = useTransactions()
       await fetchTransactions()
@@ -155,23 +149,21 @@ describe('useTransactions', () => {
       expect(transactions.value.map((t) => t.id)).toEqual([1, 2, 3])
     })
 
-    it('pede as páginas em ordem, uma por chamada', async () => {
+    it('envia o cursor retornado pela página anterior', async () => {
       mockApiFetch.raw
-        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '2' }))
-        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })], { 'X-Total-Pages': '2' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Next-Cursor': 'cursor-1' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })]))
 
       const { fetchTransactions } = useTransactions()
       await fetchTransactions()
 
-      const paginas = mockApiFetch.raw.mock.calls.map(
-        (c) => (c[1] as { query: { page: number } }).query.page
-      )
-      expect(paginas).toEqual([1, 2])
+      expect((mockApiFetch.raw.mock.calls[0][1] as { query: object }).query).not.toHaveProperty('cursor')
+      expect((mockApiFetch.raw.mock.calls[1][1] as { query: { cursor: string } }).query.cursor).toBe('cursor-1')
     })
 
     it('faz uma só chamada quando tudo cabe na primeira página', async () => {
       mockApiFetch.raw.mockResolvedValueOnce(
-        pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '1' })
+        pagina([makeTx({ id: 1 })])
       )
 
       const { fetchTransactions } = useTransactions()
@@ -192,10 +184,10 @@ describe('useTransactions', () => {
 
     // O laço só termina por dado que vem da resposta; página vazia encerra
     // mesmo que o header prometa mais, senão um total errado gira sem fim.
-    it('para numa página vazia mesmo se o header prometer mais', async () => {
+    it('para numa página vazia mesmo se o cursor continuar presente', async () => {
       mockApiFetch.raw
-        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '9999' }))
-        .mockResolvedValueOnce(pagina([], { 'X-Total-Pages': '9999' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Next-Cursor': 'cursor-1' }))
+        .mockResolvedValueOnce(pagina([], { 'X-Next-Cursor': 'cursor-2' }))
 
       const { transactions, fetchTransactions } = useTransactions()
       await fetchTransactions()
@@ -206,8 +198,8 @@ describe('useTransactions', () => {
 
     it('mantém os filtros em todas as páginas', async () => {
       mockApiFetch.raw
-        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Total-Pages': '2' }))
-        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })], { 'X-Total-Pages': '2' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 1 })], { 'X-Next-Cursor': 'cursor-1' }))
+        .mockResolvedValueOnce(pagina([makeTx({ id: 2 })]))
 
       const { fetchTransactions } = useTransactions()
       await fetchTransactions({ year: 2026, month: 6 })
