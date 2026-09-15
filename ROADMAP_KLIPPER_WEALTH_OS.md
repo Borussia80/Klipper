@@ -32,11 +32,10 @@ O Klipper já passou por 3 reescritas de stack (Streamlit → Next.js → Nuxt/R
 1. **Uma lacuna por sessão/branch.** Nunca peça "implementa o roadmap inteiro". Cada item abaixo é uma unidade de trabalho fechada, com seu próprio critério de aceite.
 2. **Peça um plano antes do código.** Primeiro prompt de cada sessão: *"Antes de escrever código, me mostra o plano: migrations necessárias, endpoints novos/alterados, componentes Vue afetados. Não escreva código ainda."* Só aprove o código depois de revisar esse plano — é o que evita retrabalho tipo as reescritas anteriores.
 3. **Aponte para o padrão existente, nunca deixe o Claude Code inventar um novo.** Ex: *"Use o BaseModal e o composable useModal já existentes para este novo modal, não crie um padrão novo."* Mesma lógica para os design tokens (`tokens.css`) e o `JwtService`.
-4. **Não toque no legado.** `app.py`, `pages/`, `core/`, `web/` (Streamlit/Next.js) estão marcados para remoção — instrua explicitamente para ignorá-los como referência.
-5. **Defina "pronto" com teste, não com "parece que funciona".** Peça que o Claude Code escreva um teste (RSpec no Rails, Vitest no Nuxt) que comprove o critério de aceite antes de considerar o item fechado.
-6. **Revise o diff antes de mergear.** Especialmente nos itens 1 e 2 (schema novo) — mudança de modelo de dados é a mais cara de desfazer depois.
+4. **Defina "pronto" com teste, não com "parece que funciona".** Peça que o Claude Code escreva um teste (RSpec no Rails, Vitest no Nuxt) que comprove o critério de aceite antes de considerar o item fechado.
+5. **Revise o diff antes de mergear.** Especialmente nos itens 1 e 2 (schema novo) — mudança de modelo de dados é a mais cara de desfazer depois.
 
-Ordem sugerida de execução: **1 → 2 → 3 → 4 → 5** (cada item depende dos dados que o anterior estrutura).
+As Lacunas 1 a 5 estão implementadas e dependiam umas das outras na ordem **1 → 2 → 3 → 4 → 5** (cada uma estruturava os dados da seguinte). As Lacunas 6 e 7, abertas, são independentes entre si e podem ser executadas em qualquer ordem.
 
 ---
 
@@ -279,9 +278,12 @@ variáveis indefinidas, então cada `var(--ink)` cai no valor herdado/inicial. A
 real do projeto usa outros nomes (`--t1`..`--t4` para texto, `--bd`/`--bd2` para régua,
 `--r`/`--r-sm` para raio).
 
-**Prioridade:** média — é a única tela do app estilizada contra um vocabulário que não
-existe, então ela não acompanha nenhuma mudança de tema e pode já estar visualmente
-quebrada sem ninguém ter olhado.
+**Prioridade:** média — medindo a adesão aos tokens página a página, `configuracoes.vue`
+é a **única** exceção do app inteiro: 1 token real contra 10 indefinidos, enquanto as
+outras 12 páginas com estilo vão de 8 a 51 tokens reais e **zero** indefinidos. É o
+último resto da Fatia 3 do redesign náutico (ver `docs/design/ROADMAP_REDESIGN_KLIPPER.md`):
+a tela não acompanha mudança de tema nenhuma e pode já estar visualmente quebrada sem
+ninguém ter olhado.
 
 **Critério de aceite:** os seis usos mapeados para tokens reais de `tokens.css`, com
 revisão visual da tela; nenhuma `var(--*)` indefinida restante no arquivo.
@@ -588,7 +590,6 @@ depois de confirmar uma camada de defesa já existente.
 - Tema claro (dark-only hoje) — é backlog de design, não impacta a lógica financeira
 - `/configuracoes` sem link de navegação — é ajuste de UI, resolver quando conveniente
 - Autocomplete de bancos brasileiros (`@edusites/bancos-brasil` já instalado, não usado) — nice-to-have, não bloqueia nenhuma lacuna acima
-- Remoção do stack legado (Streamlit/Next.js) — fazer em paralelo, não é pré-requisito de nenhum item
 - Aplicar `tabular-nums` fora do `.mono` — a regra **existe** (`main.css:37-42`, com
   `font-variant-numeric` e `font-feature-settings`) e está em uso em 13 arquivos; o que
   há é adesão opt-in, não ausência. Ajuste de UI, resolver quando conveniente

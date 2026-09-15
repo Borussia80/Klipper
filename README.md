@@ -18,9 +18,7 @@ apps/
   quebec-web/     ← Nuxt 3.21 — landing page institucional
 ```
 
-Cada app tem seu próprio `package.json`/`Gemfile` e roda independente. Não existem mais
-`app.py`, `pages/` (Streamlit), `core/`, `models/`, `bot/` — essas stacks (Python/
-Streamlit/Supabase/Railway) foram descontinuadas.
+Cada app tem seu próprio `package.json`/`Gemfile` e roda independente.
 
 ---
 
@@ -29,9 +27,12 @@ Streamlit/Supabase/Railway) foram descontinuadas.
 ### Opção 1 — cada app na mão (dia a dia de desenvolvimento)
 
 ```bash
-# Backend — requer Postgres local via Docker
+# Backend — requer o Postgres local no ar.
+# O daemon do Docker está desabilitado nesta máquina; o banco roda em Podman:
+podman start klipper-pg-test   # ou, se não existir:
+# podman run -d --name klipper-pg-test -p 5432:5432 \
+#   -e POSTGRES_PASSWORD=postgres postgres:16
 cd apps/klipper-api
-sudo docker compose up -d db
 bin/rails db:prepare
 bin/rails server -p 3001
 
@@ -46,6 +47,10 @@ npm run dev          # http://localhost:3000
 Sobe Postgres + API + Web + proxy Caddy isolados na rede Docker, só acessível em
 `127.0.0.1:8080` — pensado pra guardar dado financeiro real localmente, sem expor
 serviço nenhum além do proxy.
+
+> Esta opção depende de um daemon Docker funcionando, que **não é o caso da máquina
+> de desenvolvimento atual** (ver Opção 1). Rodar com `podman-compose` é plausível mas
+> não foi testado — trate o comando abaixo como não verificado.
 
 ```bash
 cp .env.local.example .env.local   # preencher POSTGRES_PASSWORD e RAILS_MASTER_KEY
