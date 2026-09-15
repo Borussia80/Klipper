@@ -15,8 +15,16 @@ updates:
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
+  ignore:
+  # @types/node segue o Node do CI (22, em ci.yml), não a última major publicada:
+  # tipos de um runtime que não roda aqui descrevem APIs que não existem.
+  - dependency-name: "@types/node"
+    update-types: [ version-update:semver-major ]
 - package-ecosystem: npm
   directory: "/apps/quebec-web"
   schedule:
     interval: weekly
   open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: "@types/node"
+    update-types: [ version-update:semver-major ]
