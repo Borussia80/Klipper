@@ -12,10 +12,21 @@ module Api
         txns = txns.where(account_id: params[:account_id]) if params[:account_id]
         txns = txns.where(member_id: params[:member_id]) if params[:member_id]
         txns = txns.where(transaction_type: params[:type]) if params[:type]
+        return unless valid_cursor?
+
         render json: paginate_by_cursor(txns.order(occurred_on: :desc, id: :desc))
+      end
+
+      def valid_cursor?
+        return true unless params[:cursor].present?
+
+        decode_cursor(params[:cursor])
+        true
       rescue ArgumentError
         render_error("Cursor inválido", status: :bad_request)
+        false
       end
+      private :valid_cursor?
 
       def show
         render json: @transaction

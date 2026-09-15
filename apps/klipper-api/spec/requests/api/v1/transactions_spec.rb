@@ -133,6 +133,22 @@ RSpec.describe "Transactions API", type: :request do
       expect(response.headers["X-Per-Page"]).to eq("50")
     end
 
+    it "informa que o cursor corrompido é inválido" do
+      get "/api/v1/transactions?cursor=nao-e-um-cursor", headers: headers
+
+      expect(response).to have_http_status(:bad_request)
+      expect(json_response[:error]).to eq("Cursor inválido")
+    end
+
+    it "não mascara ArgumentError que não vem da decodificação do cursor" do
+      allow_any_instance_of(Api::V1::TransactionsController)
+        .to receive(:paginate_by_cursor).and_raise(ArgumentError, "falha não relacionada ao cursor")
+
+      expect {
+        get "/api/v1/transactions", headers: headers
+      }.to raise_error(ArgumentError, "falha não relacionada ao cursor")
+    end
+
     it "expõe os headers de paginação ao navegador" do
       get "/api/v1/transactions", headers: headers.merge("Origin" => "http://localhost:3001")
 
