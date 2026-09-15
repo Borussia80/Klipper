@@ -1,10 +1,11 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  ssr: true,
+  // SPA autenticada: o Nitro continua servindo o app e os plugins de CSP,
+  // mas o Vue não é renderizado no servidor.
+  ssr: false,
 
   runtimeConfig: {
-    apiUrlInternal: '',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3000',
       cookieSecure: '',
