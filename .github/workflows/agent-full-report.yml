@@ -22,6 +22,9 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # A claude-code-action troca um token OIDC por credencial; sem isto os
+  # agentes morrem em "Could not fetch an OIDC token".
+  id-token: write
 
 concurrency:
   group: full-report-${{ github.ref }}
