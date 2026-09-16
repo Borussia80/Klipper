@@ -298,11 +298,16 @@ RSpec.describe "Api::V1::Reports", type: :request do
       expect(names).not_to include("Categoria de outro usuário")
     end
 
-    it "returns correct payload with 6 months of history and a drop in the current month" do
-      (1..6).each do |i|
+    it "returns correct payload with 6 months of history and a sustained drop" do
+      (3..6).each do |i|
         d = Date.new(2026, 7, 1).prev_month(i)
         debit_in(cat: expense, amount: 100, on: d.strftime("%Y-%m-05"))
         credit_in(cat: income, amount: 80, on: d.strftime("%Y-%m-05"))
+      end
+      (1..2).each do |i|
+        d = Date.new(2026, 7, 1).prev_month(i)
+        debit_in(cat: expense, amount: 100, on: d.strftime("%Y-%m-05"))
+        credit_in(cat: income, amount: 30, on: d.strftime("%Y-%m-05"))
       end
       debit_in(cat: expense, amount: 100, on: "2026-07-05")
       credit_in(cat: income, amount: 30, on: "2026-07-05")
@@ -315,7 +320,7 @@ RSpec.describe "Api::V1::Reports", type: :request do
       expect(row["spent"].to_f).to be_within(0.01).of(100.0)
       expect(row["reimbursed"].to_f).to be_within(0.01).of(30.0)
       expect(row["coverage_pct"].to_f).to be_within(0.1).of(30.0)
-      expect(row["historical_avg_pct"].to_f).to be_within(0.1).of(80.0)
+      expect(row["historical_avg_pct"].to_f).to be_within(0.1).of(63.3)
       expect(row["alert"]).to be true
     end
   end

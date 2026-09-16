@@ -1,6 +1,14 @@
 # Roadmap de Redesign Visual — Klipper
 
 **Gerado em:** 2026-07-10
+**Status (aferido em 2026-09-15):** Fatias 0, 1 e 2 **concluídas**; Fatia 3 **concluída
+exceto por uma tela**. O documento nunca teve suas fatias marcadas, então o status foi
+medido no código, não lido: `assets/css/tokens.css` define a paleta náutica (`--sea`,
+`--brass`, `--brass-dim`) e 12 das 13 páginas com estilo usam de 8 a 51 tokens reais,
+com **zero** referências indefinidas. A exceção é `pages/configuracoes.vue` — 1 token
+real contra 10 indefinidos (`--ink`, `--rule`, `--space-*`, que não existem em lugar
+nenhum). É o único resto da Fatia 3 e está registrado como bug conhecido no
+`ROADMAP_KLIPPER_WEALTH_OS.md`.
 **Substitui:** a direção "HMI ISA-101" (rejeitada — resultou em telas vazias, números sem moldura, aparência de rascunho).
 **Direção nova aprovada:** náutica premium — azul-marinho profundo + accent de latão/bronze, todo dado dentro de card com moldura clara.
 **Referência visual canônica:** `klipper_mockup.html` (anexo). Este arquivo NÃO é inspiração solta — é a especificação. O resultado tem que ser reconhecível como o mesmo produto do mockup.

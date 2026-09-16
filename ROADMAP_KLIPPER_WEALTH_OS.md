@@ -32,11 +32,10 @@ O Klipper já passou por 3 reescritas de stack (Streamlit → Next.js → Nuxt/R
 1. **Uma lacuna por sessão/branch.** Nunca peça "implementa o roadmap inteiro". Cada item abaixo é uma unidade de trabalho fechada, com seu próprio critério de aceite.
 2. **Peça um plano antes do código.** Primeiro prompt de cada sessão: *"Antes de escrever código, me mostra o plano: migrations necessárias, endpoints novos/alterados, componentes Vue afetados. Não escreva código ainda."* Só aprove o código depois de revisar esse plano — é o que evita retrabalho tipo as reescritas anteriores.
 3. **Aponte para o padrão existente, nunca deixe o Claude Code inventar um novo.** Ex: *"Use o BaseModal e o composable useModal já existentes para este novo modal, não crie um padrão novo."* Mesma lógica para os design tokens (`tokens.css`) e o `JwtService`.
-4. **Não toque no legado.** `app.py`, `pages/`, `core/`, `web/` (Streamlit/Next.js) estão marcados para remoção — instrua explicitamente para ignorá-los como referência.
-5. **Defina "pronto" com teste, não com "parece que funciona".** Peça que o Claude Code escreva um teste (RSpec no Rails, Vitest no Nuxt) que comprove o critério de aceite antes de considerar o item fechado.
-6. **Revise o diff antes de mergear.** Especialmente nos itens 1 e 2 (schema novo) — mudança de modelo de dados é a mais cara de desfazer depois.
+4. **Defina "pronto" com teste, não com "parece que funciona".** Peça que o Claude Code escreva um teste (RSpec no Rails, Vitest no Nuxt) que comprove o critério de aceite antes de considerar o item fechado.
+5. **Revise o diff antes de mergear.** Especialmente nos itens 1 e 2 (schema novo) — mudança de modelo de dados é a mais cara de desfazer depois.
 
-Ordem sugerida de execução: **1 → 2 → 3 → 4 → 5** (cada item depende dos dados que o anterior estrutura).
+As Lacunas 1 a 5 estão implementadas e dependiam umas das outras na ordem **1 → 2 → 3 → 4 → 5** (cada uma estruturava os dados da seguinte). As Lacunas 6 e 7, abertas, são independentes entre si e podem ser executadas em qualquer ordem.
 
 ---
 
@@ -136,6 +135,17 @@ em `Category`, migration `add_reimbursed_by_category_to_categories`),
 Frontend: `ModalEditarReembolso.vue` (vínculo despesa↔receita), colunas de % de cobertura
 em `pages/orcamento.vue`.
 
+**Revisão do alerta (2026-09-15) — ler antes do critério de aceite abaixo.** "Alerta
+visual se a cobertura cair muito abaixo da média histórica" **não** é comparação mês a
+mês, e não deve voltar a ser. O convênio costuma pagar no mês seguinte ao do gasto, e
+confrontar débito e crédito da mesma competência dá a um pagamento atrasado a assinatura
+idêntica à de uma glosa — falso-positivo no chip do dashboard, e alarme mascarado no mês
+seguinte, quando chegam dois reembolsos. `alert?` acumula os dois lados: os 3 meses
+recentes (`ALERT_WINDOW_MONTHS`) contra os anteriores da janela, cada bloco somado antes
+de virar razão. `coverage_pct` e `historical_avg_pct` seguem mensais — são números de
+exibição, não a base do alerta. O preço aceito é detectar uma glosa real alguns meses
+depois, quando ela já se sustenta.
+
 **Necessidade real:** vincular lançamentos de despesa (ex: pagamento a terapeuta) a lançamentos de receita (reembolso do convênio), calculando % de cobertura ao longo do tempo — hoje isso só existe porque foi calculado manualmente na planilha.
 
 **Critério de aceite:**
@@ -159,6 +169,59 @@ de fatura, pagamento mínimo, juros rotativo a.m./a.a., IOF projetado em `Accoun
 - Campos por cartão: `saldo_fatura_atual`, `juros_rotativo_am`, `juros_rotativo_aa` (dado que já vem estampado na própria fatura, útil capturar no import da Lacuna 1)
 - Tela (ou seção em `/contas`) que ranqueia os cartões por custo do rotativo, do mais caro para o mais barato
 - Simulação simples: "se pagar só o mínimo por 1 mês, o saldo sobe para X" — replicando o cálculo que fizemos manualmente para a fatura Itaú
+
+---
+
+## Lacuna 6 — Previsão de fluxo de caixa e runway
+
+**Prioridade:** Média.
+
+**Estado atual: ❌ Não implementado.** Origem: análise de produto de 2026-09-15
+(revisão de PM), triada contra o código no mesmo dia. Hoje todo relatório olha para
+trás: `monthly`, `natureza_split`, `net_worth_history`. Nenhuma tela responde "com o
+que já está lançado, sobra quanto no fim do mês?".
+
+**Necessidade real:** os dados para isso já existem e não estão sendo usados — a
+classificação Fixo × Cartão/Parcelamento × Variável (Lacuna 3, implementada) separa o
+que é compromisso previsível do que é discricionário, e parcelas futuras de cartão são
+lançamentos com `occurred_on` no futuro. A projeção é aritmética sobre isso, não
+modelo estatístico: saldo atual + recorrentes previstos − compromissos já lançados.
+
+**Critério de aceite:**
+- Projeção de saldo até o fim do mês corrente a partir de dados já lançados, sem inventar
+  tendência nem extrapolar média (regra de ouro: matemática ancora)
+- A tela deixa explícito o que entrou na conta e o que não entrou — uma projeção que o
+  usuário não consegue auditar é narrativa, não número
+- Runway (por quantos meses o saldo cobre os compromissos fixos) só entra se houver base
+  de fixos confiável; caso contrário fica fora desta fatia
+
+---
+
+## Lacuna 7 — Valor de mercado da carteira (as pontas já existem, falta o fio)
+
+**Prioridade:** Média.
+
+**Estado atual: ❌ Não implementado — mas quase todo o material está pronto.**
+`StockQuoteService.fetch(tickers)` existe e está exposto em
+`api/v1/quotes_controller.rb:10`. `Investment#current_value(current_price)` e
+`#gain_loss(current_price)` existem em `app/models/investment.rb:32-37`. O que falta é
+a ligação: o comentário em `investment.rb:9` diz, literalmente, que valor de mercado
+"não existe em lugar nenhum do sistema hoje (`current_value`/`gain_loss` dependem de um
+`current_price` externo que nenhum controller/service fornece)". `PortfolioService` não
+consome cotação.
+
+**Necessidade real:** `pages/investimentos.vue` mostra só `total_cost`. Isso foi
+**decisão deliberada** (commit `905d8f1`, registrada nos bugs conhecidos abaixo): sem
+`current_price`, não se inventa variação. Esta lacuna é o caminho legítimo para a
+variação aparecer — buscar o preço, não fabricá-lo.
+
+**Critério de aceite:**
+- `PortfolioService` (ou equivalente) alimenta `current_price` a partir do
+  `StockQuoteService`, com tratamento explícito de ticker sem cotação
+- A tela distingue "sem cotação disponível" de "variação zero" — o mesmo erro do
+  `?? 0` de `orcamento.vue` não pode ser reintroduzido aqui
+- Cotação indisponível degrada para o comportamento atual (custo), nunca para um número
+  inventado
 
 ---
 
@@ -199,6 +262,51 @@ dia a dia (orçamento zerado vs. orçamento inexistente).
 **Critério de aceite:** `InstrumentReadout` (ou `orcamento.vue`) trata o `null` de
 `budgetSpentRatio` como estado distinto de "0%" — ex: badge/texto "sem orçamento
 definido" em vez de barra vazia — em vez de forçar `?? 0`.
+
+---
+
+### `configuracoes.vue` — a página inteira usa tokens CSS que não existem
+
+**Encontrado em:** triagem da revisão de PM (sessão de 2026-09-15), confirmado por
+leitura direta do CSS.
+
+**Problema:** `pages/configuracoes.vue` referencia seis custom properties — `--ink`,
+`--ink-3`, `--rule`, `--space-3`, `--space-4`, `--space-5` — e **nenhuma das seis está
+definida** em `assets/css/tokens.css`, em `main.css`, ou em qualquer outro lugar de
+`apps/klipper-web`. Não são tokens legados de um tema antigo que ainda resolvem: são
+variáveis indefinidas, então cada `var(--ink)` cai no valor herdado/inicial. A paleta
+real do projeto usa outros nomes (`--t1`..`--t4` para texto, `--bd`/`--bd2` para régua,
+`--r`/`--r-sm` para raio).
+
+**Prioridade:** média — medindo a adesão aos tokens página a página, `configuracoes.vue`
+é a **única** exceção do app inteiro: 1 token real contra 10 indefinidos, enquanto as
+outras 12 páginas com estilo vão de 8 a 51 tokens reais e **zero** indefinidos. É o
+último resto da Fatia 3 do redesign náutico (ver `docs/design/ROADMAP_REDESIGN_KLIPPER.md`):
+a tela não acompanha mudança de tema nenhuma e pode já estar visualmente quebrada sem
+ninguém ter olhado.
+
+**Critério de aceite:** os seis usos mapeados para tokens reais de `tokens.css`, com
+revisão visual da tela; nenhuma `var(--*)` indefinida restante no arquivo.
+
+---
+
+### `dashboard.vue` — chip de alerta acumulado colado no número mensal
+
+**Encontrado em:** correção do falso-positivo do alerta de reembolso (sessão de
+2026-09-15). Criado pela própria correção e registrado no mesmo dia.
+
+**Problema:** `coverage_pct` é do mês de referência, mas `alert` passou a comparar
+blocos acumulados (ver Lacuna 4). Em `pages/dashboard.vue:116` os dois dividem o mesmo
+chip, então um mês em que o convênio ainda não pagou exibe "0% coberto" **sem** destaque
+de alerta. O comportamento está correto — é exatamente o falso-positivo que foi removido
+— mas a leitura sugere que o alarme está quebrado.
+
+**Prioridade:** baixa-média — mesma família do `?? 0` acima: matemática certa, leitura
+ambígua. Não corrompe dado nem decisão.
+
+**Critério de aceite:** o dashboard distingue as duas escalas — ex: o chip referencia a
+janela ("cobertura acumulada abaixo da média") em vez de colar no número do mês, ou um
+mês sem reembolso ganha rótulo próprio ("aguardando reembolso") em vez de 0% cru.
 
 ---
 
@@ -482,7 +590,14 @@ depois de confirmar uma camada de defesa já existente.
 - Tema claro (dark-only hoje) — é backlog de design, não impacta a lógica financeira
 - `/configuracoes` sem link de navegação — é ajuste de UI, resolver quando conveniente
 - Autocomplete de bancos brasileiros (`@edusites/bancos-brasil` já instalado, não usado) — nice-to-have, não bloqueia nenhuma lacuna acima
-- Remoção do stack legado (Streamlit/Next.js) — fazer em paralelo, não é pré-requisito de nenhum item
+- Aplicar `tabular-nums` fora do `.mono` — a regra **existe** (`main.css:37-42`, com
+  `font-variant-numeric` e `font-feature-settings`) e está em uso em 13 arquivos; o que
+  há é adesão opt-in, não ausência. Ajuste de UI, resolver quando conveniente
+- Esteira operacional de reembolso de saúde (status Pago → Solicitado → Reembolsado/
+  Glosado, protocolo, glosa, "contas a receber da saúde") — proposta pela revisão de PM
+  de 2026-09-15 e **recusada no mesmo dia**. O dono desse domínio é o projeto
+  Gestor-Reembolsos; o Klipper só quer o dinheiro (ver Lacuna 4 e a decisão de 2026-06-13
+  que removeu a Fatia 6). Não reabrir sem decisão explícita em contrário
 
 ---
 
@@ -490,4 +605,6 @@ depois de confirmar uma camada de defesa já existente.
 análise manual de fluxo de caixa, fixos x cartões, rotina x pontual, e prioridade de
 quitação conduzida em julho/2026. Auditado em 2026-07-27 (leitura direta de código em
 `apps/klipper-api` e `apps/klipper-web`, via agentes Explore em worktrees isoladas):
-todas as 6 lacunas confirmadas como implementadas.*
+todas as 6 lacunas confirmadas como implementadas. As Lacunas 6 e 7 entraram depois, na
+triagem da revisão de produto de 2026-09-15, e estão abertas — a frase acima cobre as
+lacunas 1 a 5, que eram todas as que existiam naquela data.*

@@ -19,9 +19,6 @@ apps/
   quebec-web/     ← Nuxt 3.21 — landing page institucional
 ```
 
-> **Stacks removidas:** Streamlit, Next.js, FastAPI, Railway.
-> Não existem mais: `app.py`, `pages/`, `web/`, `api/`, `core/`, `models/`.
-
 ---
 
 ## ARQUIVOS COMPLEMENTARES — carregue só o necessário
@@ -41,17 +38,29 @@ cd apps/klipper-web
 npm run dev          # localhost:3000
 npm run test         # Vitest
 
-# Backend (Rails 8) — requer Docker Postgres
+# Backend (Rails 8) — requer o Postgres de teste no ar (ver abaixo)
 cd apps/klipper-api
 TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/klipper_test" \
   bundle exec rspec --format documentation
 ```
 
-### Docker Postgres (para testes Rails)
+### Postgres de teste — Podman, não Docker
+
+O daemon do Docker está **desabilitado** nesta máquina: `docker compose` falha.
+O banco de teste roda como container Podman já criado (`postgres:16`, porta 5432):
+
 ```bash
-cd apps/klipper-api
-sudo docker compose up -d db
+podman start klipper-pg-test
 ```
+
+Se o container não existir:
+
+```bash
+podman run -d --name klipper-pg-test -p 5432:5432 \
+  -e POSTGRES_PASSWORD=postgres postgres:16
+```
+
+Em checkout limpo, rode `npx nuxt prepare` em `apps/klipper-web` antes do Vitest.
 
 ---
 
