@@ -8,7 +8,7 @@
 **Klipper** — Wealth Operating System pessoal de Roberto Milet.
 Stack: **SPA/PWA Nuxt 3.21 (Vercel) + API Rails 8 (PostgreSQL)**
 Prod: PWA em Vercel · Repo: https://github.com/Borussia80/Klipper
-Local: `/home/rmilet/Base/01-Projetos/11-Klipper/Klipper`
+Local: `/home/rmilet/Base/01-Projetos/11-Klipper`
 
 ### Estrutura do monorepo
 
