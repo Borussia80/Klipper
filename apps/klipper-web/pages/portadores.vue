@@ -51,11 +51,11 @@
           />
         </template>
 
-        <div v-if="!members.length" style="padding:48px 0;text-align:center;color:var(--t3);font-size:13px">
-          Nenhum portador cadastrado.
-          <br />
-          <button class="btn btn-p" style="margin-top:12px" @click="open('novo-portador')">Adicionar portador</button>
-        </div>
+        <UiEmptyState v-if="!members.length" size="lg" message="Nenhum portador cadastrado.">
+          <template #actions>
+            <button class="btn btn-p" @click="open('novo-portador')">Adicionar portador</button>
+          </template>
+        </UiEmptyState>
       </template>
     </div>
   </div>

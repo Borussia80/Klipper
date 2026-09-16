@@ -59,13 +59,12 @@
       <UiSkeletonTransactionList v-if="isLoading" :count="4" />
 
       <template v-else>
-        <div v-if="!filteredTransactions.length" style="padding:60px 0;text-align:center;color:var(--t3);font-size:13px">
-          Nenhum lançamento no período.
-          <div style="margin-top:14px;display:flex;justify-content:center;gap:8px">
+        <UiEmptyState v-if="!filteredTransactions.length" size="lg" message="Nenhum lançamento no período.">
+          <template #actions>
             <button class="btn btn-p" @click="open('novo-lancamento')">Adicionar lançamento</button>
             <NuxtLink to="/importar" class="btn btn-g">Importar extrato</NuxtLink>
-          </div>
-        </div>
+          </template>
+        </UiEmptyState>
 
         <template v-for="[date, txns] in groupedTransactions" :key="date">
           <div class="gh">

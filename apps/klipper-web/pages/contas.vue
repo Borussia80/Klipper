@@ -88,17 +88,17 @@
               style="margin-bottom:8px"
             />
           </template>
-          <div v-else style="padding:24px 0;text-align:center;color:var(--t3);font-size:12px">
+          <UiEmptyState v-else size="sm">
             Nenhum cartão com dados de dívida preenchidos. Edite um cartão acima para informar
             saldo da fatura e juros do rotativo.
-          </div>
+          </UiEmptyState>
         </template>
 
-        <div v-if="!accounts.length" style="padding:48px 0;text-align:center;color:var(--t3);font-size:13px">
-          Nenhuma conta cadastrada.
-          <br />
-          <button class="btn btn-p" style="margin-top:12px" @click="open('nova-conta')">Adicionar conta</button>
-        </div>
+        <UiEmptyState v-if="!accounts.length" size="lg" message="Nenhuma conta cadastrada.">
+          <template #actions>
+            <button class="btn btn-p" @click="open('nova-conta')">Adicionar conta</button>
+          </template>
+        </UiEmptyState>
       </template>
     </div>
   </div>
