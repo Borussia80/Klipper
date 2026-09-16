@@ -54,9 +54,7 @@
       </template>
       <template v-else>
         <UiBudgetCategoryCard v-for="cat in categories" :key="cat.name" v-bind="cat" />
-        <div v-if="!categories.length" style="padding:40px 0;text-align:center;color:var(--t4);font-size:13px">
-          Nenhum orçamento para o período.
-        </div>
+        <UiEmptyState v-if="!categories.length" message="Nenhum orçamento para o período." />
       </template>
 
       <template v-if="reimbursements.length">

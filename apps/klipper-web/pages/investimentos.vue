@@ -48,8 +48,8 @@
       <!-- Holdings table header -->
       <div style="display:grid;grid-template-columns:40px 1fr auto;gap:12px;padding:12px 8px;margin:16px -8px 0;border-bottom:1px solid var(--bd)">
         <div></div>
-        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'Space Grotesk',monospace">Ativo</div>
-        <div style="font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.07em;font-family:'Space Grotesk',monospace;text-align:right">Valor</div>
+        <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;font-family:'Space Grotesk',monospace">Ativo</div>
+        <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;font-family:'Space Grotesk',monospace;text-align:right">Valor</div>
       </div>
 
       <UiSkeletonTransactionList v-if="isLoading" />
@@ -75,9 +75,7 @@
             <div class="mono" style="font-size:13px;font-weight:500;color:var(--t1)">{{ formatBRL(parseFloat(inv.quantity) * parseFloat(inv.average_price)) }}</div>
           </div>
         </div>
-        <div v-if="!investments.length" style="padding:40px 0;text-align:center;color:var(--t4);font-size:13px">
-          Nenhum investimento cadastrado.
-        </div>
+        <UiEmptyState v-if="!investments.length" message="Nenhum investimento cadastrado." />
       </template>
     </div>
 

@@ -61,7 +61,7 @@
       </div>
 
       <!-- Footer link -->
-      <div style="margin-top:28px;font-size:12px;color:var(--t4)">
+      <div style="margin-top:28px;font-size:12px;color:var(--t3)">
         <NuxtLink to="/login" style="color:var(--blt);text-decoration:none">Voltar para o login</NuxtLink>
       </div>
 

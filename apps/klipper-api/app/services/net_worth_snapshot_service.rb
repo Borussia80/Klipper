@@ -10,7 +10,7 @@ class NetWorthSnapshotService
 
   def call
     accounts_total = @user.accounts.sum(:balance).to_f.round(2)
-    investments_cost = @user.investments.sum("quantity * average_price").to_f.round(2)
+    investments_cost = @user.investments.sum(Investment.signed_cost_sql).to_f.round(2)
 
     @user.net_worth_snapshots.find_or_initialize_by(year: @at.year, month: @at.month).tap do |snapshot|
       snapshot.update!(

@@ -195,7 +195,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--t3); white-space: nowrap;
 }
 .gr { flex: 1; height: 1px; background: var(--bd); }
-.gc { font-size: 11px; color: var(--t4); font-family: 'Space Grotesk', monospace; }
+.gc { font-size: 11px; color: var(--t3); font-family: 'Space Grotesk', monospace; }
 
 /* ── Status tags ── */
 .tag {
@@ -213,7 +213,7 @@ a { color: inherit; text-decoration: none; }
 kbd {
   font-size: 10px; background: var(--sf); border: 1px solid var(--bd2);
   border-radius: 3px; padding: 1px 4px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--t4);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--t3);
 }
 
 /* ── Scrollbar ── */

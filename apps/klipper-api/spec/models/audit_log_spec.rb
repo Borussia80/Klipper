@@ -16,7 +16,7 @@ RSpec.describe AuditLog, type: :model do
 
     it do
       is_expected.to validate_inclusion_of(:event_type)
-        .in_array(%w[IMPORT_DATA EXPORT_DATA])
+        .in_array(%w[IMPORT_DATA EXPORT_DATA BACKFILL_NET_WORTH])
     end
 
     it do

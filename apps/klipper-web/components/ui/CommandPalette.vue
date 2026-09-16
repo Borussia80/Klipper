@@ -339,13 +339,13 @@ function handleKeyDown(e: KeyboardEvent) {
   outline: none;
 }
 .cp-input::placeholder {
-  color: var(--t4);
+  color: var(--t3);
 }
 
 .cp-esc-hint {
   font-size: 10px;
   font-family: 'Space Grotesk', monospace;
-  color: var(--t4);
+  color: var(--t3);
   background: var(--ly);
   border: 1px solid var(--bd2);
   border-radius: 4px;
@@ -362,7 +362,7 @@ function handleKeyDown(e: KeyboardEvent) {
 .cp-empty {
   padding: 32px 16px;
   text-align: center;
-  color: var(--t4);
+  color: var(--t3);
   font-size: 13px;
 }
 
@@ -426,7 +426,7 @@ function handleKeyDown(e: KeyboardEvent) {
 
 .cp-item-badge {
   font-size: 10px;
-  color: var(--t4);
+  color: var(--t3);
   background: var(--ly);
   padding: 2px 6px;
   border-radius: 4px;
@@ -436,7 +436,7 @@ function handleKeyDown(e: KeyboardEvent) {
 .cp-item-shortcut {
   font-size: 10px;
   font-family: 'Space Grotesk', monospace;
-  color: var(--t4);
+  color: var(--t3);
   background: var(--sf);
   border: 1px solid var(--bd2);
   border-radius: 4px;
@@ -451,7 +451,7 @@ function handleKeyDown(e: KeyboardEvent) {
   border-top: 1px solid var(--bd);
   background: var(--bg);
   font-size: 11px;
-  color: var(--t4);
+  color: var(--t3);
 }
 
 .cp-footer-tip kbd {

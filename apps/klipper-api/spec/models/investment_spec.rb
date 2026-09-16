@@ -88,4 +88,31 @@ RSpec.describe Investment, type: :model do
       expect(investment.gain_loss(80)).to eq(-200)
     end
   end
+
+  describe "#signed_cost" do
+    it "returns the cost as positive for a buy" do
+      expect(build(:investment, quantity: 10, average_price: 100).signed_cost).to eq(1000)
+    end
+
+    it "returns the cost as negative for a sell" do
+      expect(build(:investment, :sell, quantity: 10, average_price: 100).signed_cost).to eq(-1000)
+    end
+  end
+
+  describe ".signed_cost_sql" do
+    # A expressão SQL precisa concordar com o #signed_cost em Ruby: os dois lados
+    # do contrato têm consumidores distintos (agregação no banco vs. agrupamento
+    # em memória) e só divergir já produziu o FIN-002.
+    it "agrees with the Ruby implementation when summed" do
+      user = create(:user)
+      create(:investment, user: user, ticker: "PETR4", quantity: 10, average_price: 100)
+      create(:investment, :sell, user: user, ticker: "PETR4", quantity: 4, average_price: 120)
+
+      sql_total   = user.investments.sum(described_class.signed_cost_sql).to_f
+      ruby_total  = user.investments.sum(&:signed_cost).to_f
+
+      expect(sql_total).to eq(ruby_total)
+      expect(sql_total).to eq(520.0)
+    end
+  end
 end

@@ -109,3 +109,36 @@ jobs:
       - name: Build de produção
         run: npm run build
         working-directory: apps/klipper-web
+
+  # Sem este job o quebec-web não tinha portão nenhum, e o lockfile dele ficou
+  # parado enquanto o do klipper-web — mesmo range de nuxt — avançava: o app
+  # acumulou uma RCE crítica no @nuxt/devtools sem nada reclamar (SEC-001).
+  quebec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/quebec-web/package-lock.json
+      # `npm ci` também é o que pega lockfile fora de sincronia com o
+      # package.json — foi assim que o desalinhamento do dependabot apareceu.
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/quebec-web
+      - name: Prepare Nuxt
+        run: npx nuxt prepare
+        working-directory: apps/quebec-web
+      - name: Run typecheck
+        run: npm run typecheck
+        working-directory: apps/quebec-web
+      - name: Build de produção
+        run: npm run build
+        working-directory: apps/quebec-web
+      # Corta em critical, não em high: sobram 3 high vindas de
+      # @nuxt/image -> ipx -> sharp que só saem com @nuxt/image 2.x, e travar o
+      # portão numa decisão semver-major pendente só ensinaria a ignorá-lo.
+      - name: npm audit
+        run: npm audit --audit-level=critical
+        working-directory: apps/quebec-web

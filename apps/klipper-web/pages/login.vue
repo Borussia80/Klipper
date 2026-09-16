@@ -91,7 +91,7 @@
       </div>
 
       <!-- Footer link -->
-      <div style="margin-top:28px;font-size:12px;color:var(--t4)">
+      <div style="margin-top:28px;font-size:12px;color:var(--t3)">
         <template v-if="mode === 'login'">
           Não tem conta?
           <button type="button" style="background:none;border:none;padding:0;color:var(--blt);text-decoration:none;margin-left:4px;cursor:pointer;font-size:inherit" @click="switchMode('signup')">Criar conta</button>

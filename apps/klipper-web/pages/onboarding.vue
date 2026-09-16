@@ -48,7 +48,7 @@
           <!-- Import OFX/CSV — chega no Sprint 2 (adapters de import) -->
           <button
             class="btn"
-            style="width:100%;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t4);font-size:12px;margin-bottom:24px;cursor:not-allowed;opacity:.6"
+            style="width:100%;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t3);font-size:12px;margin-bottom:24px;cursor:not-allowed;opacity:.6"
             disabled
             title="Em breve — importe seu extrato depois do onboarding, em /importar"
           >
@@ -62,7 +62,7 @@
           <div style="display:flex;justify-content:space-between;align-items:center">
             <button
               class="btn"
-              style="background:transparent;border:none;color:var(--t4);font-size:12px;padding:0"
+              style="background:transparent;border:none;color:var(--t3);font-size:12px;padding:0"
               @click="next"
             >
               Pular por enquanto
@@ -82,18 +82,18 @@
           <div
             style="border:2px dashed var(--bd2);border-radius:12px;padding:48px 24px;text-align:center;margin-bottom:20px;opacity:.6"
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--t4);margin:0 auto 10px;display:block">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--t3);margin:0 auto 10px;display:block">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
             <div style="font-size:13px;color:var(--t2);margin-bottom:4px">Importação de extrato B3 em breve</div>
-            <div style="font-size:12px;color:var(--t4)">Você pode cadastrar seus investimentos depois, em /investimentos</div>
+            <div style="font-size:12px;color:var(--t3)">Você pode cadastrar seus investimentos depois, em /investimentos</div>
           </div>
 
           <!-- Alt actions -->
           <div style="display:flex;gap:10px;margin-bottom:24px">
             <button
               class="btn"
-              style="flex:1;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t4);font-size:12px;cursor:not-allowed;opacity:.6"
+              style="flex:1;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t3);font-size:12px;cursor:not-allowed;opacity:.6"
               disabled
               title="Em breve"
             >
@@ -101,7 +101,7 @@
             </button>
             <button
               class="btn"
-              style="flex:1;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t4);font-size:12px;cursor:not-allowed;opacity:.6"
+              style="flex:1;height:40px;background:transparent;border:1px solid var(--bd2);color:var(--t3);font-size:12px;cursor:not-allowed;opacity:.6"
               disabled
               title="Em breve — cadastre em /investimentos"
             >

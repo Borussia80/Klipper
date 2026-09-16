@@ -15,6 +15,20 @@ RSpec.describe NetWorthSnapshotService do
       expect(snapshot.net_worth.to_f).to eq(4000.0)
     end
 
+    # Regressão FIN-002: a venda entrava somando, e o snapshot persistido passava
+    # a divergir do PortfolioService para qualquer usuário com venda registrada.
+    it "subtracts sell operations from the investment cost" do
+      user = create(:user)
+      create(:account, user: user, balance: 1000)
+      create(:investment, user: user, ticker: "IVVB11", quantity: 10, average_price: 100)
+      create(:investment, :sell, user: user, ticker: "IVVB11", quantity: 4, average_price: 120)
+
+      snapshot = described_class.call(user)
+
+      expect(snapshot.investments_cost.to_f).to eq(520.0) # 1000 - 480, não 1480
+      expect(snapshot.net_worth.to_f).to eq(1520.0)
+    end
+
     it "updates the existing snapshot instead of creating a duplicate" do
       user = create(:user)
       create(:net_worth_snapshot, user: user, year: Date.current.year, month: Date.current.month)
