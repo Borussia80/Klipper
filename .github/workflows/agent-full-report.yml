@@ -39,6 +39,7 @@ jobs:
     # é mais um push no main — se o commit tiver a mensagem
     # "chore(reports): ..." (usada pelo peter-evans/create-pull-request
     # abaixo), NÃO reprocessa.
+    #
     # Um CI vermelho no main não merece relatório: os agentes gastariam 3 a 5
     # execuções descrevendo um estado que já se sabe quebrado.
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
@@ -216,6 +217,9 @@ jobs:
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
           commit-message: "chore(reports): atualiza relatório de auditoria (${{ github.event_name }}, ${{ needs.guard.outputs.depth }})"
+          # O checkout deste job é por SHA, então o HEAD fica destacado e a
+          # action não consegue inferir contra o que abrir o PR.
+          base: main
           branch: reports/auto-${{ github.run_id }}
           title: "chore(reports): relatório de auditoria automático (${{ needs.guard.outputs.depth }})"
           body: |
