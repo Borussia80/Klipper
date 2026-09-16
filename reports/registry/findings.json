@@ -5,7 +5,7 @@
       "id": "ARCH-001",
       "category": "architecture",
       "natural_key": "jwt-decode-error-path-untested",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -48,19 +48,24 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "medium"
         }
       ],
-      "description": "A página de orçamento reutiliza um componente cujos rótulos fixos descrevem o percentual como participação na renda, mas o valor exibido ali é participação no orçamento alocado — a matemática está correta, o rótulo mostrado ao usuário não é.",
+      "description": "A página de orçamento reutiliza InstrumentReadout, cujos textos fixos (\"% da renda\") descrevem o percentual como participação na renda, mas o valor exibido ali é participação no orçamento alocado do ciclo — o cálculo está correto, o rótulo mostrado ao usuário não é.",
       "recommendation": "Tornar o texto do rótulo (\"% da renda\" / mensagem de estouro) uma prop de InstrumentReadout, com orcamento.vue passando textos referentes a orçamento (ex: \"% do orçamento\", \"Gasto já supera o orçamento do ciclo\").",
       "impact": 5,
       "frequency": 10,
@@ -73,7 +78,7 @@
       "id": "FIN-002",
       "category": "finance",
       "natural_key": "net-worth-snapshot-ignores-sell-sign",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -107,7 +112,7 @@
       "id": "SEC-001",
       "category": "security",
       "natural_key": "quebec-web-nuxt-stale-lockfile-cves",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -150,19 +155,24 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "high"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "high"
         }
       ],
-      "description": "A lógica de validação e parsing de valores financeiros de useLancamentoForm — compartilhada pelos modais de novo e editar lançamento — não tem teste unitário dedicado.",
+      "description": "A lógica de validação e parsing de valores financeiros compartilhada pelos modais de novo e editar lançamento (ModalNovoLancamento, ModalEditarLancamento) continua sem teste unitário dedicado, apesar de o próprio código documentar um bug de regressão anterior causado por essa mesma divergência silenciosa.",
       "recommendation": "Criar composables/__tests__/useLancamentoForm.test.ts cobrindo validate(), buildPayload() e fillFrom() isoladamente, incluindo os três tipos de lançamento (gasto/receita/transferência) e os limites de parseBRLAmount/isFutureDate.",
       "impact": 7,
       "frequency": 8,
@@ -184,20 +194,25 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "low"
         }
       ],
-      "description": "The unauthenticated /api/v1/health endpoint returns Rails.env in its JSON body, letting any anonymous caller fingerprint whether the target is production/staging/development.",
-      "recommendation": "Drop `env` from the public health payload (or gate it behind the same network path the uptime prober already trusts) — the prober only needs a 200 OK, not the environment name.",
+      "description": "O endpoint público /api/v1/health devolve `Rails.env` no corpo JSON, permitindo que qualquer chamador anônimo identifique se o alvo é produção/staging/desenvolvimento.",
+      "recommendation": "Remover `env` do payload público do health check (ou expô-lo só na rede interna que o prober de uptime já usa) — o prober só precisa do 200 OK, não do nome do ambiente.",
       "impact": 2,
       "frequency": 10,
       "reach": 4,
@@ -218,20 +233,25 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "critical"
         }
       ],
-      "description": "BankImport::AmountParser interpreta qualquer vírgula como decimal BR e corrompe silenciosamente valores no formato en-US (vírgula-milhar/ponto-decimal) vindos de CSV genérico, sem lançar erro nem ter teste que cubra o caso.",
-      "recommendation": "Detectar o formato pela posição relativa de vírgula/ponto (não só pela presença de vírgula) — ex: se o último separador é vírgula e há ponto antes, é BR; se o último separador é ponto e há vírgula antes, é en-US — e adicionar teste para \"1,234.56\".",
+      "description": "BankImport::AmountParser interpreta qualquer vírgula como separador decimal brasileiro e corrompe silenciosamente valores em formato en-US (vírgula-milhar, ponto-decimal) vindos de importação de CSV genérico, sem lançar erro nem ter teste que cubra o caso — mesmo finding já catalogado (FIN-003), ainda não corrigido no código atual.",
+      "recommendation": "Detectar o formato pela posição relativa do último separador (se o último separador é vírgula e há ponto antes dela, é BR; se é ponto e há vírgula antes, é en-US) em vez de assumir BR sempre que há vírgula, e adicionar teste para \"1,234.56\".",
       "impact": 9,
       "frequency": 3,
       "reach": 6,
@@ -252,25 +272,30 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "high"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "medium"
         }
       ],
-      "description": "A fórmula de patrimônio líquido (contas + investimentos) está duplicada entre NetWorthSnapshotService e ReportsController#net_worth em vez de reutilizar o service existente.",
+      "description": "A fórmula de patrimônio líquido (contas + investimentos) continua duplicada entre NetWorthSnapshotService e ReportsController#net_worth em vez de reutilizar um método comum, embora a causa raiz do risco de inconsistência (fórmula de custo sem sinal) já tenha sido corrigida — severidade rebaixada de high para medium desde a auditoria anterior.",
       "recommendation": "Extrair a fórmula para um método único e reutilizável (ex: NetWorthSnapshotService.compute(user)) e fazer o controller chamá-lo, eliminando a segunda implementação e o risco de as duas divergirem no futuro.",
-      "impact": 6,
+      "impact": 4,
       "frequency": 3,
       "reach": 5,
       "effort": 3,
-      "priority_score": 30,
+      "priority_score": 20,
       "adr_candidate": false
     },
     {
@@ -286,19 +311,24 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "medium"
         }
       ],
-      "description": "Quatro componentes Vue de entrada de dados financeiros (nova conta, novo membro, editar reembolso) não têm nenhuma cobertura de teste, direta ou indireta.",
+      "description": "Quatro componentes Vue de entrada de dados financeiros (nova conta, novo membro, editar reembolso, e o roteador de modais ModalMount) continuam sem nenhuma cobertura de teste, direta ou indireta — o único teste que os referencia os stuba explicitamente.",
       "recommendation": "Adicionar testes de montagem para ModalNovaConta, ModalNovoMembro, ModalEditarReembolso e ModalMount seguindo o padrão já usado em ModalNovoLancamento.test.ts.",
       "impact": 5,
       "frequency": 4,
@@ -320,20 +350,25 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "medium"
         }
       ],
-      "description": "Both frontend apps carry outdated transitive devDependencies (vite/esbuild dev-server, svgo image optimizer, vitest test runner, js-yaml/fast-uri) with published moderate/high advisories; none of these packages ship into the built production bundle, but they do run unpatched on every developer machine and CI job.",
-      "recommendation": "Run `npm audit fix` in apps/klipper-web and apps/quebec-web (no major bumps required per fixAvailable) and add a periodic `npm audit --audit-level=high` check to CI so this doesn't silently drift again.",
+      "description": "Ambos os apps frontend carregam devDependencies transitivas desatualizadas (esbuild, svgo, vitest, js-yaml, fast-uri) com advisories moderate/high publicados; nenhum desses pacotes específicos roda em produção, mas seguem sem patch em toda máquina de desenvolvedor e job de CI, e o gate de CI do quebec-web só corta em `--audit-level=critical`.",
+      "recommendation": "Rodar `npm audit fix` em apps/klipper-web e apps/quebec-web (sem bump major necessário, todas têm `fixAvailable`) e, no CI, subir o corte do job `quebec` de `--audit-level=critical` para `--audit-level=high` agora que os achados de produção (@nuxt/image) foram removidos separadamente — do contrário o portão continua cego a regressões como esta.",
       "impact": 3,
       "frequency": 5,
       "reach": 2,
@@ -354,19 +389,24 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "medium"
         }
       ],
-      "description": "Cinco páginas centrais do Wealth OS (dashboard, contas, investimentos, orçamento, portadores) não têm nenhum teste de página.",
+      "description": "Cinco páginas centrais do Wealth OS (dashboard, contas, investimentos, orçamento, portadores) continuam sem nenhum teste de página.",
       "recommendation": "Adicionar testes de página para dashboard, contas, investimentos, orcamento e portadores seguindo o padrão já usado em relatorios.test.ts e transacoes.test.ts.",
       "impact": 4,
       "frequency": 3,
@@ -388,19 +428,24 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T18:14:56.630Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "medium"
         }
       ],
-      "description": "ReportsController mistura dois padrões arquiteturais no mesmo arquivo: metade das actions agrega dados financeiros inline, a outra metade delega a Calculator services.",
+      "description": "ReportsController continua misturando dois padrões arquiteturais no mesmo arquivo: metade das actions agrega dados financeiros inline, a outra metade delega a Calculator services — sem mudança desde a última auditoria.",
       "recommendation": "Extrair monthly e natureza_split para Calculator services próprios, alinhando com o padrão já estabelecido por ReimbursementCoverageCalculator e DebtRankingCalculator no mesmo controller.",
       "impact": 4,
       "frequency": 2,
@@ -408,6 +453,108 @@
       "effort": 4,
       "priority_score": 6,
       "adr_candidate": true
+    },
+    {
+      "id": "SEC-004",
+      "category": "security",
+      "natural_key": "quebec-web-unused-nuxt-image-ipx-exposed",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+        "branch": "main",
+        "date": "2026-09-16T18:14:56.630Z"
+      },
+      "last_seen": {
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+        "branch": "main",
+        "date": "2026-09-16T18:14:56.630Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "high"
+        }
+      ],
+      "description": "quebec-web (site institucional público, sem autenticação) expõe em produção a rota `/_ipx` do @nuxt/image, que processa imagens com `sharp`/`ipx` vulneráveis a CVEs de alta severidade em libvips/libheif, mesmo sem nenhum componente do app usar o módulo — superfície de ataque presente sem nenhum benefício de produto, o inverso do que já foi feito em klipper-web.",
+      "recommendation": "Remover `@nuxt/image` da lista `modules` de apps/quebec-web/nuxt.config.ts, igual já foi feito em klipper-web, já que não há nenhum `<NuxtImg>`/`<NuxtPicture>`/`useImage()` no código. Se uso futuro for necessário, subir para `@nuxt/image@2.1.0` (fixAvailable do npm audit) antes de reativar o módulo.",
+      "impact": 7,
+      "frequency": 8,
+      "reach": 9,
+      "effort": 1,
+      "priority_score": 504,
+      "adr_candidate": false
+    },
+    {
+      "id": "ARCH-007",
+      "category": "architecture",
+      "natural_key": "stock-quote-service-error-path-untested",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+        "branch": "main",
+        "date": "2026-09-16T18:14:56.630Z"
+      },
+      "last_seen": {
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+        "branch": "main",
+        "date": "2026-09-16T18:14:56.630Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "medium"
+        }
+      ],
+      "description": "O caminho de erro da integração com a API externa de cotações (brapi.dev) — JSON malformado, timeout, falha de rede — está implementado no controller mas nunca é exercitado por teste algum, direto ou de request.",
+      "recommendation": "Adicionar spec/services/stock_quote_service_spec.rb com WebMock cobrindo resposta 200 e resposta com corpo inválido, e um exemplo em quotes_spec.rb que force JSON::ParserError/timeout para confirmar o 503 tratado pelo controller.",
+      "impact": 4,
+      "frequency": 5,
+      "reach": 4,
+      "effort": 2,
+      "priority_score": 40,
+      "adr_candidate": false
+    },
+    {
+      "id": "SEC-005",
+      "category": "security",
+      "natural_key": "quotes-ticker-unvalidated-outbound-url",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+        "branch": "main",
+        "date": "2026-09-16T18:14:56.630Z"
+      },
+      "last_seen": {
+        "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+        "branch": "main",
+        "date": "2026-09-16T18:14:56.630Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-16T18:14:56.630Z",
+          "commit": "c911320e997eec51b13ca9676b681a897a30b9f7",
+          "severity": "low"
+        }
+      ],
+      "description": "QuotesController encaminha o parâmetro `tickers` do usuário direto para dentro da URL de uma chamada HTTP externa (brapi.dev) sem validar caracteres nem limitar a quantidade de tickers, e não trata o `URI::InvalidURIError` que um ticker com caractere inválido dispara — resultando em erro 500 não tratado; uma lista muito longa gera uma única requisição externa arbitrariamente grande, sem estar sujeita a rate limiting.",
+      "recommendation": "Validar cada ticker contra um padrão restrito (ex: `/\\A[A-Z0-9.]{1,10}\\z/`) antes de montar a URL, limitar a quantidade de tickers por requisição (ex: 20), escapar o segmento montado com `URI::DEFAULT_PARSER.escape`, e tratar `URI::InvalidURIError` no controller devolvendo 422 em vez de deixar subir como 500.",
+      "impact": 3,
+      "frequency": 4,
+      "reach": 2,
+      "effort": 2,
+      "priority_score": 12,
+      "adr_candidate": false
     }
   ]
 }
