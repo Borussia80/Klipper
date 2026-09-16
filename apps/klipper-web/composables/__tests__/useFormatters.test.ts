@@ -8,8 +8,38 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { useFormatters, isFutureDate, todayISO, parseBRLAmount } from '../useFormatters'
 
 describe('useFormatters', () => {
-  const { formatBRL, formatBRLCompact, formatPercent, formatPercentRaw, deltaClass, deltaSign } =
-    useFormatters()
+  const {
+    formatBRL,
+    formatBRLCompact,
+    formatPercent,
+    formatPercentRaw,
+    deltaClass,
+    deltaSign,
+    formatDayMonth,
+    formatFullDate,
+  } = useFormatters()
+
+  describe('date formatting', () => {
+    it('formats a date-only ISO as day + short month', () => {
+      expect(formatDayMonth('2026-09-16')).toBe('16 de set.')
+    })
+
+    it('formats a date-only ISO as full pt-BR date', () => {
+      expect(formatFullDate('2026-09-16')).toBe('16/09/2026')
+    })
+
+    // `new Date('2026-01-01')` é parseado como UTC; em BRT (UTC-3) isso vira
+    // 31/12 do ano anterior. As duas funções ancoram no meio-dia local para
+    // evitar isso — se alguém remover a âncora, estes dois casos quebram.
+    it('keeps the calendar day on a year boundary', () => {
+      expect(formatDayMonth('2026-01-01')).toBe('01 de jan.')
+      expect(formatFullDate('2026-01-01')).toBe('01/01/2026')
+    })
+
+    it('keeps the calendar day on a month boundary', () => {
+      expect(formatFullDate('2026-03-01')).toBe('01/03/2026')
+    })
+  })
 
   // ── formatBRL ─────────────────────────────────────────────────────────────
 

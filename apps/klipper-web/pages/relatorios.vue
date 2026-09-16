@@ -70,7 +70,7 @@
           <UiSkeletonCard v-for="n in 5" :key="n" style="margin-bottom:6px" />
         </template>
         <template v-else-if="!monthly?.by_category?.length">
-          <div style="padding:40px 0;text-align:center;color:var(--t4);font-size:13px">
+          <div style="padding:40px 0;text-align:center;color:var(--t3);font-size:13px">
             Nenhum gasto registrado neste período.
           </div>
         </template>
@@ -85,7 +85,7 @@
               <div style="font-size:13px;font-weight:500;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
                 {{ cat.category_name }}
               </div>
-              <div style="font-size:11px;color:var(--t4);margin-top:2px">{{ cat.count }} lançamento{{ cat.count !== 1 ? 's' : '' }}</div>
+              <div style="font-size:11px;color:var(--t3);margin-top:2px">{{ cat.count }} lançamento{{ cat.count !== 1 ? 's' : '' }}</div>
             </div>
             <div class="mono" style="font-size:13px;font-weight:500;color:var(--t1)">{{ formatBRL(cat.total) }}</div>
           </div>
@@ -169,7 +169,7 @@
 
           <div
             v-if="!netWorth?.accounts?.length && !netWorth?.investments_by_type?.length"
-            style="padding:40px 0;text-align:center;color:var(--t4);font-size:13px"
+            style="padding:40px 0;text-align:center;color:var(--t3);font-size:13px"
           >
             Nenhum ativo registrado.
           </div>

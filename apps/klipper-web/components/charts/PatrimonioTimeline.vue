@@ -280,7 +280,7 @@ onUnmounted(() => observer?.disconnect())
 .axis-label {
   font-family: 'Space Grotesk', monospace;
   font-size: 10px;
-  fill: var(--t4);
+  fill: var(--t3);
 }
 
 .timeline-line {

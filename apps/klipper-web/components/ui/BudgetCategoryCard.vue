@@ -37,7 +37,7 @@
         <button
           v-if="canEditReimbursement"
           type="button"
-          style="display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t4)"
+          style="display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t3)"
           title="Editar vínculo de reembolso"
           aria-label="Editar vínculo de reembolso"
           @click="openEditReimbursement"
@@ -48,9 +48,9 @@
     </div>
 
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 10px">
-      <span style="font-size:11px;color:var(--t4)">{{ naturezaLabel }}</span>
+      <span style="font-size:11px;color:var(--t3)">{{ naturezaLabel }}</span>
       <span class="tag" :class="recorrenciaTagClass">{{ recorrenciaLabel }}</span>
-      <span style="font-size:11px;color:var(--t4)">presente em {{ monthsPresent }} dos últimos {{ monthsTotal }} meses</span>
+      <span style="font-size:11px;color:var(--t3)">presente em {{ monthsPresent }} dos últimos {{ monthsTotal }} meses</span>
     </div>
 
     <div

@@ -52,7 +52,7 @@
               <input v-model="checkedRows" type="checkbox" :value="row" />
               <div style="flex:1;min-width:0">
                 <div style="font-size:12px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.description }}</div>
-                <div style="font-size:11px;color:var(--t4)">{{ formatRowDate(row.occurred_on) }}<template v-if="row.installment_number"> · parcela {{ row.installment_number }}/{{ row.installment_total }}</template></div>
+                <div style="font-size:11px;color:var(--t3)">{{ formatFullDate(row.occurred_on) }}<template v-if="row.installment_number"> · parcela {{ row.installment_number }}/{{ row.installment_total }}</template></div>
               </div>
               <div style="font-size:12px;font-family:var(--mono);color:var(--t2);white-space:nowrap">{{ formatRowAmount(row.amount) }}</div>
             </label>
@@ -105,11 +105,11 @@
             <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:4px">
               {{ isDragging ? 'Solte o arquivo aqui' : 'Clique ou arraste o arquivo CSV ou PDF' }}
             </div>
-            <div style="font-size:11px;color:var(--t4)">Máx. 5 MB · .csv, .pdf (extrato/fatura Itaú)</div>
+            <div style="font-size:11px;color:var(--t3)">Máx. 5 MB · .csv, .pdf (extrato/fatura Itaú)</div>
           </div>
           <div v-else style="text-align:center">
             <div style="font-size:13px;font-weight:500;color:var(--t1);margin-bottom:2px">{{ selectedFile.name }}</div>
-            <div style="font-size:11px;color:var(--t4)">{{ formatBytes(selectedFile.size) }}</div>
+            <div style="font-size:11px;color:var(--t3)">{{ formatBytes(selectedFile.size) }}</div>
           </div>
         </div>
 
@@ -125,7 +125,7 @@
         <!-- Account selector -->
         <div style="margin:16px 0">
           <label class="plbl" for="import-account" style="display:block;margin-bottom:6px">
-            Conta de destino <span style="color:var(--t4)">(opcional)</span>
+            Conta de destino <span style="color:var(--t3)">(opcional)</span>
           </label>
           <div class="sel-wrap">
             <select id="import-account" v-model="selectedAccountId" class="fi fi-sel" aria-label="Conta para creditar as transações">
@@ -148,7 +148,7 @@
 01/06/2026,SUPERMERCADO EXTRA,-150.00
 05/06/2026,PIX RECEBIDO SALÁRIO,5000.00
 10/06/2026,POSTO SHELL,-120.50</code>
-          <div style="font-size:11px;color:var(--t4);margin-top:8px">PDFs de extrato ou fatura Itaú têm o layout detectado automaticamente — você revisa os lançamentos antes de confirmar.</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:8px">PDFs de extrato ou fatura Itaú têm o layout detectado automaticamente — você revisa os lançamentos antes de confirmar.</div>
         </div>
 
         <button
@@ -206,6 +206,7 @@ const router = useRouter()
 const { accounts, fetchAccounts } = useAccounts()
 const { members, fetchMembers } = useMembers()
 const { result, preview, isLoading, error, uploadFile, previewFile, confirmImport, reset } = useImport()
+const { formatFullDate } = useFormatters()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const selectedFile = ref<File | null>(null)
@@ -326,11 +327,6 @@ function adapterLabel(adapter: string): string {
     itau_fatura: 'Fatura Itaú (cartão de crédito)',
   }
   return labels[adapter] ?? adapter
-}
-
-function formatRowDate(iso: string): string {
-  const [year, month, day] = iso.split('-')
-  return `${day}/${month}/${year}`
 }
 
 function formatRowAmount(amount: string): string {

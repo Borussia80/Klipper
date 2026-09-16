@@ -28,7 +28,7 @@
     </template>
 
     <!-- Empty state -->
-    <div v-else-if="!hasData" style="padding:48px 0;text-align:center;color:var(--t4);font-size:13px">
+    <div v-else-if="!hasData" style="padding:48px 0;text-align:center;color:var(--t3);font-size:13px">
       Nenhum lançamento neste mês ainda.
       <br />
       <NuxtLink class="btn btn-p" style="margin-top:12px;display:inline-block" to="/importar">Importar extrato</NuxtLink>
@@ -56,7 +56,7 @@
           :label="incomeCategory?.name ?? 'Maior entrada do mês'"
           icon="income"
           :value="formatBRL(parseFloat(incomeHighlight.amount))"
-          :chip-text="`recebido em ${fmtDate(incomeHighlight.occurred_on)}`"
+          :chip-text="`recebido em ${formatDayMonth(incomeHighlight.occurred_on)}`"
         />
         <UiKpiCard
           v-if="fixoRow"
@@ -149,7 +149,7 @@ const {
   error: transactionsError,
 } = useTransactions()
 const { members, fetchMembers, error: membersError } = useMembers()
-const { formatBRL, currentMonthLabel } = useFormatters()
+const { formatBRL, currentMonthLabel, formatDayMonth } = useFormatters()
 const {
   naturezaSplit,
   fetchNaturezaSplit,
@@ -198,12 +198,6 @@ watch(activeMemberId, () => {
   loadTransactions()
   loadNaturezaSplit()
 })
-
-function fmtDate(iso: string): string {
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(
-    new Date(iso + 'T12:00:00')
-  )
-}
 
 function commitmentTone(pct: number | null): 'warn' | 'alert' | 'neutral' {
   if (pct === null) return 'neutral'

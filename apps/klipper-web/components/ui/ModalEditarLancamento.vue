@@ -221,7 +221,7 @@ async function submit() {
 }
 
 .valor-input::placeholder {
-  color: var(--t4);
+  color: var(--t3);
 }
 
 /* ── Form labels (sentence case) ─────────────────────────── */
@@ -254,7 +254,7 @@ async function submit() {
 }
 
 .field::placeholder {
-  color: var(--t4);
+  color: var(--t3);
 }
 
 /* ── Select ─────────────────────────────────────────────── */

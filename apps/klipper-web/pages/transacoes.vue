@@ -59,7 +59,7 @@
       <UiSkeletonTransactionList v-if="isLoading" :count="4" />
 
       <template v-else>
-        <div v-if="!filteredTransactions.length" style="padding:60px 0;text-align:center;color:var(--t4);font-size:13px">
+        <div v-if="!filteredTransactions.length" style="padding:60px 0;text-align:center;color:var(--t3);font-size:13px">
           Nenhum lançamento no período.
           <div style="margin-top:14px;display:flex;justify-content:center;gap:8px">
             <button class="btn btn-p" @click="open('novo-lancamento')">Adicionar lançamento</button>
@@ -69,7 +69,7 @@
 
         <template v-for="[date, txns] in groupedTransactions" :key="date">
           <div class="gh">
-            <span class="gl">{{ fmtDate(date) }}</span>
+            <span class="gl">{{ formatDayMonth(date) }}</span>
             <span class="gr"></span>
             <span class="gc">{{ txns.length }} lançamento{{ txns.length !== 1 ? 's' : '' }}</span>
           </div>
@@ -107,7 +107,7 @@
               >
                 {{ t.transaction_type === 'credit' ? '+' : '-' }} {{ formatBRL(parseFloat(t.amount)) }}
               </div>
-              <div v-if="!isCompactView" style="font-size:10px;color:var(--t4);margin-top:1px">{{ t.occurred_on }}</div>
+              <div v-if="!isCompactView" style="font-size:10px;color:var(--t3);margin-top:1px">{{ formatDayMonth(t.occurred_on) }}</div>
             </div>
             <button
               type="button"
@@ -131,7 +131,7 @@ import type { Transaction } from '~/composables/useTransactions'
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
 const { transactions, isLoading, fetchTransactions, deleteTransaction } = useTransactions()
-const { formatBRL, fmtMonthFull } = useFormatters()
+const { formatBRL, fmtMonthFull, formatDayMonth } = useFormatters()
 const { addToast } = useToast()
 
 const now = new Date()
@@ -161,12 +161,6 @@ const groupedTransactions = computed(() => {
   }
   return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a))
 })
-
-function fmtDate(iso: string): string {
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(
-    new Date(iso + 'T12:00:00')
-  )
-}
 
 function toggleSelect(id: number) {
   selectedIds.value = selectedIds.value.includes(id)
@@ -252,7 +246,7 @@ function confirmDeleteBulk() {
   align-items: center;
   justify-content: center;
   background: transparent;
-  color: var(--t4);
+  color: var(--t3);
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.12s, color 0.12s, border-color 0.12s, background 0.12s;

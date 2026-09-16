@@ -167,9 +167,9 @@
     </div>
 
     <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px;margin-top:auto" aria-label="Atalhos de teclado">
-      <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--t4)"><kbd>N</kbd> novo</span>
-      <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--t4)"><kbd>K</kbd> buscar</span>
-      <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--t4)"><kbd>?</kbd> ajuda</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--t3)"><kbd>N</kbd> novo</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--t3)"><kbd>K</kbd> buscar</span>
+      <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--t3)"><kbd>?</kbd> ajuda</span>
     </div>
   </nav>
 </template>

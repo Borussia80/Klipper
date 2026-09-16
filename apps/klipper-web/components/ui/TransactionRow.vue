@@ -24,7 +24,7 @@
           :class="`tag tag-${tag.variant}`"
         >{{ tag.text }}</span>
       </div>
-      <div v-if="account" style="font-size:10px;color:var(--t4);margin-top:1px">{{ account }}</div>
+      <div v-if="account" style="font-size:10px;color:var(--t3);margin-top:1px">{{ account }}</div>
     </div>
     <div style="text-align:right;flex-shrink:0">
       <div
