@@ -11,7 +11,7 @@ gem "solid_cache"
 gem "solid_queue"
 gem "bootsnap", require: false
 gem "csv"
-gem "pdf-reader", "~> 2.15"
+gem "pdf-reader", "~> 2.16"
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 group :development, :test do
