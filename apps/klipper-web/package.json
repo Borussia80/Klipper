@@ -33,7 +33,7 @@
     "oxc-parser": "^0.149.0",
     "prettier": "^3.9.6",
     "typescript": "^5.7.0",
-    "vitest": "^4.1.9",
+    "vitest": "^5.0.0",
     "vue-tsc": "^3.3.11"
   },
   "overrides": {
