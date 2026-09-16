@@ -4,410 +4,240 @@
     {
       "id": "ARCH-001",
       "category": "architecture",
-      "natural_key": "jwt-decode-error-path-untested",
+      "natural_key": "composable-async-state-duplication",
       "status": "open",
       "component": null,
       "adr": null,
       "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T13:33:55.601Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T13:33:55.601Z"
       },
       "occurrences": 1,
       "severity_history": [
         {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "critical"
+          "date": "2026-09-16T13:33:55.601Z",
+          "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+          "severity": "low"
         }
       ],
-      "description": "O caminho de rejeição de token JWT expirado/malformado — o portão de autenticação de toda a API — nunca é exercitado por nenhum teste da suíte.",
-      "recommendation": "Adicionar spec unitário para JwtService.decode cobrindo token expirado, assinatura inválida e token corrompido, e um request spec que envie um token adulterado para confirmar o 401 em authenticate_request!.",
-      "impact": 9,
-      "frequency": 10,
-      "reach": 10,
-      "effort": 2,
-      "priority_score": 450,
-      "adr_candidate": false
-    },
-    {
-      "id": "FIN-001",
-      "category": "finance",
-      "natural_key": "instrument-readout-mislabeled-budget-ratio",
-      "status": "open",
-      "component": null,
-      "adr": null,
-      "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "occurrences": 1,
-      "severity_history": [
-        {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "medium"
-        }
-      ],
-      "description": "A página de orçamento reutiliza um componente cujos rótulos fixos descrevem o percentual como participação na renda, mas o valor exibido ali é participação no orçamento alocado — a matemática está correta, o rótulo mostrado ao usuário não é.",
-      "recommendation": "Tornar o texto do rótulo (\"% da renda\" / mensagem de estouro) uma prop de InstrumentReadout, com orcamento.vue passando textos referentes a orçamento (ex: \"% do orçamento\", \"Gasto já supera o orçamento do ciclo\").",
-      "impact": 5,
-      "frequency": 10,
-      "reach": 10,
-      "effort": 2,
-      "priority_score": 250,
-      "adr_candidate": false
-    },
-    {
-      "id": "FIN-002",
-      "category": "finance",
-      "natural_key": "net-worth-snapshot-ignores-sell-sign",
-      "status": "open",
-      "component": null,
-      "adr": null,
-      "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "occurrences": 1,
-      "severity_history": [
-        {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "critical"
-        }
-      ],
-      "description": "NetWorthSnapshotService duplica a lógica de custo de investimentos de PortfolioService mas sem o sinal buy/sell, inflando o patrimônio líquido persistido sempre que o usuário tiver registrado alguma venda.",
-      "recommendation": "Reaproveitar PortfolioService#signed_cost (extrair para um módulo/concern comum) em vez de `sum(\"quantity * average_price\")`, e adicionar teste com `operation_type: sell` cobrindo o snapshot.",
-      "impact": 9,
-      "frequency": 4,
-      "reach": 10,
-      "effort": 2,
-      "priority_score": 180,
-      "adr_candidate": false
-    },
-    {
-      "id": "SEC-001",
-      "category": "security",
-      "natural_key": "quebec-web-nuxt-stale-lockfile-cves",
-      "status": "open",
-      "component": null,
-      "adr": null,
-      "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "occurrences": 1,
-      "severity_history": [
-        {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "high"
-        }
-      ],
-      "description": "apps/quebec-web's package-lock.json is stale and resolves nuxt/@nuxt/devtools to versions with multiple known high/critical CVEs (auth-bypass, SSR RCE, CPU exhaustion, and a critical unauthenticated dev-server RCE), while the sibling app klipper-web with the identical package.json semver range already resolves to a patched version.",
-      "recommendation": "Refresh apps/quebec-web/package-lock.json (npm update nuxt @nuxt/devtools, or delete lockfile + reinstall) to converge on the same patched Nuxt line already used by klipper-web, then re-run npm audit to confirm zero nuxt-related findings. Evidence unavailable on whether quebec-web's production deployment actually exercises Server Islands (no <NuxtIsland>/experimental component-island usage found in app code), so real-world exploitability of the RCE/auth-bypass advisories specifically is unconfirmed — but the vulnerable code ships regardless and the fix is a single low-effort dependency bump.",
-      "impact": 6,
+      "description": "O padrão isLoading/error/try-catch-finally ao redor de apiFetch está duplicado 16 vezes em 8 composables, sem uma abstração compartilhada, apesar de useApi.ts (apps/klipper-web/composables/useApi.ts) já centralizar bem a camada de fetch/retry/renovação de token.",
+      "recommendation": "Extrair um helper compartilhado (ex: useAsyncState) que encapsule isLoading, error e o try/catch/finally, e migrar os composables de fetch para usá-lo, reduzindo cada função fetch* a poucas linhas.",
+      "impact": 3,
       "frequency": 8,
-      "reach": 3,
-      "effort": 1,
-      "priority_score": 144,
+      "reach": 5,
+      "effort": 4,
+      "priority_score": 30,
       "adr_candidate": false
     },
     {
       "id": "ARCH-002",
       "category": "architecture",
-      "natural_key": "lancamento-form-no-unit-test",
+      "natural_key": "reports-controller-inline-query-logic",
       "status": "open",
       "component": null,
       "adr": null,
       "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T13:33:55.601Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T13:33:55.601Z"
       },
       "occurrences": 1,
       "severity_history": [
         {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "high"
+          "date": "2026-09-16T13:33:55.601Z",
+          "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+          "severity": "medium"
         }
       ],
-      "description": "A lógica de validação e parsing de valores financeiros de useLancamentoForm — compartilhada pelos modais de novo e editar lançamento — não tem teste unitário dedicado.",
-      "recommendation": "Criar composables/__tests__/useLancamentoForm.test.ts cobrindo validate(), buildPayload() e fillFrom() isoladamente, incluindo os três tipos de lançamento (gasto/receita/transferência) e os limites de parseBRLAmount/isFutureDate.",
-      "impact": 7,
-      "frequency": 8,
-      "reach": 6,
+      "description": "ReportsController mistura dois padrões de arquitetura na mesma classe: metade das actions delega para service objects e a outra metade constrói query e agregação de dados financeiros diretamente no controller.",
+      "recommendation": "Extrair a lógica de monthly, natureza_split e net_worth para service objects (ex: MonthlyReportCalculator, NetWorthCalculator), seguindo o padrão já estabelecido por DebtRankingCalculator e ReimbursementCoverageCalculator na mesma classe.",
+      "impact": 4,
+      "frequency": 6,
+      "reach": 3,
       "effort": 3,
-      "priority_score": 112,
-      "adr_candidate": false
-    },
-    {
-      "id": "SEC-002",
-      "category": "security",
-      "natural_key": "health-endpoint-leaks-rails-env",
-      "status": "open",
-      "component": null,
-      "adr": null,
-      "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "occurrences": 1,
-      "severity_history": [
-        {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "low"
-        }
-      ],
-      "description": "The unauthenticated /api/v1/health endpoint returns Rails.env in its JSON body, letting any anonymous caller fingerprint whether the target is production/staging/development.",
-      "recommendation": "Drop `env` from the public health payload (or gate it behind the same network path the uptime prober already trusts) — the prober only needs a 200 OK, not the environment name.",
-      "impact": 2,
-      "frequency": 10,
-      "reach": 4,
-      "effort": 1,
-      "priority_score": 80,
-      "adr_candidate": false
-    },
-    {
-      "id": "FIN-003",
-      "category": "finance",
-      "natural_key": "amount-parser-locale-ambiguity",
-      "status": "open",
-      "component": null,
-      "adr": null,
-      "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "occurrences": 1,
-      "severity_history": [
-        {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "critical"
-        }
-      ],
-      "description": "BankImport::AmountParser interpreta qualquer vírgula como decimal BR e corrompe silenciosamente valores no formato en-US (vírgula-milhar/ponto-decimal) vindos de CSV genérico, sem lançar erro nem ter teste que cubra o caso.",
-      "recommendation": "Detectar o formato pela posição relativa de vírgula/ponto (não só pela presença de vírgula) — ex: se o último separador é vírgula e há ponto antes, é BR; se o último separador é ponto e há vírgula antes, é en-US — e adicionar teste para \"1,234.56\".",
-      "impact": 9,
-      "frequency": 3,
-      "reach": 6,
-      "effort": 3,
-      "priority_score": 54,
+      "priority_score": 24,
       "adr_candidate": false
     },
     {
       "id": "ARCH-003",
       "category": "architecture",
-      "natural_key": "net-worth-formula-duplicated",
+      "natural_key": "pages-missing-test-coverage",
       "status": "open",
       "component": null,
       "adr": null,
       "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T13:33:55.601Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T13:33:55.601Z"
       },
       "occurrences": 1,
       "severity_history": [
         {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "high"
-        }
-      ],
-      "description": "A fórmula de patrimônio líquido (contas + investimentos) está duplicada entre NetWorthSnapshotService e ReportsController#net_worth em vez de reutilizar o service existente.",
-      "recommendation": "Extrair a fórmula para um método único e reutilizável (ex: NetWorthSnapshotService.compute(user)) e fazer o controller chamá-lo, eliminando a segunda implementação e o risco de as duas divergirem no futuro.",
-      "impact": 6,
-      "frequency": 3,
-      "reach": 5,
-      "effort": 3,
-      "priority_score": 30,
-      "adr_candidate": false
-    },
-    {
-      "id": "ARCH-004",
-      "category": "architecture",
-      "natural_key": "financial-modals-zero-coverage",
-      "status": "open",
-      "component": null,
-      "adr": null,
-      "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "occurrences": 1,
-      "severity_history": [
-        {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+          "date": "2026-09-16T13:33:55.601Z",
+          "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
           "severity": "medium"
         }
       ],
-      "description": "Quatro componentes Vue de entrada de dados financeiros (nova conta, novo membro, editar reembolso) não têm nenhuma cobertura de teste, direta ou indireta.",
-      "recommendation": "Adicionar testes de montagem para ModalNovaConta, ModalNovoMembro, ModalEditarReembolso e ModalMount seguindo o padrão já usado em ModalNovoLancamento.test.ts.",
-      "impact": 5,
-      "frequency": 4,
-      "reach": 4,
+      "description": "8 das 14 páginas (excluindo o redirecionamento trivial de index.vue, 7 linhas) não têm nenhum teste, incluindo as duas maiores do diretório — dashboard.vue e importar.vue — mesmo que os cálculos que elas consomem já estejam testados nos composables correspondentes (ex: useDashboardKpis.test.ts).",
+      "recommendation": "Priorizar smoke/interaction tests para importar.vue (fluxo de upload/preview/confirmação de extrato bancário) e dashboard.vue antes de cobrir as páginas menores, já que são os pontos de maior superfície de UI sem nenhuma rede de segurança.",
+      "impact": 4,
+      "frequency": 5,
+      "reach": 6,
       "effort": 5,
-      "priority_score": 16,
+      "priority_score": 24,
+      "adr_candidate": false
+    },
+    {
+      "id": "FIN-001",
+      "category": "finance",
+      "natural_key": "networth-investments-cost-ignora-sinal-sell",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "branch": "main",
+        "date": "2026-09-16T13:33:55.601Z"
+      },
+      "last_seen": {
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "branch": "main",
+        "date": "2026-09-16T13:33:55.601Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-16T13:33:55.601Z",
+          "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+          "severity": "critical"
+        }
+      ],
+      "description": "O custo de investimentos usado no patrimônio líquido (`NetWorthSnapshotService`, consumido pelo snapshot mensal/histórico, e `Api::V1::ReportsController#net_worth`) ignora o sinal de `operation_type`, enquanto `PortfolioService` (usado na tela de investimentos) faz a mesma agregação subtraindo vendas — qualquer usuário com ao menos uma operação de venda registrada vê `total_cost` correto em /investimentos mas `net_worth`/`net_worth_history` inflado pelo valor da venda, e o snapshot mensal persiste esse valor errado permanentemente até ser corrigido e recalculado. `frequency` estimado no piso da escala por falta de dado real de quantos usuários registram operações sell (sem telemetria de uso disponível neste checkout).",
+      "recommendation": "Extrair a lógica de custo líquido sinalizado (`signed_cost`, buy soma / sell subtrai) de PortfolioService para um ponto único reutilizado por NetWorthSnapshotService e ReportsController#net_worth, substituindo os dois `sum(\"quantity * average_price\")` brutos; adicionar teste de regressão com operação sell em ambos os specs cobrindo esse cenário.",
+      "impact": 8,
+      "frequency": 1,
+      "reach": 6,
+      "effort": 2,
+      "priority_score": 24,
+      "adr_candidate": false
+    },
+    {
+      "id": "SEC-001",
+      "category": "security",
+      "natural_key": "quotes-ticker-unvalidated-input-no-rate-limit",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "branch": "main",
+        "date": "2026-09-16T13:33:55.601Z"
+      },
+      "last_seen": {
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "branch": "main",
+        "date": "2026-09-16T13:33:55.601Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-16T13:33:55.601Z",
+          "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+          "severity": "medium"
+        }
+      ],
+      "description": "O endpoint GET /api/v1/quotes repassa o parâmetro `tickers` sem validar formato para a URL de uma API externa (brapi.dev) e não tem throttle próprio, permitindo que um usuário autenticado use a API do Klipper como proxy para enviar strings arbitrárias (dentro do path) em volume irrestrito ao serviço terceiro.",
+      "recommendation": "Validar `tickers` contra um allowlist regex (ex: /\\A[A-Z0-9.]{1,10}(,[A-Z0-9.]{1,10}){0,19}\\z/) antes de montar a URL, e adicionar um throttle Rack::Attack específico para /api/v1/quotes por usuário/IP.",
+      "impact": 4,
+      "frequency": 3,
+      "reach": 3,
+      "effort": 2,
+      "priority_score": 18,
+      "adr_candidate": false
+    },
+    {
+      "id": "SEC-002",
+      "category": "security",
+      "natural_key": "npm-devdeps-known-cves-klipper-web",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "branch": "main",
+        "date": "2026-09-16T13:33:55.601Z"
+      },
+      "last_seen": {
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "branch": "main",
+        "date": "2026-09-16T13:33:55.601Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-16T13:33:55.601Z",
+          "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+          "severity": "low"
+        }
+      ],
+      "description": "Dependências de build/dev (esbuild via @nuxt/fonts, vitest, svgo, js-yaml, fast-uri) estão desatualizadas com CVEs conhecidos; nenhuma é exercida no bundle de produção servido ao navegador, mas aumentam a superfície de risco de supply chain no ambiente de dev/CI.",
+      "recommendation": "Rodar `npm audit fix` e atualizar @nuxt/fonts/vitest para as versões que resolvem as CVEs listadas.",
+      "impact": 2,
+      "frequency": 2,
+      "reach": 2,
+      "effort": 2,
+      "priority_score": 4,
       "adr_candidate": false
     },
     {
       "id": "SEC-003",
       "category": "security",
-      "natural_key": "web-apps-outdated-dev-transient-deps",
+      "natural_key": "password-reset-token-in-url-path",
       "status": "open",
       "component": null,
       "adr": null,
       "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T13:33:55.601Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-09-16T13:33:55.601Z"
       },
       "occurrences": 1,
       "severity_history": [
         {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "medium"
+          "date": "2026-09-16T13:33:55.601Z",
+          "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+          "severity": "low"
         }
       ],
-      "description": "Both frontend apps carry outdated transitive devDependencies (vite/esbuild dev-server, svgo image optimizer, vitest test runner, js-yaml/fast-uri) with published moderate/high advisories; none of these packages ship into the built production bundle, but they do run unpatched on every developer machine and CI job.",
-      "recommendation": "Run `npm audit fix` in apps/klipper-web and apps/quebec-web (no major bumps required per fixAvailable) and add a periodic `npm audit --audit-level=high` check to CI so this doesn't silently drift again.",
+      "description": "O token de redefinição de senha vai no path da URL em vez do corpo da requisição, ficando exposto em texto puro em qualquer log de acesso (Rails, proxy, CDN) durante a janela de validade.",
+      "recommendation": "Mover o token para o corpo do PATCH (ex: PATCH /api/v1/password_resets com {token, password, password_confirmation}) em vez de expô-lo no path.",
       "impact": 3,
-      "frequency": 5,
-      "reach": 2,
-      "effort": 2,
-      "priority_score": 15,
-      "adr_candidate": false
-    },
-    {
-      "id": "ARCH-005",
-      "category": "architecture",
-      "natural_key": "wealth-pages-no-page-tests",
-      "status": "open",
-      "component": null,
-      "adr": null,
-      "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "occurrences": 1,
-      "severity_history": [
-        {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "medium"
-        }
-      ],
-      "description": "Cinco páginas centrais do Wealth OS (dashboard, contas, investimentos, orçamento, portadores) não têm nenhum teste de página.",
-      "recommendation": "Adicionar testes de página para dashboard, contas, investimentos, orcamento e portadores seguindo o padrão já usado em relatorios.test.ts e transacoes.test.ts.",
-      "impact": 4,
-      "frequency": 3,
-      "reach": 5,
-      "effort": 6,
-      "priority_score": 10,
-      "adr_candidate": false
-    },
-    {
-      "id": "ARCH-006",
-      "category": "architecture",
-      "natural_key": "reports-controller-inline-aggregation",
-      "status": "open",
-      "component": null,
-      "adr": "docs/adrs/proposed/ADR-2026-09-16-001.md",
-      "first_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
-      },
-      "occurrences": 1,
-      "severity_history": [
-        {
-          "date": "2026-09-16T12:59:00.473Z",
-          "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-          "severity": "medium"
-        }
-      ],
-      "description": "ReportsController mistura dois padrões arquiteturais no mesmo arquivo: metade das actions agrega dados financeiros inline, a outra metade delega a Calculator services.",
-      "recommendation": "Extrair monthly e natureza_split para Calculator services próprios, alinhando com o padrão já estabelecido por ReimbursementCoverageCalculator e DebtRankingCalculator no mesmo controller.",
-      "impact": 4,
       "frequency": 2,
-      "reach": 3,
-      "effort": 4,
-      "priority_score": 6,
-      "adr_candidate": true
+      "reach": 2,
+      "effort": 3,
+      "priority_score": 2.4,
+      "adr_candidate": false
     }
   ]
 }

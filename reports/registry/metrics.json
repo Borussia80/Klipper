@@ -3,23 +3,23 @@
   "series": {
     "architecture": [
       {
-        "date": "2026-09-16T12:59:00.473Z",
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "score": 66
+        "date": "2026-09-16T13:33:55.601Z",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "score": 79
       }
     ],
     "finance": [
       {
-        "date": "2026-09-16T12:59:00.473Z",
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "score": 42
+        "date": "2026-09-16T13:33:55.601Z",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "score": 55
       }
     ],
     "security": [
       {
-        "date": "2026-09-16T12:59:00.473Z",
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
-        "score": 80
+        "date": "2026-09-16T13:33:55.601Z",
+        "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
+        "score": 85
       }
     ]
   }

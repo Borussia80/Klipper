@@ -2,17 +2,17 @@
   "schema_version": "1.0.0",
   "runs": [
     {
-      "date": "2026-09-16T12:59:00.473Z",
+      "date": "2026-09-16T13:33:55.601Z",
       "trigger": "workflow_run",
-      "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+      "commit": "93c0d2cbf24f9beb8d4e1543cc40ae5b10c63684",
       "branch": "main",
       "depth": "fast",
       "baseline": null,
-      "overall_score": 62.67,
+      "overall_score": 73,
       "section_scores": {
-        "architecture": 66,
-        "finance": 42,
-        "security": 80
+        "architecture": 79,
+        "finance": 55,
+        "security": 85
       }
     }
   ]
