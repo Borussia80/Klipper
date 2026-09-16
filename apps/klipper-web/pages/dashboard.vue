@@ -28,11 +28,11 @@
     </template>
 
     <!-- Empty state -->
-    <div v-else-if="!hasData" style="padding:48px 0;text-align:center;color:var(--t3);font-size:13px">
-      Nenhum lançamento neste mês ainda.
-      <br />
-      <NuxtLink class="btn btn-p" style="margin-top:12px;display:inline-block" to="/importar">Importar extrato</NuxtLink>
-    </div>
+    <UiEmptyState v-else-if="!hasData" size="lg" message="Nenhum lançamento neste mês ainda.">
+      <template #actions>
+        <NuxtLink class="btn btn-p" to="/importar">Importar extrato</NuxtLink>
+      </template>
+    </UiEmptyState>
 
     <template v-else>
       <UiInstrumentReadout

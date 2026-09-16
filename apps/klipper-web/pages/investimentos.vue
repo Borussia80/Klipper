@@ -75,9 +75,7 @@
             <div class="mono" style="font-size:13px;font-weight:500;color:var(--t1)">{{ formatBRL(parseFloat(inv.quantity) * parseFloat(inv.average_price)) }}</div>
           </div>
         </div>
-        <div v-if="!investments.length" style="padding:40px 0;text-align:center;color:var(--t3);font-size:13px">
-          Nenhum investimento cadastrado.
-        </div>
+        <UiEmptyState v-if="!investments.length" message="Nenhum investimento cadastrado." />
       </template>
     </div>
 

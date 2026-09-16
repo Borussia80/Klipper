@@ -70,9 +70,7 @@
           <UiSkeletonCard v-for="n in 5" :key="n" style="margin-bottom:6px" />
         </template>
         <template v-else-if="!monthly?.by_category?.length">
-          <div style="padding:40px 0;text-align:center;color:var(--t3);font-size:13px">
-            Nenhum gasto registrado neste período.
-          </div>
+          <UiEmptyState message="Nenhum gasto registrado neste período." />
         </template>
         <template v-else>
           <div
@@ -167,12 +165,10 @@
             <div class="mono" style="font-size:13px;font-weight:500;color:var(--t1)">{{ formatBRL(inv.total_cost) }}</div>
           </div>
 
-          <div
+          <UiEmptyState
             v-if="!netWorth?.accounts?.length && !netWorth?.investments_by_type?.length"
-            style="padding:40px 0;text-align:center;color:var(--t3);font-size:13px"
-          >
-            Nenhum ativo registrado.
-          </div>
+            message="Nenhum ativo registrado."
+          />
         </template>
       </template>
 
