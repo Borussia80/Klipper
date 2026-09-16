@@ -1,9 +1,10 @@
-name: Relatório completo de auditoria (release / deploy)
+name: Relatório completo de auditoria (release / merge no main)
 
 on:
   release:
     types: [published]
-  deployment_status:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       depth:
@@ -18,20 +19,17 @@ permissions:
 
 concurrency:
   group: full-report-${{ github.ref }}
-  cancel-in-progress: false
+  # Com o gatilho em push no main, uma sequência de merges enfileiraria um
+  # relatório por commit — cada um roda de 3 a 5 agentes Claude. Só o último
+  # estado do main interessa, então o run em andamento é cancelado.
+  cancel-in-progress: true
 
 jobs:
   guard:
-    # deployment_status dispara a cada deploy (inclusive os que a integração
-    # Vercel↔GitHub cria só pra preview); só prossegue pra produção com sucesso.
     # Guard-rail anti-loop: o PR automático deste workflow, ao ser mergeado,
-    # gera um novo deploy — se o commit desse deploy tiver a mensagem
+    # é mais um push no main — se o commit tiver a mensagem
     # "chore(reports): ..." (usada pelo peter-evans/create-pull-request
     # abaixo), NÃO reprocessa.
-    if: >
-      github.event_name != 'deployment_status' ||
-      (github.event.deployment_status.state == 'success' &&
-       github.event.deployment.environment == 'production')
     runs-on: ubuntu-latest
     outputs:
       depth: ${{ steps.resolve.outputs.depth }}
@@ -47,7 +45,7 @@ jobs:
         id: loop-guard
         run: |
           set -euo pipefail
-          SHA="${{ github.event.deployment_status.sha || github.sha }}"
+          SHA="${{ github.sha }}"
           MSG=$(git log -1 --format=%s "$SHA" 2>/dev/null || echo "")
           if [[ "$MSG" =~ ^chore\(reports\): ]]; then
             echo "Commit '$SHA' é do próprio pipeline de relatórios — abortando."
@@ -64,13 +62,11 @@ jobs:
             DEPTH="${{ inputs.depth }}"
           elif [ "${{ github.event_name }}" = "release" ]; then
             DEPTH="deep"
-          elif [ "${{ github.event_name }}" = "deployment_status" ]; then
-            DEPTH="fast"
           else
             DEPTH="${{ vars.FULL_REPORT_DEFAULT_DEPTH || 'fast' }}"
           fi
           echo "depth=$DEPTH" >> "$GITHUB_OUTPUT"
-          echo "commit=${{ github.event.deployment_status.sha || github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "commit=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
   run-agents:
     needs: guard
