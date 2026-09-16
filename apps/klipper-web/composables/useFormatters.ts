@@ -5,6 +5,8 @@
 
 const monthShort = new Intl.DateTimeFormat('pt-BR', { month: 'short' })
 const monthLong = new Intl.DateTimeFormat('pt-BR', { month: 'long' })
+const dayMonth = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' })
+const fullDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
 const brl = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -57,6 +59,25 @@ export function useFormatters() {
     return value >= 0 ? '▲' : '▼'
   }
 
+  // O meio-dia não é enfeite: `new Date('2026-09-16')` é parseado como UTC e,
+  // em BRT (UTC-3), volta para o dia 15. Toda data que chega da API é um
+  // date-only ISO, então ancorar no meio-dia local é o que mantém o dia certo.
+  function parseISODate(iso: string): Date {
+    return new Date(`${iso}T12:00:00`)
+  }
+
+  // "16 de set." — listagens e cabeçalhos de agrupamento, onde o ano é
+  // redundante porque o período já está delimitado na tela.
+  function formatDayMonth(iso: string): string {
+    return dayMonth.format(parseISODate(iso))
+  }
+
+  // "16/09/2026" — conferência linha a linha de documento importado, onde o
+  // ano é parte do que o usuário está validando contra o extrato.
+  function formatFullDate(iso: string): string {
+    return fullDate.format(parseISODate(iso))
+  }
+
   function currentMonthLabel(): string {
     const now = new Date()
     const abbr = monthShort.format(now).replace(/\.$/, '')
@@ -92,6 +113,8 @@ export function useFormatters() {
     formatPercentRaw,
     deltaClass,
     deltaSign,
+    formatDayMonth,
+    formatFullDate,
     currentMonthLabel,
     fmtMonthFull,
     daysLeftInMonth,

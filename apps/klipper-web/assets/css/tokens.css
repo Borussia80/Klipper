@@ -27,8 +27,9 @@
 
   --t1: #EEF3F9;
   --t2: #9FB0C3;
-  --t3: #647689;
-  --t4: #4A5A70;
+  --t3: #8393A4;   /* texto auxiliar — piso da escada legível: AA (>=4.5:1) em todas as superfícies */
+  --t4: #4A5A70;   /* NÃO usar como cor de texto: 2.02–2.73:1, reprova até o piso de 3:1 de texto grande.
+                      Só borda, ícone decorativo e preenchimento de gráfico. */
 
   --sea: #3BB8C4;                /* nova cor interativa */
   --blue: var(--sea);            /* nome legado → aponta pro novo */

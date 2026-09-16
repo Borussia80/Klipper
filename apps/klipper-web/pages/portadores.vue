@@ -51,7 +51,7 @@
           />
         </template>
 
-        <div v-if="!members.length" style="padding:48px 0;text-align:center;color:var(--t4);font-size:13px">
+        <div v-if="!members.length" style="padding:48px 0;text-align:center;color:var(--t3);font-size:13px">
           Nenhum portador cadastrado.
           <br />
           <button class="btn btn-p" style="margin-top:12px" @click="open('novo-portador')">Adicionar portador</button>

@@ -38,7 +38,7 @@
     <div
       v-if="row.saldo_atualizado_em"
       class="mono"
-      :style="{ fontSize: '10px', marginTop: '8px', color: isStale ? 'var(--warn)' : 'var(--t4)' }"
+      :style="{ fontSize: '10px', marginTop: '8px', color: isStale ? 'var(--warn)' : 'var(--t3)' }"
     >
       {{ formatDaysAgo(row.saldo_atualizado_em) }}
     </div>

@@ -5,7 +5,7 @@
       fontWeight: '600',
       letterSpacing: '.09em',
       textTransform: 'uppercase',
-      color: 'var(--t4)',
+      color: 'var(--t3)',
       fontFamily: mono ? '\'Space Grotesk\', monospace' : 'inherit',
       marginBottom: mb,
     }"

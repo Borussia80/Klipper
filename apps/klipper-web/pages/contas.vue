@@ -63,7 +63,7 @@
               <div class="mono" style="font-size:15px;font-weight:500;color:var(--warn)">{{ formatBRL(parseFloat(acc.balance)) }}</div>
               <button
                 type="button"
-                style="display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t4)"
+                style="display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t3)"
                 title="Editar dados de dívida"
                 aria-label="Editar dados de dívida do cartão"
                 @click="open('editar-cartao', acc)"
@@ -88,13 +88,13 @@
               style="margin-bottom:8px"
             />
           </template>
-          <div v-else style="padding:24px 0;text-align:center;color:var(--t4);font-size:12px">
+          <div v-else style="padding:24px 0;text-align:center;color:var(--t3);font-size:12px">
             Nenhum cartão com dados de dívida preenchidos. Edite um cartão acima para informar
             saldo da fatura e juros do rotativo.
           </div>
         </template>
 
-        <div v-if="!accounts.length" style="padding:48px 0;text-align:center;color:var(--t4);font-size:13px">
+        <div v-if="!accounts.length" style="padding:48px 0;text-align:center;color:var(--t3);font-size:13px">
           Nenhuma conta cadastrada.
           <br />
           <button class="btn btn-p" style="margin-top:12px" @click="open('nova-conta')">Adicionar conta</button>
