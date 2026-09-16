@@ -36,6 +36,11 @@ updates:
   # tipos de um runtime que não roda aqui descrevem APIs que não existem.
   - dependency-name: "@types/node"
     update-types: [ version-update:semver-major ]
+  # typescript 7 é o porte em Go e removeu a API JS do compilador e o tsserver:
+  # vue-tsc e typescript-eslint não sobem. O peer `>=5.0.0` do vue-tsc aceita
+  # 7.x, então o npm instala limpo e a quebra só aparece no typecheck.
+  - dependency-name: "typescript"
+    update-types: [ version-update:semver-major ]
 - package-ecosystem: npm
   directory: "/apps/quebec-web"
   schedule:
@@ -47,4 +52,6 @@ updates:
       update-types: [ minor, patch ]
   ignore:
   - dependency-name: "@types/node"
+    update-types: [ version-update:semver-major ]
+  - dependency-name: "typescript"
     update-types: [ version-update:semver-major ]
