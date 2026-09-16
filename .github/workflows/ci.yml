@@ -102,3 +102,10 @@ jobs:
       - name: Run Vitest
         run: npm run test
         working-directory: apps/klipper-web
+      # lint, typecheck e Vitest passam sem nunca montar o bundle de produção,
+      # então uma árvore de dependências que quebra o `nuxt build` chegava
+      # verde até a Vercel — depois do merge. Este passo traz essa falha para
+      # o PR.
+      - name: Build de produção
+        run: npm run build
+        working-directory: apps/klipper-web
