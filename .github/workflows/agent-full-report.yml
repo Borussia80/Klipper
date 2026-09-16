@@ -3,7 +3,13 @@ name: Relatório completo de auditoria (release / merge no main)
 on:
   release:
     types: [published]
-  push:
+  # A claude-code-action recusa eventos fora da lista dela — `push` e
+  # `deployment_status` não estão nela, e é por isso que este workflow nunca
+  # concluiu por gatilho automático. `workflow_run` está, e de quebra só
+  # dispara depois do CI, então o relatório sempre olha um main que passou.
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -19,9 +25,9 @@ permissions:
 
 concurrency:
   group: full-report-${{ github.ref }}
-  # Com o gatilho em push no main, uma sequência de merges enfileiraria um
-  # relatório por commit — cada um roda de 3 a 5 agentes Claude. Só o último
-  # estado do main interessa, então o run em andamento é cancelado.
+  # Uma sequência de merges enfileiraria um relatório por commit — cada um roda
+  # de 3 a 5 agentes Claude. Só o último estado do main interessa, então o run
+  # em andamento é cancelado.
   cancel-in-progress: true
 
 jobs:
@@ -30,6 +36,9 @@ jobs:
     # é mais um push no main — se o commit tiver a mensagem
     # "chore(reports): ..." (usada pelo peter-evans/create-pull-request
     # abaixo), NÃO reprocessa.
+    # Um CI vermelho no main não merece relatório: os agentes gastariam 3 a 5
+    # execuções descrevendo um estado que já se sabe quebrado.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
       depth: ${{ steps.resolve.outputs.depth }}
@@ -45,7 +54,7 @@ jobs:
         id: loop-guard
         run: |
           set -euo pipefail
-          SHA="${{ github.sha }}"
+          SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
           MSG=$(git log -1 --format=%s "$SHA" 2>/dev/null || echo "")
           if [[ "$MSG" =~ ^chore\(reports\): ]]; then
             echo "Commit '$SHA' é do próprio pipeline de relatórios — abortando."
@@ -66,7 +75,7 @@ jobs:
             DEPTH="${{ vars.FULL_REPORT_DEFAULT_DEPTH || 'fast' }}"
           fi
           echo "depth=$DEPTH" >> "$GITHUB_OUTPUT"
-          echo "commit=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "commit=${{ github.event.workflow_run.head_sha || github.sha }}" >> "$GITHUB_OUTPUT"
 
   run-agents:
     needs: guard
