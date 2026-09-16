@@ -450,6 +450,29 @@ RSpec.describe "Api::V1::Reports", type: :request do
         get "/api/v1/reports/net_worth", headers: auth_headers
       }.not_to change { NetWorthSnapshot.where(user: user).count }
     end
+
+    # Regressão FIN-002: o endpoint somava a venda em vez de subtrair, então o
+    # mesmo usuário via um patrimônio aqui e outro na tela de portfólio.
+    context "with a sell operation" do
+      before do
+        create(:investment, user: user, ticker: "PETR4", quantity: 20, average_price: 50.00)
+        create(:investment, :sell, user: user, ticker: "PETR4", quantity: 5, average_price: 100.00)
+      end
+
+      it "subtracts the sell from investments_cost" do
+        get "/api/v1/reports/net_worth", headers: auth_headers
+        json = JSON.parse(response.body)
+        expect(json["investments_cost"].to_f).to be_within(0.01).of(25500.00) # 25000 + 1000 - 500
+        expect(json["net_worth"].to_f).to be_within(0.01).of(30000.50)
+      end
+
+      it "subtracts the sell inside its own investment_type group" do
+        get "/api/v1/reports/net_worth", headers: auth_headers
+        json = JSON.parse(response.body)
+        stock = json["investments_by_type"].find { |r| r["investment_type"] == "stock" }
+        expect(stock["total_cost"].to_f).to be_within(0.01).of(15500.00) # 15000 + 1000 - 500
+      end
+    end
   end
 
   describe "GET /api/v1/reports/net_worth_history" do

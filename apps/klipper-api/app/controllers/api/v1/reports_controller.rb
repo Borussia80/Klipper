@@ -119,11 +119,11 @@ module Api
         investments = @current_user.investments
 
         accounts_total   = accounts.sum(:balance).to_f.round(2)
-        investments_cost = investments.sum("quantity * average_price").to_f.round(2)
+        investments_cost = investments.sum(Investment.signed_cost_sql).to_f.round(2)
         net_worth_value  = (accounts_total + investments_cost).round(2)
 
         by_type = investments.group(:investment_type)
-          .sum("quantity * average_price")
+          .sum(Investment.signed_cost_sql)
           .map { |type, cost| { investment_type: type, total_cost: cost.to_f.round(2) } }
           .sort_by { |r| -r[:total_cost] }
 
