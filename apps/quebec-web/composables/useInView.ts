@@ -6,7 +6,7 @@ export function useInView() {
     if (!target.value) return
     const obs = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           visible.value = true
           obs.disconnect()
         }
