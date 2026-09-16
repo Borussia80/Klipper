@@ -19,7 +19,10 @@ permissions:
 
 concurrency:
   group: full-report-${{ github.ref }}
-  cancel-in-progress: false
+  # Com o gatilho em push no main, uma sequência de merges enfileiraria um
+  # relatório por commit — cada um roda de 3 a 5 agentes Claude. Só o último
+  # estado do main interessa, então o run em andamento é cancelado.
+  cancel-in-progress: true
 
 jobs:
   guard:
