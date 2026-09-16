@@ -9,10 +9,10 @@ class PortfolioService
 
   def allocation
     investments = @user.investments.group_by(&:investment_type)
-    total_cost = @user.investments.sum { |i| signed_cost(i) }
+    total_cost = @user.investments.sum(&:signed_cost)
 
     investments.map do |type, group|
-      type_cost = group.sum { |i| signed_cost(i) }
+      type_cost = group.sum(&:signed_cost)
       pct = total_cost.positive? ? (type_cost / total_cost * 100).round(1) : 0.0
       {
         investment_type: type,
@@ -25,18 +25,11 @@ class PortfolioService
 
   def totals
     investments = @user.investments
-    total_cost = investments.sum { |i| signed_cost(i) }
+    total_cost = investments.sum(&:signed_cost)
     {
       total_positions: investments.count,
       total_cost:      total_cost.round(2),
       by_type:         allocation
     }
-  end
-
-  private
-
-  def signed_cost(investment)
-    cost = investment.quantity * investment.average_price
-    investment.operation_type == "sell" ? -cost : cost
   end
 end

@@ -29,6 +29,22 @@ class Investment < ApplicationRecord
 
   scope :by_type, ->(type) { where(investment_type: type) }
 
+  # Custo com sinal: venda entra negativa, conforme a nota de operation_type no
+  # topo. Existe em duas formas porque os consumidores agregam de maneiras
+  # diferentes — PortfolioService agrupa em memória, os relatórios somam no
+  # banco. Manter as duas juntas é deliberado: quando só o PortfolioService
+  # aplicava o sinal, o snapshot e o /reports/net_worth ficaram inflados por
+  # duas vezes o valor de cada venda (FIN-002).
+  def self.signed_cost_sql
+    "CASE WHEN operation_type = 'sell' THEN -(quantity * average_price) " \
+      "ELSE quantity * average_price END"
+  end
+
+  def signed_cost
+    cost = quantity * average_price
+    operation_type == "sell" ? -cost : cost
+  end
+
   def current_value(current_price)
     quantity * current_price
   end
