@@ -1,4 +1,19 @@
 {
   "schema_version": "1.0.0",
-  "runs": []
+  "runs": [
+    {
+      "date": "2026-09-16T12:59:00.473Z",
+      "trigger": "workflow_run",
+      "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+      "branch": "main",
+      "depth": "fast",
+      "baseline": null,
+      "overall_score": 62.67,
+      "section_scores": {
+        "architecture": 66,
+        "finance": 42,
+        "security": 80
+      }
+    }
+  ]
 }

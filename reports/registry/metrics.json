@@ -1,4 +1,26 @@
 {
   "schema_version": "1.0.0",
-  "series": {}
+  "series": {
+    "architecture": [
+      {
+        "date": "2026-09-16T12:59:00.473Z",
+        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "score": 66
+      }
+    ],
+    "finance": [
+      {
+        "date": "2026-09-16T12:59:00.473Z",
+        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "score": 42
+      }
+    ],
+    "security": [
+      {
+        "date": "2026-09-16T12:59:00.473Z",
+        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "score": 80
+      }
+    ]
+  }
 }
