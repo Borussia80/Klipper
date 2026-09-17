@@ -22,11 +22,19 @@ const args = parseArgs(process.argv.slice(2));
 const partialsDir = args._[0];
 const outputPath = args._[1];
 if (!partialsDir || !outputPath) {
-  fail('uso: aggregate-report.mjs <partials-dir> <output.json> [--depth=fast|deep] [--trigger=...] [--branch=...] [--commit=...] [--registry=reports/registry/findings.json]');
+  fail('uso: aggregate-report.mjs <partials-dir> <output.json> [--depth=fast|deep] [--trigger=...] [--branch=...] [--commit=...] [--registry=reports/registry/findings.json] [--expected=arch,sec,fin]');
 }
 
 const files = readdirSync(partialsDir).filter((f) => f.startsWith('partial-') && f.endsWith('.json'));
 if (files.length === 0) fail(`nenhum partial-*.json encontrado em ${partialsDir}`);
+
+// Quais análises eram esperadas neste run. O agregador sempre consolidou o que
+// achasse no diretório, mas quem lê o relatório não tinha como saber que uma
+// análise faltou — e o workflow nem chegava aqui, porque `aggregate` dependia
+// de todas as pernas da matriz. Com um analista falhando, os outros dois eram
+// pagos e descartados. Agora o run sai com o que houver e declara a ausência
+// em vez de se apresentar como completo (PIPE-1).
+const expectedAgents = (args.expected ?? '').split(',').map((a) => a.trim()).filter(Boolean);
 
 const sections = [];
 const findings = [];
@@ -95,6 +103,7 @@ const run = {
     depth: args.depth ?? (sections.length >= 5 ? 'deep' : 'fast'),
     branch: args.branch ?? 'unknown',
     commit: args.commit ?? 'unknown',
+    missing_agents: expectedAgents.filter((a) => !sections.some((s) => s.agent === a)),
   },
   overall_score,
   sections,
@@ -109,3 +118,6 @@ console.log(
     `(${collapsedCount} colapsados por natural_key repetida entre agentes), ` +
     `${possible_regressions.length} possible regressions, overall_score=${overall_score}`
 );
+if (run.meta.missing_agents.length > 0) {
+  console.log(`ATENÇÃO: run incompleto — análises ausentes: ${run.meta.missing_agents.join(', ')}`);
+}

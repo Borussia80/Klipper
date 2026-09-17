@@ -48,6 +48,11 @@ jobs:
       depth: ${{ steps.resolve.outputs.depth }}
       proceed: ${{ steps.loop-guard.outputs.proceed }}
       commit: ${{ steps.resolve.outputs.commit }}
+      # Fonte única da lista de analistas: a matriz do run-agents monta as
+      # pernas a partir dela e o aggregate a repassa como --expected. Duplicar
+      # a lista nos dois lugares faria o relatório declarar ausência errada no
+      # dia em que alguém mexesse só num deles.
+      agents_json: ${{ steps.resolve.outputs.agents_json }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -80,6 +85,11 @@ jobs:
           fi
           echo "depth=$DEPTH" >> "$GITHUB_OUTPUT"
           echo "commit=${{ github.event.workflow_run.head_sha || github.sha }}" >> "$GITHUB_OUTPUT"
+          if [ "$DEPTH" = "deep" ]; then
+            echo 'agents_json=["architecture","security","finance","runtime","ux"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'agents_json=["architecture","security","finance"]' >> "$GITHUB_OUTPUT"
+          fi
 
   run-agents:
     needs: guard
@@ -88,7 +98,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        agent: ${{ fromJSON(needs.guard.outputs.depth == 'deep' && '["architecture","security","finance","runtime","ux"]' || '["architecture","security","finance"]') }}
+        agent: ${{ fromJSON(needs.guard.outputs.agents_json) }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -135,6 +145,15 @@ jobs:
 
   aggregate:
     needs: [guard, run-agents]
+    # Sem o `!cancelled()`, uma perna da matriz que falha faz o GitHub pular o
+    # aggregate inteiro: os outros analistas rodaram, foram pagos, e o run
+    # termina sem produzir nada. Aconteceu de verdade (o agente de segurança
+    # estourou o teto de turnos). Agora o run sai com os partials que existirem
+    # e o relatório declara qual análise faltou (PIPE-1). Se nenhum partial
+    # chegar, o aggregate-report.mjs falha com mensagem própria.
+    # `needs.guard.result` continua obrigatório: sem o guard não há commit nem
+    # profundidade para agregar, e é ele que implementa o anti-loop.
+    if: ${{ !cancelled() && needs.guard.result == 'success' && needs.guard.outputs.proceed == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -149,6 +168,12 @@ jobs:
           pattern: partial-*
           merge-multiple: true
 
+      # Com todos os analistas falhando não há artifact nenhum e o diretório não
+      # é criado, o que faria o readdirSync do agregador estourar um ENOENT cru.
+      # Criando aqui, a falha vem com a mensagem própria do aggregate-report.
+      - name: Garantir o diretório de partials
+        run: mkdir -p "${{ runner.temp }}/partials"
+
       - name: Agregar (aggregate-report.mjs)
         run: |
           node .github/scripts/aggregate-report.mjs \
@@ -158,7 +183,8 @@ jobs:
             --trigger="${{ github.event_name }}" \
             --branch="${{ github.ref_name }}" \
             --commit="${{ needs.guard.outputs.commit }}" \
-            --registry="reports/registry/findings.json"
+            --registry="reports/registry/findings.json" \
+            --expected="${{ join(fromJSON(needs.guard.outputs.agents_json), ',') }}"
 
       - name: Mesclar findings e atribuir IDs permanentes (merge-findings.mjs)
         run: |

@@ -1,5 +1,7 @@
 // Cobre o colapso por natural_key (PIPE-5): dois agentes que emitem a mesma
 // chave descrevem um defeito só, e o run-report tem que listá-lo uma vez.
+// Cobre também a declaração de run incompleto (PIPE-1): quando um analista não
+// produz parcial, o run sai com o que houver e precisa dizer o que faltou.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -10,13 +12,13 @@ import { fileURLToPath } from 'node:url';
 
 const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'aggregate-report.mjs');
 
-function runAggregate(partials) {
+function runAggregate(partials, extraArgs = []) {
   const dir = mkdtempSync(path.join(tmpdir(), 'aggregate-report-'));
   for (const [i, p] of partials.entries()) {
     writeFileSync(path.join(dir, `partial-${i}.json`), JSON.stringify(p));
   }
   const outputPath = path.join(dir, 'run.json');
-  const stdout = execFileSync('node', [SCRIPT, dir, outputPath, '--commit=aaa111', '--branch=main'], {
+  const stdout = execFileSync('node', [SCRIPT, dir, outputPath, '--commit=aaa111', '--branch=main', ...extraArgs], {
     encoding: 'utf8',
   });
   return { run: JSON.parse(readFileSync(outputPath, 'utf8')), stdout };
@@ -100,4 +102,40 @@ test('três agentes na mesma chave colapsam para um, com dois em also_reported_b
   const [f] = run.findings;
   assert.equal(f.severity, 'critical');
   assert.equal(f.also_reported_by.length, 2);
+});
+
+test('consolida o run e nomeia a análise que faltou quando um analista não entrega', () => {
+  const { run, stdout } = runAggregate(
+    [
+      partial('architecture', [finding({ category: 'architecture', natural_key: 'a' })]),
+      partial('finance', [finding({ category: 'finance', natural_key: 'b' })]),
+    ],
+    ['--expected=architecture,security,finance'],
+  );
+
+  // O ponto do PIPE-1: o trabalho dos dois que entregaram não é descartado.
+  assert.equal(run.sections.length, 2);
+  assert.equal(run.findings.length, 2);
+  assert.deepEqual(run.meta.missing_agents, ['security']);
+  assert.match(stdout, /run incompleto/, 'a ausência aparece no log do job, não só no JSON');
+});
+
+test('não declara ausência quando todos os analistas esperados entregaram', () => {
+  const { run, stdout } = runAggregate(
+    [
+      partial('architecture', [finding({ category: 'architecture', natural_key: 'a' })]),
+      partial('security', [finding({ category: 'security', natural_key: 'b' })]),
+      partial('finance', [finding({ category: 'finance', natural_key: 'c' })]),
+    ],
+    ['--expected=architecture,security,finance'],
+  );
+
+  assert.deepEqual(run.meta.missing_agents, []);
+  assert.doesNotMatch(stdout, /run incompleto/);
+});
+
+test('sem --expected não inventa ausência, para não quebrar chamada manual do script', () => {
+  const { run } = runAggregate([partial('architecture', [finding({ category: 'architecture' })])]);
+
+  assert.deepEqual(run.meta.missing_agents, []);
 });

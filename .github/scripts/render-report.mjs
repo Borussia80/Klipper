@@ -68,6 +68,15 @@ md.push('> Gerado automaticamente por `render-report.mjs`. Não editar manualmen
 md.push('');
 md.push(`**Trigger:** ${run.meta.trigger} · **Branch:** ${run.meta.branch} · **Commit:** \`${run.meta.commit}\` · **Modo:** ${run.meta.depth}`);
 md.push('');
+// Um analista que falha não anula mais os outros (PIPE-1), mas o relatório
+// parcial precisa dizer que é parcial. Sem isto, a ausência de uma seção fica
+// indistinguível de "essa área está limpa" — que é a leitura errada mais cara
+// possível num relatório de dívida.
+const missing = run.meta.missing_agents ?? [];
+if (missing.length > 0) {
+  md.push(`> ⚠️ **Relatório incompleto.** ${missing.length === 1 ? 'A análise' : 'As análises'} de **${missing.join('**, **')}** não ${missing.length === 1 ? 'produziu' : 'produziram'} resultado neste run. O que segue abaixo cobre só ${run.sections.length} das ${run.sections.length + missing.length} seções esperadas — ausência de finding numa área não avaliada não significa ausência de problema.`);
+  md.push('');
+}
 // O score por seção e o `overall_score` não são renderizados. Cada agente
 // atribui o score da sua seção por julgamento próprio, a cada execução (ver
 // `_shared-contract.md`), e o `overall_score` é só a média deles em

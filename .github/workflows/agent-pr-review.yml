@@ -30,9 +30,16 @@ jobs:
     # disponíveis ao agente, então só roda automático para PRs do próprio repo.
     # Fork PR ainda pode ser revisado, mas só via workflow_dispatch manual
     # (exige permissão de escrita no repo para disparar).
+    # (3) PR do Dependabot roda com "Secret source: Dependabot", um cofre
+    # separado que não enxerga os Actions secrets — o CLAUDE_CODE_OAUTH_TOKEN
+    # chega vazio e o job falha em ~2s, indistinguível de token expirado. Não é
+    # algo que rerun resolva: era ruído vermelho garantido em toda atualização
+    # de dependência. Revisão de PR do Dependabot fica no workflow_dispatch,
+    # que roda no contexto normal e vê os secrets (PIPE-3).
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.user.login != 'github-actions[bot]' &&
+       github.event.pull_request.user.login != 'dependabot[bot]' &&
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
