@@ -104,9 +104,13 @@ jobs:
         uses: anthropics/claude-code-action@c96dd0a84e0232ab86947fca5fe34f1caae8792f # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # O agente de segurança varre os três apps e estourou o teto de 60
+          # (`error_max_turns` no run 35177886190: 61 turnos, US$ 2,35, sem
+          # produzir parcial — e o `aggregate` exige os três). architecture e
+          # finance couberam folgados, então o teto extra é só dele.
           claude_args: |
             --allowedTools "Read,Grep,Glob,Bash,Write"
-            --max-turns 60
+            --max-turns ${{ matrix.agent == 'security' && '100' || '60' }}
           prompt: |
             Leia integralmente `.github/claude-prompts/_shared-contract.md` e, em
             seguida, `.github/claude-prompts/agents/${{ matrix.agent }}.md`. Siga
