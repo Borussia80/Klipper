@@ -113,6 +113,21 @@ jobs:
   # Sem este job o quebec-web não tinha portão nenhum, e o lockfile dele ficou
   # parado enquanto o do klipper-web — mesmo range de nuxt — avançava: o app
   # acumulou uma RCE crítica no @nuxt/devtools sem nada reclamar (SEC-001).
+  # Os scripts que montam o relatório de auditoria decidem que ID permanente
+  # cada finding recebe. Um erro aqui não quebra o app, corrompe o histórico de
+  # dívida — que é justamente o que não dá para reconstruir depois.
+  scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      # Sem dependências: os scripts usam só builtins do Node e o runner de
+      # teste nativo, então não há npm ci nem lockfile para sincronizar.
+      - name: Testes dos scripts de relatório
+        run: node --test '.github/scripts/__tests__/*.test.mjs'
+
   quebec:
     runs-on: ubuntu-latest
     steps:
