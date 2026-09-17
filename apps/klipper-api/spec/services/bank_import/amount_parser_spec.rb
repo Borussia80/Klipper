@@ -25,6 +25,19 @@ RSpec.describe BankImport::AmountParser, type: :service do
     expect(described_class.call("1.234.567,89")).to eq(BigDecimal("1234567.89"))
   end
 
+  it "parses en-US comma-thousands with period-decimal instead of truncating it" do
+    expect(described_class.call("1,234.56")).to eq(BigDecimal("1234.56"))
+  end
+
+  it "parses en-US values with multiple thousands separators" do
+    expect(described_class.call("1,234,567.89")).to eq(BigDecimal("1234567.89"))
+  end
+
+  it "keeps the Brazilian reading when a single separator leaves the format ambiguous" do
+    expect(described_class.call("1.234")).to eq(BigDecimal("1.234"))
+    expect(described_class.call("1,234")).to eq(BigDecimal("1.234"))
+  end
+
   it "normalizes a Unicode minus sign (Nubank-style) to ASCII" do
     expect(described_class.call("−R$ 160,00")).to eq(BigDecimal("-160.00"))
   end
