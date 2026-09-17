@@ -2,32 +2,32 @@
 
 > Gerado automaticamente por `render-report.mjs`. Não editar manualmente.
 
-**Trigger:** workflow_run · **Branch:** main · **Commit:** `593ef37b872f2256d05df525607cb3850c5afe7d` · **Modo:** fast
+**Trigger:** workflow_run · **Branch:** main · **Commit:** `5342ab0ebd02c2357fb9b07b6c98846d8b108a2c` · **Modo:** fast
 
-## Score geral: 62.67/100
-> Baseline: nenhum run anterior — primeira execução
+## Score geral: 29/100 (-33.67 vs baseline)
 
 ## Seções
 
 | Seção | Score | Risco | Tendência |
 |---|---|---|---|
-| Arquitetura | 66 | high | — |
-| Domínio financeiro | 42 | critical | — |
-| Segurança | 80 | high | — |
+| Arquitetura | 72 | high | +6 |
+| Domínio financeiro | 7 | high | -35 |
+| Segurança | 8 | low | -72 |
 
 ## Findings priorizados (RICE)
 
 | ID | Severidade | Categoria | Prioridade | Descrição |
 |---|---|---|---|---|
-| ARCH-001 | 🔴 critical | architecture | 450 | O caminho de rejeição de token JWT expirado/malformado — o portão de autenticação de toda a API — nunca é exercitado por nenhum teste da suíte. |
-| FIN-001 | 🟡 medium | finance | 250 | A página de orçamento reutiliza um componente cujos rótulos fixos descrevem o percentual como participação na renda, mas o valor exibido ali é participação no orçamento alocado — a matemática está correta, o rótulo mostrado ao usuário não é. |
-| FIN-002 | 🔴 critical | finance | 180 | NetWorthSnapshotService duplica a lógica de custo de investimentos de PortfolioService mas sem o sinal buy/sell, inflando o patrimônio líquido persistido sempre que o usuário tiver registrado alguma venda. |
-| SEC-001 | 🟠 high | security | 144 | apps/quebec-web's package-lock.json is stale and resolves nuxt/@nuxt/devtools to versions with multiple known high/critical CVEs (auth-bypass, SSR RCE, CPU exhaustion, and a critical unauthenticated dev-server RCE), while the sibling app klipper-web with the identical package.json semver range already resolves to a patched version. |
+| FIN-001 | 🟡 medium | finance | 250 | InstrumentReadout hardcoda o rótulo "% da renda" mesmo quando reutilizado em orcamento.vue para exibir participação no orçamento alocado, não na renda — a matemática está correta, a leitura do usuário não. |
 | ARCH-002 | 🟠 high | architecture | 112 | A lógica de validação e parsing de valores financeiros de useLancamentoForm — compartilhada pelos modais de novo e editar lançamento — não tem teste unitário dedicado. |
-| SEC-002 | 🟢 low | security | 80 | The unauthenticated /api/v1/health endpoint returns Rails.env in its JSON body, letting any anonymous caller fingerprint whether the target is production/staging/development. |
-| FIN-003 | 🔴 critical | finance | 54 | BankImport::AmountParser interpreta qualquer vírgula como decimal BR e corrompe silenciosamente valores no formato en-US (vírgula-milhar/ponto-decimal) vindos de CSV genérico, sem lançar erro nem ter teste que cubra o caso. |
-| ARCH-003 | 🟠 high | architecture | 30 | A fórmula de patrimônio líquido (contas + investimentos) está duplicada entre NetWorthSnapshotService e ReportsController#net_worth em vez de reutilizar o service existente. |
-| ARCH-004 | 🟡 medium | architecture | 16 | Quatro componentes Vue de entrada de dados financeiros (nova conta, novo membro, editar reembolso) não têm nenhuma cobertura de teste, direta ou indireta. |
-| SEC-003 | 🟡 medium | security | 15 | Both frontend apps carry outdated transitive devDependencies (vite/esbuild dev-server, svgo image optimizer, vitest test runner, js-yaml/fast-uri) with published moderate/high advisories; none of these packages ship into the built production bundle, but they do run unpatched on every developer machine and CI job. |
-| ARCH-005 | 🟡 medium | architecture | 10 | Cinco páginas centrais do Wealth OS (dashboard, contas, investimentos, orçamento, portadores) não têm nenhum teste de página. |
+| SEC-002 | 🟢 low | security | 80 | The unauthenticated /api/v1/health endpoint still returns Rails.env in its JSON body, letting any anonymous caller fingerprint whether the target is production/staging/development. |
+| FIN-003 | 🔴 critical | finance | 54 | BankImport::AmountParser assume formato BR sempre que há vírgula, corrompendo silenciosamente (sem erro, sem teste) valores en-US vindos de CSV genérico (`amount`/`value`), violando a regra de ouro de que cálculo/parsing financeiro sem teste de borda não entra. |
+| ARCH-007 | 🟡 medium | architecture | 40 | StockQuoteService — a única integração HTTP com serviço externo de toda a API (brapi.dev) — não tem spec dedicado, e os três caminhos de erro tratados pelo controller nunca são exercitados por nenhum teste. |
+| ARCH-003 | 🟠 high | architecture | 30 | A fórmula de patrimônio líquido (contas + investimentos) continua duplicada entre NetWorthSnapshotService e ReportsController#net_worth em vez de reutilizar o service existente. |
+| SEC-003 | 🟡 medium | security | 30 | klipper-web still carries outdated transitive devDependencies (esbuild, fast-uri, js-yaml, svgo) with published low/high advisories that run on every dev/CI invocation of the Vite/Nuxt toolchain, though none ship into the production bundle; quebec-web's set has shrunk to just the low-severity esbuild advisory since its lockfile was refreshed. |
+| ARCH-008 | 🟡 medium | architecture | 24 | ModalNovoLancamento e ModalEditarLancamento compartilham a lógica de formulário via useLancamentoForm, mas o template de apresentação e o CSS scoped inteiro continuam duplicados byte a byte entre os dois arquivos. |
+| ARCH-004 | 🟡 medium | architecture | 16 | Quatro componentes Vue de entrada/edição de dados financeiros (nova conta, novo membro, editar reembolso, e o wrapper ModalMount) continuam sem nenhuma cobertura de teste, direta ou indireta. |
+| ARCH-005 | 🟡 medium | architecture | 10 | Cinco páginas centrais do Wealth OS (dashboard, contas, investimentos, orçamento, portadores) continuam sem nenhum teste de página. |
+| SEC-004 | 🟡 medium | security | 9 | The authenticated GET /api/v1/quotes endpoint passes the user-supplied `tickers` param unescaped into the path/query of an outbound request to a third-party API, letting a caller inject extra query parameters or `/../` path segments into that request and, for a subset of malformed inputs (e.g. a space), crash the action with an unrescued URI::InvalidURIError instead of a handled error response. |
+| SEC-005 | 🟢 low | security | 8 | PasswordResetsController#update (redeeming a reset token) has no rate limiting, unlike every other unauthenticated auth-adjacent action; exploitability is limited in practice because the token is a full Rails `generates_token_for` signed value (not a short guessable code), so this is a defense-in-depth/DB-load gap rather than a realistic brute-forceable path — evidence unavailable on the exact token length/entropy since bundler-audit/brakeman and a live Rails console could not be run in this sandboxed environment to inspect it directly. |
 | ARCH-006 | 🟡 medium | architecture | 6 | ReportsController mistura dois padrões arquiteturais no mesmo arquivo: metade das actions agrega dados financeiros inline, a outra metade delega a Calculator services. |
