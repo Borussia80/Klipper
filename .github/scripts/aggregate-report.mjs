@@ -4,7 +4,13 @@
 // finding_confidence, não model_confidence) e Possible Regressions
 // (comparação contra reports/registry/findings.json, se fornecido).
 // Roda ANTES de merge-findings.mjs — findings ainda não têm ID permanente,
-// são casados por (category, natural_key).
+// são casados por natural_key.
+//
+// Dois agentes que enxergam o MESMO defeito emitem a mesma natural_key em
+// categorias diferentes. Antes isso virava dois findings no run-report e, por
+// consequência, dois IDs permanentes no registry (ARCH-003 e FIN-006 eram o
+// mesmo defeito). Aqui eles são colapsados num finding só, mantendo o de maior
+// severidade e registrando em also_reported_by quem mais viu.
 import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { readJson, writeJson, parseArgs, fail } from './lib.mjs';
@@ -35,7 +41,26 @@ for (const file of files) {
   }
 }
 
-findings.sort((a, b) => b.priority_score - a.priority_score);
+// Colapsa por natural_key antes de ordenar: sobrevive o de maior severidade e,
+// empatando, o de maior priority_score. O perdedor não é descartado em silêncio
+// — a categoria e o agente dele entram em also_reported_by, e é isso que permite
+// auditar depois que dois analistas concordaram.
+const collapsed = new Map();
+for (const f of findings) {
+  const winner = collapsed.get(f.natural_key);
+  if (!winner) {
+    collapsed.set(f.natural_key, f);
+    continue;
+  }
+  const [keep, drop] = SEVERITY_RANK[f.severity] > SEVERITY_RANK[winner.severity]
+    || (SEVERITY_RANK[f.severity] === SEVERITY_RANK[winner.severity] && f.priority_score > winner.priority_score)
+    ? [f, winner]
+    : [winner, f];
+  keep.also_reported_by = [...(keep.also_reported_by ?? []), ...(drop.also_reported_by ?? []), { agent: drop.agent, category: drop.category, severity: drop.severity }];
+  collapsed.set(f.natural_key, keep);
+}
+
+const findingsOut = [...collapsed.values()].sort((a, b) => b.priority_score - a.priority_score);
 
 const overall_score = sections.length
   ? Math.round((sections.reduce((sum, s) => sum + s.score, 0) / sections.length) * 100) / 100
@@ -44,9 +69,9 @@ const overall_score = sections.length
 let possible_regressions = [];
 if (args.registry) {
   const registry = readJson(args.registry);
-  const byKey = new Map(registry.findings.map((f) => [`${f.category}::${f.natural_key}`, f]));
-  for (const f of findings) {
-    const prior = byKey.get(`${f.category}::${f.natural_key}`);
+  const byKey = new Map(registry.findings.map((f) => [f.natural_key, f]));
+  for (const f of findingsOut) {
+    const prior = byKey.get(f.natural_key);
     if (!prior || !prior.severity_history || prior.severity_history.length === 0) continue;
     const lastSeverity = prior.severity_history[prior.severity_history.length - 1].severity;
     if (SEVERITY_RANK[f.severity] > SEVERITY_RANK[lastSeverity]) {
@@ -73,12 +98,14 @@ const run = {
   },
   overall_score,
   sections,
-  findings,
+  findings: findingsOut,
   possible_regressions,
 };
 
 writeJson(outputPath, run);
+const collapsedCount = findings.length - findingsOut.length;
 console.log(
-  `run-report gravado em ${outputPath}: ${sections.length} seções, ${findings.length} findings, ` +
+  `run-report gravado em ${outputPath}: ${sections.length} seções, ${findingsOut.length} findings ` +
+    `(${collapsedCount} colapsados por natural_key repetida entre agentes), ` +
     `${possible_regressions.length} possible regressions, overall_score=${overall_score}`
 );
