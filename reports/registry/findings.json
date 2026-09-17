@@ -48,11 +48,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -73,10 +73,15 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "medium"
         }
       ],
-      "description": "InstrumentReadout ainda hardcoda o rótulo \"% da renda\" e o texto de estado nulo \"Sem orçamento definido\", então orcamento.vue (que mede % do orçamento alocado, não % da renda) exibe a mesma leitura textual do dashboard (que mede % da renda) — a matemática está certa, a leitura do usuário não.",
-      "recommendation": "Tornar o rótulo da razão (\"% da renda\"/\"% do orçamento\") e o texto do estado nulo props de InstrumentReadout, com cada página passando o texto correspondente ao que a razão realmente mede.",
+      "description": "InstrumentReadout continua com o rótulo de razão e o texto de estado nulo hardcoded para o caso de dashboard, então orcamento.vue exibe a leitura textual errada para uma métrica que na verdade mede % do orçamento alocado.",
+      "recommendation": "Tornar o rótulo da razão e o texto do estado nulo props de InstrumentReadout, com cada página passando o texto correspondente ao que a razão realmente mede.",
       "impact": 5,
       "frequency": 10,
       "reach": 10,
@@ -165,11 +170,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -190,9 +195,14 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "high"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "high"
         }
       ],
-      "description": "A lógica de validação e parsing de valores financeiros de useLancamentoForm — compartilhada pelos modais de novo e editar lançamento — continua sem teste unitário dedicado.",
+      "description": "A lógica de validação e parsing de valores financeiros de useLancamentoForm, compartilhada pelos modais de novo e editar lançamento, continua sem teste unitário dedicado.",
       "recommendation": "Criar composables/__tests__/useLancamentoForm.test.ts cobrindo validate(), buildPayload() e fillFrom() isoladamente, incluindo os três tipos de lançamento (gasto/receita/transferência) e a conversão tipo<->transaction_type.",
       "impact": 9,
       "frequency": 10,
@@ -214,11 +224,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -239,6 +249,11 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "low"
         }
       ],
       "description": "O endpoint não-autenticado /api/v1/health continua devolvendo `Rails.env` no corpo JSON, permitindo que qualquer chamador anônimo identifique se o alvo é produção/staging/desenvolvimento.",
@@ -254,7 +269,7 @@
       "id": "FIN-003",
       "category": "finance",
       "natural_key": "amount-parser-locale-ambiguity",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -305,18 +320,18 @@
       "natural_key": "net-worth-formula-duplicated",
       "status": "open",
       "component": null,
-      "adr": null,
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-004.md",
       "first_seen": {
         "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
         "branch": "main",
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -337,16 +352,21 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "high"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "high"
         }
       ],
-      "description": "A fórmula de patrimônio líquido (contas + investimentos) continua duplicada entre NetWorthSnapshotService e ReportsController#net_worth em vez de reutilizar o service existente.",
-      "recommendation": "Extrair a fórmula para um método único e reutilizável (ex: NetWorthSnapshotService.compute(user) sem persistir) e fazer o controller chamá-lo, eliminando a segunda implementação e o risco de as duas divergirem de novo no futuro.",
+      "description": "A fórmula de patrimônio líquido (contas + investimentos) continua duplicada entre NetWorthSnapshotService e ReportsController#net_worth em vez de reutilizar o service existente; já há ADR proposto (não implementado) descrevendo a extração.",
+      "recommendation": "Implementar a extração já desenhada em ADR-2026-09-17-002.md: NetWorthSnapshotService.compute(user, at:) retornando { accounts_total:, investments_cost:, net_worth: } sem persistir, chamado tanto por #call (que persiste) quanto por ReportsController#net_worth (que descarta a persistência).",
       "impact": 8,
       "frequency": 6,
       "reach": 8,
       "effort": 3,
       "priority_score": 128,
-      "adr_candidate": false
+      "adr_candidate": true
     },
     {
       "id": "ARCH-004",
@@ -361,11 +381,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -385,6 +405,11 @@
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
           "severity": "medium"
         }
       ],
@@ -410,11 +435,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -435,10 +460,15 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "medium"
         }
       ],
-      "description": "apps/klipper-web continua com 4 advisories (1 low, 3 high) em devDependencies transitivas do toolchain Vite/Nuxt (esbuild, fast-uri, js-yaml, svgo), nenhuma delas embarcada no bundle de produção, mas todas exercitadas em toda invocação de dev/CI; apps/quebec-web já foi corrigido para o mesmo conjunto de pacotes.",
-      "recommendation": "Rodar `npm audit fix` (ou bump direto dos pacotes-pai que os vendorizam) em apps/klipper-web — fixAvailable=true para as 4 — e adicionar `npm audit --audit-level=high` como step de CI em ambos os frontends para pegar regressões antes de acumularem. bin/bundler-audit e bin/brakeman (apps/klipper-api) não puderam ser executados neste ambiente (gems do Gemfile.lock não instaladas localmente e sem rede validada para `bundle install`); a cobertura de CVE de dependências Ruby nesta execução ficou limitada à leitura manual do Gemfile.lock, sem achado de CVE específico com confiança suficiente para reportar.",
+      "description": "apps/klipper-web segue com 4 advisories (1 low, 3 high) em devDependencies transitivas do toolchain de build (esbuild, fast-uri, js-yaml, svgo), não embarcadas no bundle de produção mas exercitadas em todo `npm run dev`/CI; desta vez bundler-audit e brakeman (apps/klipper-api) rodaram normalmente neste ambiente (rede disponível) e não encontraram nenhuma vulnerabilidade Ruby/Rails, então a lacuna de cobertura de auditorias anteriores nesse lado foi fechada.",
+      "recommendation": "Rodar `npm audit fix` em apps/klipper-web (fixAvailable=true para as 4) e adicionar `npm audit --audit-level=high` como step de CI em ambos os frontends para pegar regressões antes de acumularem.",
       "impact": 3,
       "frequency": 5,
       "reach": 2,
@@ -459,11 +489,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -483,6 +513,11 @@
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
           "severity": "medium"
         }
       ],
@@ -508,11 +543,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -532,6 +567,11 @@
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
           "severity": "medium"
         }
       ],
@@ -557,11 +597,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 3,
+      "occurrences": 4,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -576,6 +616,11 @@
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
           "severity": "medium"
         }
       ],
@@ -601,11 +646,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 3,
+      "occurrences": 4,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -620,6 +665,11 @@
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
           "severity": "medium"
         }
       ],
@@ -645,11 +695,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 3,
+      "occurrences": 4,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -665,9 +715,14 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "medium"
         }
       ],
-      "description": "GET /api/v1/quotes interpola o parâmetro `tickers`, informado pelo usuário autenticado, sem escapar ou validar, dentro da URL de saída para brapi.dev, permitindo injetar segmentos extras de path/query e derrubando a ação com 500 (URI::InvalidURIError não tratado) para entradas malformadas (ex: espaço).",
+      "description": "GET /api/v1/quotes continua interpolando o parâmetro `tickers`, informado pelo usuário autenticado, sem validar contra um charset restrito antes de montar a URL de saída para brapi.dev, permitindo injetar segmentos extras de path/query e derrubando a ação com 500 para entradas malformadas.",
       "recommendation": "Validar cada ticker contra um padrão restrito (ex: /\\A[A-Z0-9.]{1,10}\\z/) em StockQuoteService antes de montar a requisição, e adicionar URI::InvalidURIError ao rescue de QuotesController#index para devolver 422/400 em vez de 500.",
       "impact": 3,
       "frequency": 2,
@@ -689,11 +744,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 3,
+      "occurrences": 4,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -709,9 +764,14 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "low"
         }
       ],
-      "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset) não tem rate limiting, ao contrário de toda outra action de autenticação não-autenticada; o token é gerado por `generate_token_for` (valor assinado do Rails, não um código curto adivinhável), então a exploração prática é limitada — é uma lacuna de defesa em profundidade/carga de banco, não um caminho de força bruta realista hoje.",
+      "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset) segue sem rate limiting, ao contrário de toda outra action de autenticação não-autenticada; o token é gerado por `generate_token_for` (valor assinado do Rails, não um código curto adivinhável), então a exploração prática é limitada — é uma lacuna de defesa em profundidade/carga de banco, não um caminho de força bruta realista hoje.",
       "recommendation": "Adicionar um throttle no Rack::Attack para PATCH /api/v1/password_resets/:token (por IP), espelhando a regra auth/ip existente.",
       "impact": 2,
       "frequency": 2,
@@ -733,11 +793,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -748,10 +808,15 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "medium"
         }
       ],
-      "description": "O spentRatio do hero do dashboard continua com um computed local não testado que devolve 0 em vez de null quando não há receita no ciclo, reintroduzindo a mesma ambiguidade \"sem dado\" vs \"zero\" já corrigida em orcamento.vue via budgetSpentRatio — a função correta (pctOfIncome) já existe e já está importada no mesmo arquivo, só não é usada aqui.",
-      "recommendation": "Substituir o computed `spentRatio` inline do dashboard por `pctOfIncome(totalDebits.value, totalCredits.value)`, e passar ao InstrumentReadout um texto de estado nulo específico para renda (ex.: \"Sem receita registrada no ciclo\") em vez do hardcoded de orçamento — ver também instrument-readout-mislabeled-budget-ratio.",
+      "description": "O computed spentRatio do hero do dashboard continua retornando 0 em vez de null quando não há receita no ciclo, fazendo InstrumentReadout renderizar uma barra 0%-preenchida como se fosse um dado real em vez do estado \"sem dado\".",
+      "recommendation": "Substituir o computed spentRatio inline por pctOfIncome(totalDebits.value, totalCredits.value) e passar um texto de estado nulo específico para renda ao InstrumentReadout.",
       "impact": 6,
       "frequency": 5,
       "reach": 7,
@@ -772,11 +837,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -786,6 +851,11 @@
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
           "severity": "medium"
         }
       ],
@@ -811,11 +881,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -826,10 +896,15 @@
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "medium"
         }
       ],
-      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição explicitamente não verificada pelo próprio autor e sem nenhum teste de débito — se um extrato real usar convenção diferente para débito, o valor entraria com sinal invertido no saldo/patrimônio sem nenhum teste capaz de pegar a regressão.",
-      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, o risco já está documentado no código e no roadmap, então manter como risco aceito explícito.",
+      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição que o próprio autor documentou como não verificada, e nenhum teste cobre um débito real.",
+      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado.",
       "impact": 7,
       "frequency": 1,
       "reach": 2,
@@ -850,20 +925,25 @@
         "date": "2026-09-17T09:59:23.653Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "high"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "high"
         }
       ],
-      "description": "A fórmula de patrimônio líquido (contas + investimentos, via Investment.signed_cost_sql) continua duplicada entre NetWorthSnapshotService e ReportsController#net_worth em vez de reutilizar um único método — exatamente o padrão de duplicação de dado patrimonial entre telas/endpoints que a checklist financeira pede para vigiar, e a mesma classe de bug que já causou FIN-002 (net-worth-snapshot-ignores-sell-sign) quando as duas implementações divergiram no sinal de venda.",
-      "recommendation": "Extrair a fórmula para um método único e reutilizável (ex.: NetWorthSnapshotService.compute(user) sem persistir) e fazer o controller chamá-lo, eliminando a segunda implementação e o risco de as duas divergirem de novo no futuro.",
+      "description": "A fórmula de patrimônio líquido continua implementada duas vezes de forma independente (NetWorthSnapshotService e ReportsController#net_worth) em vez de uma única fonte reutilizada.",
+      "recommendation": "Extrair a fórmula para um método único reutilizável (ex.: NetWorthSnapshotService.compute(user) sem persistir) e fazer o controller chamá-lo, eliminando a segunda implementação.",
       "impact": 6,
       "frequency": 3,
       "reach": 5,
@@ -884,15 +964,20 @@
         "date": "2026-09-17T09:59:23.653Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
           "severity": "medium"
         }
       ],
@@ -918,26 +1003,167 @@
         "date": "2026-09-17T09:59:23.653Z"
       },
       "last_seen": {
-        "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
         "branch": "main",
-        "date": "2026-09-17T09:59:23.653Z"
+        "date": "2026-09-17T10:49:00.167Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-17T09:59:23.653Z",
           "commit": "258607dedd6e3ad824ac53d8d257cc89ea4725cb",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "low"
         }
       ],
-      "description": "O access token JWT (15 min de validade) é armazenado em um cookie legível por JavaScript no cliente, diferente do refresh token que é HttpOnly; isso é defesa em profundidade insuficiente contra roubo de token via um XSS futuro, ainda que nenhum sink de XSS explorável tenha sido encontrado nesta auditoria.",
-      "recommendation": "Se a arquitetura permitir sem reescrever o fluxo de Authorization header, mover o access token para um cookie HttpOnly lido só pelo backend (ex: SPA passa a depender de cookie-based auth com CSRF token, em vez de Bearer header) — ou, no mínimo, documentar essa exposição residual como aceita e formalizar Content-Security-Policy no Nuxt para reduzir a chance de um XSS futuro conseguir ler o cookie.",
+      "description": "O access token JWT (15 min de validade) continua em um cookie legível por JavaScript no cliente, diferente do refresh token que é HttpOnly, e não há CSP configurada no Nuxt para reduzir o raio de um XSS futuro; isso é defesa em profundidade insuficiente ainda que nenhum sink de XSS explorável tenha sido encontrado nesta auditoria.",
+      "recommendation": "Seguir o ADR-2026-09-17-003 (proposed): mover o access token para cookie HttpOnly lido só pelo backend (exigiria migrar para auth cookie-based + CSRF token em vez de Bearer header), ou, no mínimo, formalizar essa exposição como aceita e adicionar Content-Security-Policy no Nuxt.",
       "impact": 4,
       "frequency": 1,
       "reach": 5,
       "effort": 5,
-      "priority_score": 2.4,
+      "priority_score": 4,
       "adr_candidate": true
+    },
+    {
+      "id": "FIN-007",
+      "category": "finance",
+      "natural_key": "portfolio-allocation-negative-cost-zeroes-pct",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+        "branch": "main",
+        "date": "2026-09-17T10:49:00.167Z"
+      },
+      "last_seen": {
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+        "branch": "main",
+        "date": "2026-09-17T10:49:00.167Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "medium"
+        }
+      ],
+      "description": "PortfolioService#allocation reporta 0.0% de alocação para todos os tipos de investimento sempre que o custo líquido total da carteira é zero ou negativo, mesmo havendo posições reais, sem nenhum teste cobrindo esse caso.",
+      "recommendation": "Adicionar teste com investimentos cujo total_cost líquido seja negativo (vendas líquidas superam compras) e decidir/documentar a leitura correta para esse caso em vez de silenciar todas as porcentagens como 0.0%.",
+      "impact": 6,
+      "frequency": 2,
+      "reach": 5,
+      "effort": 2,
+      "priority_score": 30,
+      "adr_candidate": false
+    },
+    {
+      "id": "FIN-008",
+      "category": "finance",
+      "natural_key": "transaction-import-provenance-missing",
+      "status": "open",
+      "component": null,
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-005.md",
+      "first_seen": {
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+        "branch": "main",
+        "date": "2026-09-17T10:49:00.167Z"
+      },
+      "last_seen": {
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+        "branch": "main",
+        "date": "2026-09-17T10:49:00.167Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "medium"
+        }
+      ],
+      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o item de rastreabilidade da checklist financeira do projeto.",
+      "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo) na transação no momento do import e expor essa proveniência em transacoes.vue (ex.: tooltip ou coluna 'origem'), para permitir auditar/depurar um lançamento até o extrato que o gerou.",
+      "impact": 5,
+      "frequency": 6,
+      "reach": 8,
+      "effort": 5,
+      "priority_score": 28.8,
+      "adr_candidate": true
+    },
+    {
+      "id": "FIN-009",
+      "category": "finance",
+      "natural_key": "reimbursement-coverage-pct-uncapped-untested",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+        "branch": "main",
+        "date": "2026-09-17T10:49:00.167Z"
+      },
+      "last_seen": {
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+        "branch": "main",
+        "date": "2026-09-17T10:49:00.167Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "low"
+        }
+      ],
+      "description": "ReimbursementCoverageCalculator pode reportar coverage_pct acima de 100% quando o valor reembolsado excede o gasto do mês de referência, e esse caso nunca é exercitado por teste.",
+      "recommendation": "Adicionar caso de teste com reimbursed > spent no mês de referência e decidir explicitamente (documentando em código) se >100% é uma leitura válida (ex.: pagamento atrasado) ou se deveria ser limitado/sinalizado separadamente.",
+      "impact": 3,
+      "frequency": 2,
+      "reach": 3,
+      "effort": 1,
+      "priority_score": 18,
+      "adr_candidate": false
+    },
+    {
+      "id": "FIN-010",
+      "category": "finance",
+      "natural_key": "stock-quote-service-error-path-untested",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+        "branch": "main",
+        "date": "2026-09-17T10:49:00.167Z"
+      },
+      "last_seen": {
+        "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+        "branch": "main",
+        "date": "2026-09-17T10:49:00.167Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-17T10:49:00.167Z",
+          "commit": "a1a08c5acf5dd620ffbf9eac2174f856d3b600a5",
+          "severity": "medium"
+        }
+      ],
+      "description": "StockQuoteService, que faz parsing de dado de preço de investimento vindo de uma API externa (brapi.dev), não tem nenhuma cobertura de teste — nem caminho normal nem erro — violando a regra de calculo/dado financeiro sem teste, embora hoje não haja consumidor no frontend que exponha o resultado ao usuário.",
+      "recommendation": "Criar spec/services/stock_quote_service_spec.rb cobrindo parse de resultado normal, resultado com preço nil, resposta vazia/malformada e cache (Rails.cache.fetch); antes de conectar este endpoint a qualquer tela de patrimônio, garantir a cobertura dado que dado de investimento inventado/incorreto na UI é tratado como severidade crítica neste projeto.",
+      "impact": 5,
+      "frequency": 1,
+      "reach": 2,
+      "effort": 2,
+      "priority_score": 5,
+      "adr_candidate": false
     }
   ]
 }
