@@ -5,7 +5,7 @@
       "id": "ARCH-001",
       "category": "architecture",
       "natural_key": "jwt-decode-error-path-untested",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -48,11 +48,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -63,10 +63,15 @@
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "medium"
         }
       ],
-      "description": "InstrumentReadout hardcoda o rótulo \"% da renda\" mesmo quando reutilizado em orcamento.vue para exibir participação no orçamento alocado, não na renda — a matemática está correta, a leitura do usuário não.",
-      "recommendation": "Tornar o rótulo (\"% da renda\"/mensagem de estouro) uma prop de InstrumentReadout, com orcamento.vue passando textos referentes a orçamento (ex: \"% do orçamento\").",
+      "description": "InstrumentReadout continua hardcodando o texto \"% da renda\" e \"Sem orçamento definido\" em vez de recebê-los como prop, então o mesmo componente exibe leitura incorreta em orcamento.vue (mostra \"% da renda\" para uma razão que é, na verdade, % do orçamento alocado) — a matemática está certa, a leitura do usuário não.",
+      "recommendation": "Tornar o rótulo da razão (\"% da renda\"/\"% do orçamento\") e o texto do estado nulo (\"Sem orçamento definido\"/equivalente) props de InstrumentReadout, com cada página (orcamento.vue, dashboard.vue) passando o texto correspondente ao que a razão realmente mede.",
       "impact": 5,
       "frequency": 10,
       "reach": 10,
@@ -78,7 +83,7 @@
       "id": "FIN-002",
       "category": "finance",
       "natural_key": "net-worth-snapshot-ignores-sell-sign",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -112,7 +117,7 @@
       "id": "SEC-001",
       "category": "security",
       "natural_key": "quebec-web-nuxt-stale-lockfile-cves",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -155,11 +160,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -170,10 +175,15 @@
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
           "severity": "high"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "high"
         }
       ],
-      "description": "A lógica de validação e parsing de valores financeiros de useLancamentoForm — compartilhada pelos modais de novo e editar lançamento — não tem teste unitário dedicado.",
-      "recommendation": "Criar composables/__tests__/useLancamentoForm.test.ts cobrindo validate(), buildPayload() e fillFrom() isoladamente, incluindo os três tipos de lançamento (gasto/receita/transferência) e os limites de parseBRLAmount/isFutureDate.",
+      "description": "A lógica de validação e parsing de valores financeiros de useLancamentoForm — compartilhada pelos modais de novo e editar lançamento — continua sem teste unitário dedicado; apenas as funções primitivas que ela consome (isFutureDate, parseBRLAmount) são testadas em outro arquivo.",
+      "recommendation": "Criar composables/__tests__/useLancamentoForm.test.ts cobrindo validate(), buildPayload() e fillFrom() isoladamente, incluindo os três tipos de lançamento (gasto/receita/transferência) e a conversão tipo<->transaction_type.",
       "impact": 7,
       "frequency": 8,
       "reach": 6,
@@ -194,11 +204,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -209,10 +219,15 @@
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "low"
         }
       ],
-      "description": "The unauthenticated /api/v1/health endpoint still returns Rails.env in its JSON body, letting any anonymous caller fingerprint whether the target is production/staging/development.",
-      "recommendation": "Drop `env` from the public health payload (or gate it behind the same network path the uptime prober already trusts) — the prober only needs a 200 OK, not the environment name.",
+      "description": "O endpoint não-autenticado /api/v1/health continua devolvendo `Rails.env` no corpo JSON, permitindo que qualquer chamador anônimo identifique se o alvo é produção/staging/desenvolvimento.",
+      "recommendation": "Remover `env` do payload público de health (ou colocá-lo atrás do mesmo caminho de rede que o prober de uptime já usa) — o prober só precisa de um 200 OK, não do nome do ambiente.",
       "impact": 2,
       "frequency": 10,
       "reach": 4,
@@ -233,11 +248,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -248,15 +263,20 @@
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "critical"
         }
       ],
-      "description": "BankImport::AmountParser assume formato BR sempre que há vírgula, corrompendo silenciosamente (sem erro, sem teste) valores en-US vindos de CSV genérico (`amount`/`value`), violando a regra de ouro de que cálculo/parsing financeiro sem teste de borda não entra.",
-      "recommendation": "Detectar o formato pela posição relativa de vírgula/ponto (se o último separador for ponto e houver vírgula antes, é en-US; caso contrário BR) em vez de assumir BR sempre que há vírgula, e adicionar spec cobrindo \"1,234.56\" e \"1234.56\" com milhar.",
+      "description": "BankImport::AmountParser assume formato BR (vírgula = decimal) sempre que a string contém vírgula, corrompendo silenciosamente valores en-US com milhar por vírgula e decimal por ponto (ex: \"1,234.56\" vira 1.23456) — nenhum erro é levantado e nenhum teste cobre esse caso de borda, violando a regra de ouro de que parsing financeiro sem teste de borda não entra.",
+      "recommendation": "Detectar o formato pela posição do separador mais à direita (esse é o decimal; qualquer separador à esquerda dele é milhar) em vez de assumir BR sempre que há vírgula, e adicionar caso de teste para \"1,234.56\"/\"12,345.67\" confirmando o valor correto ou uma falha explícita em vez de corrupção silenciosa.",
       "impact": 9,
       "frequency": 3,
-      "reach": 6,
-      "effort": 3,
-      "priority_score": 54,
+      "reach": 5,
+      "effort": 2,
+      "priority_score": 67.5,
       "adr_candidate": false
     },
     {
@@ -272,11 +292,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -286,6 +306,11 @@
         {
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+          "severity": "high"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
           "severity": "high"
         }
       ],
@@ -311,11 +336,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -325,6 +350,11 @@
         {
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
           "severity": "medium"
         }
       ],
@@ -350,11 +380,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -365,10 +395,15 @@
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "medium"
         }
       ],
-      "description": "klipper-web still carries outdated transitive devDependencies (esbuild, fast-uri, js-yaml, svgo) with published low/high advisories that run on every dev/CI invocation of the Vite/Nuxt toolchain, though none ship into the production bundle; quebec-web's set has shrunk to just the low-severity esbuild advisory since its lockfile was refreshed.",
-      "recommendation": "Run `npm audit fix` in apps/klipper-web (fixAvailable: true for all 4, no major bumps required per this run) and add a periodic `npm audit --audit-level=high` CI check for both frontend apps so newly published transitive advisories are caught before they accumulate again.",
+      "description": "apps/klipper-web ainda carrega devDependencies transitivas desatualizadas (esbuild, fast-uri, js-yaml, svgo) com advisories públicos de severidade alta/baixa, executadas em toda invocação do toolchain Vite/Nuxt em dev/CI, embora nenhuma delas entre no bundle de produção; apps/quebec-web já teve o lockfile atualizado e ficou só com o advisory low de esbuild.",
+      "recommendation": "Rodar `npm audit fix` em apps/klipper-web (fixAvailable: true para as 4, sem bump de major nesta execução) e adicionar um `npm audit --audit-level=high` periódico no CI de ambos os frontends para pegar advisories novos antes de acumularem.",
       "impact": 3,
       "frequency": 5,
       "reach": 2,
@@ -389,11 +424,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -403,6 +438,11 @@
         {
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
           "severity": "medium"
         }
       ],
@@ -428,11 +468,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -442,6 +482,11 @@
         {
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
           "severity": "medium"
         }
       ],
@@ -467,20 +512,25 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "medium"
         }
       ],
-      "description": "StockQuoteService — a única integração HTTP com serviço externo de toda a API (brapi.dev) — não tem spec dedicado, e os três caminhos de erro tratados pelo controller nunca são exercitados por nenhum teste.",
-      "recommendation": "Criar spec/services/stock_quote_service_spec.rb cobrindo parse de resultado e cache (Rails.cache.fetch), e adicionar ao request spec de quotes um caso com WebMock simulando Net::OpenTimeout e outro com corpo não-JSON, confirmando o 503 e a mensagem de erro do controller.",
+      "description": "StockQuoteService — a única integração HTTP com serviço externo de toda a API (brapi.dev) — não tem spec dedicado, e os caminhos de erro/parsing seguem sem cobertura de teste.",
+      "recommendation": "Criar spec/services/stock_quote_service_spec.rb cobrindo parse de resultado e cache (Rails.cache.fetch), e adicionar ao request spec de quotes um caso com WebMock simulando timeout e outro com corpo não-JSON, confirmando o comportamento de erro do controller.",
       "impact": 5,
       "frequency": 4,
       "reach": 4,
@@ -501,15 +551,20 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
           "severity": "medium"
         }
       ],
@@ -535,20 +590,25 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "medium"
         }
       ],
-      "description": "The authenticated GET /api/v1/quotes endpoint passes the user-supplied `tickers` param unescaped into the path/query of an outbound request to a third-party API, letting a caller inject extra query parameters or `/../` path segments into that request and, for a subset of malformed inputs (e.g. a space), crash the action with an unrescued URI::InvalidURIError instead of a handled error response.",
-      "recommendation": "Validate each ticker against a strict allowlist pattern (e.g. /\\A[A-Z0-9.]{1,10}\\z/) before building the request in StockQuoteService, URI-escape the joined value regardless, and add URI::InvalidURIError to the rescue clause in QuotesController#index so malformed input returns a normal 422/400 instead of a 500.",
+      "description": "GET /api/v1/quotes interpola o parâmetro `tickers`, informado pelo usuário autenticado, sem escapar ou validar, dentro da URL de uma chamada de saída para a API pública brapi.dev, permitindo injeção de segmentos de path/query extras e derrubando a ação com 500 (URI::InvalidURIError) para entradas malformadas (ex: espaço).",
+      "recommendation": "Validar cada ticker contra um padrão restrito (ex: /\\A[A-Z0-9.]{1,10}\\z/) em StockQuoteService antes de montar a requisição, escapar o valor combinado com URI mesmo assim, e adicionar URI::InvalidURIError ao rescue de QuotesController#index para devolver 422/400 em vez de 500.",
       "impact": 3,
       "frequency": 2,
       "reach": 3,
@@ -569,25 +629,132 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
         "branch": "main",
-        "date": "2026-09-16T23:22:35.676Z"
+        "date": "2026-09-17T03:45:43.333Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
           "commit": "5342ab0ebd02c2357fb9b07b6c98846d8b108a2c",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "low"
         }
       ],
-      "description": "PasswordResetsController#update (redeeming a reset token) has no rate limiting, unlike every other unauthenticated auth-adjacent action; exploitability is limited in practice because the token is a full Rails `generates_token_for` signed value (not a short guessable code), so this is a defense-in-depth/DB-load gap rather than a realistic brute-forceable path — evidence unavailable on the exact token length/entropy since bundler-audit/brakeman and a live Rails console could not be run in this sandboxed environment to inspect it directly.",
-      "recommendation": "Add a Rack::Attack throttle on PATCH /api/v1/password_resets/:token (by IP, and optionally by token prefix) mirroring the existing auth/ip rule, both to cut DB load from repeated `find_by_token_for` lookups and as defense-in-depth should the token generation scheme ever change.",
+      "description": "PasswordResetsController#update (redenção do token de reset) não tem rate limiting, ao contrário de toda outra action de autenticação não-autenticada; exploração prática é limitada porque o token é gerado por `generates_token_for` (valor assinado do Rails, não um código curto adivinhável), então isso é uma lacuna de defesa em profundidade/carga de banco, não um caminho de força bruta realista hoje.",
+      "recommendation": "Adicionar um throttle no Rack::Attack para PATCH /api/v1/password_resets/:token (por IP, opcionalmente também por prefixo do token) espelhando a regra auth/ip existente, tanto para reduzir carga de banco de lookups repetidos de `find_by_token_for` quanto como defesa em profundidade caso o esquema de geração do token mude no futuro.",
       "impact": 2,
       "frequency": 2,
       "reach": 2,
       "effort": 1,
-      "priority_score": 8,
+      "priority_score": 4.8,
+      "adr_candidate": false
+    },
+    {
+      "id": "FIN-004",
+      "category": "finance",
+      "natural_key": "dashboard-hero-spent-ratio-conflates-no-income-with-zero",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+        "branch": "main",
+        "date": "2026-09-17T03:45:43.333Z"
+      },
+      "last_seen": {
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+        "branch": "main",
+        "date": "2026-09-17T03:45:43.333Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "medium"
+        }
+      ],
+      "description": "O spentRatio do hero do dashboard usa um cálculo local que devolve 0 em vez de null quando não há receita no ciclo, reintroduzindo a mesma ambiguidade \"sem dado\" vs \"zero\" que já foi corrigida em orcamento.vue via budgetSpentRatio — só que numa implementação paralela e não testada.",
+      "recommendation": "Substituir o computed `spentRatio` inline do dashboard por `pctOfIncome(totalDebits.value, totalCredits.value)` — já importado no mesmo arquivo para fixoPct/cartaoPct — e passar ao InstrumentReadout um texto de estado nulo específico para renda (ex.: \"Sem receita registrada no ciclo\") em vez do hardcoded de orçamento.",
+      "impact": 6,
+      "frequency": 5,
+      "reach": 7,
+      "effort": 2,
+      "priority_score": 105,
+      "adr_candidate": false
+    },
+    {
+      "id": "ARCH-009",
+      "category": "architecture",
+      "natural_key": "base-modal-focus-trap-untested",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+        "branch": "main",
+        "date": "2026-09-17T03:45:43.333Z"
+      },
+      "last_seen": {
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+        "branch": "main",
+        "date": "2026-09-17T03:45:43.333Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "medium"
+        }
+      ],
+      "description": "O componente-base compartilhado por todos os modais do app (Escape para fechar, focus trap e restauração de foco ao gatilho) não tem nenhuma cobertura de teste, direta ou indireta — todo consumidor testado o stuba em vez de exercitá-lo.",
+      "recommendation": "Adicionar um teste de montagem para BaseModal.vue (ou para useFocusTrap.ts isoladamente com jsdom) cobrindo: Escape emite close, Tab no último elemento focável volta ao primeiro (e vice-versa com Shift+Tab), e o foco retorna ao elemento que disparou a abertura ao fechar.",
+      "impact": 4,
+      "frequency": 6,
+      "reach": 8,
+      "effort": 3,
+      "priority_score": 64,
+      "adr_candidate": false
+    },
+    {
+      "id": "FIN-005",
+      "category": "finance",
+      "natural_key": "btg-extrato-debit-sign-assumption-untested",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+        "branch": "main",
+        "date": "2026-09-17T03:45:43.333Z"
+      },
+      "last_seen": {
+        "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+        "branch": "main",
+        "date": "2026-09-17T03:45:43.333Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-17T03:45:43.333Z",
+          "commit": "71280c995f7f937b232e28f82f8771828264e5ab",
+          "severity": "medium"
+        }
+      ],
+      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição explicitamente não verificada pelo próprio autor do código e sem nenhum teste de débito — se um extrato real usar convenção diferente para débito, o valor entraria com sinal invertido no saldo/patrimônio sem qualquer teste capaz de pegar a regressão.",
+      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, registrar a limitação como risco aceito explícito no roadmap (não só no comentário do código).",
+      "impact": 7,
+      "frequency": 1,
+      "reach": 2,
+      "effort": 3,
+      "priority_score": 1.4,
       "adr_candidate": false
     }
   ]
