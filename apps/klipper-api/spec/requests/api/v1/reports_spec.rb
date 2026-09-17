@@ -472,6 +472,22 @@ RSpec.describe "Api::V1::Reports", type: :request do
         stock = json["investments_by_type"].find { |r| r["investment_type"] == "stock" }
         expect(stock["total_cost"].to_f).to be_within(0.01).of(15500.00) # 15000 + 1000 - 500
       end
+
+      # ARCH-003: este endpoint e o snapshot persistido reimplementavam a mesma
+      # fórmula, e o FIN-002 é a prova de que isso divergia na prática. Agora os
+      # dois chamam NetWorthSnapshotService.compute; este teste é o que impede a
+      # duplicação de voltar, porque falha se alguém recalcular a soma aqui em
+      # vez de reusar o service. Usa igualdade exata, não be_within: o objetivo
+      # é que as duas camadas produzam o MESMO número, não números parecidos.
+      it "reports the same totals as the persisted snapshot" do
+        get "/api/v1/reports/net_worth", headers: auth_headers
+        json = JSON.parse(response.body)
+        snapshot = NetWorthSnapshotService.call(user)
+
+        expect(json["accounts_total"].to_f).to eq(snapshot.accounts_total.to_f)
+        expect(json["investments_cost"].to_f).to eq(snapshot.investments_cost.to_f)
+        expect(json["net_worth"].to_f).to eq(snapshot.net_worth.to_f)
+      end
     end
   end
 
