@@ -30,9 +30,16 @@ jobs:
     # disponíveis ao agente, então só roda automático para PRs do próprio repo.
     # Fork PR ainda pode ser revisado, mas só via workflow_dispatch manual
     # (exige permissão de escrita no repo para disparar).
+    # (3) PR do Dependabot roda com "Secret source: Dependabot", um cofre
+    # separado que não enxerga os Actions secrets — o CLAUDE_CODE_OAUTH_TOKEN
+    # chega vazio e o job falha em ~2s, indistinguível de token expirado. Não é
+    # algo que rerun resolva: era ruído vermelho garantido em toda atualização
+    # de dependência. Revisão de PR do Dependabot fica no workflow_dispatch,
+    # que roda no contexto normal e vê os secrets (PIPE-3).
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event.pull_request.user.login != 'github-actions[bot]' &&
+       github.event.pull_request.user.login != 'dependabot[bot]' &&
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
@@ -119,4 +126,19 @@ jobs:
       - name: Publicar comentário no PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh pr comment "${{ steps.pr.outputs.number }}" --body-file "$OUTPUT_PATH"
+        # A action se recusa a rodar quando o arquivo do workflow difere do que
+        # está no branch default, e nesse caso ela termina com sucesso sem
+        # escrever o OUTPUT_PATH. Consequência: todo PR que mexe neste próprio
+        # arquivo tinha o review vermelho com `no such file or directory`, uma
+        # mensagem que não diz nada sobre a causa — e que, por construção, só
+        # deixa de aparecer depois do merge. Agora a ausência do arquivo vira um
+        # comentário explicando por que a revisão não saiu, em vez de um portão
+        # vermelho enganoso.
+        run: |
+          if [ ! -f "$OUTPUT_PATH" ]; then
+            gh pr comment "${{ steps.pr.outputs.number }}" --body \
+              "⚠️ A revisão automática não produziu saída neste run — nenhum comentário de análise foi gerado. Causa mais comum: este PR altera \`.github/workflows/agent-pr-review.yml\`, e a action exige que o arquivo seja idêntico ao do branch default, então ela se recusa a rodar. Nesse caso a revisão volta a funcionar depois do merge. Veja o log do job \`review\` para confirmar."
+            echo "OUTPUT_PATH ausente: comentário de aviso publicado, job segue verde."
+            exit 0
+          fi
+          gh pr comment "${{ steps.pr.outputs.number }}" --body-file "$OUTPUT_PATH"
