@@ -109,6 +109,16 @@ jobs:
       - name: Build de produção
         run: npm run build
         working-directory: apps/klipper-web
+      # O quebec-web tinha portão de audit e o klipper-web — o app de verdade,
+      # com token JWT e dados financeiros — não tinha nenhum: as 3 high deste
+      # commit (fast-uri, js-yaml, svgo, todas transitivas) chegaram verdes até
+      # aqui. Corte em high, não em critical, porque é na faixa high que moram
+      # prototype pollution e ReDoS; e não em moderate, porque sobra 1 low do
+      # esbuild que o `npm audit fix` promete e não aplica — um portão que nasce
+      # vermelho é um portão que se aprende a ignorar (SEC-003).
+      - name: npm audit
+        run: npm audit --audit-level=high
+        working-directory: apps/klipper-web
 
   # Sem este job o quebec-web não tinha portão nenhum, e o lockfile dele ficou
   # parado enquanto o do klipper-web — mesmo range de nuxt — avançava: o app
@@ -151,9 +161,12 @@ jobs:
       - name: Build de produção
         run: npm run build
         working-directory: apps/quebec-web
-      # Corta em critical, não em high: sobram 3 high vindas de
-      # @nuxt/image -> ipx -> sharp que só saem com @nuxt/image 2.x, e travar o
-      # portão numa decisão semver-major pendente só ensinaria a ignorá-lo.
+      # Cortava em critical porque sobravam 3 high vindas de
+      # @nuxt/image -> ipx -> sharp que exigiam @nuxt/image 2.x. Essas saíram
+      # nas atualizações desde então: hoje o quebec-web tem 1 low e mais nada,
+      # então o corte em high já nasce verde e passa a valer de verdade —
+      # critical deixava passar toda a faixa onde vive um RCE transitivo, que é
+      # exatamente como o @nuxt/devtools do SEC-001 entrou sem ninguém ver.
       - name: npm audit
-        run: npm audit --audit-level=critical
+        run: npm audit --audit-level=high
         working-directory: apps/quebec-web
