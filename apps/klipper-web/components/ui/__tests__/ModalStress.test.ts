@@ -3,9 +3,15 @@
  *
  * Cobre:
  * 1. Double submit / Race conditions em botões de confirmação.
- * 2. Inputs de fronteira / Edge cases (payloads gigantes, SQLi / XSS strings, valores negativos/extremos).
- * 3. Fechamento por tecla ESC e clique no backdrop.
- * 4. Validação e prevenção de submissão com dados inválidos.
+ * 2. Inputs de fronteira / Edge cases (payloads gigantes, SQLi / XSS strings).
+ * 3. Validação e prevenção de submissão com dados inválidos.
+ * 4. Emissão do evento de confirmação no ModalConfirmDelete.
+ *
+ * NÃO cobre: fechamento por tecla ESC, clique no backdrop, focus trap e
+ * restauração de foco. Esses caminhos vivem no BaseModal e não têm teste
+ * nenhum, direto ou indireto — o docstring afirmava cobrir o ESC e o backdrop
+ * sem nenhum teste correspondente no arquivo, o que dava falsa segurança
+ * justamente sobre o comportamento de teclado que segue descoberto.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { DOMWrapper, type VueWrapper } from '@vue/test-utils'
