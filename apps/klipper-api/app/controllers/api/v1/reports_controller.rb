@@ -12,69 +12,26 @@ module Api
         year  = params[:year]&.to_i  || Date.current.year
         month = params[:month]&.to_i || Date.current.month
 
-        txns = @current_user.transactions.in_month(year, month)
-        txns = txns.where(member_id: params[:member_id]) if params[:member_id]
-        debits  = txns.where(transaction_type: "debit").sum(:amount)
-        credits = txns.where(transaction_type: "credit").sum(:amount)
+        calculator = MonthlySummaryCalculator.new(
+          @current_user, year: year, month: month, member_id: params[:member_id]
+        )
+        summary = calculator.call
+        @export_record_count = calculator.record_count
 
-        # Três queries fixas — somas, contagens e as categorias de uma vez —
-        # em vez de um `find_by` e um `count` por linha do agrupamento, que
-        # faziam o custo subir junto com o número de categorias do usuário.
-        debit_txns = txns.where(transaction_type: "debit")
-        totals     = debit_txns.group(:category_id).sum(:amount)
-        counts     = debit_txns.group(:category_id).count
-        categories = @current_user.categories.where(id: totals.keys.compact).index_by(&:id)
-
-        by_category = totals.map do |cat_id, total|
-          cat = categories[cat_id]
-          {
-            category_id:   cat_id,
-            category_name: cat&.name || "Sem categoria",
-            category_icon: cat&.icon,
-            total:         total.to_f.round(2),
-            count:         counts[cat_id].to_i
-          }
-        end.sort_by { |r| -r[:total] }
-
-        @export_record_count = txns.count
-
-        render json: {
-          year:          year,
-          month:         month,
-          total_debits:  debits.to_f.round(2),
-          total_credits: credits.to_f.round(2),
-          net:           (credits - debits).to_f.round(2),
-          by_category:   by_category
-        }
+        render json: { year: year, month: month, **summary }
       end
 
       def natureza_split
         year  = params[:year]&.to_i  || Date.current.year
         month = params[:month]&.to_i || Date.current.month
 
-        txns = @current_user.transactions.where(transaction_type: "debit").in_month(year, month)
-        txns = txns.where(member_id: params[:member_id]) if params[:member_id]
+        calculator = NaturezaSplitCalculator.new(
+          @current_user, year: year, month: month, member_id: params[:member_id]
+        )
+        split = calculator.call
+        @export_record_count = calculator.record_count
 
-        totals = txns.joins(:category).group("categories.natureza").sum(:amount)
-        total  = totals.values.sum
-
-        by_natureza = Category::NATUREZAS.map do |nat|
-          amount = totals[nat] || 0
-          {
-            natureza: nat,
-            total:    amount.to_f.round(2),
-            pct:      total.positive? ? (amount / total * 100).round(1) : 0.0
-          }
-        end
-
-        @export_record_count = txns.count
-
-        render json: {
-          year:        year,
-          month:       month,
-          total:       total.to_f.round(2),
-          by_natureza: by_natureza
-        }
+        render json: { year: year, month: month, **split }
       end
 
       def reimbursement_coverage
