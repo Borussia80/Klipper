@@ -58,5 +58,36 @@ RSpec.describe "Api::V1::Quotes", type: :request do
       2.times { get "/api/v1/quotes?tickers=PETR4", headers: auth_headers }
       expect(a_request(:get, /brapi\.dev/)).to have_been_made.once
     end
+
+    it "returns 422 for a malformed ticker instead of 500" do
+      get "/api/v1/quotes?tickers=PETR4/../../admin", headers: auth_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(JSON.parse(response.body)["error"]).to match(/inválido/)
+    end
+
+    it "does not reach brapi.dev when a ticker is rejected" do
+      get "/api/v1/quotes?tickers=PETR4%20OR%201=1", headers: auth_headers
+
+      expect(a_request(:get, /brapi\.dev/)).not_to have_been_made
+    end
+
+    it "returns 503 when brapi.dev times out" do
+      Rails.cache.clear
+      stub_request(:get, /brapi\.dev/).to_timeout
+
+      get "/api/v1/quotes?tickers=PETR4", headers: auth_headers
+
+      expect(response).to have_http_status(:service_unavailable)
+    end
+
+    it "returns 503 when brapi.dev answers with a non-JSON body" do
+      Rails.cache.clear
+      stub_request(:get, /brapi\.dev/).to_return(status: 502, body: "<html>502 Bad Gateway</html>")
+
+      get "/api/v1/quotes?tickers=PETR4", headers: auth_headers
+
+      expect(response).to have_http_status(:service_unavailable)
+    end
   end
 end

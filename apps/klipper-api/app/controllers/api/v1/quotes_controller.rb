@@ -9,7 +9,11 @@ module Api
 
         result = StockQuoteService.fetch(tickers.split(","))
         render json: result
-      rescue JSON::ParserError, SocketError, Net::OpenTimeout => e
+      rescue StockQuoteService::InvalidTicker, URI::InvalidURIError => e
+        # Entrada malformada é erro do chamador, não indisponibilidade do
+        # brapi.dev: antes caía no 500 genérico (SEC-004).
+        render json: { error: "Parâmetro 'tickers' inválido: #{e.message}" }, status: :unprocessable_entity
+      rescue JSON::ParserError, SocketError, Net::OpenTimeout, Net::ReadTimeout => e
         render json: { error: "Erro ao buscar cotações: #{e.message}" }, status: :service_unavailable
       end
     end
