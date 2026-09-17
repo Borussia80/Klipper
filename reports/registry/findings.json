@@ -48,11 +48,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "75004f142b7c0abc4bc87028941c372bd2fb1af6",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:19:54.166Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -83,15 +83,20 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T23:19:54.166Z",
+          "commit": "75004f142b7c0abc4bc87028941c372bd2fb1af6",
+          "severity": "medium"
         }
       ],
-      "description": "InstrumentReadout continua com o rótulo de razão ('% da renda') e o texto de estado nulo hardcoded para o caso do dashboard, então orcamento.vue exibe a leitura textual errada para uma métrica que na verdade mede % do orçamento alocado, não % da renda.",
-      "recommendation": "Tornar o rótulo da razão e o texto do estado nulo props de InstrumentReadout, com cada página passando o texto correspondente ao que a razão realmente mede (ex.: 'do orçamento' em orcamento.vue, 'da renda' em dashboard.vue).",
-      "impact": 5,
-      "frequency": 10,
-      "reach": 10,
+      "description": "InstrumentReadout continua com o rótulo fixo '% da renda' e o estado nulo genérico ('Sem orçamento definido') hardcoded no componente, então orcamento.vue (que mede proporção do orçamento, não de renda) exibe um rótulo semanticamente errado para a métrica que realmente calcula.",
+      "recommendation": "Tornar o rótulo da razão ('% da renda' / '% do orçamento') e o texto do estado nulo props do InstrumentReadout, com cada página passando o texto correspondente ao que a razão de fato mede.",
+      "impact": 4,
+      "frequency": 6,
+      "reach": 5,
       "effort": 2,
-      "priority_score": 250,
+      "priority_score": 60,
       "adr_candidate": false
     },
     {
@@ -166,7 +171,7 @@
       "id": "ARCH-002",
       "category": "architecture",
       "natural_key": "lancamento-form-no-unit-test",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -220,7 +225,7 @@
       "id": "SEC-002",
       "category": "security",
       "natural_key": "health-endpoint-leaks-rails-env",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -323,7 +328,7 @@
       "id": "ARCH-003",
       "category": "architecture",
       "natural_key": "net-worth-formula-duplicated",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": "docs/adrs/proposed/ADR-2026-09-17-004.md",
       "first_seen": {
@@ -380,7 +385,7 @@
       "id": "ARCH-004",
       "category": "architecture",
       "natural_key": "financial-modals-zero-coverage",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -439,7 +444,7 @@
       "id": "SEC-003",
       "category": "security",
       "natural_key": "web-apps-outdated-dev-transient-deps",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -498,7 +503,7 @@
       "id": "ARCH-005",
       "category": "architecture",
       "natural_key": "wealth-pages-no-page-tests",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -557,7 +562,7 @@
       "id": "ARCH-006",
       "category": "architecture",
       "natural_key": "reports-controller-inline-aggregation",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": "docs/adrs/proposed/ADR-2026-09-16-001.md",
       "first_seen": {
@@ -616,7 +621,7 @@
       "id": "ARCH-007",
       "category": "architecture",
       "natural_key": "stock-quote-service-error-path-untested",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -668,7 +673,7 @@
       "id": "ARCH-008",
       "category": "architecture",
       "natural_key": "modal-lancamento-template-css-duplicated",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -722,7 +727,7 @@
       "id": "SEC-004",
       "category": "security",
       "natural_key": "quotes-ticker-unescaped-into-outbound-url",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -771,7 +776,7 @@
       "id": "SEC-005",
       "category": "security",
       "natural_key": "password-reset-redemption-endpoint-unthrottled",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -834,11 +839,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "75004f142b7c0abc4bc87028941c372bd2fb1af6",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:19:54.166Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -859,22 +864,27 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-17T23:19:54.166Z",
+          "commit": "75004f142b7c0abc4bc87028941c372bd2fb1af6",
+          "severity": "critical"
         }
       ],
-      "description": "O computed spentRatio do hero do dashboard continua retornando 0 em vez de null quando não há receita no ciclo, fazendo InstrumentReadout renderizar uma barra 0%-preenchida como se fosse dado real em vez do estado 'sem dado' — a mesma proporção financeira sem cobertura de borda que a Regra de Ouro trata como crítica, e o helper que já corrige esse caso (pctOfIncome) está no mesmo arquivo sem ser usado aqui.",
-      "recommendation": "Substituir o computed spentRatio inline por pctOfIncome(totalDebits.value, totalCredits.value) e passar o resultado (null quando não há receita) ao InstrumentReadout, que já sabe renderizar o estado 'sem orçamento definido' para valor nulo; adicionar teste de página cobrindo o ciclo sem receita.",
-      "impact": 7,
-      "frequency": 5,
-      "reach": 7,
+      "description": "O hero do dashboard ainda devolve 0 (em vez de null) quando não há receita no ciclo, fazendo InstrumentReadout desenhar a barra 'dentro da faixa' preenchida em 0% como se fosse gasto medido, e não a ausência de dado — o mesmo defeito catalogado em FIN-004 continua sem correção no código atual.",
+      "recommendation": "Substituir o computed `spentRatio` do dashboard.vue por `pctOfIncome(totalDebits.value, totalCredits.value)`, mesma função já usada duas linhas abaixo para fixoPct/cartaoPct, e deixar InstrumentReadout renderizar o estado 'Sem orçamento definido' quando o valor for null.",
+      "impact": 8,
+      "frequency": 9,
+      "reach": 8,
       "effort": 2,
-      "priority_score": 122.5,
+      "priority_score": 288,
       "adr_candidate": false
     },
     {
       "id": "ARCH-009",
       "category": "architecture",
       "natural_key": "base-modal-focus-trap-untested",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -932,11 +942,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "75004f142b7c0abc4bc87028941c372bd2fb1af6",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:19:54.166Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -957,22 +967,27 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-17T23:19:54.166Z",
+          "commit": "75004f142b7c0abc4bc87028941c372bd2fb1af6",
+          "severity": "critical"
         }
       ],
-      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição que o próprio autor documentou como não verificada, e nenhum teste cobre um débito real — dado de patrimônio de import bancário sem cobertura de caso normal (débito), tratado como crítico por definição.",
-      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado, mas registrado como pendência crítica de cobertura.",
+      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição que o próprio autor documenta como não verificada contra nenhum débito real, e nenhum teste trava esse sinal — dado de patrimônio de importações BTG segue com risco não coberto de inversão silenciosa de sinal.",
+      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado (já está), não silenciar.",
       "impact": 7,
-      "frequency": 1,
-      "reach": 2,
+      "frequency": 2,
+      "reach": 4,
       "effort": 3,
-      "priority_score": 4.67,
+      "priority_score": 18.67,
       "adr_candidate": false
     },
     {
       "id": "ARCH-010",
       "category": "architecture",
       "natural_key": "modalstress-suite-docstring-overstates-coverage",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1011,7 +1026,7 @@
       "id": "SEC-006",
       "category": "security",
       "natural_key": "spa-access-token-cookie-js-readable",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": "docs/adrs/proposed/ADR-2026-09-17-003.md",
       "first_seen": {
@@ -1055,7 +1070,7 @@
       "id": "FIN-007",
       "category": "finance",
       "natural_key": "portfolio-allocation-negative-cost-zeroes-pct",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1103,11 +1118,11 @@
         "date": "2026-09-17T10:49:00.167Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "75004f142b7c0abc4bc87028941c372bd2fb1af6",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:19:54.166Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T10:49:00.167Z",
@@ -1118,22 +1133,27 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T23:19:54.166Z",
+          "commit": "75004f142b7c0abc4bc87028941c372bd2fb1af6",
+          "severity": "medium"
         }
       ],
-      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o item de rastreabilidade da checklist financeira do projeto.",
-      "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo) na transação no momento do import e expor essa proveniência em transacoes.vue (ex.: tooltip ou coluna 'origem'), para permitir auditar/depurar um lançamento até o extrato que o gerou.",
+      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o item de rastreabilidade exigido pela seção financeira do escopo de auditoria.",
+      "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo/checksum, no mesmo padrão já usado por AuditLog) na transação no momento do import, e expor essa proveniência em transacoes.vue (ex.: tooltip ou coluna 'origem').",
       "impact": 5,
-      "frequency": 6,
-      "reach": 8,
-      "effort": 5,
-      "priority_score": 48,
-      "adr_candidate": true
+      "frequency": 4,
+      "reach": 6,
+      "effort": 4,
+      "priority_score": 30,
+      "adr_candidate": false
     },
     {
       "id": "FIN-009",
       "category": "finance",
       "natural_key": "reimbursement-coverage-pct-uncapped-untested",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1172,7 +1192,7 @@
       "id": "ARCH-011",
       "category": "architecture",
       "natural_key": "global-singleton-composables-untested",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1206,7 +1226,7 @@
       "id": "ARCH-012",
       "category": "architecture",
       "natural_key": "usereports-shared-loading-state-race",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1240,7 +1260,7 @@
       "id": "ARCH-013",
       "category": "architecture",
       "natural_key": "investment-signed-cost-triple-implementation",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1274,7 +1294,7 @@
       "id": "ARCH-014",
       "category": "architecture",
       "natural_key": "modal-field-css-duplicated-across-entity-modals",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1308,7 +1328,7 @@
       "id": "ARCH-015",
       "category": "architecture",
       "natural_key": "occurred-on-validation-duplicated-across-models",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
