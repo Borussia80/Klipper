@@ -118,9 +118,7 @@ module Api
         accounts    = @current_user.accounts
         investments = @current_user.investments
 
-        accounts_total   = accounts.sum(:balance).to_f.round(2)
-        investments_cost = investments.sum(Investment.signed_cost_sql).to_f.round(2)
-        net_worth_value  = (accounts_total + investments_cost).round(2)
+        totals = NetWorthSnapshotService.compute(@current_user)
 
         by_type = investments.group(:investment_type)
           .sum(Investment.signed_cost_sql)
@@ -130,9 +128,7 @@ module Api
         @export_record_count = accounts.count + investments.count
 
         render json: {
-          accounts_total:      accounts_total,
-          investments_cost:    investments_cost,
-          net_worth:           net_worth_value,
+          **totals,
           accounts:            accounts.map { |a| { id: a.id, name: a.name, balance: a.balance.to_f } },
           investments_by_type: by_type
         }
