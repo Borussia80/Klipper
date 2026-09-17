@@ -413,4 +413,88 @@ describe('useReports', () => {
       expect(row?.saldo_atualizado_em).toBeNull()
     })
   })
+
+  // ARCH-012: relatorios.vue e dashboard.vue disparam três fetches em paralelo
+  // sobre a mesma instância. Com um booleano, a primeira resposta a chegar
+  // desligava o isLoading e a tela imprimia R$ 0,00 para os totais que ainda
+  // estavam em voo. É este bloco que trava o contador — um booleano de volta faz
+  // a segunda asserção de cada teste falhar.
+  describe('parallel fetches', () => {
+    function deferred() {
+      let resolve!: (value: unknown) => void
+      let reject!: (reason: unknown) => void
+      const promise = new Promise<unknown>((res, rej) => {
+        resolve = res
+        reject = rej
+      })
+      return { promise, resolve, reject }
+    }
+
+    it('stays loading until the last fetch in flight settles', async () => {
+      const first = deferred()
+      const second = deferred()
+      mockApiFetch.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+
+      const { useReports } = await import('../useReports')
+      const { isLoading, fetchMonthly, fetchNetWorth } = useReports()
+
+      const monthlyDone = fetchMonthly(2026, 6)
+      const netWorthDone = fetchNetWorth()
+      expect(isLoading.value).toBe(true)
+
+      first.resolve(makeMonthly())
+      await monthlyDone
+      expect(isLoading.value).toBe(true)
+
+      second.resolve(makeNetWorth())
+      await netWorthDone
+      expect(isLoading.value).toBe(false)
+    })
+
+    it('stays loading when one of the parallel fetches fails', async () => {
+      const failing = deferred()
+      const slow = deferred()
+      mockApiFetch.mockReturnValueOnce(failing.promise).mockReturnValueOnce(slow.promise)
+
+      const { useReports } = await import('../useReports')
+      const { isLoading, monthly, error, fetchMonthly, fetchNetWorth } = useReports()
+
+      const monthlyDone = fetchMonthly(2026, 6)
+      const netWorthDone = fetchNetWorth()
+
+      failing.reject(new Error('network error'))
+      await monthlyDone
+      expect(isLoading.value).toBe(true)
+      expect(monthly.value).toBeNull()
+      expect(error.value).toBe('Erro ao carregar relatório mensal.')
+
+      slow.resolve(makeNetWorth())
+      await netWorthDone
+      expect(isLoading.value).toBe(false)
+    })
+
+    it('handles the three fetches relatorios.vue fires on mount', async () => {
+      const monthlyReq = deferred()
+      const netWorthReq = deferred()
+      const historyReq = deferred()
+      mockApiFetch
+        .mockReturnValueOnce(monthlyReq.promise)
+        .mockReturnValueOnce(netWorthReq.promise)
+        .mockReturnValueOnce(historyReq.promise)
+
+      const { useReports } = await import('../useReports')
+      const { isLoading, fetchMonthly, fetchNetWorth, fetchNetWorthHistory } = useReports()
+
+      const all = [fetchMonthly(2026, 6), fetchNetWorth(), fetchNetWorthHistory('6m')]
+
+      netWorthReq.resolve(makeNetWorth())
+      historyReq.resolve({ period: '6m', points: [] })
+      await Promise.all([all[1], all[2]])
+      expect(isLoading.value).toBe(true)
+
+      monthlyReq.resolve(makeMonthly())
+      await Promise.all(all)
+      expect(isLoading.value).toBe(false)
+    })
+  })
 })

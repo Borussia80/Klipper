@@ -73,4 +73,18 @@ describe('relatorios.vue', () => {
     expect(semCategoria.text()).toContain('Sem categoria')
     expect(semCategoria.find('.cat-icon svg').exists()).toBe(true)
   })
+
+  // ARCH-012: o estado do mock aqui é exatamente o da falha — netWorth nulo com
+  // isLoading já false. Acontece de dois jeitos no app real: outro fetch paralelo
+  // terminou primeiro e derrubou o loading, ou este fetch falhou e o ref ficou
+  // nulo. Antes, o `?? 0` do template transformava os dois casos em R$ 0,00, um
+  // patrimônio líquido de zero reais indistinguível de um de verdade.
+  it('mostra "—" no patrimônio, não R$ 0,00, quando o dado não chegou', async () => {
+    wrapper = await mountSuspended(Relatorios)
+    await wrapper.findAll('.tab-btn').at(1)!.trigger('click')
+
+    expect(wrapper.find('.nw-hero').text()).toContain('—')
+    expect(wrapper.find('.nw-hero').text()).not.toContain('R$')
+    expect(wrapper.text()).not.toContain('R$ 0,00')
+  })
 })

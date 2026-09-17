@@ -92,11 +92,18 @@ export function useReports() {
   const naturezaSplit = ref<NaturezaSplitReport | null>(null)
   const reimbursementCoverage = ref<ReimbursementCoverageReport | null>(null)
   const debtRanking = ref<DebtRankingReport | null>(null)
-  const isLoading = ref(false)
+  // Contador, não booleano: relatorios.vue e dashboard.vue disparam três fetches
+  // em paralelo sobre a mesma instância, e com um booleano a primeira resposta a
+  // chegar zerava o isLoading enquanto as outras duas ainda estavam em voo. Nesse
+  // intervalo a tela já se considerava carregada e imprimia R$ 0,00 no lugar do
+  // total que ainda não tinha chegado — número financeiro falso, não placeholder.
+  // O contador só volta a zero quando o último fetch termina (ARCH-012).
+  const pendingRequests = ref(0)
+  const isLoading = computed(() => pendingRequests.value > 0)
   const error = ref<string | null>(null)
 
   async function fetchMonthly(year?: number, month?: number, memberId?: number) {
-    isLoading.value = true
+    pendingRequests.value++
     error.value = null
     try {
       const now = new Date()
@@ -110,24 +117,24 @@ export function useReports() {
     } catch {
       error.value = 'Erro ao carregar relatório mensal.'
     } finally {
-      isLoading.value = false
+      pendingRequests.value--
     }
   }
 
   async function fetchNetWorth() {
-    isLoading.value = true
+    pendingRequests.value++
     error.value = null
     try {
       netWorth.value = await apiFetch<NetWorthReport>('/api/v1/reports/net_worth')
     } catch {
       error.value = 'Erro ao carregar patrimônio.'
     } finally {
-      isLoading.value = false
+      pendingRequests.value--
     }
   }
 
   async function fetchNetWorthHistory(period?: '3m' | '6m' | '1a' | 'max') {
-    isLoading.value = true
+    pendingRequests.value++
     error.value = null
     try {
       netWorthHistory.value = await apiFetch<NetWorthHistoryReport>('/api/v1/reports/net_worth_history', {
@@ -136,12 +143,12 @@ export function useReports() {
     } catch {
       error.value = 'Erro ao carregar histórico de patrimônio.'
     } finally {
-      isLoading.value = false
+      pendingRequests.value--
     }
   }
 
   async function fetchNaturezaSplit(year?: number, month?: number, memberId?: number) {
-    isLoading.value = true
+    pendingRequests.value++
     error.value = null
     try {
       const now = new Date()
@@ -155,12 +162,12 @@ export function useReports() {
     } catch {
       error.value = 'Erro ao carregar composição de gastos.'
     } finally {
-      isLoading.value = false
+      pendingRequests.value--
     }
   }
 
   async function fetchReimbursementCoverage(year?: number, month?: number, categoryId?: number) {
-    isLoading.value = true
+    pendingRequests.value++
     error.value = null
     try {
       const now = new Date()
@@ -174,19 +181,19 @@ export function useReports() {
     } catch {
       error.value = 'Erro ao carregar cobertura de reembolso.'
     } finally {
-      isLoading.value = false
+      pendingRequests.value--
     }
   }
 
   async function fetchDebtRanking() {
-    isLoading.value = true
+    pendingRequests.value++
     error.value = null
     try {
       debtRanking.value = await apiFetch<DebtRankingReport>('/api/v1/reports/debt_ranking')
     } catch {
       error.value = 'Erro ao carregar prioridade de quitação.'
     } finally {
-      isLoading.value = false
+      pendingRequests.value--
     }
   }
 
