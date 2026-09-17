@@ -4,15 +4,13 @@
 
 **Trigger:** workflow_run · **Branch:** main · **Commit:** `71280c995f7f937b232e28f82f8771828264e5ab` · **Modo:** fast
 
-## Score geral: 70.33/100 (+41.33 vs baseline)
-
 ## Seções
 
-| Seção | Score | Risco | Tendência |
-|---|---|---|---|
-| Arquitetura | 78 | medium | +6 |
-| Domínio financeiro | 55 | critical | +48 |
-| Segurança | 78 | medium | +70 |
+| Seção | Risco |
+|---|---|
+| Arquitetura | medium |
+| Domínio financeiro | critical |
+| Segurança | medium |
 
 ## Findings priorizados (RICE)
 

@@ -68,18 +68,30 @@ md.push('> Gerado automaticamente por `render-report.mjs`. Não editar manualmen
 md.push('');
 md.push(`**Trigger:** ${run.meta.trigger} · **Branch:** ${run.meta.branch} · **Commit:** \`${run.meta.commit}\` · **Modo:** ${run.meta.depth}`);
 md.push('');
-const overallDelta = trend.overall_score !== null ? ` (${trend.overall_score >= 0 ? '+' : ''}${trend.overall_score} vs baseline)` : '';
-md.push(`## Score geral: ${run.overall_score}/100${overallDelta}`);
-if (trend.baseline.note) md.push(`> Baseline: ${trend.baseline.note}`);
-md.push('');
+// O score por seção e o `overall_score` não são renderizados. Cada agente
+// atribui o score da sua seção por julgamento próprio, a cada execução (ver
+// `_shared-contract.md`), e o `overall_score` é só a média deles em
+// `aggregate-report.mjs` — nenhum dos dois é derivado dos findings. O resultado
+// é uma nota que se move sozinha: entre `5342ab0` (29) e `71280c9` (70.33) não
+// mudou uma linha de código de aplicação, só `dependabot.yml`, os próprios
+// relatórios, a versão do `actions/checkout` e um teto de turnos; Segurança foi
+// de 8 para 78 e Domínio financeiro de 7 para 55. Série completa:
+// 62.67 → 73 → 48.67 → 29 → 70.33.
+//
+// Não é falta de cobertura disfarçada: o contrato manda baixar a nota quando o
+// agente não conseguiu avaliar a seção, mas os dois runs acima gastaram esforço
+// equivalente (45/67/56 e 64/69/51 turnos). Essa regra ainda confunde "saúde do
+// código" com "quanto o agente olhou", e é uma segunda razão para não publicar
+// o número como métrica.
+//
+// Os valores crus seguem em `latest.json` e `registry/{history,metrics}.json`
+// para quem quiser investigar; o que sai daqui é só a apresentação deles.
 md.push('## Seções');
 md.push('');
-md.push('| Seção | Score | Risco | Tendência |');
-md.push('|---|---|---|---|');
+md.push('| Seção | Risco |');
+md.push('|---|---|');
 for (const s of run.sections) {
-  const t = trend.sections.find((x) => x.agent === s.agent);
-  const deltaStr = t && t.delta !== null ? `${t.delta >= 0 ? '+' : ''}${t.delta}` : '—';
-  md.push(`| ${s.name} | ${s.score} | ${s.risk} | ${deltaStr} |`);
+  md.push(`| ${s.name} | ${s.risk} |`);
 }
 md.push('');
 if (latest.possible_regressions.length > 0) {
