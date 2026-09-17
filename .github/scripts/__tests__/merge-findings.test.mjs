@@ -93,6 +93,27 @@ test('absorve um par duplicado pré-existente mantendo o ID mais antigo', () => 
   assert.equal(entry.occurrences, 6, 'herda a maior contagem (5) e soma a execução atual');
 });
 
+// Com três entradas na mesma chave, a ordem do array decide quantas trocas de
+// vencedor acontecem. Fora de ordem cronológica, cada troca é uma chance de
+// perder quem já havia sido absorvido — nenhum ID pode sair do registro sem
+// ficar rastreável em merged_from.
+test('não perde ID quando três entradas colidem fora de ordem de first_seen', () => {
+  const { registry } = runMerge({
+    registryFindings: [
+      registryEntry({ id: 'ARCH-003', category: 'architecture', occurrences: 4, first_seen: { commit: 'c', branch: 'main', date: '2026-09-10T00:00:00.000Z' } }),
+      registryEntry({ id: 'FIN-006', category: 'finance', occurrences: 2, first_seen: { commit: 'a', branch: 'main', date: '2026-09-05T00:00:00.000Z' } }),
+      registryEntry({ id: 'SEC-009', category: 'security', occurrences: 7, first_seen: { commit: 'b', branch: 'main', date: '2026-09-01T00:00:00.000Z' } }),
+    ],
+    runFindings: [finding({ category: 'security' })],
+  });
+
+  assert.equal(registry.findings.length, 1);
+  const [entry] = registry.findings;
+  assert.equal(entry.id, 'SEC-009', 'sobrevive o first_seen mais antigo');
+  assert.deepEqual([...entry.merged_from].sort(), ['ARCH-003', 'FIN-006'], 'os dois absorvidos ficam rastreáveis');
+  assert.equal(entry.occurrences, 8, 'herda a maior contagem (7) e soma a execução atual');
+});
+
 test('não reutiliza o número de um ID absorvido num finding novo', () => {
   const { registry } = runMerge({
     registryFindings: [

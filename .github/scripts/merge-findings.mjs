@@ -49,15 +49,16 @@ for (const f of registry.findings) {
   // Registro migrado tem no máximo uma entrada por chave. Se ainda houver par
   // remanescente, sobrevive o de first_seen mais antigo — é o ID que já foi
   // comunicado — e o outro é anotado em merged_from em vez de virar órfão.
+  // O merged_from do perdedor também é herdado: com três entradas na mesma
+  // chave fora de ordem de first_seen, quem já tinha sido absorvido sumiria
+  // sem rastro na troca de vencedor — o órfão silencioso de novo, por outra via.
   if (!existing) {
     byKey.set(f.natural_key, f);
-  } else if (f.first_seen.date < existing.first_seen.date) {
-    f.merged_from = [...(f.merged_from ?? []), existing.id];
-    f.occurrences = Math.max(f.occurrences, existing.occurrences);
-    byKey.set(f.natural_key, f);
   } else {
-    existing.merged_from = [...(existing.merged_from ?? []), f.id];
-    existing.occurrences = Math.max(existing.occurrences, f.occurrences);
+    const [keep, drop] = f.first_seen.date < existing.first_seen.date ? [f, existing] : [existing, f];
+    keep.merged_from = [...(keep.merged_from ?? []), ...(drop.merged_from ?? []), drop.id];
+    keep.occurrences = Math.max(keep.occurrences, drop.occurrences);
+    byKey.set(f.natural_key, keep);
   }
 }
 registry.findings = [...byKey.values()];
