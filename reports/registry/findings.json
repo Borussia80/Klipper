@@ -48,11 +48,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -83,15 +83,20 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "medium"
         }
       ],
-      "description": "InstrumentReadout continua com o rótulo de razão ('% da renda') e o texto de estado nulo hardcoded para o caso do dashboard, então orcamento.vue exibe a leitura textual errada para uma métrica que na verdade mede % do orçamento alocado, não % da renda.",
-      "recommendation": "Tornar o rótulo da razão e o texto do estado nulo props de InstrumentReadout, com cada página passando o texto correspondente ao que a razão realmente mede (ex.: 'do orçamento' em orcamento.vue, 'da renda' em dashboard.vue).",
-      "impact": 5,
-      "frequency": 10,
-      "reach": 10,
-      "effort": 2,
-      "priority_score": 250,
+      "description": "InstrumentReadout continua com o rótulo de razão ('% da renda') hardcoded no componente, então orcamento.vue exibe a leitura textual errada para uma métrica que na verdade mede % do orçamento alocado, não % da renda.",
+      "recommendation": "Tornar o rótulo da razão (e o texto do estado 'sem dado') props de InstrumentReadout, com cada página passando o texto correspondente ao que a razão realmente mede ('do orçamento' em orcamento.vue, 'da renda' em dashboard.vue).",
+      "impact": 3,
+      "frequency": 8,
+      "reach": 6,
+      "effort": 1,
+      "priority_score": 144,
       "adr_candidate": false
     },
     {
@@ -166,7 +171,7 @@
       "id": "ARCH-002",
       "category": "architecture",
       "natural_key": "lancamento-form-no-unit-test",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -220,7 +225,7 @@
       "id": "SEC-002",
       "category": "security",
       "natural_key": "health-endpoint-leaks-rails-env",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -323,7 +328,7 @@
       "id": "ARCH-003",
       "category": "architecture",
       "natural_key": "net-worth-formula-duplicated",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": "docs/adrs/proposed/ADR-2026-09-17-004.md",
       "first_seen": {
@@ -380,7 +385,7 @@
       "id": "ARCH-004",
       "category": "architecture",
       "natural_key": "financial-modals-zero-coverage",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -448,11 +453,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -483,22 +488,27 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "low"
         }
       ],
-      "description": "As 4 advisories (1 low, 3 high) reportadas anteriormente em devDependencies transitivas do toolchain de build já caíram para apenas 1 advisory low (esbuild) em cada um dos dois frontends, restando só o `npm audit fix` final; o lado Ruby/Rails segue limpo em bundler-audit e brakeman.",
-      "recommendation": "Rodar `npm audit fix` em apps/klipper-web e apps/quebec-web para fechar a advisory restante do esbuild, e adicionar `npm audit --audit-level=high` como step de CI em ambos os frontends para travar regressões antes de acumularem.",
+      "description": "klipper-web voltou a acumular uma advisory moderate (devalue, DoS) além da low já conhecida (esbuild); não há evidência no checkout de que devalue seja exercitado no caminho de request do servidor Nitro em produção (nuxt.config.ts tem ssr:false) — a exposição real depende de quando/como o Nuxt invoca essa dependência, o que este agente não conseguiu confirmar a partir do código-fonte.",
+      "recommendation": "Rodar `npm audit fix` em apps/klipper-web e apps/quebec-web (não requer --force) e adicionar `npm audit --audit-level=high` como step de CI em ambos os frontends para travar regressões antes de acumularem — mesma recomendação de auditorias anteriores, ainda não implementada.",
       "impact": 2,
-      "frequency": 3,
+      "frequency": 4,
       "reach": 3,
       "effort": 1,
-      "priority_score": 18,
+      "priority_score": 24,
       "adr_candidate": false
     },
     {
       "id": "ARCH-005",
       "category": "architecture",
       "natural_key": "wealth-pages-no-page-tests",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -557,7 +567,7 @@
       "id": "ARCH-006",
       "category": "architecture",
       "natural_key": "reports-controller-inline-aggregation",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": "docs/adrs/proposed/ADR-2026-09-16-001.md",
       "first_seen": {
@@ -616,7 +626,7 @@
       "id": "ARCH-007",
       "category": "architecture",
       "natural_key": "stock-quote-service-error-path-untested",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -668,7 +678,7 @@
       "id": "ARCH-008",
       "category": "architecture",
       "natural_key": "modal-lancamento-template-css-duplicated",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -722,7 +732,7 @@
       "id": "SEC-004",
       "category": "security",
       "natural_key": "quotes-ticker-unescaped-into-outbound-url",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -780,11 +790,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 5,
+      "occurrences": 6,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -810,9 +820,14 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "low"
         }
       ],
-      "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset de senha) segue sem qualquer rate limiting, diferente de todas as outras actions de autenticação não-autenticadas.",
+      "description": "O endpoint de redenção do token de reset de senha (PATCH /api/v1/password_resets/:token) continua sem qualquer rate limiting, diferente de todas as outras actions de autenticação não-autenticadas.",
       "recommendation": "Adicionar uma regra throttle no Rack::Attack para `req.patch? && req.path.start_with?(\"/api/v1/password_resets/\")`, por IP, espelhando a regra `auth/ip` existente.",
       "impact": 3,
       "frequency": 2,
@@ -834,11 +849,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -859,22 +874,27 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "critical"
         }
       ],
-      "description": "O computed spentRatio do hero do dashboard continua retornando 0 em vez de null quando não há receita no ciclo, fazendo InstrumentReadout renderizar uma barra 0%-preenchida como se fosse dado real em vez do estado 'sem dado' — a mesma proporção financeira sem cobertura de borda que a Regra de Ouro trata como crítica, e o helper que já corrige esse caso (pctOfIncome) está no mesmo arquivo sem ser usado aqui.",
-      "recommendation": "Substituir o computed spentRatio inline por pctOfIncome(totalDebits.value, totalCredits.value) e passar o resultado (null quando não há receita) ao InstrumentReadout, que já sabe renderizar o estado 'sem orçamento definido' para valor nulo; adicionar teste de página cobrindo o ciclo sem receita.",
-      "impact": 7,
-      "frequency": 5,
-      "reach": 7,
+      "description": "O computed spentRatio do hero do dashboard ainda retorna 0 (em vez de null) quando não há receita no ciclo, e InstrumentReadout.vue renderiza esse 0 como barra 0%-preenchida com 'Dentro da faixa do ciclo' — dado 'sem receita' indistinguível de 'gasto zero real'.",
+      "recommendation": "Substituir o computed inline por uma função equivalente a pctOfIncome que retorne null quando totalCredits for 0, replicando o padrão já usado em budgetSpentRatio (composables/useBudgetKpis.ts), e adicionar teste de página cobrindo o ciclo sem receita.",
+      "impact": 8,
+      "frequency": 6,
+      "reach": 8,
       "effort": 2,
-      "priority_score": 122.5,
+      "priority_score": 192,
       "adr_candidate": false
     },
     {
       "id": "ARCH-009",
       "category": "architecture",
       "natural_key": "base-modal-focus-trap-untested",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -932,11 +952,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -957,22 +977,27 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "critical"
         }
       ],
-      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição que o próprio autor documentou como não verificada, e nenhum teste cobre um débito real — dado de patrimônio de import bancário sem cobertura de caso normal (débito), tratado como crítico por definição.",
-      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado, mas registrado como pendência crítica de cobertura.",
-      "impact": 7,
-      "frequency": 1,
-      "reach": 2,
+      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição que o próprio código documenta como não verificada contra nenhum débito real, e a suíte de specs não cobre esse caso — dado de patrimônio de import bancário sem cobertura de caso normal (débito).",
+      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito na conta corrente, adicionar teste travando o sinal esperado antes de confiar esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado, mas registrado como pendência crítica de cobertura.",
+      "impact": 6,
+      "frequency": 2,
+      "reach": 4,
       "effort": 3,
-      "priority_score": 4.67,
+      "priority_score": 16,
       "adr_candidate": false
     },
     {
       "id": "ARCH-010",
       "category": "architecture",
       "natural_key": "modalstress-suite-docstring-overstates-coverage",
-      "status": "not_seen_last_run",
+      "status": "resolved",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1020,11 +1045,11 @@
         "date": "2026-09-17T09:59:23.653Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 3,
+      "occurrences": 4,
       "severity_history": [
         {
           "date": "2026-09-17T09:59:23.653Z",
@@ -1040,15 +1065,20 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "low"
         }
       ],
-      "description": "O access token JWT continua em cookie legível por JavaScript (sem httpOnly), mas a CSP com nonce por request já implementada reduz significativamente o raio de um XSS futuro em relação ao estado anterior; nenhum sink de XSS explorável foi encontrado nesta auditoria.",
-      "recommendation": "Se o `adr_candidate` para mover o access token a um cookie HttpOnly lido só pelo backend (Bearer → cookie-based + CSRF) ainda estiver em aberto, decidir explicitamente entre implementá-lo ou aceitar formalmente a exposição residual agora que a CSP já mitiga boa parte do risco — não deixar como pendência implícita.",
+      "description": "O access token JWT segue em cookie legível por JavaScript (mitigado por CSP com nonce, sem sink de XSS explorável encontrado nesta auditoria), e o ADR-2026-09-17-003 que formalizaria essa aceitação de risco continua com status `proposed`, não decidido.",
+      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 — aceitar formalmente a exposição residual (mudar status para `accepted`) ou implementar a migração para cookie HttpOnly + CSRF — em vez de deixá-lo indefinidamente como `proposed`.",
       "impact": 4,
       "frequency": 1,
       "reach": 2,
-      "effort": 4,
-      "priority_score": 2,
+      "effort": 1,
+      "priority_score": 8,
       "adr_candidate": true
     },
     {
@@ -1064,11 +1094,11 @@
         "date": "2026-09-17T10:49:00.167Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T10:49:00.167Z",
@@ -1079,15 +1109,20 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "critical"
         }
       ],
-      "description": "PortfolioService#allocation reporta 0.0% de alocação para todos os tipos de investimento sempre que o custo líquido total da carteira é zero ou negativo, mesmo havendo posições reais, e nenhum teste cobre esse caso de borda — violação direta da regra de cálculo financeiro sem teste de borda.",
-      "recommendation": "Adicionar teste com investimentos cujo total_cost líquido seja negativo (vendas líquidas superam compras) e decidir/documentar explicitamente a leitura correta para esse caso (ex.: pct negativo, ou null com aviso na UI) em vez de silenciar todas as porcentagens como 0.0%.",
-      "impact": 6,
-      "frequency": 2,
-      "reach": 5,
-      "effort": 2,
-      "priority_score": 30,
+      "description": "PortfolioService#allocation continua reportando 0.0% de alocação para todos os tipos sempre que o custo líquido total da carteira é zero ou negativo (vendas líquidas superando compras), mesmo havendo posições reais, sem nenhum teste cobrindo total_cost negativo.",
+      "recommendation": "Adicionar spec com investimentos cujo total_cost líquido seja negativo e decidir/documentar explicitamente a leitura correta (pct negativo, ou null com aviso na UI) em vez de silenciar todas as porcentagens como 0.0%.",
+      "impact": 7,
+      "frequency": 3,
+      "reach": 6,
+      "effort": 3,
+      "priority_score": 42,
       "adr_candidate": false
     },
     {
@@ -1103,11 +1138,11 @@
         "date": "2026-09-17T10:49:00.167Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T10:49:00.167Z",
@@ -1118,15 +1153,20 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "medium"
         }
       ],
-      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o item de rastreabilidade da checklist financeira do projeto.",
-      "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo) na transação no momento do import e expor essa proveniência em transacoes.vue (ex.: tooltip ou coluna 'origem'), para permitir auditar/depurar um lançamento até o extrato que o gerou.",
-      "impact": 5,
-      "frequency": 6,
-      "reach": 8,
+      "description": "Uma transação importada via CSV/PDF continua sem nenhuma referência persistida ao arquivo/lote de origem, então não é possível rastreá-la de volta ao extrato que a gerou em nenhuma tela após o import concluir.",
+      "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo) na transação no momento do import e expor essa proveniência em transacoes.vue (ex.: tooltip ou coluna 'origem').",
+      "impact": 4,
+      "frequency": 4,
+      "reach": 5,
       "effort": 5,
-      "priority_score": 48,
+      "priority_score": 16,
       "adr_candidate": true
     },
     {
@@ -1142,11 +1182,11 @@
         "date": "2026-09-17T10:49:00.167Z"
       },
       "last_seen": {
-        "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
+        "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
         "branch": "main",
-        "date": "2026-09-17T19:54:53.368Z"
+        "date": "2026-09-17T23:14:02.981Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T10:49:00.167Z",
@@ -1157,22 +1197,27 @@
           "date": "2026-09-17T19:54:53.368Z",
           "commit": "e0f07a0b20f4e373552e194e387f6750449c2e45",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-17T23:14:02.981Z",
+          "commit": "eaa01fe4fba4a51aa93ca3a4f815e6042216ba5a",
+          "severity": "critical"
         }
       ],
-      "description": "ReimbursementCoverageCalculator pode reportar coverage_pct acima de 100% quando o valor reembolsado excede o gasto do mês de referência, e esse caso de borda de uma proporção financeira nunca é exercitado por teste.",
-      "recommendation": "Adicionar caso de teste com reimbursed > spent no mês de referência e decidir explicitamente (documentando em código) se >100% é uma leitura válida (ex.: pagamento atrasado de mês anterior) ou se deveria ser limitado/sinalizado separadamente na UI.",
-      "impact": 3,
-      "frequency": 2,
-      "reach": 3,
-      "effort": 1,
-      "priority_score": 18,
+      "description": "ReimbursementCoverageCalculator pode reportar coverage_pct acima de 100% quando o reembolso do mês de referência excede o gasto do mesmo mês, e esse caso de borda de uma proporção financeira segue sem nenhum teste na suíte atual.",
+      "recommendation": "Adicionar caso de teste com reimbursed > spent no mês de referência e documentar explicitamente no código se >100% é leitura válida (ex.: reembolso atrasado de mês anterior) ou se deveria ser limitado/sinalizado na UI.",
+      "impact": 6,
+      "frequency": 3,
+      "reach": 5,
+      "effort": 2,
+      "priority_score": 45,
       "adr_candidate": false
     },
     {
       "id": "ARCH-011",
       "category": "architecture",
       "natural_key": "global-singleton-composables-untested",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1206,7 +1251,7 @@
       "id": "ARCH-012",
       "category": "architecture",
       "natural_key": "usereports-shared-loading-state-race",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1240,7 +1285,7 @@
       "id": "ARCH-013",
       "category": "architecture",
       "natural_key": "investment-signed-cost-triple-implementation",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1274,7 +1319,7 @@
       "id": "ARCH-014",
       "category": "architecture",
       "natural_key": "modal-field-css-duplicated-across-entity-modals",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1308,7 +1353,7 @@
       "id": "ARCH-015",
       "category": "architecture",
       "natural_key": "occurred-on-validation-duplicated-across-models",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
