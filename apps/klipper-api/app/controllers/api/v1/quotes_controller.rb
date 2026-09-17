@@ -9,7 +9,7 @@ module Api
 
         result = StockQuoteService.fetch(tickers.split(","))
         render json: result
-      rescue StockQuoteService::InvalidTicker, URI::InvalidURIError => e
+      rescue StockQuoteService::InvalidTicker => e
         # Entrada malformada é erro do chamador, não indisponibilidade do
         # brapi.dev: antes caía no 500 genérico (SEC-004).
         render json: { error: "Parâmetro 'tickers' inválido: #{e.message}" }, status: :unprocessable_entity
