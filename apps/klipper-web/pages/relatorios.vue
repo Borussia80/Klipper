@@ -44,19 +44,19 @@
           <div class="tile">
             <div class="plbl" style="margin-bottom:4px">Gastos</div>
             <div class="mono" style="font-size:16px;font-weight:500;color:var(--alert)">
-              {{ isLoading ? '—' : formatBRL(monthly?.total_debits ?? 0) }}
+              {{ isLoading || !monthly ? '—' : formatBRL(monthly.total_debits) }}
             </div>
           </div>
           <div class="tile">
             <div class="plbl" style="margin-bottom:4px">Receitas</div>
             <div class="mono" style="font-size:16px;font-weight:500;color:var(--ok)">
-              {{ isLoading ? '—' : formatBRL(monthly?.total_credits ?? 0) }}
+              {{ isLoading || !monthly ? '—' : formatBRL(monthly.total_credits) }}
             </div>
           </div>
           <div class="tile">
             <div class="plbl" style="margin-bottom:4px">Saldo</div>
             <div class="mono" style="font-size:16px;font-weight:500" :class="netClass">
-              {{ isLoading ? '—' : formatBRL(monthly?.net ?? 0) }}
+              {{ isLoading || !monthly ? '—' : formatBRL(monthly.net) }}
             </div>
           </div>
         </div>
@@ -96,7 +96,7 @@
         <div class="tile nw-hero">
           <div class="plbl" style="margin-bottom:6px">Patrimônio Líquido</div>
           <div class="mono" style="font-size:26px;font-weight:600;color:var(--t1)">
-            {{ isLoading ? '—' : formatBRL(netWorth?.net_worth ?? 0) }}
+            {{ isLoading || !netWorth ? '—' : formatBRL(netWorth.net_worth) }}
           </div>
         </div>
 
@@ -122,13 +122,13 @@
           <div class="tile">
             <div class="plbl" style="margin-bottom:4px">Contas</div>
             <div class="mono" style="font-size:16px;font-weight:500;color:var(--blue)">
-              {{ isLoading ? '—' : formatBRL(netWorth?.accounts_total ?? 0) }}
+              {{ isLoading || !netWorth ? '—' : formatBRL(netWorth.accounts_total) }}
             </div>
           </div>
           <div class="tile">
             <div class="plbl" style="margin-bottom:4px">Investimentos</div>
             <div class="mono" style="font-size:16px;font-weight:500;color:var(--blue)">
-              {{ isLoading ? '—' : formatBRL(netWorth?.investments_cost ?? 0) }}
+              {{ isLoading || !netWorth ? '—' : formatBRL(netWorth.investments_cost) }}
             </div>
           </div>
         </div>
