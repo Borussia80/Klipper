@@ -47,6 +47,11 @@ class ReimbursementCoverageCalculator
 
     spent      = spent_in(year, month)
     reimbursed = reimbursed_in(year, month)
+    # Sem teto em 100 de propósito: reembolso é lançado no mês em que o dinheiro
+    # cai, não no mês do gasto que ele cobre, então 150% é o caso normal de um
+    # reembolso atrasado entrando agora — informação que o usuário quer ver.
+    # Limitar em 100 apagaria justamente esse sinal. nil quando não houve gasto,
+    # porque aí a razão não existe (FIN-009).
     coverage_pct = spent.positive? ? (reimbursed / spent * 100).round(1) : nil
 
     historical_pcts = historical_months.filter_map do |(y, m)|

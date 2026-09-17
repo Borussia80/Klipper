@@ -131,6 +131,31 @@ RSpec.describe ReimbursementCoverageCalculator, type: :service do
     expect(result[:alert]).to be false
   end
 
+  # FIN-009: reembolso é lançado no mês em que o dinheiro cai, não no mês do gasto
+  # que ele cobre. Então cobertura acima de 100% é o caso normal de um reembolso
+  # atrasado entrando agora, e é informação que o usuário quer ver — este teste
+  # existe para que ninguém "conserte" isso com um teto em 100 por achar que é bug.
+  # A barra na tela tem overflow: hidden, então o excesso é recortado sem quebrar
+  # o layout.
+  it "reports coverage above 100% instead of capping it, when a late reimbursement lands" do
+    debit_in(year: 2026, month: 7, amount: 100)
+    credit_in(year: 2026, month: 7, amount: 250)
+
+    expect(result[:spent]).to eq(100.0)
+    expect(result[:reimbursed]).to eq(250.0)
+    expect(result[:coverage_pct]).to eq(250.0)
+  end
+
+  it "reports coverage above 100% in the historical average too" do
+    d = reference_date.prev_month(1)
+    debit_in(year: d.year, month: d.month, amount: 100)
+    credit_in(year: d.year, month: d.month, amount: 300)
+    debit_in(year: 2026, month: 7, amount: 100)
+    credit_in(year: 2026, month: 7, amount: 100)
+
+    expect(result[:historical_avg_pct]).to eq(300.0)
+  end
+
   it "respects a custom months: window" do
     d = reference_date.prev_month(1)
     debit_in(year: d.year, month: d.month, amount: 100)

@@ -15,7 +15,9 @@ export interface PortfolioAllocation {
   investment_type: string
   count: number
   total_cost: number
-  pct_of_portfolio: number
+  // null quando o custo líquido da carteira é zero ou negativo: porcentagem sobre
+  // base zero não existe, e o back devolve nil em vez de fingir 0,0% (FIN-007).
+  pct_of_portfolio: number | null
 }
 
 export interface PortfolioTotals {

@@ -13,7 +13,13 @@ class PortfolioService
 
     investments.map do |type, group|
       type_cost = group.sum(&:signed_cost)
-      pct = total_cost.positive? ? (type_cost / total_cost * 100).round(1) : 0.0
+      # nil, não 0.0: porcentagem sobre base zero ou negativa não existe. Antes
+      # devolvia 0,0% para TODOS os tipos sempre que o custo líquido da carteira
+      # não era positivo, e a tela desenhava uma alocação de zero que não se
+      # distinguia de dado real — sendo que as posições existiam. nil é o mesmo
+      # contrato que ReimbursementCoverageCalculator já usa para proporção sem
+      # base, e obriga o front a mostrar "sem dado" (FIN-007).
+      pct = total_cost.positive? ? (type_cost / total_cost * 100).round(1) : nil
       {
         investment_type: type,
         count:           group.size,

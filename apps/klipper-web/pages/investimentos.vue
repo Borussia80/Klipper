@@ -29,7 +29,7 @@
       <div style="margin-top:20px;background:var(--sf);border:1px solid var(--bd2);border-radius:10px;padding:18px 20px">
         <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin-bottom:14px">Alocação por classe</div>
         <!-- Dynamic allocation bar -->
-        <div v-if="portfolio" style="display:flex;border-radius:6px;overflow:hidden;height:8px;gap:2px;margin-bottom:14px">
+        <div v-if="portfolio && hasAllocationPct" style="display:flex;border-radius:6px;overflow:hidden;height:8px;gap:2px;margin-bottom:14px">
           <div
             v-for="seg in portfolio.by_type"
             :key="seg.investment_type"
@@ -37,10 +37,15 @@
             :title="`${typeLabel(seg.investment_type)} ${seg.pct_of_portfolio}%`"
           />
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px 20px">
+        <!-- FIN-007: sem base não há barra. Desenhar uma faixa de larguras zeradas
+             seria mostrar uma alocação medida onde não houve medida nenhuma. -->
+        <div v-else-if="portfolio" data-testid="alloc-sem-base" style="font-size:11px;color:var(--t3);margin-bottom:14px">
+          Sem alocação a exibir: o custo líquido da carteira é zero ou negativo.
+        </div>
+        <div data-testid="alloc-legenda" style="display:flex;flex-wrap:wrap;gap:8px 20px">
           <div v-for="seg in portfolio?.by_type ?? []" :key="seg.investment_type" style="display:flex;align-items:center;gap:6px">
             <div :style="`width:8px;height:8px;border-radius:2px;background:${typeColor(seg.investment_type)};flex-shrink:0`"></div>
-            <span style="font-size:11px;color:var(--t2)">{{ typeLabel(seg.investment_type) }} <strong style="color:var(--t1)">{{ seg.pct_of_portfolio }}%</strong></span>
+            <span style="font-size:11px;color:var(--t2)">{{ typeLabel(seg.investment_type) }} <strong style="color:var(--t1)">{{ seg.pct_of_portfolio === null ? '—' : `${seg.pct_of_portfolio}%` }}</strong></span>
           </div>
         </div>
       </div>
@@ -87,6 +92,14 @@ definePageMeta({ layout: 'app' })
 const { open } = useModal()
 const { investments, portfolio, isLoading, error, fetchInvestments, fetchPortfolio } = useInvestments()
 const { formatBRL } = useFormatters()
+
+// O nil de pct_of_portfolio vem do denominador, que é o custo líquido da carteira
+// inteira — então ou todos os tipos vêm nulos ou nenhum vem. `every` cobre os dois
+// casos sem depender dessa garantia, e devolve true para carteira vazia, que é o
+// comportamento de antes (FIN-007).
+const hasAllocationPct = computed(() =>
+  (portfolio.value?.by_type ?? []).every((seg) => seg.pct_of_portfolio !== null),
+)
 
 onMounted(() => { fetchInvestments(); fetchPortfolio() })
 
