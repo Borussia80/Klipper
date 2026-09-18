@@ -32,6 +32,20 @@ module Api
         render json: @transaction
       end
 
+      # O extrato importado antes do UR-2 entrou sem conta, e enquanto estiver
+      # assim saldo, caixa e patrimônio não fecham. Corrigir uma a uma não é um
+      # pedido razoável para trezentas e quarenta e cinco linhas.
+      def assign_account
+        account = current_user.accounts.find_by(id: params[:account_id])
+        return render_error("Conta inválida") if account.nil?
+
+        updated = current_user.transactions.where(account_id: nil).update_all(
+          account_id: account.id, updated_at: Time.current
+        )
+
+        render json: { updated: updated }
+      end
+
       def create
         unless valid_transaction_fks?
           return render json: { errors: [ "Conta, categoria ou portador inválido" ] }, status: :unprocessable_entity

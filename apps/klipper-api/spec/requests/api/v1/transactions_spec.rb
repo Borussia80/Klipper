@@ -304,4 +304,73 @@ RSpec.describe "Transactions API", type: :request do
       expect { txn.reload }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
+
+  # As 345 transações importadas antes do UR-2 ficaram sem conta. Enquanto
+  # estiverem assim, saldo, caixa e patrimônio não fecham — e corrigir uma a uma
+  # não é um pedido razoável.
+  describe "POST /api/v1/transactions/assign_account" do
+    let!(:orfas) do
+      [
+        create(:transaction, user: user, account: nil, occurred_on: "2026-06-01"),
+        create(:transaction, user: user, account: nil, occurred_on: "2026-06-02")
+      ]
+    end
+
+    it "returns 401 without token" do
+      post "/api/v1/transactions/assign_account", params: { account_id: account.id }
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "assigns the account to every orphan transaction" do
+      post "/api/v1/transactions/assign_account", params: { account_id: account.id }.to_json, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response[:updated]).to eq(2)
+      expect(orfas.map { |t| t.reload.account_id }).to all(eq(account.id))
+    end
+
+    # Só as órfãs: quem já tem conta escolhida não é sobrescrito por uma ação
+    # em massa disparada de um banner.
+    it "does not touch transactions that already have an account" do
+      outra = create(:account, user: user)
+      ja_tem = create(:transaction, user: user, account: outra, occurred_on: "2026-06-03")
+
+      post "/api/v1/transactions/assign_account", params: { account_id: account.id }.to_json, headers: headers
+
+      expect(ja_tem.reload.account_id).to eq(outra.id)
+      expect(json_response[:updated]).to eq(2)
+    end
+
+    it "rejects an account that belongs to someone else" do
+      alheia = create(:account, user: create(:user))
+
+      post "/api/v1/transactions/assign_account", params: { account_id: alheia.id }.to_json, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(orfas.map { |t| t.reload.account_id }).to all(be_nil)
+    end
+
+    it "rejects a missing account_id" do
+      post "/api/v1/transactions/assign_account", headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(orfas.first.reload.account_id).to be_nil
+    end
+
+    it "does not touch another user's orphan transactions" do
+      alheia = create(:transaction, user: create(:user), account: nil, occurred_on: "2026-06-04")
+
+      post "/api/v1/transactions/assign_account", params: { account_id: account.id }.to_json, headers: headers
+
+      expect(alheia.reload.account_id).to be_nil
+    end
+
+    it "reports zero when there is nothing to fix" do
+      orfas.each { |t| t.update!(account: account) }
+
+      post "/api/v1/transactions/assign_account", params: { account_id: account.id }.to_json, headers: headers
+
+      expect(json_response[:updated]).to eq(0)
+    end
+  end
 end

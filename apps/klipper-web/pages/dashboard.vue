@@ -24,7 +24,7 @@
       {{ dashboardError }}
     </div>
 
-    <UiDataHealthBanner :health="dataHealth" style="margin-bottom:20px" />
+    <UiDataHealthBanner :health="dataHealth" style="margin-bottom:20px" @corrigido="recarregar" />
 
     <!-- Loading skeleton -->
     <template v-if="dashboardLoading">
@@ -253,6 +253,12 @@ async function loadMes() {
   fetchNaturezaSplit(refYear.value, refMonth.value, activeMemberId.value)
   fetchReimbursementCoverage(refYear.value, refMonth.value)
   fetchMonthlySeries(refYear.value, refMonth.value, MESES_DA_SERIE, activeMemberId.value)
+}
+
+// Ligar os lançamentos a uma conta muda o saldo e muda a própria faixa.
+function recarregar() {
+  fetchDataHealth()
+  loadMes()
 }
 
 onMounted(() => {

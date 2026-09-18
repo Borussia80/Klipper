@@ -387,4 +387,20 @@ describe('filterTransactions', () => {
   it('retorna array vazio se nenhuma transação bater', () => {
     expect(filterTransactions([], 'credit')).toHaveLength(0)
   })
+  describe('assignAccountToOrphans', () => {
+    it('envia a conta escolhida e devolve quantos lançamentos foram ligados', async () => {
+      mockApiFetch.mockResolvedValue({ updated: 345 })
+
+      const { useTransactions } = await import('../useTransactions')
+      const { assignAccountToOrphans } = useTransactions()
+      const updated = await assignAccountToOrphans(7)
+
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/transactions/assign_account', {
+        method: 'POST',
+        body: { account_id: 7 },
+      })
+      expect(updated).toBe(345)
+    })
+  })
+
 })
