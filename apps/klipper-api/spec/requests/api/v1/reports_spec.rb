@@ -78,6 +78,54 @@ RSpec.describe "Api::V1::Reports", type: :request do
     end
   end
 
+  # O painel mostrava orçamento e relatórios vazios sem dizer por quê: as 345
+  # transações importadas entraram sem categoria e sem conta. O número tem que
+  # estar na tela, senão o usuário conclui que o app não funciona.
+  describe "GET /api/v1/reports/data_health" do
+    let(:account) { create(:account, user: user) }
+    let(:cat) { create(:category, user: user) }
+
+    before do
+      create(:transaction, user: user, category: cat, account: account, occurred_on: "2026-06-01")
+      create(:transaction, user: user, category: nil, account: account, occurred_on: "2026-06-02")
+      create(:transaction, user: user, category: nil, account: nil, occurred_on: "2026-06-03")
+      create(:transaction, user: user, category: cat, account: nil, occurred_on: "2026-06-04")
+    end
+
+    it "returns 401 without token" do
+      get "/api/v1/reports/data_health"
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "counts the transactions that still lack category or account" do
+      get "/api/v1/reports/data_health", headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      body = JSON.parse(response.body)
+      expect(body["transactions"]).to eq(4)
+      expect(body["uncategorized"]).to eq(2)
+      expect(body["without_account"]).to eq(2)
+    end
+
+    it "does not count another user's transactions" do
+      other = create(:user)
+      create(:transaction, user: other, category: nil, account: nil, occurred_on: "2026-06-05")
+
+      get "/api/v1/reports/data_health", headers: auth_headers
+
+      body = JSON.parse(response.body)
+      expect(body["transactions"]).to eq(4)
+      expect(body["uncategorized"]).to eq(2)
+    end
+
+    it "returns zeros for a user without any transaction" do
+      get "/api/v1/reports/data_health", headers: auth_headers_for(create(:user))
+
+      body = JSON.parse(response.body)
+      expect(body).to include("transactions" => 0, "uncategorized" => 0, "without_account" => 0)
+    end
+  end
+
   describe "GET /api/v1/reports/monthly_series" do
     before do
       create(:transaction, user: user, amount: 5000.00, transaction_type: "credit", occurred_on: "2026-06-05")

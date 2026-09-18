@@ -23,6 +23,8 @@ const mockFetchTransactions = vi.fn(async (_filters?: Record<string, unknown>) =
 const mockFetchNaturezaSplit = vi.fn()
 const mockFetchMonthlySeries = vi.fn()
 const monthlySeries = ref<{ points: MonthlySeriesPoint[] } | null>(null)
+const mockFetchDataHealth = vi.fn()
+const dataHealth = ref<{ transactions: number; uncategorized: number; without_account: number } | null>(null)
 const mockFetchReimbursementCoverage = vi.fn()
 
 mockNuxtImport('useTransactions', () => () => ({
@@ -46,6 +48,8 @@ mockNuxtImport('useReports', () => () => ({
   fetchNaturezaSplit: mockFetchNaturezaSplit,
   monthlySeries,
   fetchMonthlySeries: mockFetchMonthlySeries,
+  dataHealth,
+  fetchDataHealth: mockFetchDataHealth,
   debtRanking: ref(null),
   fetchDebtRanking: vi.fn(),
   reimbursementCoverage: ref(null),
@@ -276,5 +280,47 @@ describe('dashboard.vue — série mensal', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-testid="fluxo-mes"]').exists()).toBe(false)
+  })
+})
+
+/**
+ * A faixa de categorização fica acima do painel porque explica o painel: sem
+ * categoria, os blocos que dependem dela ficam vazios.
+ */
+describe('dashboard.vue — faixa de categorização', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    transactions.value = [debit('120.00')]
+    totalDebits.value = 120
+    totalCredits.value = 0
+    latestOccurredOn.value = null
+    dataHealth.value = { transactions: 345, uncategorized: 338, without_account: 345 }
+  })
+
+  afterEach(() => {
+    dataHealth.value = null
+    wrapper?.unmount()
+    wrapper = null
+  })
+
+  it('pede a contagem ao montar e mostra a faixa', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(mockFetchDataHealth).toHaveBeenCalled()
+    expect(wrapper.find('[data-testid="data-health"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('338 de 345')
+  })
+
+  // A faixa aparece antes do estado vazio: quando o mês está sem lançamento, ela
+  // continua sendo a explicação de por que as outras telas estão vazias.
+  it('aparece mesmo com o mês sem lançamento', async () => {
+    transactions.value = []
+    totalDebits.value = 0
+
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="data-health"]').exists()).toBe(true)
   })
 })

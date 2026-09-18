@@ -34,6 +34,12 @@ export interface NetWorthHistoryReport {
   points: NetWorthHistoryPoint[]
 }
 
+export interface DataHealthReport {
+  transactions: number
+  uncategorized: number
+  without_account: number
+}
+
 export interface MonthlySeriesPoint {
   year: number
   month: number
@@ -102,6 +108,7 @@ export function useReports() {
   const netWorth = ref<NetWorthReport | null>(null)
   const netWorthHistory = ref<NetWorthHistoryReport | null>(null)
   const monthlySeries = ref<MonthlySeriesReport | null>(null)
+  const dataHealth = ref<DataHealthReport | null>(null)
   const naturezaSplit = ref<NaturezaSplitReport | null>(null)
   const reimbursementCoverage = ref<ReimbursementCoverageReport | null>(null)
   const debtRanking = ref<DebtRankingReport | null>(null)
@@ -155,6 +162,18 @@ export function useReports() {
       })
     } catch {
       error.value = 'Erro ao carregar histórico de patrimônio.'
+    } finally {
+      pendingRequests.value--
+    }
+  }
+
+  async function fetchDataHealth() {
+    pendingRequests.value++
+    error.value = null
+    try {
+      dataHealth.value = await apiFetch<DataHealthReport>('/api/v1/reports/data_health')
+    } catch {
+      error.value = 'Erro ao carregar a saúde dos dados.'
     } finally {
       pendingRequests.value--
     }
@@ -237,6 +256,7 @@ export function useReports() {
     netWorth,
     netWorthHistory,
     monthlySeries,
+    dataHealth,
     naturezaSplit,
     reimbursementCoverage,
     debtRanking,
@@ -246,6 +266,7 @@ export function useReports() {
     fetchNetWorth,
     fetchNetWorthHistory,
     fetchMonthlySeries,
+    fetchDataHealth,
     fetchNaturezaSplit,
     fetchReimbursementCoverage,
     fetchDebtRanking,

@@ -199,6 +199,29 @@ describe('useReports', () => {
     })
   })
 
+  describe('fetchDataHealth', () => {
+    it('populates dataHealth state with API response', async () => {
+      mockApiFetch.mockResolvedValue({ transactions: 345, uncategorized: 338, without_account: 345 })
+
+      const { useReports } = await import('../useReports')
+      const { dataHealth, fetchDataHealth } = useReports()
+      await fetchDataHealth()
+
+      expect(dataHealth.value).toEqual({ transactions: 345, uncategorized: 338, without_account: 345 })
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/reports/data_health')
+    })
+
+    it('sets error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+
+      const { useReports } = await import('../useReports')
+      const { error, fetchDataHealth } = useReports()
+      await fetchDataHealth()
+
+      expect(error.value).toBe('Erro ao carregar a saúde dos dados.')
+    })
+  })
+
   describe('fetchMonthlySeries', () => {
     const payload = {
       points: [
