@@ -125,14 +125,20 @@
         <!-- Account selector -->
         <div style="margin:16px 0">
           <label class="plbl" for="import-account" style="display:block;margin-bottom:6px">
-            Conta de destino <span style="color:var(--t3)">(opcional)</span>
+            Conta de destino
           </label>
-          <div class="sel-wrap">
+          <div v-if="accounts.length" class="sel-wrap">
             <select id="import-account" v-model="selectedAccountId" class="fi fi-sel" aria-label="Conta para creditar as transações">
-              <option :value="undefined">Sem conta vinculada</option>
+              <option :value="undefined" disabled>Selecione a conta</option>
               <option v-for="acc in accounts" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
             </select>
             <span class="sel-caret" aria-hidden="true">▾</span>
+          </div>
+          <div v-else data-testid="import-sem-conta" style="background:var(--sf);border:1px solid var(--bd2);border-radius:8px;padding:12px 14px">
+            <div style="font-size:12px;color:var(--t2);margin-bottom:10px">
+              Você ainda não tem conta cadastrada. Sem ela os lançamentos entram sem origem, e o saldo por conta não fecha.
+            </div>
+            <button class="btn" type="button" @click="open('nova-conta')">Cadastrar conta</button>
           </div>
         </div>
 
@@ -154,7 +160,7 @@
         <button
           class="btn btn-p"
           style="width:100%"
-          :disabled="!selectedFile || isLoading"
+          :disabled="!selectedFile || !selectedAccountId || isLoading"
           @click="handleUpload"
         >
           <span v-if="isLoading" class="btn-spinner" aria-hidden="true" />
@@ -204,6 +210,7 @@ definePageMeta({ layout: 'app' })
 
 const router = useRouter()
 const { accounts, fetchAccounts } = useAccounts()
+const { open } = useModal()
 const { members, fetchMembers } = useMembers()
 const { result, preview, isLoading, error, uploadFile, previewFile, confirmImport, reset } = useImport()
 const { formatFullDate } = useFormatters()
