@@ -195,9 +195,10 @@ import type { ModalName } from '~/composables/useModal'
 const route = useRoute()
 const { open } = useModal()
 
-// As mesmas ações já registradas na paleta de comandos, que ninguém achava
-// atrás de uma caixa rotulada "Buscar" (UR-5). Cartão abre o modal de conta
-// com o tipo certo já escolhido — mesma tabela, entrada própria.
+// As criações que só existiam na paleta de comandos, que ninguém achava atrás
+// de uma caixa rotulada "Buscar" (UR-5). Cartão abre o modal de conta com o
+// tipo certo já escolhido — mesma tabela, entrada própria — e por isso não tem
+// equivalente na paleta.
 interface AcaoDeCriacao {
   label: string
   modal: ModalName
