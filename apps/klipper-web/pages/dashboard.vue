@@ -208,7 +208,7 @@ function commitmentTone(pct: number | null): 'warn' | 'alert' | 'neutral' {
 
 const netResult = computed(() => totalCredits.value - totalDebits.value)
 
-const spentRatio = computed(() => (totalCredits.value > 0 ? totalDebits.value / totalCredits.value : 0))
+const spentRatio = computed(() => pctOfIncome(totalDebits.value, totalCredits.value))
 
 const heroDetail = computed(() => {
   if (totalCredits.value <= 0 && totalDebits.value <= 0) return undefined
