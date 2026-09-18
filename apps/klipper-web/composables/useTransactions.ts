@@ -103,6 +103,16 @@ export function useTransactions() {
     if (!options.silent) addToast('Lançamento removido', 'ok')
   }
 
+  // O extrato importado antes do UR-2 entrou sem conta. A correção é em massa
+  // porque o problema é em massa: são trezentas e quarenta e cinco linhas.
+  async function assignAccountToOrphans(accountId: number) {
+    const data = await apiFetch<{ updated: number }>('/api/v1/transactions/assign_account', {
+      method: 'POST',
+      body: { account_id: accountId },
+    })
+    return data.updated
+  }
+
   const totalDebits = computed(() =>
     transactions.value
       .filter((t) => t.transaction_type === 'debit')
@@ -123,6 +133,7 @@ export function useTransactions() {
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    assignAccountToOrphans,
     totalDebits,
     totalCredits,
   }

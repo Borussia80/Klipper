@@ -12,7 +12,9 @@ Rails.application.routes.draw do
       resources :accounts,      only: %i[index show create update destroy]
       resources :categories,    only: %i[index show create update destroy]
       resources :members,       only: %i[index show create update destroy]
-      resources :transactions,  only: %i[index show create update destroy]
+      resources :transactions,  only: %i[index show create update destroy] do
+        collection { post :assign_account }
+      end
       resources :investments,   only: %i[index show create update destroy] do
         collection { get :portfolio }
       end

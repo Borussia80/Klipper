@@ -13,6 +13,7 @@ import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import type { Transaction } from '~/composables/useTransactions'
 import type { MonthlySeriesPoint } from '~/composables/useReports'
 import Dashboard from '../dashboard.vue'
+import DataHealthBanner from '~/components/ui/DataHealthBanner.vue'
 
 const transactions = ref<Transaction[]>([])
 const totalDebits = ref(0)
@@ -314,6 +315,21 @@ describe('dashboard.vue — faixa de categorização', () => {
 
   // A faixa aparece antes do estado vazio: quando o mês está sem lançamento, ela
   // continua sendo a explicação de por que as outras telas estão vazias.
+  // Ligar os lançamentos à conta muda o saldo e muda a própria faixa: o painel
+  // recarrega em vez de mostrar o estado anterior até o próximo F5.
+  it('recarrega a contagem e o mês depois de ligar os lançamentos à conta', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+    mockFetchDataHealth.mockClear()
+    mockFetchTransactions.mockClear()
+
+    wrapper.findComponent(DataHealthBanner).vm.$emit('corrigido')
+    await flushPromises()
+
+    expect(mockFetchDataHealth).toHaveBeenCalled()
+    expect(mockFetchTransactions).toHaveBeenCalled()
+  })
+
   it('aparece mesmo com o mês sem lançamento', async () => {
     transactions.value = []
     totalDebits.value = 0
