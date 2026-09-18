@@ -4,6 +4,36 @@
     aria-label="Navegação principal"
     style="border-right:1px solid var(--bd);overflow-y:auto;padding:12px 0;background:var(--bg-frame)"
   >
+    <div ref="criarWrapRef" class="criar-wrap" style="padding:0 12px 12px" @keydown.esc="criarAberto = false">
+      <button
+        class="btn nav-cta"
+        type="button"
+        style="width:100%"
+        aria-haspopup="menu"
+        :aria-expanded="criarAberto"
+        @click="criarAberto = !criarAberto"
+      >
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+          <line x1="5.5" y1="1" x2="5.5" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="1" y1="5.5" x2="10" y2="5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        Criar
+      </button>
+
+      <div v-if="criarAberto" class="criar-menu" role="menu" aria-label="Criar">
+        <button
+          v-for="acao in acoesDeCriacao"
+          :key="acao.modal + acao.label"
+          type="button"
+          role="menuitem"
+          class="criar-item"
+          @click="criar(acao)"
+        >
+          {{ acao.label }}
+        </button>
+      </div>
+    </div>
+
     <ul role="list" style="list-style:none;padding:0;margin:0">
       <li>
         <NuxtLink
@@ -151,21 +181,6 @@
       </li>
     </ul>
 
-    <div style="padding:10px 12px 0">
-      <button
-        class="btn nav-cta"
-        style="width:100%"
-        aria-label="Criar novo lançamento"
-        @click="open('novo-lancamento')"
-      >
-        <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
-          <line x1="5.5" y1="1" x2="5.5" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-          <line x1="1" y1="5.5" x2="10" y2="5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-        Novo lançamento
-      </button>
-    </div>
-
     <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px;margin-top:auto" aria-label="Atalhos de teclado">
       <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--t3)"><kbd>N</kbd> novo</span>
       <span style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--t3)"><kbd>K</kbd> buscar</span>
@@ -175,8 +190,46 @@
 </template>
 
 <script setup lang="ts">
+import type { ModalName } from '~/composables/useModal'
+
 const route = useRoute()
 const { open } = useModal()
+
+// As criações que só existiam na paleta de comandos, que ninguém achava atrás
+// de uma caixa rotulada "Buscar" (UR-5). Cartão abre o modal de conta com o
+// tipo certo já escolhido — mesma tabela, entrada própria — e por isso não tem
+// equivalente na paleta.
+interface AcaoDeCriacao {
+  label: string
+  modal: ModalName
+  payload?: string
+}
+
+const acoesDeCriacao: AcaoDeCriacao[] = [
+  { label: 'Novo lançamento', modal: 'novo-lancamento' },
+  { label: 'Nova conta', modal: 'nova-conta' },
+  { label: 'Novo cartão', modal: 'nova-conta', payload: 'cartao' },
+  { label: 'Novo investimento', modal: 'novo-aporte' },
+]
+
+const criarAberto = ref(false)
+const criarWrapRef = ref<HTMLElement | null>(null)
+
+function criar(acao: AcaoDeCriacao) {
+  criarAberto.value = false
+  open(acao.modal, acao.payload ?? null)
+}
+
+function fecharSeForaDoMenu(event: MouseEvent) {
+  if (!criarWrapRef.value?.contains(event.target as Node)) criarAberto.value = false
+}
+
+watch(criarAberto, (aberto: boolean) => {
+  if (aberto) document.addEventListener('click', fecharSeForaDoMenu, true)
+  else document.removeEventListener('click', fecharSeForaDoMenu, true)
+})
+
+onBeforeUnmount(() => document.removeEventListener('click', fecharSeForaDoMenu, true))
 
 // Mesma regra de alarme do dashboard: orçamento com limite definido e >80% usado
 const { summary } = useBudgets()
@@ -200,4 +253,34 @@ const alarmCount = computed(
 .nav-cta:hover {
   background: linear-gradient(150deg, #E3B872, var(--brass));
 }
+
+.criar-wrap { position: relative; }
+
+.criar-menu {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  z-index: 20;
+  margin-top: 4px;
+  padding: 4px;
+  background: var(--sf);
+  border: 1px solid var(--bd2);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+}
+
+.criar-item {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--t2);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.criar-item:hover { background: var(--ly); color: var(--t1); }
+.criar-item:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
 </style>

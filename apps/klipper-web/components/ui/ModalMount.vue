@@ -25,7 +25,11 @@ const { activeModal, modalPayload, close } = useModal()
     :transaction="(modalPayload as Transaction | null)"
     @close="close"
   />
-  <ModalNovaConta :open="activeModal === 'nova-conta'" @close="close" />
+  <ModalNovaConta
+    :open="activeModal === 'nova-conta'"
+    :preset-tipo="(modalPayload as string | null)"
+    @close="close"
+  />
   <ModalNovoAporte :open="activeModal === 'novo-aporte'" @close="close" />
   <ModalNovaCategoria :open="activeModal === 'nova-categoria'" @close="close" />
   <ModalNovoMembro :open="activeModal === 'novo-portador'" @close="close" />
