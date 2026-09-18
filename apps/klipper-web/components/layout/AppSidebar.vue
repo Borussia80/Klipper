@@ -223,7 +223,7 @@ function fecharSeForaDoMenu(event: MouseEvent) {
   if (!criarWrapRef.value?.contains(event.target as Node)) criarAberto.value = false
 }
 
-watch(criarAberto, (aberto) => {
+watch(criarAberto, (aberto: boolean) => {
   if (aberto) document.addEventListener('click', fecharSeForaDoMenu, true)
   else document.removeEventListener('click', fecharSeForaDoMenu, true)
 })

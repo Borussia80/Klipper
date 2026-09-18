@@ -81,7 +81,7 @@ const tipo = ref('corrente')
 
 // "Novo cartão" na sidebar abre este mesmo modal: cartão mora em accounts, mas
 // é entrada própria para quem está cadastrando (UR-5/UR-7).
-watch(() => props.open, (aberto) => {
+watch(() => props.open, (aberto: boolean) => {
   if (aberto) tipo.value = props.presetTipo ?? 'corrente'
 })
 const identificador = ref('')
