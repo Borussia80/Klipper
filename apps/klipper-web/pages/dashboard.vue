@@ -28,8 +28,9 @@
     </template>
 
     <!-- Empty state -->
-    <UiEmptyState v-else-if="!hasData" size="lg" message="Nenhum lançamento neste mês ainda.">
+    <UiEmptyState v-else-if="!hasData" size="lg" :message="emptyMessage">
       <template #actions>
+        <NuxtLink v-if="latestOccurredOn" class="btn" to="/relatorios">Ver histórico</NuxtLink>
         <NuxtLink class="btn btn-p" to="/importar">Importar extrato</NuxtLink>
       </template>
     </UiEmptyState>
@@ -145,11 +146,12 @@ const {
   totalDebits,
   totalCredits,
   fetchTransactions,
+  fetchLatestOccurredOn,
   isLoading: transactionsLoading,
   error: transactionsError,
 } = useTransactions()
 const { members, fetchMembers, error: membersError } = useMembers()
-const { formatBRL, currentMonthLabel, formatDayMonth } = useFormatters()
+const { formatBRL, currentMonthLabel, formatDayMonth, formatFullDate, fmtMonthFull } = useFormatters()
 const {
   naturezaSplit,
   fetchNaturezaSplit,
@@ -168,8 +170,21 @@ const dashboardError = computed(
 )
 const hasData = computed(() => transactions.value.length > 0)
 
+// Mês corrente vazio não é o mesmo que base vazia: só sabemos a diferença
+// perguntando pela última data registrada (UR-1).
+const latestOccurredOn = ref<string | null>(null)
+
 const now = new Date()
 const activeMemberId = ref<number | undefined>(undefined)
+
+// Sem nenhum lançamento em lugar nenhum a mensagem original continua certa;
+// com histórico em outro mês, dizer só "nenhum lançamento" faz o usuário achar
+// que a importação falhou — foi o que aconteceu no primeiro uso real.
+const emptyMessage = computed(() =>
+  latestOccurredOn.value
+    ? `Nenhum lançamento em ${fmtMonthFull()}. Seu histórico vai até ${formatFullDate(latestOccurredOn.value)}.`
+    : 'Nenhum lançamento neste mês ainda.'
+)
 
 const dateLabel = computed(() => {
   const weekday = new Intl.DateTimeFormat('pt-BR', { weekday: 'long' }).format(now)
@@ -177,8 +192,11 @@ const dateLabel = computed(() => {
   return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${full} · ciclo em andamento`
 })
 
-function loadTransactions() {
-  fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1, member_id: activeMemberId.value })
+async function loadTransactions() {
+  await fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1, member_id: activeMemberId.value })
+  latestOccurredOn.value = hasData.value
+    ? null
+    : await fetchLatestOccurredOn({ member_id: activeMemberId.value })
 }
 
 function loadNaturezaSplit() {

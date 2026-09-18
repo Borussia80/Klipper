@@ -59,6 +59,24 @@ export function useTransactions() {
     }
   }
 
+  /**
+   * Data do lançamento mais recente do usuário, ignorando o recorte de mês.
+   * O painel só busca o mês corrente, então um mês vazio é indistinguível de
+   * uma base vazia — e depois de importar meio ano de extrato o usuário lia
+   * "nenhum lançamento" e concluía que a importação falhou (UR-1). Uma linha
+   * basta para responder: `index` já ordena por occurred_on desc.
+   */
+  async function fetchLatestOccurredOn(filters: TransactionFilters = {}): Promise<string | null> {
+    try {
+      const rows = await apiFetch<Transaction[]>('/api/v1/transactions', {
+        query: { ...filters, per_page: 1 },
+      })
+      return rows[0]?.occurred_on ?? null
+    } catch {
+      return null
+    }
+  }
+
   async function createTransaction(payload: Partial<Transaction>) {
     const data = await apiFetch<Transaction>('/api/v1/transactions', {
       method: 'POST',
@@ -101,6 +119,7 @@ export function useTransactions() {
     isLoading,
     error,
     fetchTransactions,
+    fetchLatestOccurredOn,
     createTransaction,
     updateTransaction,
     deleteTransaction,
