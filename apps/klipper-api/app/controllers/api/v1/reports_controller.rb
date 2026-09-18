@@ -2,7 +2,7 @@ module Api
   module V1
     class ReportsController < BaseController
       after_action :log_export_audit_event, only: %i[
-        monthly natureza_split reimbursement_coverage debt_ranking
+        monthly monthly_series natureza_split reimbursement_coverage debt_ranking
         net_worth net_worth_history
       ]
 
@@ -19,6 +19,23 @@ module Api
         @export_record_count = calculator.record_count
 
         render json: { year: year, month: month, **summary }
+      end
+
+      def monthly_series
+        year  = params[:year]&.to_i  || Date.current.year
+        month = params[:month]&.to_i || Date.current.month
+
+        calculator = MonthlySeriesCalculator.new(
+          @current_user,
+          year: year,
+          month: month,
+          months: params[:months]&.to_i || MonthlySeriesCalculator::DEFAULT_MONTHS,
+          member_id: params[:member_id]
+        )
+        series = calculator.call
+        @export_record_count = calculator.record_count
+
+        render json: series
       end
 
       def natureza_split

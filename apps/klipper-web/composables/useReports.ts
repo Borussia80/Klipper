@@ -34,6 +34,18 @@ export interface NetWorthHistoryReport {
   points: NetWorthHistoryPoint[]
 }
 
+export interface MonthlySeriesPoint {
+  year: number
+  month: number
+  total_credits: number
+  total_debits: number
+  net: number
+}
+
+export interface MonthlySeriesReport {
+  points: MonthlySeriesPoint[]
+}
+
 export interface NaturezaSplitRow {
   natureza: 'fixo' | 'cartao_parcelamento' | 'variavel'
   total: number
@@ -89,6 +101,7 @@ export function useReports() {
   const monthly = ref<MonthlyReport | null>(null)
   const netWorth = ref<NetWorthReport | null>(null)
   const netWorthHistory = ref<NetWorthHistoryReport | null>(null)
+  const monthlySeries = ref<MonthlySeriesReport | null>(null)
   const naturezaSplit = ref<NaturezaSplitReport | null>(null)
   const reimbursementCoverage = ref<ReimbursementCoverageReport | null>(null)
   const debtRanking = ref<DebtRankingReport | null>(null)
@@ -142,6 +155,28 @@ export function useReports() {
       })
     } catch {
       error.value = 'Erro ao carregar histórico de patrimônio.'
+    } finally {
+      pendingRequests.value--
+    }
+  }
+
+  // A janela inteira vem em uma resposta só: o gráfico de tendência com seis
+  // chamadas de fetchMonthly seriam seis idas ao servidor para desenhar uma linha.
+  async function fetchMonthlySeries(year?: number, month?: number, months?: number, memberId?: number) {
+    pendingRequests.value++
+    error.value = null
+    try {
+      const now = new Date()
+      monthlySeries.value = await apiFetch<MonthlySeriesReport>('/api/v1/reports/monthly_series', {
+        query: {
+          year: year ?? now.getFullYear(),
+          month: month ?? now.getMonth() + 1,
+          months: months,
+          member_id: memberId,
+        },
+      })
+    } catch {
+      error.value = 'Erro ao carregar a série mensal.'
     } finally {
       pendingRequests.value--
     }
@@ -201,6 +236,7 @@ export function useReports() {
     monthly,
     netWorth,
     netWorthHistory,
+    monthlySeries,
     naturezaSplit,
     reimbursementCoverage,
     debtRanking,
@@ -209,6 +245,7 @@ export function useReports() {
     fetchMonthly,
     fetchNetWorth,
     fetchNetWorthHistory,
+    fetchMonthlySeries,
     fetchNaturezaSplit,
     fetchReimbursementCoverage,
     fetchDebtRanking,

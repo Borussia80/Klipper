@@ -11,6 +11,7 @@ import type { VueWrapper } from '@vue/test-utils'
 import { flushPromises } from '@vue/test-utils'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import type { Transaction } from '~/composables/useTransactions'
+import type { MonthlySeriesPoint } from '~/composables/useReports'
 import Dashboard from '../dashboard.vue'
 
 const transactions = ref<Transaction[]>([])
@@ -20,6 +21,8 @@ const latestOccurredOn = ref<string | null>(null)
 
 const mockFetchTransactions = vi.fn(async (_filters?: Record<string, unknown>) => {})
 const mockFetchNaturezaSplit = vi.fn()
+const mockFetchMonthlySeries = vi.fn()
+const monthlySeries = ref<{ points: MonthlySeriesPoint[] } | null>(null)
 const mockFetchReimbursementCoverage = vi.fn()
 
 mockNuxtImport('useTransactions', () => () => ({
@@ -41,6 +44,8 @@ mockNuxtImport('useMembers', () => () => ({
 mockNuxtImport('useReports', () => () => ({
   naturezaSplit: ref(null),
   fetchNaturezaSplit: mockFetchNaturezaSplit,
+  monthlySeries,
+  fetchMonthlySeries: mockFetchMonthlySeries,
   debtRanking: ref(null),
   fetchDebtRanking: vi.fn(),
   reimbursementCoverage: ref(null),
@@ -214,5 +219,62 @@ describe('dashboard.vue — mês mostrado segue o movimento', () => {
 
     expect(wrapper.find('[data-testid="mes-fallback"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Nenhum lançamento neste mês ainda.')
+  })
+})
+
+/**
+ * A série mensal responde a pergunta que vem depois de "quanto neste mês":
+ * estou melhorando ou piorando? Ela termina no mês mostrado — se o painel
+ * recuou para junho, a janela é jan–jun, não abr–set.
+ */
+describe('dashboard.vue — série mensal', () => {
+  const pontos: MonthlySeriesPoint[] = [
+    { year: 2026, month: 1, total_credits: 4000, total_debits: 3000, net: 1000 },
+    { year: 2026, month: 2, total_credits: 0, total_debits: 0, net: 0 },
+    { year: 2026, month: 3, total_credits: 4000, total_debits: 5000, net: -1000 },
+    { year: 2026, month: 4, total_credits: 4000, total_debits: 2000, net: 2000 },
+    { year: 2026, month: 5, total_credits: 0, total_debits: 999, net: -999 },
+    { year: 2026, month: 6, total_credits: 5000, total_debits: 2500, net: 2500 },
+  ]
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-09-18T12:00:00'))
+    transactions.value = [debit('120.00')]
+    totalDebits.value = 120
+    totalCredits.value = 0
+    latestOccurredOn.value = null
+    monthlySeries.value = { points: pontos }
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    monthlySeries.value = null
+    wrapper?.unmount()
+    wrapper = null
+  })
+
+  it('pede a janela de seis meses terminando no mês mostrado', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(mockFetchMonthlySeries).toHaveBeenLastCalledWith(2026, 9, 6, undefined)
+  })
+
+  it('desenha uma coluna por mês da janela', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(wrapper.findAll('[data-testid="fluxo-mes"]')).toHaveLength(6)
+  })
+
+  it('sem série carregada, não desenha o bloco', async () => {
+    monthlySeries.value = null
+
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="fluxo-mes"]').exists()).toBe(false)
   })
 })
