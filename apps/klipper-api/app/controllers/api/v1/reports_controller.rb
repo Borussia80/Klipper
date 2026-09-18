@@ -2,7 +2,7 @@ module Api
   module V1
     class ReportsController < BaseController
       after_action :log_export_audit_event, only: %i[
-        monthly monthly_series natureza_split reimbursement_coverage debt_ranking
+        monthly monthly_series data_health natureza_split reimbursement_coverage debt_ranking
         net_worth net_worth_history
       ]
 
@@ -36,6 +36,21 @@ module Api
         @export_record_count = calculator.record_count
 
         render json: series
+      end
+
+      # Quanto do que foi importado ainda não dá para usar. O painel precisa do
+      # número para dizer por que o orçamento está vazio, em vez de deixar o
+      # usuário concluir que a importação falhou.
+      def data_health
+        scope = @current_user.transactions
+        total = scope.count
+        @export_record_count = total
+
+        render json: {
+          transactions: total,
+          uncategorized: scope.where(category_id: nil).count,
+          without_account: scope.where(account_id: nil).count
+        }
       end
 
       def natureza_split

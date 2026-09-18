@@ -32,6 +32,7 @@ Rails.application.routes.draw do
       namespace :reports do
         get :monthly
         get :monthly_series
+        get :data_health
         get :net_worth
         get :net_worth_history
         get :natureza_split

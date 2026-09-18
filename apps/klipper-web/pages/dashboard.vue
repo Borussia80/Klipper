@@ -24,6 +24,8 @@
       {{ dashboardError }}
     </div>
 
+    <UiDataHealthBanner :health="dataHealth" style="margin-bottom:20px" />
+
     <!-- Loading skeleton -->
     <template v-if="dashboardLoading">
       <UiSkeletonCard v-for="n in 4" :key="n" style="margin-bottom:8px" />
@@ -172,6 +174,8 @@ const {
   fetchNaturezaSplit,
   monthlySeries,
   fetchMonthlySeries,
+  dataHealth,
+  fetchDataHealth,
   debtRanking,
   fetchDebtRanking,
   reimbursementCoverage,
@@ -256,6 +260,7 @@ onMounted(() => {
   fetchCategories()
   loadMes()
   fetchDebtRanking()
+  fetchDataHealth()
 })
 
 watch(activeMemberId, () => {
