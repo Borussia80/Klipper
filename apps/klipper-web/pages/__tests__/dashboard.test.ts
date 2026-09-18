@@ -340,3 +340,60 @@ describe('dashboard.vue — faixa de categorização', () => {
     expect(wrapper.find('[data-testid="data-health"]').exists()).toBe(true)
   })
 })
+
+/**
+ * Densidade do mockup v2: o hero deixa de descrever o mês em prosa e passa a
+ * mostrar entradas e saídas como dois números em mono, com a régua de ritmo
+ * logo abaixo — 80% da renda gasta no dia 10 é outra história que no dia 28.
+ */
+describe('dashboard.vue — densidade do hero', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-09-18T12:00:00'))
+    transactions.value = [debit('120.00')]
+    totalCredits.value = 5000
+    totalDebits.value = 2500
+    latestOccurredOn.value = null
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    wrapper?.unmount()
+    wrapper = null
+  })
+
+  it('mostra entradas e saídas como dois números, não como frase', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    const legs = wrapper.findAll('[data-testid="readout-leg"]')
+    expect(legs).toHaveLength(2)
+    expect(legs[0]!.text()).toContain('Entradas')
+    expect(legs[1]!.text()).toContain('Saídas')
+    expect(wrapper.text()).not.toContain('em entradas contra')
+  })
+
+  it('no mês corrente, mostra quanto do mês já passou', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="ritmo-dia"]').text()).toBe('dia 18 de 30')
+  })
+
+  it('quando o painel recuou, o mês está fechado e não tem ritmo a medir', async () => {
+    transactions.value = []
+    latestOccurredOn.value = '2026-06-29'
+    mockFetchTransactions.mockImplementation(async (filters) => {
+      const { month } = (filters ?? {}) as { month: number }
+      transactions.value = month === 6 ? [debit('120.00')] : []
+    })
+
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="ritmo-fechado"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="ritmo-dia"]').exists()).toBe(false)
+    mockFetchTransactions.mockImplementation(async () => {})
+  })
+})

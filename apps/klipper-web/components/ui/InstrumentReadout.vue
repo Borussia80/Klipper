@@ -3,13 +3,20 @@
  * Hero faceplate do dashboard (direção náutica premium).
  * Instrumento primário: resultado do mês, com moldura, gradiente e barra
  * de faixa — nunca um número solto no vazio.
+ * As pernas são as parcelas que compõem o número grande (entradas e saídas):
+ * dois valores em mono, que se leem de relance, no lugar de uma frase.
  */
+export interface ReadoutLeg {
+  label: string
+  value: string
+  tone?: 'ok' | 'sea'
+}
 const props = withDefaults(defineProps<{
   label: string
   netValue: number
   formattedValue: string
   spentRatio: number | null
-  detail?: string
+  legs?: ReadoutLeg[]
   compact?: boolean
   showBar?: boolean
 }>(), {
@@ -30,7 +37,12 @@ const scaleLabel = computed(() =>
     <div class="hero-lbl">{{ label }}</div>
     <div class="hero-row">
       <div class="hero-num mono" :class="netValue < 0 ? 'neg' : 'pos'">{{ formattedValue }}</div>
-      <div v-if="detail" data-testid="readout-detail" class="hero-delta">{{ detail }}</div>
+      <div v-if="legs?.length" class="hero-legs">
+        <div v-for="leg in legs" :key="leg.label" data-testid="readout-leg" class="hero-leg">
+          <div class="leg-lbl">{{ leg.label }}</div>
+          <div class="leg-val mono" :class="leg.tone">{{ leg.value }}</div>
+        </div>
+      </div>
     </div>
     <template v-if="showBar">
       <div v-if="!hasRatio" data-testid="readout-no-budget" class="hero-no-budget">
@@ -77,7 +89,12 @@ const scaleLabel = computed(() =>
 .hero-num { font-size: clamp(36px, 6vw, 52px); font-weight: 600; line-height: 1; }
 .hero-num.pos { color: var(--ok); }
 .hero-num.neg { color: var(--alert); }
-.hero-delta { font-size: 13px; color: var(--t2); padding-bottom: 6px; }
+.hero-legs { display: flex; gap: 22px; padding-bottom: 4px; }
+.hero-leg + .hero-leg { border-left: 1px solid var(--bd); padding-left: 22px; }
+.leg-lbl { font-size: 11px; color: var(--t3); margin-bottom: 3px; }
+.leg-val { font-size: 17px; font-weight: 600; color: var(--t1); }
+.leg-val.ok { color: var(--ok); }
+.leg-val.sea { color: var(--sea); }
 .hero-bar {
   margin-top: 20px; height: 8px; border-radius: 5px;
   background: #0A121C; border: 1px solid var(--bd); overflow: hidden; display: flex;
