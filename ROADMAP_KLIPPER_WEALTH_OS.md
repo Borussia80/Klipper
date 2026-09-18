@@ -330,7 +330,9 @@ não de auditoria automatizada. Ordem de execução acordada: UR-1 → UR-2 → 
 
 ### UR-1 — O painel diz "vazio" quando só o mês corrente está vazio
 
-**Estado atual: ❌ Aberto. Prioridade acordada: primeiro da fila.**
+**Estado atual: ✅ Implementado.** PR #109 (`ff373f5`): `fetchLatestOccurredOn()` pergunta
+pela última data registrada quando o mês corrente volta vazio, e o estado vazio passa a
+dizer até quando vai o histórico, com atalho para os relatórios.
 
 **Problema:** `dashboard.vue:181` busca apenas o mês corrente. Depois de importar 345
 lançamentos de janeiro a junho, o painel (em setembro) mostrou *"Nenhum lançamento neste
@@ -344,7 +346,9 @@ histórico.
 
 ### UR-2 — Importação aceita extrato sem conta de destino
 
-**Estado atual: ❌ Aberto.**
+**Estado atual: ✅ Implementado.** PR #111 (`c7277cb`): `account_id` obrigatório em
+`ImportsController#create` e `#confirm`, e a tela de importação oferece cadastrar a conta
+na hora quando não existe nenhuma.
 
 **Problema:** as 345 transações importadas ficaram com `account_id` nulo, e o usuário
 tinha 0 contas cadastradas. Saldo por conta, patrimônio e a rastreabilidade de origem
@@ -370,7 +374,11 @@ fuzzy + regras local, não ML.
 
 ### UR-4 — "Primeiros Passos" no painel, substituindo o onboarding órfão
 
-**Estado atual: ❌ Aberto.**
+**Estado atual: 🟡 Implementado no painel; a tela órfã continua no repo.**
+`components/ui/FirstSteps.vue` entrega o bloco com barra de progresso e as quatro etapas
+marcadas pelos dados reais. Apagar `pages/onboarding.vue` e `useOnboarding.ts` ficou
+pendente de confirmação explícita — nenhuma rota chega neles, então não há efeito para o
+usuário.
 
 **Problema:** `pages/onboarding.vue` existe, funciona (cria conta, categoria da meta e
 orçamento do mês via `useOnboarding`) e tem teste — mas **nenhuma rota leva até ele**.
@@ -392,7 +400,8 @@ Nenhum texto promete conexão bancária ou importação B3.
 
 ### UR-5 — As ações rápidas existem, mas estão rotuladas como busca
 
-**Estado atual: ❌ Aberto. Custo baixo: reusa o que já existe.**
+**Estado atual: ✅ Implementado.** PR #113 (`1936bd6`): menu "Criar" no topo da sidebar
+com lançamento, conta, cartão e investimento, cada um abrindo modal por cima da tela.
 
 **Problema:** `CommandPalette.vue` já oferece Novo Lançamento, Nova Carteira/Cartão,
 Aporte em Investimentos, Nova Categoria e Novo Portador, com atalhos ⌘K, `/` e `k`. O
@@ -408,7 +417,9 @@ Esc e clique externo já funcionam em `BaseModal.vue` (linhas 11 e 72) — o que
 
 ### UR-6 — Cadastro não confirma nada
 
-**Estado atual: ❌ Aberto. Resolvido junto com UR-4.**
+**Estado atual: 🟡 Parcial.** O UR-4 resolveu a metade "sabe o que fazer em seguida": o
+painel do recém-cadastrado tem os Primeiros Passos. Falta a metade "recebido por nome" —
+`useAuth.ts` continua navegando em silêncio.
 
 **Problema:** `useAuth.ts:33` faz login automático após o cadastro e navega para
 `/dashboard` sem nenhuma confirmação — sem toast, sem mensagem. A tela troca e o usuário
