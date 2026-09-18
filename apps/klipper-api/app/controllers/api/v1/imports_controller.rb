@@ -12,6 +12,11 @@ module Api
 
         BankImport::FileGuard.ensure_valid!(file, expected: :csv)
 
+        if params[:account_id].blank?
+          record_import_audit(status: "failure", record_count: 0)
+          return render json: { error: "Conta de destino obrigatória" }, status: :unprocessable_entity
+        end
+
         checksum = compute_checksum(file)
 
         result = CsvImportService.new(
@@ -49,6 +54,11 @@ module Api
       end
 
       def confirm
+        if params[:account_id].blank?
+          record_import_audit(status: "failure", record_count: 0)
+          return render json: { error: "Conta de destino obrigatória" }, status: :unprocessable_entity
+        end
+
         result = PdfImportService.new(@current_user, account_id: params[:account_id]).confirm(confirm_rows)
 
         total = result.imported + result.duplicates

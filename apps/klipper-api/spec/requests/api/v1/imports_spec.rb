@@ -4,6 +4,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
   let(:user) { create(:user) }
   let(:token) { JwtService.encode(user_id: user.id, token_version: user.token_version) }
   let(:auth_headers) { { "Authorization" => "Bearer #{token}" } }
+  let(:account) { create(:account, user: user) }
 
   let(:csv_content) do
     <<~CSV
@@ -16,15 +17,28 @@ RSpec.describe "Api::V1::Imports", type: :request do
   let(:csv_file) { Rack::Test::UploadedFile.new(StringIO.new(csv_content), 'text/csv', original_filename: 'extrato.csv') }
 
   describe "POST /api/v1/imports" do
+    # UR-2 — a primeira importação real do usuário deixou 345 transações sem
+    # conta, porque o seletor vinha com "Sem conta vinculada" por padrão.
+    it "recusa o lote sem conta de destino e não grava nada" do
+      expect {
+        post "/api/v1/imports",
+          params: { file: csv_file },
+          headers: auth_headers
+      }.not_to change { user.transactions.count }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(JSON.parse(response.body)["error"]).to eq("Conta de destino obrigatória")
+    end
+
     it "returns 401 without token" do
-      post "/api/v1/imports", params: { file: csv_file }
+      post "/api/v1/imports", params: { file: csv_file, account_id: account.id }
       expect(response).to have_http_status(:unauthorized)
     end
 
     it "creates transactions from CSV rows" do
       expect {
         post "/api/v1/imports",
-          params: { file: csv_file },
+          params: { file: csv_file, account_id: account.id },
           headers: auth_headers
       }.to change { user.transactions.count }.by(3)
 
@@ -33,7 +47,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
 
     it "returns import summary" do
       post "/api/v1/imports",
-        params: { file: csv_file },
+        params: { file: csv_file, account_id: account.id },
         headers: auth_headers
 
       json = JSON.parse(response.body)
@@ -43,7 +57,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
 
     it "sets debit type for negative amounts" do
       post "/api/v1/imports",
-        params: { file: csv_file },
+        params: { file: csv_file, account_id: account.id },
         headers: auth_headers
 
       supermercado = user.transactions.find_by(description: "COMPRA DÉBITO SUPERMERCADO EXTRA")
@@ -53,7 +67,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
 
     it "sets credit type for positive amounts" do
       post "/api/v1/imports",
-        params: { file: csv_file },
+        params: { file: csv_file, account_id: account.id },
         headers: auth_headers
 
       salario = user.transactions.find_by(description: "PIX RECEBIDO SALÁRIO")
@@ -64,7 +78,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
     it "auto-categorizes matching transactions" do
       create(:category, user: user, name: "Alimentação", category_type: "expense")
       post "/api/v1/imports",
-        params: { file: csv_file },
+        params: { file: csv_file, account_id: account.id },
         headers: auth_headers
 
       supermercado = user.transactions.find_by(description: "COMPRA DÉBITO SUPERMERCADO EXTRA")
@@ -82,9 +96,9 @@ RSpec.describe "Api::V1::Imports", type: :request do
     end
 
     it "ignores duplicates and reports them when the same CSV is imported twice" do
-      post "/api/v1/imports", params: { file: csv_file }, headers: auth_headers
+      post "/api/v1/imports", params: { file: csv_file, account_id: account.id }, headers: auth_headers
       second_upload = Rack::Test::UploadedFile.new(StringIO.new(csv_content), 'text/csv', original_filename: 'extrato.csv')
-      post "/api/v1/imports", params: { file: second_upload }, headers: auth_headers
+      post "/api/v1/imports", params: { file: second_upload, account_id: account.id }, headers: auth_headers
 
       json = JSON.parse(response.body)
       expect(json["imported"]).to eq(0)
@@ -101,7 +115,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
       fake_pdf = Rack::Test::UploadedFile.new(StringIO.new("%PDF-1.4\nnão é um csv"), "application/pdf", original_filename: "fatura.pdf")
 
       expect {
-        post "/api/v1/imports", params: { file: fake_pdf }, headers: auth_headers
+        post "/api/v1/imports", params: { file: fake_pdf, account_id: account.id }, headers: auth_headers
       }.not_to change { user.transactions.count }
 
       expect(response).to have_http_status(:unprocessable_content)
@@ -113,7 +127,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
       oversized_file = Rack::Test::UploadedFile.new(StringIO.new(oversized_content), "text/csv", original_filename: "gigante.csv")
 
       expect {
-        post "/api/v1/imports", params: { file: oversized_file }, headers: auth_headers
+        post "/api/v1/imports", params: { file: oversized_file, account_id: account.id }, headers: auth_headers
       }.not_to change { user.transactions.count }
 
       expect(response).to have_http_status(:unprocessable_content)
@@ -188,14 +202,27 @@ RSpec.describe "Api::V1::Imports", type: :request do
     end
 
     it "returns 401 without token" do
-      post "/api/v1/imports/confirm", params: { rows: rows }
+      post "/api/v1/imports/confirm", params: { rows: rows, account_id: account.id }
       expect(response).to have_http_status(:unauthorized)
+    end
+
+    # UR-2 — mesma regra do CSV: revisar as linhas não basta, a conta de destino
+    # tem que existir antes de qualquer transação ser gravada.
+    it "recusa o lote sem conta de destino e não grava nada" do
+      expect {
+        post "/api/v1/imports/confirm",
+          params: { rows: rows },
+          headers: auth_headers
+      }.not_to change { user.transactions.count }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(JSON.parse(response.body)["error"]).to eq("Conta de destino obrigatória")
     end
 
     it "creates transactions from the confirmed rows" do
       expect {
         post "/api/v1/imports/confirm",
-          params: { rows: rows },
+          params: { rows: rows, account_id: account.id },
           headers: auth_headers
       }.to change { user.transactions.count }.by(2)
 
@@ -216,7 +243,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
     end
 
     it "returns 200 with imported: 0 when rows is empty" do
-      post "/api/v1/imports/confirm", params: { rows: [] }, headers: auth_headers
+      post "/api/v1/imports/confirm", params: { rows: [], account_id: account.id }, headers: auth_headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
@@ -224,8 +251,8 @@ RSpec.describe "Api::V1::Imports", type: :request do
     end
 
     it "ignores duplicates and reports them when the same rows are confirmed twice" do
-      post "/api/v1/imports/confirm", params: { rows: rows }, headers: auth_headers
-      post "/api/v1/imports/confirm", params: { rows: rows }, headers: auth_headers
+      post "/api/v1/imports/confirm", params: { rows: rows, account_id: account.id }, headers: auth_headers
+      post "/api/v1/imports/confirm", params: { rows: rows, account_id: account.id }, headers: auth_headers
 
       json = JSON.parse(response.body)
       expect(json["imported"]).to eq(0)
@@ -281,7 +308,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
 
         expect {
           post "/api/v1/imports/confirm",
-            params: { rows: rows_with_member },
+            params: { rows: rows_with_member, account_id: account.id },
             headers: auth_headers
         }.not_to change { user.transactions.count }
 
@@ -317,7 +344,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
       rows = preview_rows
       first = rows.first
 
-      post "/api/v1/imports/confirm", params: { rows: rows }, headers: auth_headers
+      post "/api/v1/imports/confirm", params: { rows: rows, account_id: account.id }, headers: auth_headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
@@ -338,7 +365,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
         "occurred_on" => "2000-01-01"
       )
 
-      post "/api/v1/imports/confirm", params: { rows: tampered }, headers: auth_headers
+      post "/api/v1/imports/confirm", params: { rows: tampered, account_id: account.id }, headers: auth_headers
 
       expect(response).to have_http_status(:ok)
       json = JSON.parse(response.body)
@@ -356,7 +383,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
       without_token = rows.dup
       without_token[0] = rows.first.except("token")
 
-      post "/api/v1/imports/confirm", params: { rows: without_token }, headers: auth_headers
+      post "/api/v1/imports/confirm", params: { rows: without_token, account_id: account.id }, headers: auth_headers
 
       json = JSON.parse(response.body)
       expect(json["errors"].size).to eq(1)
@@ -375,7 +402,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
         }
 
         expect {
-          post "/api/v1/imports/confirm", params: { rows: rows }, headers: fresh_headers
+          post "/api/v1/imports/confirm", params: { rows: rows, account_id: account.id }, headers: fresh_headers
         }.not_to change { user.transactions.count }
       end
 
@@ -388,7 +415,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
   describe "audit logging" do
     it "creates an IMPORT_DATA audit log entry on successful CSV import" do
       expect {
-        post "/api/v1/imports", params: { file: csv_file }, headers: auth_headers
+        post "/api/v1/imports", params: { file: csv_file, account_id: account.id }, headers: auth_headers
       }.to change { AuditLog.where(event_type: "IMPORT_DATA", status: "success").count }.by(1)
 
       log = AuditLog.last
@@ -405,7 +432,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
       ]
 
       expect {
-        post "/api/v1/imports/confirm", params: { rows: rows }, headers: auth_headers
+        post "/api/v1/imports/confirm", params: { rows: rows, account_id: account.id }, headers: auth_headers
       }.to change { AuditLog.where(event_type: "IMPORT_DATA", status: "success").count }.by(1)
 
       log = AuditLog.last
@@ -435,7 +462,7 @@ RSpec.describe "Api::V1::Imports", type: :request do
       rows_without_token = rows.map { |r| r.except("token") }
 
       expect {
-        post "/api/v1/imports/confirm", params: { rows: rows_without_token }, headers: auth_headers
+        post "/api/v1/imports/confirm", params: { rows: rows_without_token, account_id: account.id }, headers: auth_headers
       }.to change { AuditLog.where(event_type: "IMPORT_DATA", status: "failure").count }.by(1)
 
       log = AuditLog.last
