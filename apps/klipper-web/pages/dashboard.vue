@@ -17,6 +17,8 @@
       </div>
     </div>
 
+    <UiFirstSteps style="margin-bottom:20px" />
+
     <!-- Error banner -->
     <div v-if="dashboardError" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin-bottom:16px">
       {{ dashboardError }}
