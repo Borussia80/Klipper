@@ -6,7 +6,7 @@
         <div class="page-sub">{{ dateLabel }}</div>
       </div>
       <div style="display:flex;gap:10px">
-        <div class="pill" style="cursor:default">{{ currentMonthLabel() }}</div>
+        <div class="pill" style="cursor:default">{{ currentMonthLabel(refDate) }}</div>
         <div class="pill brass sel-wrap">
           <select v-model="activeMemberId" class="fi-sel" aria-label="Filtrar por portador">
             <option :value="undefined">Todos os portadores</option>
@@ -38,6 +38,11 @@
     </UiEmptyState>
 
     <template v-else>
+      <div v-if="recuouParaUltimoMes" data-testid="mes-fallback" class="mes-fallback">
+        {{ fmtMonthFull() }} ainda não tem lançamentos. Mostrando
+        <strong>{{ fmtMonthFull(refDate) }}</strong>, o último mês com movimento.
+      </div>
+
       <UiInstrumentReadout
         style="margin-bottom:20px"
         label="Resultado do mês · operacional"
@@ -179,12 +184,21 @@ const latestOccurredOn = ref<string | null>(null)
 const now = new Date()
 const activeMemberId = ref<number | undefined>(undefined)
 
+// O mês do calendário não é necessariamente o mês que o usuário tem para ver:
+// quem importou um extrato de jan–jun e abriu o painel em setembro encontrou a
+// tela vazia. O painel recua para o último mês com movimento — e diz que recuou,
+// senão junho passa por setembro.
+const refDate = ref(new Date(now.getFullYear(), now.getMonth(), 1))
+const refYear = computed(() => refDate.value.getFullYear())
+const refMonth = computed(() => refDate.value.getMonth() + 1)
+const recuouParaUltimoMes = ref(false)
+
 // Sem nenhum lançamento em lugar nenhum a mensagem original continua certa;
 // com histórico em outro mês, dizer só "nenhum lançamento" faz o usuário achar
 // que a importação falhou — foi o que aconteceu no primeiro uso real.
 const emptyMessage = computed(() =>
   latestOccurredOn.value
-    ? `Nenhum lançamento em ${fmtMonthFull()}. Seu histórico vai até ${formatFullDate(latestOccurredOn.value)}.`
+    ? `Nenhum lançamento em ${fmtMonthFull(refDate.value)}. Seu histórico vai até ${formatFullDate(latestOccurredOn.value)}.`
     : 'Nenhum lançamento neste mês ainda.'
 )
 
@@ -195,28 +209,42 @@ const dateLabel = computed(() => {
 })
 
 async function loadTransactions() {
-  await fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1, member_id: activeMemberId.value })
-  latestOccurredOn.value = hasData.value
-    ? null
-    : await fetchLatestOccurredOn({ member_id: activeMemberId.value })
+  refDate.value = new Date(now.getFullYear(), now.getMonth(), 1)
+  recuouParaUltimoMes.value = false
+
+  await fetchTransactions({ year: refYear.value, month: refMonth.value, member_id: activeMemberId.value })
+  if (hasData.value) {
+    latestOccurredOn.value = null
+    return
+  }
+
+  latestOccurredOn.value = await fetchLatestOccurredOn({ member_id: activeMemberId.value })
+  if (!latestOccurredOn.value) return
+
+  const [ano, mes] = latestOccurredOn.value.split('-').map(Number)
+  if (ano === refYear.value && mes === refMonth.value) return
+
+  refDate.value = new Date(ano, mes - 1, 1)
+  recuouParaUltimoMes.value = true
+  await fetchTransactions({ year: refYear.value, month: refMonth.value, member_id: activeMemberId.value })
 }
 
-function loadNaturezaSplit() {
-  fetchNaturezaSplit(now.getFullYear(), now.getMonth() + 1, activeMemberId.value)
+// Os recortes do mês só podem ser pedidos depois que se sabe qual é o mês.
+async function loadMes() {
+  await loadTransactions()
+  fetchNaturezaSplit(refYear.value, refMonth.value, activeMemberId.value)
+  fetchReimbursementCoverage(refYear.value, refMonth.value)
 }
 
 onMounted(() => {
   fetchMembers()
   fetchCategories()
-  loadTransactions()
-  loadNaturezaSplit()
+  loadMes()
   fetchDebtRanking()
-  fetchReimbursementCoverage(now.getFullYear(), now.getMonth() + 1)
 })
 
 watch(activeMemberId, () => {
-  loadTransactions()
-  loadNaturezaSplit()
+  loadMes()
 })
 
 function commitmentTone(pct: number | null): 'warn' | 'alert' | 'neutral' {
@@ -278,6 +306,12 @@ const colsCount = computed(() =>
   color: inherit; font: inherit; cursor: pointer; padding-right: 16px;
 }
 .sel-caret { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 11px; pointer-events: none; }
+
+.mes-fallback {
+  background: var(--sf); border: 1px solid var(--brass-dim); border-radius: var(--r);
+  padding: 10px 14px; font-size: 12px; color: var(--t2); margin-bottom: 16px;
+}
+.mes-fallback strong { color: var(--brass); font-weight: 600; }
 
 .kpi-grid { display: grid; gap: 14px; margin-bottom: 20px; }
 .cols { display: grid; gap: 14px; margin-bottom: 14px; }
