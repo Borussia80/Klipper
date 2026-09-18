@@ -18,11 +18,15 @@ const totalDebits = ref(0)
 const totalCredits = ref(0)
 const latestOccurredOn = ref<string | null>(null)
 
+const mockFetchTransactions = vi.fn(async (_filters?: Record<string, unknown>) => {})
+const mockFetchNaturezaSplit = vi.fn()
+const mockFetchReimbursementCoverage = vi.fn()
+
 mockNuxtImport('useTransactions', () => () => ({
   transactions,
   totalDebits,
   totalCredits,
-  fetchTransactions: vi.fn(),
+  fetchTransactions: mockFetchTransactions,
   fetchLatestOccurredOn: vi.fn(async () => latestOccurredOn.value),
   isLoading: ref(false),
   error: ref(null),
@@ -36,11 +40,11 @@ mockNuxtImport('useMembers', () => () => ({
 
 mockNuxtImport('useReports', () => () => ({
   naturezaSplit: ref(null),
-  fetchNaturezaSplit: vi.fn(),
+  fetchNaturezaSplit: mockFetchNaturezaSplit,
   debtRanking: ref(null),
   fetchDebtRanking: vi.fn(),
   reimbursementCoverage: ref(null),
-  fetchReimbursementCoverage: vi.fn(),
+  fetchReimbursementCoverage: mockFetchReimbursementCoverage,
   isLoading: ref(false),
   error: ref(null),
 }))
@@ -135,5 +139,80 @@ describe('dashboard.vue — estado vazio', () => {
     expect(wrapper.text()).toContain('Seu histórico vai até 29/06/2026.')
     expect(wrapper.text()).not.toContain('Nenhum lançamento neste mês ainda.')
     expect(wrapper.find('a[href="/relatorios"]').exists()).toBe(true)
+  })
+})
+
+/**
+ * O painel abria sempre no mês do calendário. Com o extrato real do Roberto
+ * (jan–jun/2026) isso significava, em setembro, uma tela sem nada: 345
+ * lançamentos no banco e nenhum na frente dele. O mês mostrado passa a ser o
+ * último com movimento, dito em voz alta para não parecer o mês atual.
+ */
+describe('dashboard.vue — mês mostrado segue o movimento', () => {
+  let porMes: Record<string, Transaction[]> = {}
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-09-18T12:00:00'))
+    transactions.value = []
+    totalDebits.value = 0
+    totalCredits.value = 0
+    latestOccurredOn.value = '2026-06-29'
+    porMes = { '2026-6': [debit('120.00')] }
+    mockFetchTransactions.mockImplementation(async (filters) => {
+      const { year, month } = (filters ?? {}) as { year: number; month: number }
+      transactions.value = porMes[`${year}-${month}`] ?? []
+    })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    mockFetchTransactions.mockImplementation(async () => {})
+    wrapper?.unmount()
+    wrapper = null
+  })
+
+  it('setembro vazio com histórico até junho: mostra junho e diz que é o último mês com movimento', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(mockFetchTransactions).toHaveBeenCalledWith(expect.objectContaining({ year: 2026, month: 9 }))
+    expect(mockFetchTransactions).toHaveBeenCalledWith(expect.objectContaining({ year: 2026, month: 6 }))
+
+    const aviso = wrapper.find('[data-testid="mes-fallback"]')
+    expect(aviso.exists()).toBe(true)
+    expect(aviso.text()).toContain('Junho 2026')
+    expect(wrapper.text()).not.toContain('Nenhum lançamento')
+  })
+
+  it('os relatórios do mês seguem o mês mostrado, não o do calendário', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(mockFetchNaturezaSplit).toHaveBeenLastCalledWith(2026, 6, undefined)
+    expect(mockFetchReimbursementCoverage).toHaveBeenLastCalledWith(2026, 6)
+  })
+
+  it('com lançamentos no mês corrente, não volta no tempo', async () => {
+    porMes = { '2026-9': [debit('50.00')] }
+
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="mes-fallback"]').exists()).toBe(false)
+    expect(mockFetchTransactions).toHaveBeenCalledTimes(1)
+    expect(mockFetchNaturezaSplit).toHaveBeenLastCalledWith(2026, 9, undefined)
+  })
+
+  it('base inteira vazia: segue na tela vazia, sem inventar mês', async () => {
+    porMes = {}
+    latestOccurredOn.value = null
+
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="mes-fallback"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Nenhum lançamento neste mês ainda.')
   })
 })

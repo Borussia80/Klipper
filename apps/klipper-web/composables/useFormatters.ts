@@ -78,16 +78,15 @@ export function useFormatters() {
     return fullDate.format(parseISODate(iso))
   }
 
-  function currentMonthLabel(): string {
-    const now = new Date()
-    const abbr = monthShort.format(now).replace(/\.$/, '')
-    return `${abbr.charAt(0).toUpperCase() + abbr.slice(1)} ${now.getFullYear()}`
+  // O mês pode não ser o de hoje: o painel mostra o último mês com movimento.
+  function currentMonthLabel(date: Date = new Date()): string {
+    const abbr = monthShort.format(date).replace(/\.$/, '')
+    return `${abbr.charAt(0).toUpperCase() + abbr.slice(1)} ${date.getFullYear()}`
   }
 
-  function fmtMonthFull(): string {
-    const now = new Date()
-    const name = monthLong.format(now)
-    return `${name.charAt(0).toUpperCase() + name.slice(1)} ${now.getFullYear()}`
+  function fmtMonthFull(date: Date = new Date()): string {
+    const name = monthLong.format(date)
+    return `${name.charAt(0).toUpperCase() + name.slice(1)} ${date.getFullYear()}`
   }
 
   function daysLeftInMonth(): number {
