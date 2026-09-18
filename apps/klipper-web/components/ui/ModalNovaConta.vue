@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{ open: boolean }>()
+const props = defineProps<{ open: boolean; presetTipo?: string | null }>()
 const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
@@ -78,6 +78,12 @@ const ACCOUNT_TYPE_MAP: Record<string, string> = {
 
 const instituicao = ref('')
 const tipo = ref('corrente')
+
+// "Novo cartão" na sidebar abre este mesmo modal: cartão mora em accounts, mas
+// é entrada própria para quem está cadastrando (UR-5/UR-7).
+watch(() => props.open, (aberto) => {
+  if (aberto) tipo.value = props.presetTipo ?? 'corrente'
+})
 const identificador = ref('')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
