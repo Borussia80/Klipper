@@ -322,6 +322,126 @@ escrita.
 
 ---
 
+## Revisão de uso real — 2026-09-18 (primeiro uso local do app)
+
+Roberto rodou o app localmente pela primeira vez: criou conta, importou um extrato real
+(345 lançamentos, 02/01/2026 a 29/06/2026) e navegou. Os itens abaixo saíram desse uso,
+não de auditoria automatizada. Ordem de execução acordada: UR-1 → UR-2 → UR-5 → UR-4.
+
+### UR-1 — O painel diz "vazio" quando só o mês corrente está vazio
+
+**Estado atual: ❌ Aberto. Prioridade acordada: primeiro da fila.**
+
+**Problema:** `dashboard.vue:181` busca apenas o mês corrente. Depois de importar 345
+lançamentos de janeiro a junho, o painel (em setembro) mostrou *"Nenhum lançamento neste
+mês ainda"*. Tecnicamente correto e funcionalmente uma mentira: o usuário conclui que a
+importação falhou. Foi exatamente a conclusão do Roberto.
+
+**Critério de aceite:** quando o mês corrente não tem lançamentos mas existem lançamentos
+em outros meses, o estado vazio diz quantos existem e em que período, e oferece navegação
+até eles. Teste cobrindo os dois casos: banco realmente vazio × mês corrente vazio com
+histórico.
+
+### UR-2 — Importação aceita extrato sem conta de destino
+
+**Estado atual: ❌ Aberto.**
+
+**Problema:** as 345 transações importadas ficaram com `account_id` nulo, e o usuário
+tinha 0 contas cadastradas. Saldo por conta, patrimônio e a rastreabilidade de origem
+(ver FIN-008) nascem quebrados, sem nenhum aviso no momento do import.
+
+**Critério de aceite:** a importação não conclui sem conta de destino — ou exige a
+seleção, ou oferece criar a conta no próprio fluxo. Teste que prove que não é possível
+gravar lote de import com `account_id` nulo.
+
+### UR-3 — Categorização automática cobriu 2% do extrato real
+
+**Estado atual: ❌ Aberto. Precisa de investigação antes de virar tarefa.**
+
+**Problema:** das 345 transações importadas, 338 ficaram sem categoria (97%). O
+categorizador (fuzzy + regras locais, `auto_categorizer_service.rb`) acertou 7. Hipótese
+a confirmar: as categorias semeadas no cadastro não casam com o vocabulário real do
+extrato. Sem categoria, orçamento e relatórios por natureza ficam vazios mesmo com meio
+ano de dados no banco.
+
+**Critério de aceite:** medir a taxa de acerto contra o extrato real do Roberto antes de
+mudar qualquer regra, e definir a meta de cobertura. Decisão de arquitetura já tomada:
+fuzzy + regras local, não ML.
+
+### UR-4 — "Primeiros Passos" no painel, substituindo o onboarding órfão
+
+**Estado atual: ❌ Aberto.**
+
+**Problema:** `pages/onboarding.vue` existe, funciona (cria conta, categoria da meta e
+orçamento do mês via `useOnboarding`) e tem teste — mas **nenhuma rota leva até ele**.
+`useAuth.ts:33` manda direto para `/dashboard` depois do cadastro. O usuário novo cai num
+painel vazio sem orientação nenhuma. Além disso, o onboarding promete o que o app não
+faz: *"Conecte sua conta bancária"* (não existe Open Finance) e *"Importamos seu extrato
+da B3"* logo acima de um aviso dizendo que isso chega em breve.
+
+**Decisão:** o bloco de Primeiros Passos no painel substitui a tela de onboarding —
+é retomável, não bloqueia, mostra progresso e ocupa com utilidade o espaço vazio. A
+lógica de criar meta + orçamento é aproveitada; a tela órfã é aposentada.
+
+**Critério de aceite:** bloco no topo do painel com barra de progresso ("1 de 4
+concluídos · 25%"), etapas marcadas a partir dos dados que já existem (nunca de estado
+inventado), cada item abrindo o modal correspondente, e opção de ocultar com a escolha
+lembrada. Itens: (1) cadastrar primeira conta, (2) cadastrar cartões de crédito,
+(3) registrar carteira de investimentos, (4) definir primeiro objetivo financeiro.
+Nenhum texto promete conexão bancária ou importação B3.
+
+### UR-5 — As ações rápidas existem, mas estão rotuladas como busca
+
+**Estado atual: ❌ Aberto. Custo baixo: reusa o que já existe.**
+
+**Problema:** `CommandPalette.vue` já oferece Novo Lançamento, Nova Carteira/Cartão,
+Aporte em Investimentos, Nova Categoria e Novo Portador, com atalhos ⌘K, `/` e `k`. O
+acionador visível (`AppTopbar.vue:21`) é uma barra de busca com lupa: *"Buscar comandos,
+páginas, lançamentos…"*. Ninguém clica em "Buscar" para cadastrar um cartão — o Roberto
+usou o app e não encontrou. A sidebar (`AppSidebar.vue`) só tem links de navegação,
+nenhum acionador de criação.
+
+**Critério de aceite:** botão "+ Criar" em destaque no topo da sidebar, abrindo as mesmas
+ações já registradas na paleta (sem reimplementar). Modal por cima, contexto preservado.
+Esc e clique externo já funcionam em `BaseModal.vue` (linhas 11 e 72) — o que falta neles
+é teste, coberto pelo ARCH-009.
+
+### UR-6 — Cadastro não confirma nada
+
+**Estado atual: ❌ Aberto. Resolvido junto com UR-4.**
+
+**Problema:** `useAuth.ts:33` faz login automático após o cadastro e navega para
+`/dashboard` sem nenhuma confirmação — sem toast, sem mensagem. A tela troca e o usuário
+não sabe se a conta foi criada. O login automático em si é escolha deliberada e comum; o
+defeito é o silêncio somado a um painel vazio como destino.
+
+**Critério de aceite:** o usuário recém-cadastrado é recebido por nome e sabe o que fazer
+em seguida. Atendido pelo UR-4 se o destino passar a ser o painel com Primeiros Passos.
+
+### UR-7 — Cartão de crédito é primeira classe no domínio, não no banco
+
+**Estado atual: ✅ Decidido em 2026-09-18, sem tarefa aberta imediata.**
+
+**Contexto:** levantada a dúvida de separar cartão de crédito em entidade própria, por ser
+central no Brasil e ter funcionalidades específicas. Levantamento do código: o cartão
+**já** é tratado de forma específica — `accounts` tem `saldo_fatura_atual`,
+`pagamento_minimo`, `juros_rotativo_am`, `juros_rotativo_aa` e `iof_projetado`;
+`Account::DEBT_FIELDS` e o scope `with_debt_data` existem só para ele; `transactions` já
+tem `installment_number`/`installment_total`; `Category` tem a natureza
+`cartao_parcelamento`; e há `ModalEditarCartao.vue` ("Dados de dívida do cartão").
+
+**Decisão:** manter cartão na tabela `accounts` e tratá-lo como primeira classe no domínio
+e na interface. Separar em tabela própria obrigaria FK polimórfica ou dupla — 16 arquivos
+entre `app/` e `spec/` referenciam `account_id`, e `Transaction belongs_to :account` — sem
+nenhum campo que não caiba numa coluna de `accounts`.
+
+**O que falta de fato para o cartão brasileiro** (nenhum exige tabela nova): dia de
+fechamento e de vencimento (sem eles não se sabe em qual fatura a compra cai), limite
+total e disponível, e a fatura como agrupamento com ciclo, vencimento e status. A entidade
+ausente é **fatura**, não cartão — se um dia valer criar tabela, é essa.
+
+---
+
 ## Bugs conhecidos (achados em auditoria, não silenciar)
 
 ### `investimentos.vue` — header com valores hardcoded, não calculados
