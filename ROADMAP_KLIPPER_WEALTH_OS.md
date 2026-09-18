@@ -37,6 +37,8 @@ O Klipper já passou por 3 reescritas de stack (Streamlit → Next.js → Nuxt/R
 
 As Lacunas 1 a 5 estão implementadas e dependiam umas das outras na ordem **1 → 2 → 3 → 4 → 5** (cada uma estruturava os dados da seguinte). As Lacunas 6 e 7, abertas, são independentes entre si e podem ser executadas em qualquer ordem.
 
+As Lacunas tratam de **capacidade financeira**. A seção "Revisão de UX/produto — 2026-09-16" (UX-R1..UX-R7), logo após a Lacuna 7, trata de **consolidação do frontend** — mesma disciplina de critério de aceite, escopo diferente.
+
 ---
 
 ## Lacuna 1 — Importação de extrato/fatura em PDF (não só CSV)
@@ -222,6 +224,101 @@ variação aparecer — buscar o preço, não fabricá-lo.
   `?? 0` de `orcamento.vue` não pode ser reintroduzido aqui
 - Cotação indisponível degrada para o comportamento atual (custo), nunca para um número
   inventado
+
+---
+
+## Revisão de UX/produto — 2026-09-16 (7 pontos)
+
+**Origem:** análise de UX/produto trazida por Roberto em 2026-09-16 (sessão
+`2c235661`). Registrada aqui em 2026-09-18 — até então vivia **só** no transcript da
+sessão, sem entrada em nenhum documento. Status de cada ponto conferido contra o código
+em 2026-09-18.
+
+Ao contrário das Lacunas 1–7, estes não são buracos de capacidade financeira: são itens
+de **consolidação** do frontend. O veredito da própria revisão: *"Não vejo necessidade
+de redesenho visual amplo; vejo necessidade de consolidar e tornar o sistema mais
+previsível."* A ordem de prioridade proposta na origem era textos/localização e
+contraste → primitives → matriz de fluxos mobile.
+
+### UX-R1 — Design drift: `style=` inline e CSS repetido entre modais
+
+**Estado atual: ❌ Aberto.** 410 ocorrências de `style="` em 34 arquivos de
+`apps/klipper-web` (medido em 2026-09-18).
+
+**Problema:** espaçamento, tipografia e responsividade não têm ponto único de mudança.
+É o mesmo defeito que a auditoria registra como ARCH-008 pelo lado do código (template e
+CSS scoped duplicados quase byte a byte entre `ModalNovoLancamento` e
+`ModalEditarLancamento`).
+
+**Critério de aceite:** primitives consistentes — Button, Field, PageHeader, Card,
+EmptyState, DataRow — usando **somente** os tokens de `tokens.css`; os modais de
+novo/edição consomem as primitives em vez de repetir CSS.
+
+### UX-R2 — Auditoria de contraste (WCAG)
+
+**Estado atual: ❌ Aberto.** Não medido.
+
+**Problema:** a paleta usa bastante `--t3`/`--t4` sobre fundo escuro — textos
+auxiliares, datas, estados vazios e placeholders são os casos de risco. Separado disso:
+débito × crédito não pode depender **só** de cor; o texto ou o ícone tem que carregar a
+distinção (daltonismo, impressão, modo alto contraste).
+
+**Critério de aceite:** contraste validado nos textos auxiliares contra o fundo real de
+cada tela; débito/crédito distinguível sem depender de cor.
+
+### UX-R3 — Textos técnicos expostos ao usuário
+
+**Estado atual: ✅ Resolvido.** Verificado em 2026-09-18: `pages/transacoes.vue` exibe
+"Saídas"/"Entradas"; `debit`/`credit` sobrevivem apenas como valor interno de filtro
+(`activeFilter`), nunca renderizados.
+
+### UX-R4 — Estados de tela padronizados
+
+**Estado atual: 🟡 Parcial.** O #96 (ARCH-012) corrigiu o caso mais grave — relatório
+exibindo `R$ 0,00` no lugar de dado que ainda não chegou — mas a padronização geral não
+foi feita.
+
+**Problema:** cada página deveria ter estado explícito e consistente para carregando,
+vazio, erro recuperável, sessão expirada e offline. O backend já diferencia parte desses
+erros; o frontend pode transformar isso em ação clara ("Tentar novamente", "Entrar
+novamente", "Criar primeiro lançamento") em vez de tela ambígua.
+
+**Critério de aceite:** os cinco estados existem e são visualmente distintos em todas as
+páginas com dado remoto; nenhum estado nulo renderiza como zero (ver também FIN-004 nos
+bugs conhecidos, o mesmo erro no hero do dashboard).
+
+### UX-R5 — Testar mobile por tarefa, não por viewport
+
+**Estado atual: ❌ Aberto.**
+
+**Problema:** conferir que a tela "cabe" em 375px não prova que a **tarefa** se completa
+nela. Os fluxos de maior risco são os que combinam sticky header, teclado virtual e
+modal.
+
+**Critério de aceite:** matriz curta em 320/375/414 px cobrindo criar lançamento,
+editar, excluir em massa, importar PDF, confirmar importação e navegar pelos relatórios.
+
+### UX-R6 — Acessibilidade dos modais
+
+**Estado atual: ❌ Aberto.** A auditoria confirma pelo outro lado: **ARCH-009** registra
+que o componente-base compartilhado por todos os modais (Escape, focus trap, restauração
+de foco) não tem cobertura de teste nenhuma, direta ou indireta.
+
+**Critério de aceite:** teste garantindo que, ao fechar, o foco **retorna ao elemento
+que abriu o modal**; que todo campo tem nome visível associado; e que erro de validação é
+anunciado por leitor de tela.
+
+### UX-R7 — Política única de cache/invalidação após mutation
+
+**Estado atual: ❌ Aberto.**
+
+**Problema:** os composables estão organizados, mas não há regra única de invalidação
+depois de uma mutation. O sintoma é uma página exibir dado velho enquanto outra já
+atualizou — falha silenciosa, sem erro em lugar nenhum.
+
+**Critério de aceite:** política única e documentada de invalidação após mutation, e um
+teste que prove que duas telas que leem o mesmo recurso não divergem depois de uma
+escrita.
 
 ---
 
