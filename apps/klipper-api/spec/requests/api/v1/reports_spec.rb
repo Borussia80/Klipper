@@ -78,6 +78,68 @@ RSpec.describe "Api::V1::Reports", type: :request do
     end
   end
 
+  describe "GET /api/v1/reports/monthly_series" do
+    before do
+      create(:transaction, user: user, amount: 5000.00, transaction_type: "credit", occurred_on: "2026-06-05")
+      create(:transaction, user: user, amount: 270.50, transaction_type: "debit", occurred_on: "2026-06-10")
+      create(:transaction, user: user, amount: 999.00, transaction_type: "debit", occurred_on: "2026-05-20")
+      create(:transaction, user: user, amount: 10.00, transaction_type: "debit", occurred_on: "2026-01-02")
+    end
+
+    it "returns 401 without token" do
+      get "/api/v1/reports/monthly_series?year=2026&month=6"
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "returns one point per month of the window, oldest first" do
+      get "/api/v1/reports/monthly_series?year=2026&month=6&months=6", headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      points = JSON.parse(response.body)["points"]
+      expect(points.length).to eq(6)
+      expect(points.map { |p| p["month"] }).to eq([ 1, 2, 3, 4, 5, 6 ])
+      expect(points.last["total_credits"].to_f).to be_within(0.01).of(5000.00)
+      expect(points.last["net"].to_f).to be_within(0.01).of(4729.50)
+      expect(points[1]["total_debits"].to_f).to eq(0.0)
+    end
+
+    it "defaults to a six-month window ending on the current month" do
+      get "/api/v1/reports/monthly_series", headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      points = JSON.parse(response.body)["points"]
+      expect(points.length).to eq(6)
+      expect(points.last).to include("year" => Date.current.year, "month" => Date.current.month)
+    end
+
+    it "does not include other users' transactions" do
+      other = create(:user)
+      create(:transaction, user: other, amount: 9999.00, transaction_type: "debit", occurred_on: "2026-06-01")
+
+      get "/api/v1/reports/monthly_series?year=2026&month=6", headers: auth_headers
+
+      expect(JSON.parse(response.body)["points"].last["total_debits"].to_f).to be_within(0.01).of(270.50)
+    end
+
+    it "filters by member_id" do
+      member = create(:member, user: user)
+      create(:transaction, user: user, amount: 300.00, transaction_type: "debit",
+             occurred_on: "2026-06-12", member: member)
+
+      get "/api/v1/reports/monthly_series?year=2026&month=6&member_id=#{member.id}", headers: auth_headers
+
+      expect(JSON.parse(response.body)["points"].last["total_debits"].to_f).to be_within(0.01).of(300.00)
+    end
+
+    # Janela é parâmetro de URL: sem teto, um months=100000 vira uma série de
+    # cem mil pontos montada em Ruby.
+    it "caps the window at two years" do
+      get "/api/v1/reports/monthly_series?year=2026&month=6&months=100000", headers: auth_headers
+
+      expect(JSON.parse(response.body)["points"].length).to eq(24)
+    end
+  end
+
   describe "GET /api/v1/reports/monthly — agregação por categoria" do
     # Uma query por categoria não quebra teste nenhum: só fica mais lenta
     # conforme o usuário cria categorias, que é quando ninguém está medindo.

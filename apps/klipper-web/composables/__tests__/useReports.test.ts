@@ -199,6 +199,49 @@ describe('useReports', () => {
     })
   })
 
+  describe('fetchMonthlySeries', () => {
+    const payload = {
+      points: [
+        { year: 2026, month: 5, total_credits: 0, total_debits: 999, net: -999 },
+        { year: 2026, month: 6, total_credits: 5000, total_debits: 270.5, net: 4729.5 },
+      ],
+    }
+
+    it('populates monthlySeries state with API response', async () => {
+      mockApiFetch.mockResolvedValue(payload)
+
+      const { useReports } = await import('../useReports')
+      const { monthlySeries, fetchMonthlySeries } = useReports()
+      await fetchMonthlySeries(2026, 6)
+
+      expect(monthlySeries.value?.points).toHaveLength(2)
+      expect(monthlySeries.value?.points[1].net).toBeCloseTo(4729.5)
+    })
+
+    it('passes the window and the member as query params', async () => {
+      mockApiFetch.mockResolvedValue(payload)
+
+      const { useReports } = await import('../useReports')
+      const { fetchMonthlySeries } = useReports()
+      await fetchMonthlySeries(2026, 6, 6, 3)
+
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v1/reports/monthly_series',
+        expect.objectContaining({ query: { year: 2026, month: 6, months: 6, member_id: 3 } }),
+      )
+    })
+
+    it('sets error on a failed fetch', async () => {
+      mockApiFetch.mockRejectedValue(new Error('network error'))
+
+      const { useReports } = await import('../useReports')
+      const { error, fetchMonthlySeries } = useReports()
+      await fetchMonthlySeries(2026, 6)
+
+      expect(error.value).toBe('Erro ao carregar a série mensal.')
+    })
+  })
+
   describe('fetchNaturezaSplit', () => {
     it('populates naturezaSplit state with API response', async () => {
       const payload = makeNaturezaSplit()

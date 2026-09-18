@@ -58,6 +58,14 @@
         :row="debtRanking!.cards[0]"
       />
 
+      <div v-if="monthlySeries" class="card" style="margin-bottom:20px">
+        <div class="card-h">
+          <span class="card-title">Entradas × saídas · {{ MESES_DA_SERIE }} meses</span>
+          <NuxtLink class="link" to="/relatorios">Relatório →</NuxtLink>
+        </div>
+        <ChartsFluxoMensal :points="monthlySeries.points" />
+      </div>
+
       <div v-if="kpiCount" class="kpi-grid" :style="{ gridTemplateColumns: `repeat(${kpiCount},1fr)` }">
         <UiKpiCard
           v-if="incomeHighlight"
@@ -162,6 +170,8 @@ const { formatBRL, currentMonthLabel, formatDayMonth, formatFullDate, fmtMonthFu
 const {
   naturezaSplit,
   fetchNaturezaSplit,
+  monthlySeries,
+  fetchMonthlySeries,
   debtRanking,
   fetchDebtRanking,
   reimbursementCoverage,
@@ -192,6 +202,10 @@ const refDate = ref(new Date(now.getFullYear(), now.getMonth(), 1))
 const refYear = computed(() => refDate.value.getFullYear())
 const refMonth = computed(() => refDate.value.getMonth() + 1)
 const recuouParaUltimoMes = ref(false)
+
+// Seis meses: é o que cabe legível na largura do painel e o que basta para ver
+// uma tendência. A janela maior mora no relatório, não aqui.
+const MESES_DA_SERIE = 6
 
 // Sem nenhum lançamento em lugar nenhum a mensagem original continua certa;
 // com histórico em outro mês, dizer só "nenhum lançamento" faz o usuário achar
@@ -234,6 +248,7 @@ async function loadMes() {
   await loadTransactions()
   fetchNaturezaSplit(refYear.value, refMonth.value, activeMemberId.value)
   fetchReimbursementCoverage(refYear.value, refMonth.value)
+  fetchMonthlySeries(refYear.value, refMonth.value, MESES_DA_SERIE, activeMemberId.value)
 }
 
 onMounted(() => {
