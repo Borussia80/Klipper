@@ -1,7 +1,7 @@
 /**
  * InstrumentReadout tests — hero faceplate do dashboard (direção náutica premium):
  * label, valor com sinal, barra de faixa clampada em [0,1] (over acima de 100%)
- * e detalhe opcional.
+ * e pernas (entradas/saídas) opcionais em mono.
  */
 import { describe, it, expect } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
@@ -57,16 +57,43 @@ describe('InstrumentReadout', () => {
     expect(bar.classes()).not.toContain('over')
   })
 
-  it('renders detail text when provided', async () => {
+  it('renders each leg with its label and value in mono', async () => {
     const wrapper = await mountSuspended(InstrumentReadout, {
-      props: { ...baseProps, detail: 'de R$ 13.804 em entradas contra R$ 15.515 em saídas' },
+      props: {
+        ...baseProps,
+        legs: [
+          { label: 'Entradas', value: 'R$ 13.804,00', tone: 'ok' as const },
+          { label: 'Saídas', value: 'R$ 15.515,00', tone: 'sea' as const },
+        ],
+      },
     })
-    expect(wrapper.text()).toContain('de R$ 13.804 em entradas contra R$ 15.515 em saídas')
+    const legs = wrapper.findAll('[data-testid="readout-leg"]')
+    expect(legs).toHaveLength(2)
+    expect(legs[0]!.text()).toContain('Entradas')
+    expect(legs[0]!.text()).toContain('R$ 13.804,00')
+    expect(legs[0]!.find('.leg-val').classes()).toContain('mono')
+    expect(legs[1]!.text()).toContain('Saídas')
+    expect(legs[1]!.text()).toContain('R$ 15.515,00')
   })
 
-  it('omits detail element when not provided', async () => {
+  it('paints each leg with its own tone', async () => {
+    const wrapper = await mountSuspended(InstrumentReadout, {
+      props: {
+        ...baseProps,
+        legs: [
+          { label: 'Entradas', value: 'R$ 13.804,00', tone: 'ok' as const },
+          { label: 'Saídas', value: 'R$ 15.515,00', tone: 'sea' as const },
+        ],
+      },
+    })
+    const legs = wrapper.findAll('[data-testid="readout-leg"]')
+    expect(legs[0]!.find('.leg-val').classes()).toContain('ok')
+    expect(legs[1]!.find('.leg-val').classes()).toContain('sea')
+  })
+
+  it('omits the legs row when no legs are given', async () => {
     const wrapper = await mountSuspended(InstrumentReadout, { props: baseProps })
-    expect(wrapper.find('[data-testid="readout-detail"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="readout-leg"]').exists()).toBe(false)
   })
 
   it('applies the compact class when compact is true', async () => {

@@ -51,8 +51,10 @@
         :net-value="netResult"
         :formatted-value="formatBRL(netResult)"
         :spent-ratio="spentRatio"
-        :detail="heroDetail"
+        :legs="heroLegs"
       />
+
+      <UiBarraMesDecorrido :year="refYear" :month="refMonth" style="margin:-10px 0 20px" />
 
       <UiDebtAlarmBanner
         v-if="showDebtAlarm"
@@ -156,6 +158,7 @@
 
 <script setup lang="ts">
 import type { NaturezaSplitRow } from '~/composables/useReports'
+import type { ReadoutLeg } from '~/components/ui/InstrumentReadout.vue'
 definePageMeta({ layout: 'app' })
 
 const {
@@ -284,9 +287,12 @@ const netResult = computed(() => totalCredits.value - totalDebits.value)
 
 const spentRatio = computed(() => pctOfIncome(totalDebits.value, totalCredits.value))
 
-const heroDetail = computed(() => {
+const heroLegs = computed<ReadoutLeg[] | undefined>(() => {
   if (totalCredits.value <= 0 && totalDebits.value <= 0) return undefined
-  return `de ${formatBRL(totalCredits.value)} em entradas contra ${formatBRL(totalDebits.value)} em saídas`
+  return [
+    { label: 'Entradas', value: formatBRL(totalCredits.value), tone: 'ok' },
+    { label: 'Saídas', value: formatBRL(totalDebits.value), tone: 'sea' },
+  ]
 })
 
 const showDebtAlarm = computed(() => isDebtAlarmVisible(debtRanking.value))
