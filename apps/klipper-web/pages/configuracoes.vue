@@ -68,7 +68,7 @@ async function handleLogout() {
 .configuracoes {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: 20px;
   padding-bottom: 80px;
 }
 
@@ -81,44 +81,44 @@ async function handleLogout() {
 .page-h2 {
   font-size: 1.4rem;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--t1);
   margin-bottom: 4px;
 }
 
-.page-sub { font-size: 0.78rem; color: var(--ink-3); }
+.page-sub { font-size: 0.78rem; color: var(--t3); }
 
 .settings-grid {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 16px;
   max-width: 640px;
 }
 
 .settings-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 16px;
 }
 
 .setting-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--rule);
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bd);
 }
 
 .setting-row:last-child { border-bottom: none; }
 
 .setting-name {
   font-size: 0.875rem;
-  color: var(--ink);
+  color: var(--t1);
 }
 
 .setting-sub {
   font-size: 0.72rem;
-  color: var(--ink-3);
+  color: var(--t3);
   margin-top: 2px;
 }
 </style>
