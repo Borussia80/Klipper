@@ -461,7 +461,7 @@ ausente é **fatura**, não cartão — se um dia valer criar tabela, é essa.
 `PortfolioValueChip` usa `portfolio.total_cost` real do backend e exibe chip
 neutro de variação (sem `current_price`/histórico, a variação não é inventada).
 
-**Encontrado em:** auditoria de paridade visual do redesign ISA-101 (sessão de
+**Encontrado em:** auditoria de paridade visual do redesign (sessão de
 2026-07-27, branch `sprint-1-onboarding-usabilidade`).
 
 **Problema:** o header de `pages/investimentos.vue` mostrava "R$ 187.400" (total) e
