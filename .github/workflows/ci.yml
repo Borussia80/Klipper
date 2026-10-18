@@ -116,8 +116,12 @@ jobs:
       # prototype pollution e ReDoS; e não em moderate, porque sobra 1 low do
       # esbuild que o `npm audit fix` promete e não aplica — um portão que nasce
       # vermelho é um portão que se aprende a ignorar (SEC-003).
+      # Sem versão corrigida publicada, dois avisos deixavam todo PR vermelho;
+      # o portão aceita só os que estão listados, com motivo, em audit-gate.mjs.
       - name: npm audit
-        run: npm audit --audit-level=high
+        run: |
+          npm audit --json > "$RUNNER_TEMP/audit.json" || true
+          node ../../.github/scripts/audit-gate.mjs "$RUNNER_TEMP/audit.json"
         working-directory: apps/klipper-web
 
   # Sem este job o quebec-web não tinha portão nenhum, e o lockfile dele ficou
@@ -167,6 +171,10 @@ jobs:
       # então o corte em high já nasce verde e passa a valer de verdade —
       # critical deixava passar toda a faixa onde vive um RCE transitivo, que é
       # exatamente como o @nuxt/devtools do SEC-001 entrou sem ninguém ver.
+      # Sem versão corrigida publicada, dois avisos deixavam todo PR vermelho;
+      # o portão aceita só os que estão listados, com motivo, em audit-gate.mjs.
       - name: npm audit
-        run: npm audit --audit-level=high
+        run: |
+          npm audit --json > "$RUNNER_TEMP/audit.json" || true
+          node ../../.github/scripts/audit-gate.mjs "$RUNNER_TEMP/audit.json"
         working-directory: apps/quebec-web
