@@ -21,7 +21,8 @@ Avalie:
   nenhum, componente registrado mas não referenciado em nenhuma página.
 - **Inconsistências de UX**: mesmo conceito (ex: estado vazio, erro de
   carregamento) tratado de formas diferentes em páginas diferentes; padrão
-  visual (ISA-101, ver commits `redesign:` recentes) aplicado parcialmente.
+  visual (direção náutica, spec em `docs/design/klipper_mockup.html`)
+  aplicado parcialmente.
 - **Complexidade desnecessária**: fluxo com mais passos do que o necessário
   pra completar uma tarefa comum (ex: onboarding, import de extrato).
 - **Jobs-to-be-Done afetados**: para cada finding relevante, se conseguir

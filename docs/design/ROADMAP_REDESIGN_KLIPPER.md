@@ -9,7 +9,6 @@ com **zero** referências indefinidas. A exceção é `pages/configuracoes.vue` 
 real contra 10 indefinidos (`--ink`, `--rule`, `--space-*`, que não existem em lugar
 nenhum). É o único resto da Fatia 3 e está registrado como bug conhecido no
 `ROADMAP_KLIPPER_WEALTH_OS.md`.
-**Substitui:** a direção "HMI ISA-101" (rejeitada — resultou em telas vazias, números sem moldura, aparência de rascunho).
 **Direção nova aprovada:** náutica premium — azul-marinho profundo + accent de latão/bronze, todo dado dentro de card com moldura clara.
 **Referência visual canônica:** `klipper_mockup.html` (anexo). Este arquivo NÃO é inspiração solta — é a especificação. O resultado tem que ser reconhecível como o mesmo produto do mockup.
 
