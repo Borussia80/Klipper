@@ -114,9 +114,13 @@ não decide (ex.: `1.234` sem configuração de formato numa conta que já mostr
 | `duplicada` | Mesmo identificador externo na mesma conta | desmarcada, sem opção de forçar | nada |
 | `provavel_duplicada` | Mesma conta e valor, data ±7 dias, mesma descrição normalizada | desmarcada | nada, salvo se o usuário marcar |
 | `correspondencia` | Mesma conta e valor, ±7 dias, descrição diferente, existente sem identificador externo (lançado à mão) ou `previsto` | marcada como "vincular" | vincula: o existente recebe o identificador e vira `efetivado`; não cria linha |
+| `ambigua` | Linhas idênticas (conta, data, descrição normalizada, valor) sem identificador do banco, em quantidade diferente no arquivo e no existente, ou num dia de borda do período do arquivo já coberto antes | bloqueada até decisão | "outra compra" cria; "a mesma" não cria |
 | `conflito` | Mesmo identificador externo com valor ou data diferentes | bloqueada até decisão | o usuário escolhe manter ou atualizar |
 | `invalida` | Falha de normalização | bloqueada | nada |
 | `ignorada` | Usuário desmarcou | — | nada, registrado |
+
+**Limite declarado:** sem identificador do banco, transações indistinguíveis pelos dados não são deduplicadas com
+certeza; o sistema sinaliza `ambigua` e não decide sozinho.
 
 **Invariantes:** cada lançamento existente casa com no máximo uma linha importada; entre candidatos, a data mais
 próxima; **nunca** se exclui nem se funde lançamento automaticamente.
@@ -129,6 +133,7 @@ recusado.
 - Mesmo arquivo duas vezes → segunda vez 0 novas.
 - Arquivo de 01–15/10 e depois de 10–31/10 → os de 10–15 aparecem como `duplicada`.
 - Duas compras de 50,00 iguais no mesmo dia → as duas entram.
+- Arquivo com 3 compras idênticas no dia e 2 já registradas → 2 `duplicada`, 1 `ambigua` que exige decisão.
 - Lançamento manual "Mercado 350,00" em 06/10 e importado "SUPERMERCADO 350,00" em 08/10 → `correspondencia`.
 - Arquivo do banco publica em novembro um lançamento datado de 05/10 → `nova`.
 - Duas confirmações simultâneas do mesmo arquivo → cada linha gravada uma vez.
@@ -199,13 +204,27 @@ mês seguinte; sem limite → "sem limite", não 0 %.
 80 → gasto 1.120, restante 30. Reembolso de terceiro (renda) não abate o gasto da categoria; estorno do
 estabelecimento abate.
 
+## M9a. Cartão: data da compra e mês de contabilização
+
+- A data da compra (`occurred_on`) é o fato financeiro e nunca é alterada; todas as parcelas guardam a data da compra.
+- Mês de contabilização de toda linha de cartão = mês do vencimento da fatura em que ela está; é derivado e muda só
+  quando a linha muda de fatura. Fora do cartão = mês da data.
+- Orçamento e relatórios mensais usam o mês de contabilização; fluxo de caixa usa a data de vencimento; lista,
+  busca, saldo por data e deduplicação usam a data da compra.
+
+**Aceitação** (fecha dia 3, vence dia 10): compra em 02/10/2026 → contabilizada em outubro; em 03/10/2026 →
+novembro; a lista mostra 02/10 e 03/10. Compra de 7× em 15/10 → 7 parcelas com data 15/10, contabilizadas de novembro
+a maio. Mover uma compra para a fatura seguinte → muda o mês de contabilização, a data continua a mesma.
+
 ## M10. Dinheiro e precisão
 
 - Decimal exato a 2 casas no banco; meio-par só no resultado final; divisão em N partes por centavos com resto
   atribuído (D-4). Exemplos: 100,00 em 3 → 33,34 + 33,33 + 33,33; 1.000,00 em 7 → 142,90 + 6 × 142,85.
 - `1.234,56` = 1234,56; `1,234.56` = 1234,56; `1.000` = 1000 (convenção BR); `1.5` = 1,5.
-- Moeda estrangeira: valor original, moeda, taxa e data da taxa preservados; nunca comparar valores nominais de moedas
-  diferentes.
+- Moeda estrangeira: valor sempre na moeda da conta; valor original, moeda, taxa, data e fonte da taxa preservados;
+  taxa nunca recalculada depois (salvo substituir estimativa pelo valor real da fatura); total consolidado devolve
+  as taxas usadas; sem cotação → recusa, nunca soma como BRL. Detalhe por caso em
+  `docs/domain-research/03-specs/01-dinheiro-e-datas.md`, "Semântica de moeda".
 
 ## Segurança e integridade (todos os módulos)
 

@@ -82,15 +82,31 @@ limite_disponível = limite − limite_usado
 
 14. **K-14.** Uma compra de `n` parcelas = 1 `installment_plan` (`total`, `n`, `taxa_am`, `first_statement_id`,
     `descrição`) + `n` lançamentos `debit`. Parcela 1 nasce `efetivado` na fatura da compra; parcelas 2..n nascem
-    `previsto`, cada uma na fatura seguinte à anterior, com `installment_number`/`total` (já existem).
-15. **K-15.** **Competência da parcela = fatura em que ela cai** (não a data da compra). Assim orçamento e natureza
+    `previsto`, cada uma na fatura seguinte à anterior, todas com `occurred_on` = data da compra, com `installment_number`/`total` (já existem).
+15. **K-15.** **A parcela é contabilizada na fatura em que cai** (não no mês da compra; ver K-15a). Assim orçamento e natureza
     `cartao_parcelamento` mostram R$ 142,90 por mês, e não R$ 1.000 no mês da compra. É o que a importação de PDF já
     faz hoje (cada fatura traz a sua "03/07").
-15a. **K-15a.** **Uma regra só para todo lançamento de cartão** (à vista, parcela, estorno, encargo): o mês de
-    competência é o **mês do vencimento da fatura** em que a linha está. Orçamento, natureza, painel e relatórios de
-    receita/despesa usam esse mês; o fluxo de caixa usa a **data** do vencimento. Exemplo (fecha 3, vence 10): compra
-    à vista em 02/10/2026 → fatura que vence 13/10 → outubro; compra em 03/10/2026 → vence 10/11 → novembro, nos dois
-    relatórios. Mover a compra para outra fatura (K-7) muda o mês de competência junto. Depende da decisão Q3.
+15a. **K-15a.** **Mês de contabilização** (substitui "competência" para cartão). Dois fatos separados, nenhum
+    sobrescreve o outro:
+    - `occurred_on` = **data original da compra**, como o banco informou. Nunca é alterada pelo ciclo, por parcela
+      nem por mover a compra de fatura. Todas as parcelas de um plano têm a mesma `occurred_on` (a da compra).
+    - **mês de contabilização** = mês do `due_on` da fatura em que a linha está (`card_statement_id`). É **derivado**
+      (não é coluna própria): muda só quando a linha muda de fatura (K-7).
+    Toda linha de cartão (à vista, parcela, estorno, encargo, IOF) segue esta regra. Fora do cartão, mês de
+    contabilização = mês de `occurred_on`.
+    | Relatório | Critério |
+    |---|---|
+    | Orçamento, natureza, painel, receita × despesa, série mensal | mês de contabilização |
+    | Fluxo de caixa projetado | data `due_on` da fatura |
+    | Lista de lançamentos, detalhe da compra, busca, deduplicação | `occurred_on` (data original) |
+    | Saldo da conta cartão em uma data | `occurred_on` das linhas efetivadas (spec 02, C-3) |
+    Exemplo (fecha 3, vence 10): compra à vista em 02/10/2026 → fatura que vence 13/10 → **outubro**; compra em
+    03/10/2026 → vence 10/11 → **novembro**; a lista mostra as duas com a data em que foram feitas. Compra de 7× em
+    15/10: as 7 parcelas têm `occurred_on = 15/10/2026`, contabilizadas em novembro, dezembro… maio.
+    Todos os calculators usam um scope único `Transaction.in_accounting_month(ano, mês)`; nenhum filtra cartão por
+    `occurred_on` direto. Spec compartilhado garante isso em cada calculator.
+15b. **K-15b.** Parcela prevista vira efetivada quando a fatura dela fecha (ou ao conciliar com a linha do PDF,
+    K-18); até lá não entra no saldo efetivo, só no previsto e no limite.
 16. **K-16.** **Sem juros:** valores por `Money.split(total, n, remainder: :first)` (spec 01, D-4).
     R$ 1.000,00 em 7× → 142,90 + 6 × 142,85.
 17. **K-17.** **Com juros (Tabela Price):** `PMT = PV · i / (1 − (1 + i)^−n)`, arredondada a 2 casas. O resíduo da

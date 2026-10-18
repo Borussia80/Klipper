@@ -51,6 +51,21 @@ Exemplo: R$ 1.000,00 em 7 parcelas → `total_c = 100000`, `base = 14285`, `rest
 11. **D-11.** Saldo de conta em moeda estrangeira (ex.: conta global em USD) entra no patrimônio convertido pela PTAX
     do dia do cálculo, e só ele; os lançamentos dela não são reconvertidos.
 
+### Semântica de moeda (fechada)
+
+| Caso | `amount` (moeda da conta) | Guardado além | Taxa | Arredondamento |
+|---|---|---|---|---|
+| Compra em USD num cartão em BRL, vinda da fatura | BRL que o banco cobrou | `original_amount` USD, `fx_rate` = BRL ÷ USD **calculada** dos dois valores da fatura, `fx_rate_on` = data da compra | A do banco, implícita | Nenhum: os dois valores vêm prontos |
+| Mesma compra lançada à mão | `original × PTAX` | idem, `fx_rate_source = ptax`, marcada "estimado" | PTAX de venda do dia útil anterior à compra (D-10) | Meio-par a 2 casas, uma vez |
+| IOF da compra internacional | Lançamento BRL separado | — | Alíquota vigente na data (`iof_rates`, K-21) | Meio-par a 2 casas |
+| Transferência BRL → conta em USD | Origem em BRL, destino em USD | `fx_rate` no destino (L-10) | A efetiva da operação (destino ÷ origem) | Cada ponta com os valores reais |
+| Saldo de conta em USD no patrimônio | Saldo em USD | — | PTAX de venda do dia útil anterior à data consultada (D-11) | Meio-par só no total consolidado |
+| Estimado substituído pela fatura | Passa ao valor do banco | `fx_rate` recalculada, "estimado" removido | A do banco | — |
+
+Regras: a taxa de um lançamento **nunca** é recalculada com cotação posterior, exceto na substituição do estimado
+pelo valor real; total consolidado devolve junto as taxas e datas usadas; moeda sem PTAX disponível → consolidação
+recusa com "sem cotação" em vez de somar como BRL.
+
 ## Datas e fuso
 
 12. **D-12.** Fuso único `America/Sao_Paulo` (já configurado). "Hoje" é `Date.current`, nunca `Date.today` (que usa o
@@ -58,8 +73,8 @@ Exemplo: R$ 1.000,00 em 7 parcelas → `total_c = 100000`, `base = 14285`, `rest
 13. **D-13.** Lançamento é **data sem horário** (`date`, já é). Não guardar horário.
 14. **D-14.** **Competência × caixa.**
     - Conta corrente: competência = caixa = `occurred_on`.
-    - Cartão: `occurred_on` = data da compra (registro). Competência = **mês do vencimento da fatura**; caixa = data
-      do vencimento (spec 04, K-15a).
+    - Cartão: `occurred_on` = data da compra (registro). Mês de contabilização = **mês do vencimento da fatura**,
+      derivado e explícito, sem alterar a data; caixa = data do vencimento (spec 04, K-15a).
     - Relatórios de gasto (orçamento, painel, natureza) usam **competência**. Fluxo de caixa projetado usa **caixa**.
 15. **D-15.** O front nunca cria `Date` a partir de string `AAAA-MM-DD` sem meio-dia (`parseISODate`, já existe).
 16. **D-16.** Jobs agendados declaram o fuso (`TZ` do processo = `America/Sao_Paulo` ou a expressão de cron com fuso).

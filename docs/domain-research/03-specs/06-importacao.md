@@ -45,12 +45,29 @@ Toda importação (PDF, CSV e, depois, OFX) passa pelo mesmo caminho:
 7c. **I-6c.** A novidade não é decidida por "última data vista": lançamento retroativo publicado depois pelo banco é
     reconhecido como novo.
 
-## Pré-visualização
+## Limites da deduplicação sem identificador externo
+
+PDF e CSV dos bancos usados **não trazem** identificador do banco. O `external_id` dessas linhas é derivado do
+conteúdo (I-1) e **não distingue** transações indistinguíveis pelos dados disponíveis. O Klipper não promete
+deduplicação perfeita nesses casos: sinaliza e o usuário decide.
+
+| Situação | O que o sistema sabe | Estado |
+|---|---|---|
+| Identificador do banco (FITID) igual | Mesma transação, com certeza | `duplicada` |
+| Reimportar o mesmo arquivo, ou um que cobre o mesmo período inteiro | Grupos de linhas idênticas têm o mesmo tamanho dos dois lados | `duplicada` |
+| Grupo de linhas idênticas (mesma conta, data, descrição normalizada e valor) com **tamanho diferente** no arquivo e no que já existe | Não dá para saber se é compra repetida ou duplicata | **`ambigua`** para as linhas excedentes |
+| Grupo idêntico num **dia de borda** do arquivo (primeiro ou último dia coberto), quando o arquivo anterior também cobria esse dia | O arquivo pode ter cortado o dia no meio; o ordinal pode não corresponder | **`ambigua`** |
+| Mesmo gasto vindo de duas fontes (PDF da fatura e lançamento manual, ou PDF e CSV com descrições diferentes) | Só valor e data próximos | `correspondencia` (passada 3), nunca `duplicada` |
+
+Estado **`ambigua`**: bloqueado até decisão explícita ("é outra compra" → cria; "é a mesma" → não cria). A tela
+mostra lado a lado as linhas do arquivo e as existentes do grupo. Nada é descartado nem criado sem a escolha.
+
+
 
 7. **I-7.** PDF já tem preview com linha assinada (`RowSigner`). CSV e OFX passam a ter o mesmo fluxo: nada é
    gravado antes de confirmar.
 8. **I-8.** Cada linha mostra: data, descrição, valor, categoria sugerida (spec 07), `kind` sugerido (spec 03, L-12)
-   e o resultado do matcher (`nova` · `duplicada` · `provável duplicada` · `concilia com previsto`).
+   e o resultado do matcher (`nova` · `duplicada` · `provável duplicada` · `ambígua` · `concilia com previsto`).
 8a. **I-8a.** **A pré-visualização é guardada no banco**, não só devolvida ao cliente: `import_batch` nasce com
     `status: preview` e cada linha vira um `import_row` (dados normalizados, resultado do matcher, decisão do
     usuário, checksum do arquivo e referência da linha no arquivo). Confirmar muda o lote para `confirmed` numa
@@ -87,6 +104,9 @@ Toda importação (PDF, CSV e, depois, OFX) passa pelo mesmo caminho:
 # existente com external_id e importado com external_id diferente, mesmo valor/data → nova (não casa na passada 3)
 # um existente e dois importados iguais a ele → um casa, o outro é novo
 # previsto aluguel 2500 em 05/10; importado 2500 em 06/10 → concilia, previsto vira efetivado
+# arquivo com 3 linhas "CAFE X 5,00 10/10" e 2 já existentes iguais → 2 duplicadas + 1 ambigua (bloqueada)
+# arquivo de 10–20/10 após outro de 01–10/10, com "CAFE X" idêntico em 10/10 → ambigua, não duplicada
+# ambigua decidida "é outra compra" → cria; "é a mesma" → não cria; sem decisão → confirmação recusada
 # corrida: dois writers com o mesmo external_id → um grava, o outro recebe RecordNotUnique e conta como duplicada
 
 # spec/services/import_batch_undo_spec.rb

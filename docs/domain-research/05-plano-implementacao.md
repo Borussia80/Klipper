@@ -176,18 +176,21 @@ Envelope (Actual) fica fora (spec 08).
 | Calculator esquecido sem `countable` | Shared example obrigatório + grep no CI por `transactions.where(transaction_type:` fora do scope |
 | Sprint D1 muda os números do painel | Esperado. O PR mostra antes/depois com os dados locais |
 
-## Decisões que dependem do Roberto
+## Decisões Q1–Q11 — versão final (aprovadas pelo Roberto em 2026-10-17)
 
-| # | Decisão | Recomendação |
-|---|---|---|
-| Q1 | Modelo simples com pares × partidas dobradas | **Simples com pares** (`04-modelo-dados.md`) |
-| Q2 | Orçamento limite × envelope | **Limite**, com rollover opcional |
-| Q3 | Lançamento de cartão (à vista e parcela) conta no mês da fatura × da compra | **Da fatura** (K-15, K-15a) |
-| Q4 | Compra no dia do fechamento vai para a próxima fatura (K-5)? Conferir no Nubank e no Itaú | Sim, até conferir |
-| Q5 | Estouro do orçamento reduz o mês seguinte? | **Não** |
-| Q6 | Rodar a reclassificação dos pagamentos de fatura (M2) | Sim, depois do `DRY_RUN` |
-| Q7 | Saldo inicial: digitar por conta ou conciliar uma vez | **Conciliar uma vez** |
-| Q8 | Rentabilidade: TWR (Dietz) principal, TIR secundária | **TWR** |
-| Q10 | CAMT.052/053 (padrão europeu de extrato) | **Não implementar**: os bancos usados entregam PDF, CSV e OFX |
-| Q11 | Reaplicar regras quando o usuário edita um lançamento | **Não**: a correção manual não pode ser desfeita por regra |
-| Q9 | URLs da interface do Sure e do ezBookkeeping para a sessão de observação (os `[URL_…]` do pedido vieram vazios) | Opcional: as specs não dependem delas |
+| # | Decisão | Versão final | Onde está |
+|---|---|---|---|
+| Q1 | Modelo de dados | **Lançamento simples com pares** (`kind`, `status`, `transfer_pair_id`), sem partidas dobradas | `04-modelo-dados.md` |
+| Q2 | Modelo de orçamento | **Limite mensal por categoria**, rollover opcional só de sobra; envelope fora | spec 08 |
+| Q3 | Mês dos gastos de cartão | **Mês de contabilização = mês do vencimento da fatura**, derivado e explícito; a data original da compra é preservada e nunca sobrescrita | spec 04, K-15a; spec 01, D-14 |
+| Q4 | Compra no dia do fechamento | **Vai para a fatura seguinte** (padrão do sistema). Pendente: o Roberto conferir no Nubank e no Itaú; se um banco divergir, vira opção por conta, sem mudar a regra geral | spec 04, K-5 |
+| Q5 | Estouro reduz o mês seguinte | **Não** | spec 08, O-4 |
+| Q6 | Reclassificar pagamentos de fatura já gravados (M2) | **Sim**, só depois do `DRY_RUN` e da aprovação do relatório de receita por mês antes/depois | Sprint D1 |
+| Q7 | Saldo inicial | **Conferir com o banco uma vez** por conta, em vez de digitar | spec 02, C-10 |
+| Q8 | Rentabilidade | **TWR por Dietz modificado**, TIR como segunda leitura | D9 |
+| Q9 | Observar a interface do Sure e do ezBookkeeping | **Não necessário**; as specs não dependem disso | — |
+| Q10 | CAMT.052/053 | **Não implementar** | spec 06 |
+| Q11 | Reaplicar regras ao editar | **Não**; regras só em lançamento novo ou reaplicação explícita | spec 07, G-8 |
+
+Condições da aprovação: deduplicação sem identificador do banco sinaliza ambiguidade em vez de prometer acerto
+(spec 06, "Limites"); moeda e conversão conforme spec 01, "Semântica de moeda"; nenhuma fatia 3–6 é antecipada.

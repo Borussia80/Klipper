@@ -19,7 +19,7 @@ modelo: envelope é limite + rollover obrigatório + "a alocar".
 ## Regras
 
 1. **O-1.** `gasto(categoria, mês)` = Σ `debit countable` − Σ `refund` da categoria (e das filhas, Fatia 1) no mês,
-   por **competência** (spec 01, D-14; parcela pela fatura, spec 04, K-15).
+   por **mês de contabilização** (spec 01, D-14; cartão pelo vencimento da fatura, spec 04, K-15a).
 2. **O-2.** `restante = limite − gasto`; `pct = gasto / limite` (só exibição). Sem limite → `null`, não 0 % (o bug do
    `InstrumentReadout.vue:28,62` faz `spentRatio ?? 0` sobre o `null` que `orcamento.vue:118` recebe; já registrado).
 3. **O-3.** Gasto negativo (estorno maior que o gasto no mês) aparece como crédito, não como 0 %.
