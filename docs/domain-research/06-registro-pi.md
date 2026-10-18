@@ -53,3 +53,16 @@ A URL da interface (`[URL_EZBOOKKEEPING]`) veio sem preencher. Não houve observ
 - Do Actual e do ezBookkeeping, nada foi copiado para o repositório. As specs descrevem os algoritmos com palavras
   próprias, e os itens a portar estão listados com origem e destino em `05-plano-implementacao.md`.
 - As cópias locais ficaram no scratchpad da sessão, fora do repositório.
+
+## Sessão 1, adendo — 2026-10-17, depois das 20:52
+
+Os documentos desta pasta foram commitados às **20:16** (`git log` do branch `docs/domain-research`). Às 20:52 e
+20:56 apareceram no working tree, fora desta pasta e sem commit, três arquivos de outra sessão:
+`docs/reports/2026-10-17_sure_forensic_research.md`, `docs/reports/2026-01-17_report_codex_opensource_app.md` e
+`docs/specs/klipper_financial_cleanroom_spec_v1.md`. O relatório forense descreve uma leitura do **código-fonte do
+Sure** (clone em `/tmp/sure`, revisão `98084bfc`).
+
+- O agente desta sessão **leu os três arquivos depois do commit** das 20:16. Nada nas specs desta pasta veio deles.
+- O clone `/tmp/sure` **não foi aberto** por este agente.
+- Pela separação de fases que o próprio relatório forense define (§9), este agente passou a estar exposto à
+  pesquisa do Sure e **não deve ser o implementador clean-room** de saldo, transferência, split e patrimônio.
