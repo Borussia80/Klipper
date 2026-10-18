@@ -19,22 +19,22 @@
     "@nuxt/fonts": "^0.14.0",
     "@phosphor-icons/vue": "^2.2.1",
     "nuxt": "^3.15.4",
-    "unstorage": "^1.17.5"
+    "unstorage": "^1.17.6"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.17.0",
-    "@nuxt/test-utils": "^4.3.2",
-    "@types/node": "^22.20.2",
+    "@nuxt/test-utils": "^4.3.3",
+    "@types/node": "^22.20.5",
     "@vite-pwa/nuxt": "^1.1.1",
-    "@vue/test-utils": "^2.5.0",
-    "eslint": "^10.10.0",
+    "@vue/test-utils": "^2.5.1",
+    "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "happy-dom": "^20.14.5",
-    "oxc-parser": "^0.150.0",
-    "prettier": "^3.9.6",
+    "oxc-parser": "^0.154.0",
+    "prettier": "^3.9.10",
     "typescript": "^5.7.0",
-    "vitest": "^5.0.0",
-    "vue-tsc": "^3.3.11"
+    "vitest": "^5.0.4",
+    "vue-tsc": "^3.3.13"
   },
   "overrides": {
     "vue": "^3.5.40"
