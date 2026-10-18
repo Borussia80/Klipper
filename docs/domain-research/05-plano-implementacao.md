@@ -29,10 +29,33 @@ Decisão do Roberto (2026-10-17): a ordem, o escopo e as regras de implementaç�
 - Ordem: o relatório do Codex começa pela importação; este plano começa por D1, porque o pagamento de fatura contado
   como receita (R1) distorce os números de hoje e nenhum dos relatórios o identificou.
 
-**Quem implementa.** Sprints com regra derivada da pesquisa do Sure (D2 saldo e patrimônio, D3 transferência e
-split) são implementadas por um agente que **nunca leu** `docs/reports/`, recebendo só a spec clean-room, as specs
-deste diretório e o código do Klipper. O agente desta sessão (exposto ao relatório forense, ver `06-registro-pi.md`)
-pode implementar D0, D1, D4–D8 e revisar D2/D3 contra os critérios de aceitação, sem escrever o código delas.
+**Quem implementa.** Atualizado em 2026-10-17, depois da investigação de hledger (GPL), Firefly III e Data
+Importer (AGPL). O agente desta sessão leu o código desses projetos e o relatório forense do Sure, então fica
+**exposto** a quase todo o domínio:
+
+| Sprint | Pesquisa que a toca | Quem escreve o código |
+|---|---|---|
+| D0 Fundamentos | nenhuma | esta sessão pode |
+| D1 O que conta | nenhuma (bug do Klipper) | esta sessão pode |
+| D2 Saldo, conferência, patrimônio | Sure, hledger | agente limpo |
+| D3 Transferência, split, reversão | Sure, hledger | agente limpo |
+| D4 Cartão | nenhuma | esta sessão pode |
+| D5 Importação | Actual (MIT), Data Importer, hledger | agente limpo |
+| D6 Recorrências | Firefly | agente limpo |
+| D7 Regras | Actual (MIT), Firefly | agente limpo |
+| D8 Orçamento | Firefly | agente limpo |
+
+"Agente limpo" = sessão nova que **nunca leu** `docs/reports/` nem o código de hledger, Firefly, Data Importer ou
+Sure, e recebe só `docs/specs/klipper_financial_cleanroom_spec_v2.md`, as specs deste diretório e o código do
+Klipper. Esta sessão revisa o resultado contra os critérios de aceitação, sem escrever o código. Os portes MIT do
+Actual e do ezBookkeeping (tabela "Itens a portar") continuam permitidos com atribuição, mas também ficam com o
+agente limpo quando caem em D5/D7.
+
+**Spec clean-room v2** (`docs/specs/klipper_financial_cleanroom_spec_v2.md`) substitui a v1 como entrada do
+implementador. Regras novas que ela trouxe e que foram incorporadas aqui: G-13 (regras avaliam o estado original),
+G-14 (ação com alvo inexistente é rejeitada ao salvar), G-15 (auditoria de cada aplicação), I-6a (estado
+`conflito`), I-6b (excluído não volta sem pedido), I-6c (retroativo publicado depois é novo), R-11 (pausar e
+retomar; nada depende de o processo rodar no dia).
 
 | Spec clean-room v1 | Onde está aqui | Sprint |
 |---|---|---|
@@ -161,4 +184,6 @@ quando as duas contas estão no orçamento" é conceito, já reescrito na spec 0
 | Q6 | Rodar a reclassificação dos pagamentos de fatura (M2) | Sim, depois do `DRY_RUN` |
 | Q7 | Saldo inicial: digitar por conta ou conciliar uma vez | **Conciliar uma vez** |
 | Q8 | Rentabilidade: TWR (Dietz) principal, TIR secundária | **TWR** |
+| Q10 | CAMT.052/053 (padrão europeu de extrato) | **Não implementar**: os bancos usados entregam PDF, CSV e OFX |
+| Q11 | Reaplicar regras quando o usuário edita um lançamento | **Não**: a correção manual não pode ser desfeita por regra |
 | Q9 | URLs da interface do Sure e do ezBookkeeping para a sessão de observação (os `[URL_…]` do pedido vieram vazios) | Opcional: as specs não dependem delas |

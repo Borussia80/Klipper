@@ -33,6 +33,14 @@ Segue a decisão registrada na memória do projeto: **fuzzy + regras locais, nã
    existentes é uma ação explícita ("aplicar às N transações que casam"), com pré-visualização.
 9. **G-9.** Mesclar categoria (Fatia 1 de UX): regras que apontam para a origem passam a apontar para o destino.
 
+13. **G-13.** **Avaliação sobre o estado original:** todas as condições olham o lançamento como chegou; uma ação de
+    uma regra não muda o que as regras seguintes avaliam. Ciclos ficam impossíveis por construção e o resultado não
+    depende de efeitos em cascata.
+14. **G-14.** Ação que aponta para categoria, conta ou portador inexistente ou de outro usuário é **rejeitada ao salvar
+    a regra**; a regra nunca cria categoria.
+15. **G-15.** Toda aplicação automática é auditada: lançamento, regra, campo, valor anterior, valor novo, data. A tela
+    mostra qual regra definiu o campo.
+
 ## Aprendizado com correções
 
 10. **G-10.** Quando o usuário **muda a categoria** de um lançamento, olha-se os **5 mais recentes** com a mesma

@@ -49,6 +49,10 @@ Substitui a Fatia 6 de UX, que fica dependente desta spec.
    são tocados.
 10. **R-10.** **Excluir agendado:** apaga os previstos futuros não `detached`; efetivados ficam.
 
+11. **R-11.** **Pausar** suspende a geração; **retomar** volta a gerar a partir de hoje, sem gerar as ocorrências do
+    período pausado. Nenhuma ocorrência depende de um processo ter rodado num dia específico: abrir o app depois da
+    data mostra a ocorrência como prevista atrasada.
+
 ## Casos de borda
 
 | Caso | Regra |

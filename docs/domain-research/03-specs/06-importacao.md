@@ -32,6 +32,13 @@ Toda importação (PDF, CSV e, depois, OFX) passa pelo mesmo caminho:
    **conciliado**: vira `efetivado`, valor e data do arquivo prevalecem, e recebe o `external_id`. Não cria linha nova.
 6. **I-6.** Descrição normalizada = minúsculas, sem acento, sem dígitos de autorização/NSU, espaços colapsados.
 
+7a. **I-6a.** Estado `conflito`: mesmo `external_id` na mesma conta com valor ou data diferentes. Fica bloqueado até o
+    usuário escolher manter o existente ou atualizá-lo.
+7b. **I-6b.** Linha que corresponde a lançamento **excluído** pelo usuário (o `external_id` fica guardado na exclusão)
+    vem marcada "excluída antes" e desmarcada; reimportar é escolha explícita.
+7c. **I-6c.** A novidade não é decidida por "última data vista": lançamento retroativo publicado depois pelo banco é
+    reconhecido como novo.
+
 ## Pré-visualização
 
 7. **I-7.** PDF já tem preview com linha assinada (`RowSigner`). CSV e OFX passam a ter o mesmo fluxo: nada é

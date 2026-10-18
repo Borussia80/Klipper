@@ -70,3 +70,25 @@ Sure** (clone em `/tmp/sure`, revisão `98084bfc`).
 - O clone `/tmp/sure` **não foi aberto** por este agente.
 - Pela separação de fases que o próprio relatório forense define (§9), este agente passou a estar exposto à
   pesquisa do Sure e **não deve ser o implementador clean-room** de saldo, transferência, split e patrimônio.
+
+## Sessão 2 — 2026-10-17 (hledger, Firefly III, Data Importer)
+
+Leitura de código **autorizada pelo Roberto** para esta investigação, com cópia, adaptação e transcrição proibidas.
+Clones `--depth 1` no scratchpad da sessão, fora do repositório. Nada foi executado (sem GHC, PHP ou Composer na
+máquina) e nada foi instalado no Klipper.
+
+| Projeto | Commit | Licença confirmada | O que foi lido |
+|---|---|---|---|
+| hledger (`simonmichael/hledger`) | `aee20abe` | GPL-3.0-or-later (`LICENSE`, `package.yaml`) | Balanceamento, inferência de valor, asserções, `.latest`, import, manual (`hledger.m4.md`), testes de `Balancing.hs` e `hledger/test/import` |
+| Firefly III | `b9c31006` | AGPL-3.0 (`LICENSE`) | Motor de regras, listeners de criação/edição, ações, recorrências, orçamento automático, conciliação, criação de journal e hash de duplicata, inventário de `tests/` |
+| Firefly III Data Importer | `9398df76` | AGPL-3.0 (`LICENSE`) | Envio pela API, métodos de duplicata, remoção de linhas iguais, CAMT, configuração, `AmountTest`, `ConfigurationTest` |
+
+Dossiês (Documentos A–D) em `docs/reports/2026-10-17_{A,B,C,D}_*.md`, **só locais**, fora do Git. Protótipo
+independente dos casos-limite (Ruby, dados sintéticos) no scratchpad da sessão; não é código do Klipper.
+
+**Não investigado:** lotes e custo de base do hledger; webhooks, metas (piggy banks), contas a pagar e câmbio do
+Firefly; provedores bancários do Data Importer; fluxo CAMT até o envio. **Depende de validação futura:** todo
+comportamento do Firefly e do Data Importer (sem teste nos próprios projetos e sem execução aqui) e o uso do hledger
+como oráculo (exige instalá-lo em ambiente isolado).
+
+**Exposição:** esta sessão leu código GPL/AGPL; ver a tabela "Quem implementa" no `05-plano-implementacao.md`.
