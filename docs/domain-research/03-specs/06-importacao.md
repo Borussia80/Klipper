@@ -38,6 +38,11 @@ Toda importação (PDF, CSV e, depois, OFX) passa pelo mesmo caminho:
    gravado antes de confirmar.
 8. **I-8.** Cada linha mostra: data, descrição, valor, categoria sugerida (spec 07), `kind` sugerido (spec 03, L-12)
    e o resultado do matcher (`nova` · `duplicada` · `provável duplicada` · `concilia com previsto`).
+8a. **I-8a.** **A pré-visualização é guardada no banco**, não só devolvida ao cliente: `import_batch` nasce com
+    `status: preview` e cada linha vira um `import_row` (dados normalizados, resultado do matcher, decisão do
+    usuário, checksum do arquivo e referência da linha no arquivo). Confirmar muda o lote para `confirmed` numa
+    transação só. Cancelar não cria lançamento. Confirmar duas vezes o mesmo lote é recusado (idempotente).
+    Substitui a assinatura por linha do PDF (`RowSigner`) pelo mesmo efeito: o cliente só manda decisões, não valores.
 9. **I-9.** **CSV:** se os cabeçalhos não casarem com os aliases atuais, a tela pede o mapeamento (data, descrição,
    valor; ou débito e crédito em colunas separadas; formato de data). O mapeamento fica salvo por conta para a
    próxima vez.
@@ -55,6 +60,8 @@ Toda importação (PDF, CSV e, depois, OFX) passa pelo mesmo caminho:
 
 13. **I-13.** Leitor de OFX 1.x (SGML) e 2.x (XML), com `FITID` como `external_id`, `DTPOSTED` como data,
     `TRNAMT` com sinal. Portado do ezBookkeeping (`pkg/converters/ofx/`), MIT.
+14. **I-14.** QFX e QIF só entram quando houver arquivo real (anonimizado) de um banco brasileiro para servir de
+    fixture. Sem isso, o leitor seria testado contra um formato imaginado.
 
 ## Casos de teste (RSpec)
 

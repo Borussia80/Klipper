@@ -18,6 +18,42 @@ Regras de sempre:
 | 6 Agendados | D6 (esta análise substitui a spec 06 de UX quanto às regras) |
 | 7 OFX + regras | D5 e D7 |
 
+## Este plano é a referência da implementação
+
+Decisão do Roberto (2026-10-17): a ordem, o escopo e as regras de implementação são **as deste plano e das specs em
+`03-specs/`**. Os documentos do Codex são entrada, não plano:
+
+- `docs/specs/klipper_financial_cleanroom_spec_v1.md`: cada requisito e caso está mapeado abaixo para uma sprint e
+  uma regra daqui. O que ela pede e este plano não tinha foi incorporado (C-10a/b, L-22/23, I-8a, I-14).
+- `docs/reports/*` (locais, fora do Git): servem de consulta para quem planeja, **não** para quem implementa.
+- Ordem: o relatório do Codex começa pela importação; este plano começa por D1, porque o pagamento de fatura contado
+  como receita (R1) distorce os números de hoje e nenhum dos relatórios o identificou.
+
+**Quem implementa.** Sprints com regra derivada da pesquisa do Sure (D2 saldo e patrimônio, D3 transferência e
+split) são implementadas por um agente que **nunca leu** `docs/reports/`, recebendo só a spec clean-room, as specs
+deste diretório e o código do Klipper. O agente desta sessão (exposto ao relatório forense, ver `06-registro-pi.md`)
+pode implementar D0, D1, D4–D8 e revisar D2/D3 contra os critérios de aceitação, sem escrever o código delas.
+
+| Spec clean-room v1 | Onde está aqui | Sprint |
+|---|---|---|
+| Req. 1 conta com usuário, moeda, ativo/passivo, abertura | spec 02, C-1, C-2, C-4 | D2 |
+| Req. 2 lançamento com conta, data, valor exato, moeda, direção, origem | spec 01, D-1/D-2; spec 03, L-1; spec 06, I-1 | D1, D5 |
+| Req. 3 saldo explicável, cache não é história | spec 02, C-3, C-6, C-16 | D2 |
+| Req. 4 correção datada e rastreável | spec 02, C-8, C-10a, C-10b | D2 |
+| Req. 5 transferência em duas pernas, fora de receita/despesa | spec 03, L-5, L-7, L-8 | D1, D3 |
+| Req. 6 reversão em vez de exclusão | spec 03, L-22 | D3 |
+| Req. 7 split atômico com soma exata | spec 03, L-20, L-21 | D3 |
+| Req. 8 patrimônio datado | spec 02, C-14, C-15; D9 (valor de posição) | D2, D9 |
+| Req. 9 importação idempotente por conta e fonte | spec 06, I-1, I-2, I-8a | D5 |
+| Req. 10 escopo por usuário | todas as specs; request spec de isolamento em cada endpoint novo | todas |
+| Caso 1–2 abertura 1.000, débito 120, retroativo 30 → 850 | spec 02, casos de teste do `AccountBalanceCalculator` | D2 |
+| Caso 3 transferência não muda o resultado mensal | spec 03, shared example "ignora transferências" | D1 |
+| Caso 4 split 60 + 40 conta uma vez | spec 03, L-20 | D3 |
+| Caso 5 correção para 870 auditável | spec 02, C-8, C-10b | D2 |
+| Caso 6 duas compras de 50 no mesmo dia | spec 06, I-1 (ordinal) | D5 |
+| Caso 7 reimportação idempotente | spec 06, I-2, I-8a | D5 |
+| Caso 8 moeda estrangeira com taxa e data | spec 01, D-9 a D-11 | D9 |
+
 ## Sprints
 
 ### D0 — Fundamentos (1 PR)

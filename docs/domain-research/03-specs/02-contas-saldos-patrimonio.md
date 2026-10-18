@@ -55,6 +55,11 @@ valor_com_sinal(t) = +amount se t entra na conta (credit, transfer_in)
    explícita, registrada). Categoria e descrição podem mudar.
 10. **C-10.** A primeira reconciliação de uma conta migrada (saldo inicial 0) é o caminho para o Roberto acertar os
     saldos reais: em vez de digitar saldo, ele concilia uma vez.
+10a. **C-10a.** Reconciliação só em data **posterior** à última conciliação da conta. Para corrigir uma data
+    anterior, o usuário primeiro desconcilia as posteriores (ação explícita e registrada). Assim uma correção antiga
+    nunca altera em silêncio um saldo já conferido, e o saldo atual muda só pelo ajuste visível.
+10b. **C-10b.** Cada reconciliação fica gravada (`reconciliations`: data, saldo do banco, diferença, ajuste criado,
+    usuário) e não é apagada ao desconciliar: ganha `undone_at`.
 
 ## Arquivar
 

@@ -62,6 +62,10 @@ Os documentos desta pasta foram commitados às **20:16** (`git log` do branch `d
 `docs/specs/klipper_financial_cleanroom_spec_v1.md`. O relatório forense descreve uma leitura do **código-fonte do
 Sure** (clone em `/tmp/sure`, revisão `98084bfc`).
 
+- A leitura do código do Sure foi feita pelo **OpenAI Codex**, em sessão própria (informado pelo Roberto).
+- Os dois relatórios (`docs/reports/`) ficam **só na pasta local do projeto**, fora do Git (`.git/info/exclude`);
+  não sobem para o GitHub. A spec clean-room fica em `docs/specs/` e é a única entrada para quem implementar saldo,
+  transferência, split e patrimônio.
 - O agente desta sessão **leu os três arquivos depois do commit** das 20:16. Nada nas specs desta pasta veio deles.
 - O clone `/tmp/sure` **não foi aberto** por este agente.
 - Pela separação de fases que o próprio relatório forense define (§9), este agente passou a estar exposto à

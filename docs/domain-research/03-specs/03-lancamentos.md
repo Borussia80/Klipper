@@ -77,6 +77,14 @@ Transaction.countable = kind ∈ {regular, refund}
     e status. Σ filhos = pai, validado no serviço (o model não vê os irmãos de forma confiável).
 21. **L-21.** Split por percentual usa `Money.split` com resto na última parte (spec 01, D-4).
 
+## Exclusão e reversão
+
+22. **L-22.** Lançamento **conciliado** não é excluído: a correção é um lançamento de reversão (mesmo valor, sentido
+    oposto, `reverses_id` apontando para o original), e os dois ficam visíveis. Efetivado não conciliado pode ser
+    excluído, e a exclusão é gravada em `audit_logs` (id, conta, data, valor; nunca a descrição bancária).
+23. **L-23.** Alterar só descrição, categoria, notas ou portador não afeta saldo e não é tratado como mudança
+    financeira. Valor, data, conta ou status afetam saldo a partir da menor data envolvida.
+
 ## Casos de borda
 
 | Caso | Regra |
@@ -102,6 +110,11 @@ TransferService.call(from: corrente, to: cartao, amount: 1200, on: d) # => 2 lin
 # falha na segunda linha → nenhuma gravada
 # update(amount: 1300) numa ponta → as duas com 1300
 # from == to → erro; conta de outro usuário → 404
+
+# spec/services/transaction_removal_spec.rb  (L-22, L-23)
+# excluir lançamento conciliado → recusado
+# excluir efetivado de 50 em data passada → saldo dos dias seguintes +50 e 1 linha em audit_logs
+# alterar só descrição/categoria → saldo e relatórios de valor não mudam
 
 # spec/models/transaction_spec.rb
 build(:transaction, status: "previsto", occurred_on: 1.month.from_now).valid?  # => true
