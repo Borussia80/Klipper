@@ -41,6 +41,9 @@ valor_com_sinal(t) = +amount se t entra na conta (credit, transfer_in)
 4. **C-4.** `saldo_inicial` e `saldo_inicial_em` (data) são colunas novas. Lançamento anterior a `saldo_inicial_em`
    é recusado na criação manual e avisado na importação ("anterior ao saldo inicial; não entra no saldo"), porque
    o saldo inicial já o contém.
+4a. **C-4a.** **Saldo em data anterior a `saldo_inicial_em`:** a conta ainda não existia para o Klipper. A consulta
+    devolve `null` ("sem dado"), não zero. Patrimônio nessa data soma só as contas que já existiam e informa quantas
+    ficaram de fora; a série histórica começa, por conta, em `saldo_inicial_em`.
 5. **C-5.** Saldo **previsto** (para fluxo de caixa) = mesma fórmula incluindo `status = previsto`.
 6. **C-6.** A coluna `accounts.balance` deixa de ser lida. Fica no banco até a Sprint D2 terminar (migração em dois
    passos, ver `04-modelo-dados.md`).

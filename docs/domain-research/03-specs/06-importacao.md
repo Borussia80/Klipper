@@ -21,6 +21,12 @@ Toda importação (PDF, CSV e, depois, OFX) passa pelo mesmo caminho:
 3. **I-3.** `external_id` **não depende de `account_id` mutável**: ao atribuir conta (`assign_account`), o
    `external_id` é recalculado na mesma operação. Corrige R3. O `dedupe_hash` atual vira `external_id` numa
    migração de dados (ordinal = ordem por `id` dentro do grupo idêntico).
+3a. **I-3a.** **Estabilidade do identificador.** O `external_id` depende só do **conteúdo** da linha (conta, data,
+    descrição normalizada, valor) e do ordinal **entre linhas idênticas** — nunca do nome do arquivo, da posição da
+    linha, da ordem das demais linhas nem da configuração de mapeamento. Assim: renomear o arquivo, reordenar as
+    linhas, dividir um extrato em dois ou juntar dois num só produz os mesmos ids. Limite conhecido: se o banco muda a
+    descrição de uma linha já importada, ela vira id novo e cai como `provável duplicada` (passada 2), não como
+    `nova`. Mudar a regra de normalização de descrição exige migração dos ids existentes.
 4. **I-4.** **Três passadas** (ordem do Actual, `server/accounts/sync.ts`), cada lançamento existente casa no
    máximo uma vez:
    1. `external_id` igual na mesma conta → **duplicada**, não importa.

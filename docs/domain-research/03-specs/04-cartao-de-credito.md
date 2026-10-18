@@ -86,6 +86,11 @@ limite_disponível = limite − limite_usado
 15. **K-15.** **Competência da parcela = fatura em que ela cai** (não a data da compra). Assim orçamento e natureza
     `cartao_parcelamento` mostram R$ 142,90 por mês, e não R$ 1.000 no mês da compra. É o que a importação de PDF já
     faz hoje (cada fatura traz a sua "03/07").
+15a. **K-15a.** **Uma regra só para todo lançamento de cartão** (à vista, parcela, estorno, encargo): o mês de
+    competência é o **mês do vencimento da fatura** em que a linha está. Orçamento, natureza, painel e relatórios de
+    receita/despesa usam esse mês; o fluxo de caixa usa a **data** do vencimento. Exemplo (fecha 3, vence 10): compra
+    à vista em 02/10/2026 → fatura que vence 13/10 → outubro; compra em 03/10/2026 → vence 10/11 → novembro, nos dois
+    relatórios. Mover a compra para outra fatura (K-7) muda o mês de competência junto. Depende da decisão Q3.
 16. **K-16.** **Sem juros:** valores por `Money.split(total, n, remainder: :first)` (spec 01, D-4).
     R$ 1.000,00 em 7× → 142,90 + 6 × 142,85.
 17. **K-17.** **Com juros (Tabela Price):** `PMT = PV · i / (1 − (1 + i)^−n)`, arredondada a 2 casas. O resíduo da

@@ -145,22 +145,26 @@ Fórmulas registradas para quando o sprint for aberto:
 - **Quitação de dívida:** avalanche (maior taxa primeiro, o ranking atual) × bola de neve (menor saldo primeiro), com
   a mesma fórmula de juros do rotativo.
 
-## Itens a portar
+## Política de código de terceiros (2026-10-17)
 
-| # | Origem (licença, commit) | O que faz | Destino no Klipper | Sprint |
+| Projeto | Licença | Regra |
+|---|---|---|
+| Sure, hledger, Firefly III, Data Importer | AGPL / GPL | Só pesquisa e especificação funcional. **Nenhum** código, teste, pseudocódigo ou estrutura interna entra no Klipper |
+| Actual Budget, ezBookkeeping | MIT | **Padrão: reimplementar** a funcionalidade a partir das specs, sem abrir o código de referência durante a implementação. Reaproveitar código de fato é **exceção**, aprovada pelo Roberto caso a caso, com análise de licença, cabeçalho de atribuição e entrada no `THIRD_PARTY_NOTICES.md` |
+
+Exceção já aprovada: **P1** (`amountExpression`, Fatia 2 de UX, a partir do `evaluator.ts` do ezBookkeeping), no
+plano de UX aprovado em 2026-10-17. As demais referências MIT abaixo são funcionalidades a reimplementar, não portes:
+
+| # | Referência (MIT) | Funcionalidade | Onde está a regra | Sprint |
 |---|---|---|---|---|
-| A1 | Actual `packages/loot-core/src/server/accounts/sync.ts` → `matchTransactions`, `compareFuzzyMatchCandidates` (MIT, `bde50c3`) | Três passadas de casamento na importação, com casamento único | `app/services/import_matcher.rb` | D5 |
-| A2 | Actual `server/rules/rule-utils.ts` → `computeScore`, `rankRules` (MIT, `bde50c3`) | Ordem determinística das regras por especificidade | `app/services/rule_engine.rb` | D7 |
-| A3 | Actual `server/transactions/transaction-rules.ts` → `getProbableCategory`, `updateCategoryRules` (MIT, `bde50c3`) | Aprendizado: 5 recentes, 3 votos | `app/services/category_learning.rb` | D7 |
-| A4 | Actual `shared/rules.ts` → `getApproxNumberThreshold` (MIT, `bde50c3`) | Limiar de 7,5 % do "aproximadamente" | `RuleEngine` / `ImportMatcher` | D5 |
-| P2/P3 | ezBookkeeping, já listados no plano de UX (MIT, `ff168cf`) | Agendados e ocorrências | D6 | D6 |
-| P6 | ezBookkeeping `pkg/converters/ofx/` (MIT, `ff168cf`) | Leitor de OFX | `app/services/bank_import/ofx_reader.rb` | D5 |
+| A1 | Actual, casamento na importação | Três passadas, casamento único, data mais próxima | spec 06, I-4/I-5 | D5 |
+| A2 | Actual, ordem das regras | Ordem por especificidade, desempate estável | spec 07, G-4 | D7 |
+| A3 | Actual, aprendizado | 5 recentes, 3 votos | spec 07, G-10 a G-12 | D7 |
+| A4 | Actual, "aproximadamente" | Limiar de 7,5 % | spec 07, G-2 | D5/D7 |
+| P2/P3 | ezBookkeeping, agendados | Agendado e ocorrências | spec 05 | D6 |
+| P6 | ezBookkeeping, OFX | Leitor OFX 1.x/2.x | spec 06, I-13 | D5 |
 
-O porte é para Ruby: a lógica é reescrita, não colada. Mesmo assim, o arquivo leva o cabeçalho de atribuição e
-entra no `THIRD_PARTY_NOTICES.md`. A licença do Actual é "Copyright James Long", MIT.
-
-Do Actual **não** se porta o desenho de envelope (spec 08) nem o `transfer.ts` (a regra de "limpar categoria
-quando as duas contas estão no orçamento" é conceito, já reescrito na spec 03 com palavras próprias).
+Envelope (Actual) fica fora (spec 08).
 
 ## Riscos do plano
 
@@ -178,7 +182,7 @@ quando as duas contas estão no orçamento" é conceito, já reescrito na spec 0
 |---|---|---|
 | Q1 | Modelo simples com pares × partidas dobradas | **Simples com pares** (`04-modelo-dados.md`) |
 | Q2 | Orçamento limite × envelope | **Limite**, com rollover opcional |
-| Q3 | Parcela conta no mês da fatura × da compra | **Da fatura** (K-15) |
+| Q3 | Lançamento de cartão (à vista e parcela) conta no mês da fatura × da compra | **Da fatura** (K-15, K-15a) |
 | Q4 | Compra no dia do fechamento vai para a próxima fatura (K-5)? Conferir no Nubank e no Itaú | Sim, até conferir |
 | Q5 | Estouro do orçamento reduz o mês seguinte? | **Não** |
 | Q6 | Rodar a reclassificação dos pagamentos de fatura (M2) | Sim, depois do `DRY_RUN` |

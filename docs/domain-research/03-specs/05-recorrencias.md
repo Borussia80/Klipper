@@ -31,6 +31,10 @@ Substitui a Fatia 6 de UX, que fica dependente desta spec.
    28/03, quando o certo é 28/02 → **31/03**.
 4. **R-4.** **Ajuste de dia não útil**, por agendado: `nenhum` (padrão) · `proximo_util` · `util_anterior`. Contas de
    consumo costumam ir para o próximo dia útil; salário, para o anterior.
+4a. **R-4a.** **Data nominal × data ajustada.** Cada ocorrência guarda `occurrence_date` = data **nominal** (a da
+    regra, antes do ajuste de dia útil) e `occurred_on` = data **ajustada** (a que conta para saldo e relatórios).
+    A unicidade é por (agendado, data nominal), assim mudar a política de ajuste não cria duplicata. Duas datas
+    nominais que caiam na mesma ajustada continuam duas ocorrências.
 5. **R-5.** **Geração.** O calculator materializa como `previsto` (spec 03) as ocorrências **até hoje + 60 dias**
    que ainda não existem (`scheduled_transaction_id` + `occurrence_date` é única). Ocorrência passada não confirmada
    fica `previsto` e aparece como "atrasada".

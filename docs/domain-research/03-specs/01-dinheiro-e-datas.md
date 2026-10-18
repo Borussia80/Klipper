@@ -39,6 +39,12 @@ Exemplo: R$ 1.000,00 em 7 parcelas → `total_c = 100000`, `base = 14285`, `rest
 9. **D-9.** Totais consolidados (patrimônio, painel) são em BRL. Lançamento em moeda estrangeira guarda
    `original_amount`, `original_currency` e `fx_rate`, e `amount` já em BRL. **A taxa fica travada** na data do
    lançamento; recalcular o passado com cotação nova muda número fechado.
+9a. **D-9a.** **Representação em moedas diferentes.** `amount` está **sempre na moeda da conta** do lançamento. Para
+    conta em BRL com compra em moeda estrangeira: `original_amount` (`decimal(15,2)`, ou casas da moeda),
+    `original_currency` (ISO 4217), `fx_rate` (`decimal(18,8)`, BRL por unidade da moeda original) e `fx_rate_on`
+    (data da taxa). Invariante: `|amount − original_amount × fx_rate| ≤ 0,005`. Conta em USD guarda `amount` em USD
+    e não tem `fx_rate`; a conversão para BRL só acontece em consulta consolidada (D-11), com a taxa e a data
+    devolvidas junto do total. Valores de moedas diferentes nunca são somados ou comparados sem conversão explícita.
 10. **D-10.** Fonte da cotação: **PTAX de venda** do Banco Central (API Olinda, `CotacaoDolarDia` /
     `CotacaoMoedaDia`), do dia útil anterior quando o dia não tem boletim. Na fatura de cartão a taxa é a que o banco
     aplicou, não a PTAX: quando vier da fatura, prevalece a da fatura.
@@ -52,8 +58,8 @@ Exemplo: R$ 1.000,00 em 7 parcelas → `total_c = 100000`, `base = 14285`, `rest
 13. **D-13.** Lançamento é **data sem horário** (`date`, já é). Não guardar horário.
 14. **D-14.** **Competência × caixa.**
     - Conta corrente: competência = caixa = `occurred_on`.
-    - Cartão: `occurred_on` = data da compra (competência). A data de caixa é o **vencimento da fatura** a que a compra
-      pertence (spec 04).
+    - Cartão: `occurred_on` = data da compra (registro). Competência = **mês do vencimento da fatura**; caixa = data
+      do vencimento (spec 04, K-15a).
     - Relatórios de gasto (orçamento, painel, natureza) usam **competência**. Fluxo de caixa projetado usa **caixa**.
 15. **D-15.** O front nunca cria `Date` a partir de string `AAAA-MM-DD` sem meio-dia (`parseISODate`, já existe).
 16. **D-16.** Jobs agendados declaram o fuso (`TZ` do processo = `America/Sao_Paulo` ou a expressão de cron com fuso).
