@@ -30,6 +30,20 @@ RSpec.describe AutoCategorizerService, type: :service do
     expect(result&.name).to eq("Lazer")
   end
 
+  # R1: "pagamento" aparece no pagamento da fatura (dos dois lados) e não é renda.
+  context "com a categoria Renda" do
+    before { create(:category, :income, user: user, name: "Renda") }
+
+    it "não classifica pagamento de fatura como renda" do
+      expect(described_class.call("Pagamento em 10 JUN", user)).to be_nil
+      expect(described_class.call("PAG BOLETO NU PAGAMENTOS SA", user)).to be_nil
+    end
+
+    it "continua classificando salário como renda" do
+      expect(described_class.call("SALÁRIO EMPRESA X", user)&.name).to eq("Renda")
+    end
+  end
+
   it "returns nil for unknown description" do
     result = described_class.call("Pagamento genérico aleatório", user)
     expect(result).to be_nil

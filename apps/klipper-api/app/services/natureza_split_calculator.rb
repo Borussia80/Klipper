@@ -20,20 +20,24 @@ class NaturezaSplitCalculator
   # Ver MonthlySummaryCalculator#record_count: serve ao log de auditoria, não
   # ao JSON da resposta.
   def record_count
-    transactions.count
+    transactions.expense_entries.count + transactions.refund_entries.count
   end
 
   private
 
   def transactions
     @transactions ||= begin
-      txns = @user.transactions.where(transaction_type: "debit").in_month(@year, @month)
+      txns = @user.transactions.countable.in_month(@year, @month)
       @member_id ? txns.where(member_id: @member_id) : txns
     end
   end
 
   def totals
-    @totals ||= transactions.joins(:category).group("categories.natureza").sum(:amount)
+    @totals ||= begin
+      by_natureza = ->(scope) { scope.joins(:category).group("categories.natureza").sum(:amount) }
+      refunds = by_natureza.(transactions.refund_entries)
+      by_natureza.(transactions.expense_entries).to_h { |nat, total| [ nat, total - refunds.fetch(nat, 0) ] }
+    end
   end
 
   def total

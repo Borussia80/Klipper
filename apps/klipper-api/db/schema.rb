@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -145,10 +145,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000000) do
     t.string "description", null: false
     t.integer "installment_number"
     t.integer "installment_total"
+    t.string "kind", default: "regular", null: false
     t.bigint "member_id"
     t.text "notes"
     t.date "occurred_on", null: false
     t.bigint "parent_transaction_id"
+    t.string "status", default: "efetivado", null: false
     t.string "transaction_type", default: "debit", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -158,6 +160,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_000000) do
     t.index ["member_id"], name: "index_transactions_on_member_id"
     t.index ["parent_transaction_id"], name: "index_transactions_on_parent_transaction_id"
     t.index ["user_id", "dedupe_hash"], name: "index_transactions_on_user_id_and_dedupe_hash"
+    t.index ["user_id", "kind", "occurred_on"], name: "index_transactions_on_user_id_and_kind_and_occurred_on"
     t.index ["user_id", "occurred_on"], name: "index_transactions_on_user_id_and_occurred_on"
     t.index ["user_id"], name: "index_transactions_on_user_id"
   end

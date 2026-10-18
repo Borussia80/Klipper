@@ -23,12 +23,16 @@ module BankImport
 
       return DUPLICATE if @user.transactions.exists?(dedupe_hash: hash)
 
-      category = AutoCategorizerService.call(description, @user)
+      kind = BankImport::KindDetector.call(description: description, amount: amount)
+      # Pagamento de fatura não é gasto nem renda: sem categoria, para não cair
+      # em nenhum orçamento (spec 03, L-5).
+      category = kind == "card_payment" ? nil : AutoCategorizerService.call(description, @user)
 
       @user.transactions.create!(
         description: description,
         amount: amount.abs,
         transaction_type: tx_type,
+        kind: kind,
         occurred_on: occurred_on,
         category: category,
         account_id: @account_id,

@@ -36,10 +36,13 @@ class MonthlySeriesCalculator
     end
   end
 
+  # Agrupa também por kind para separar o estorno (crédito que abate despesa)
+  # da renda; o scope countable já tirou transferência, pagamento e previsto.
   def totals
-    @totals ||= transactions.group(
+    @totals ||= transactions.countable.group(
       Arel.sql("EXTRACT(YEAR FROM occurred_on)::int"),
       Arel.sql("EXTRACT(MONTH FROM occurred_on)::int"),
+      :kind,
       :transaction_type
     ).sum(:amount)
   end
@@ -47,8 +50,9 @@ class MonthlySeriesCalculator
   # Mês sem lançamento vira ponto zerado: a série tem que ter um ponto por mês
   # da janela, senão o gráfico emenda dois meses distantes numa linha só.
   def point(date)
-    credits = totals[[ date.year, date.month, "credit" ]] || 0
-    debits  = totals[[ date.year, date.month, "debit" ]] || 0
+    credits = totals[[ date.year, date.month, "regular", "credit" ]] || 0
+    debits  = (totals[[ date.year, date.month, "regular", "debit" ]] || 0) -
+              (totals[[ date.year, date.month, "refund", "credit" ]] || 0)
 
     {
       year: date.year,
