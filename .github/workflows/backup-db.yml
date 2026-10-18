@@ -1,8 +1,10 @@
 name: Backup do Postgres de produção
 
+# DESATIVADO: o banco de produção agora é local (servidor em casa) e o runner do
+# GitHub não alcança a rede local. O backup passou para scripts/backup/ (timer
+# do systemd no servidor). Este workflow só volta a valer se o banco voltar para
+# um host público.
 on:
-  schedule:
-    - cron: '0 3 * * 0' # domingo às 03:00 UTC
   workflow_dispatch: {}
 
 jobs:
