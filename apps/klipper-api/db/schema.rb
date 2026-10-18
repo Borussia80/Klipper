@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_20_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -67,11 +67,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_000000) do
     t.string "color", default: "#6B93AE"
     t.datetime "created_at", null: false
     t.string "icon", default: "wallet", null: false
+    t.bigint "merged_into_id"
     t.string "name", null: false
     t.string "natureza", default: "variavel", null: false
+    t.bigint "parent_id"
+    t.integer "position"
     t.bigint "reimbursed_by_category_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["merged_into_id"], name: "index_categories_on_merged_into_id"
+    t.index ["parent_id"], name: "index_categories_on_parent_id"
     t.index ["reimbursed_by_category_id"], name: "index_categories_on_reimbursed_by_category_id"
     t.index ["user_id", "category_type"], name: "index_categories_on_user_id_and_category_type"
     t.index ["user_id", "natureza"], name: "index_categories_on_user_id_and_natureza"
@@ -171,6 +176,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_20_000000) do
   add_foreign_key "audit_logs", "users"
   add_foreign_key "budgets", "categories"
   add_foreign_key "budgets", "users"
+  add_foreign_key "categories", "categories", column: "merged_into_id", on_delete: :nullify
+  add_foreign_key "categories", "categories", column: "parent_id", on_delete: :nullify
   add_foreign_key "categories", "categories", column: "reimbursed_by_category_id"
   add_foreign_key "categories", "users"
   add_foreign_key "investments", "accounts"
