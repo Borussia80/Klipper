@@ -53,5 +53,29 @@ RSpec.describe BankImport::TransactionWriter, type: :service do
 
       expect(result).to be_a(Transaction)
     end
+
+    # D1 (spec 03, L-12): pagamento de fatura move dinheiro entre contas próprias.
+    it "grava pagamento de fatura como card_payment e sem categoria" do
+      create(:category, :income, user: user, name: "Renda")
+
+      tx = described_class.new(user).write!(
+        description: "PAG BOLETO NU PAGAMENTOS SA", amount: BigDecimal("-320.00"), occurred_on: Date.new(2026, 6, 25)
+      )
+
+      expect(tx.kind).to eq("card_payment")
+      expect(tx.category).to be_nil
+    end
+
+    it "grava estorno como refund, ainda categorizado pela regra" do
+      create(:category, user: user, name: "Lazer")
+
+      tx = described_class.new(user).write!(
+        description: "ESTORNO NETFLIX", amount: BigDecimal("39.90"), occurred_on: Date.new(2026, 6, 25)
+      )
+
+      expect(tx.kind).to eq("refund")
+      expect(tx.transaction_type).to eq("credit")
+      expect(tx.category&.name).to eq("Lazer")
+    end
   end
 end

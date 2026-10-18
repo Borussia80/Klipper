@@ -66,11 +66,11 @@ class BudgetEngine
     @child_ids.fetch(category_id, [])
   end
 
+  # Estorno abate o gasto; transferência, pagamento de fatura e previsto não
+  # entram (D1, spec 08 O-1).
   def spent_in(category_ids)
-    @user.transactions
-      .where(category_id: category_ids, transaction_type: "debit")
-      .in_month(@year, @month)
-      .sum(:amount)
+    month = @user.transactions.where(category_id: category_ids).in_month(@year, @month)
+    month.expense_entries.sum(:amount) - month.refund_entries.sum(:amount)
   end
 
   # Aviso, não bloqueio: os limites das subcategorias passam o da categoria.

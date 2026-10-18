@@ -6,7 +6,9 @@ class AutoCategorizerService
     { pattern: /netflix|spotify|amazon.?prime|deezer|globoplay|hbo|disney/i, name: "Lazer" },
     { pattern: /farmácia|drogasil|droga raia|ultrafarma|panvel|médico|hospital|clínica/i, name: "Saúde" },
     { pattern: /aluguel|condomínio|iptu|energia|enel|cemig|sabesp/i, name: "Moradia" },
-    { pattern: /salário|pagamento|vencimento|folha/i, name: "Renda" },
+    # Sem "pagamento": a palavra está nas duas pontas do pagamento de fatura e
+    # fazia dele renda (R1, docs/domain-research/01-baseline-klipper.md).
+    { pattern: /salário|vencimento|folha/i, name: "Renda" },
     { pattern: /escola|faculdade|curso|mensalidade|udemy|coursera/i, name: "Educação" }
   ].freeze
 

@@ -8,7 +8,7 @@ class ReimbursementCoverageCalculator
   # vez e repassa via `monthly_sums:` — sem isso cada instância refaz duas
   # queries por mês, 14 por categoria na janela padrão.
   #
-  # A chave é [category_id, transaction_type, ano, mês]. Quem repassa o
+  # A chave é [category_id, kind, transaction_type, ano, mês]. Quem repassa o
   # resultado precisa tê-lo montado com o mesmo `months:`/`reference_date:` das
   # instâncias: uma janela menor não levanta erro, devolve zero para os meses
   # que ficaram de fora.
@@ -20,9 +20,11 @@ class ReimbursementCoverageCalculator
     window = ref.prev_month(months).beginning_of_month..ref.end_of_month
 
     user.transactions
+      .countable
       .where(category_id: ids, occurred_on: window)
       .group(
         :category_id,
+        :kind,
         :transaction_type,
         Arel.sql("EXTRACT(YEAR FROM occurred_on)::int"),
         Arel.sql("EXTRACT(MONTH FROM occurred_on)::int")
@@ -114,12 +116,14 @@ class ReimbursementCoverageCalculator
     )
   end
 
+  # Gasto = débitos regulares menos estornos da própria categoria (D1).
   def spent_in(year, month)
-    monthly_sums[[ @expense_category.id, "debit", year, month ]] || 0
+    (monthly_sums[[ @expense_category.id, "regular", "debit", year, month ]] || 0) -
+      (monthly_sums[[ @expense_category.id, "refund", "credit", year, month ]] || 0)
   end
 
   def reimbursed_in(year, month)
-    monthly_sums[[ @expense_category.reimbursed_by_category_id, "credit", year, month ]] || 0
+    monthly_sums[[ @expense_category.reimbursed_by_category_id, "regular", "credit", year, month ]] || 0
   end
 
   def historical_months

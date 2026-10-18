@@ -79,6 +79,10 @@ retomar; nada depende de o processo rodar no dia).
 
 ## Sprints
 
+**Ordem alterada em 2026-10-17: D1 vem antes de D0.** As duas são independentes: D1 (`kind`, `status`, scopes
+`countable`) não usa `Money` nem `BusinessCalendar`, que só são pré-requisito de D4 e D6. D1 elimina erros que já
+distorcem os números (R1, R6); D0 não corrige nada visível sozinha.
+
 ### D0 — Fundamentos (1 PR)
 - `Money` (`split`, `round` meio-par) e `BusinessCalendar` (Páscoa, feriados nacionais), puros, com specs da spec 01.
 - `TZ=America/Sao_Paulo` nos jobs (R13).

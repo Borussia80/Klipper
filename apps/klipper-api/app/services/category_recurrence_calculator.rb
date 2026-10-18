@@ -34,7 +34,8 @@ class CategoryRecurrenceCalculator
   def months_present
     reference_months.count do |(year, month)|
       @user.transactions
-        .where(category_id: @category.id, transaction_type: "debit")
+        .expense_entries
+        .where(category_id: @category.id)
         .in_month(year, month)
         .exists?
     end

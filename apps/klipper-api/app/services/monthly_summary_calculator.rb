@@ -39,20 +39,24 @@ class MonthlySummaryCalculator
     end
   end
 
+  # Despesa = débitos regulares menos estornos; renda = créditos regulares.
+  # Transferência, pagamento de fatura, ajuste e previsto ficam de fora (D1).
   def debit_transactions
-    @debit_transactions ||= transactions.where(transaction_type: "debit")
+    @debit_transactions ||= transactions.expense_entries
   end
 
   def debits
-    @debits ||= debit_transactions.sum(:amount)
+    @debits ||= debit_transactions.sum(:amount) - transactions.refund_entries.sum(:amount)
   end
 
   def credits
-    @credits ||= transactions.where(transaction_type: "credit").sum(:amount)
+    @credits ||= transactions.income_entries.sum(:amount)
   end
 
   def by_category
+    refunds = transactions.refund_entries.group(:category_id).sum(:amount)
     totals = debit_transactions.group(:category_id).sum(:amount)
+      .to_h { |cat_id, total| [ cat_id, total - refunds.fetch(cat_id, 0) ] }
     counts = debit_transactions.group(:category_id).count
     categories = @user.categories.where(id: totals.keys.compact).index_by(&:id)
 
