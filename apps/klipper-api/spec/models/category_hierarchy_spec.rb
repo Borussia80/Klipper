@@ -65,4 +65,13 @@ RSpec.describe Category, "hierarquia em dois níveis", type: :model do
 
     expect { pai.destroy }.not_to change(Category, :count)
   end
+
+  # A exclusão da conta destrói as categorias em ordem de id, e o pai vem antes
+  # das filhas: a proteção acima não pode travar a cascata.
+  it "excluir o usuário leva pai, filhas e categorias mescladas juntos" do
+    create(:category, user: user, name: "Aluguel", parent: pai)
+    create(:category, user: user, name: "Antiga", active: false, merged_into: pai)
+
+    expect { user.destroy! }.to change(Category, :count).by(-3)
+  end
 end
