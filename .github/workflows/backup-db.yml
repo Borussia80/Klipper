@@ -20,6 +20,14 @@ jobs:
           AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
         run: |
           set -euo pipefail
+          # Sem isto, uma secret ausente ou vazia faz o pg_dump cair no socket
+          # local do runner ("No such file or directory") e o erro real some.
+          for var in DATABASE_URL AGE_RECIPIENT; do
+            if [ -z "${!var:-}" ]; then
+              echo "::error title=Secret ausente::${var} está vazia — confira BACKUP_DATABASE_URL e BACKUP_AGE_PUBLIC_KEY em Settings > Secrets and variables > Actions."
+              exit 1
+            fi
+          done
           TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
           echo "TAG=backup-${TIMESTAMP}" >> "$GITHUB_ENV"
           ASSET="klipper_${TIMESTAMP}.pgdump.age"
