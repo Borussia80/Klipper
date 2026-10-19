@@ -23,6 +23,13 @@
       >
         {{ error }}
       </div>
+      <div
+        v-if="success"
+        style="background:rgba(37,185,122,0.1);border:1px solid rgba(37,185,122,0.25);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--ok);margin-bottom:16px;text-align:left"
+        role="status"
+      >
+        {{ success }}
+      </div>
 
       <!-- Email/password -->
       <div style="margin-top:16px">
@@ -111,6 +118,7 @@ definePageMeta({ layout: false })
 
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const success = ref<string | null>(null)
 
 // Email + password login / signup
 const { login, signUp } = useAuth()
@@ -123,6 +131,7 @@ const passwordConfirmationField = ref('')
 function switchMode(next: 'login' | 'signup') {
   mode.value = next
   error.value = null
+  success.value = null
 }
 
 async function handleSubmit() {
@@ -137,6 +146,7 @@ async function handleEmailLogin() {
   if (!emailField.value || !passwordField.value) return
   isLoading.value = true
   error.value = null
+  success.value = null
   try {
     await login(emailField.value, passwordField.value)
   } catch (e: unknown) {
@@ -155,8 +165,14 @@ async function handleSignUp() {
   }
   isLoading.value = true
   error.value = null
+  success.value = null
   try {
     await signUp(emailField.value, passwordField.value, nameField.value || undefined)
+    mode.value = 'login'
+    nameField.value = ''
+    passwordField.value = ''
+    passwordConfirmationField.value = ''
+    success.value = 'Conta criada. Entre com seu e-mail e senha para continuar.'
   } catch (e: unknown) {
     const msgs = (e as { data?: { errors?: string[]; error?: string } })?.data
     error.value = msgs?.errors?.join(', ') || msgs?.error || 'Não foi possível criar a conta.'

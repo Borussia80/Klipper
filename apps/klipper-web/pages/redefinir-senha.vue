@@ -77,7 +77,7 @@ definePageMeta({ layout: false })
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
-const { confirmPasswordReset } = useAuth()
+const { confirmPasswordReset, logout } = useAuth()
 const route = useRoute()
 const token = computed(() => (route.query.token as string) || '')
 
@@ -94,7 +94,9 @@ async function handleSubmit() {
   error.value = null
   try {
     await confirmPasswordReset(token.value, passwordField.value, passwordConfirmationField.value)
-    await navigateTo('/login')
+    // The reset invalidates server tokens. Clear this browser's token too so
+    // the login route cannot redirect the person back into a stale session.
+    await logout()
   } catch (e: unknown) {
     const msg = (e as { data?: { error?: string; errors?: string[] } })?.data
     error.value = msg?.error || msg?.errors?.join(', ') || 'Link inválido ou expirado.'

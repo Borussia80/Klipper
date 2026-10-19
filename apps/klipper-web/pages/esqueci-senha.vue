@@ -62,7 +62,13 @@
 
       <!-- Footer link -->
       <div style="margin-top:28px;font-size:12px;color:var(--t3)">
-        <NuxtLink to="/login" style="color:var(--blt);text-decoration:none">Voltar para o login</NuxtLink>
+        <button
+          type="button"
+          style="background:none;border:none;padding:0;color:var(--blt);text-decoration:none;cursor:pointer;font-size:inherit"
+          @click="returnToLogin"
+        >
+          Voltar para o login
+        </button>
       </div>
 
     </div>
@@ -76,8 +82,12 @@ const isLoading = ref(false)
 const error = ref<string | null>(null)
 const sent = ref(false)
 
-const { requestPasswordReset } = useAuth()
+const { requestPasswordReset, logout } = useAuth()
 const emailField = ref('')
+
+async function returnToLogin() {
+  await logout()
+}
 
 async function handleSubmit() {
   if (!emailField.value) return

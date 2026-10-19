@@ -11,6 +11,10 @@ interface AuthResponse {
   user: User
 }
 
+interface SignUpResponse {
+  user: User
+}
+
 export function useAuth() {
   const { apiFetch, token } = useApi()
   const user = useState<User | null>('auth.user', () => null)
@@ -26,13 +30,10 @@ export function useAuth() {
   }
 
   async function signUp(email: string, password: string, name?: string) {
-    const data = await apiFetch<AuthResponse>('/api/v1/auth/sign_up', {
+    return apiFetch<SignUpResponse>('/api/v1/auth/sign_up', {
       method: 'POST',
       body: { email, password, name },
     })
-    token.value = data.token
-    user.value = data.user
-    await navigateTo('/dashboard')
   }
 
   async function logout() {

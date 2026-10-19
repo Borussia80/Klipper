@@ -1,4 +1,4 @@
-const PUBLIC_ROUTES = ['/login', '/onboarding']
+const PUBLIC_ROUTES = ['/login', '/onboarding', '/esqueci-senha', '/redefinir-senha']
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const token = useCookie('klipper_token')
