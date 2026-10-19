@@ -1,0 +1,136 @@
+# 10 — Relatório de implementação: padrões observados e decisões para o Klipper
+
+**Status:** primeiro ciclo de observação ao vivo — 2026-10-19
+**Escopo:** categorias, entrada rápida, painel, contas e orçamento.
+**Base factual:** `09-observacao-ao-vivo.md`. Este documento transforma evidência em proposta própria; não reproduz interface, código, assets ou textos das referências.
+
+## Síntese executiva
+
+O Klipper deve concentrar sua próxima evolução em cinco capacidades conectadas: uma taxonomia simples de dois níveis, lançamento móvel com baixa fricção, correção confiável pós-importação, painel orientado a patrimônio e contas com leitura temporal. As referências convergem em três princípios úteis:
+
+1. **Preparar configurações uma vez; lançar muitas vezes.** Moeda, taxonomia e contas não podem disputar atenção com valor, data e categoria durante um lançamento.
+2. **O estado vazio tem uma única continuação principal.** Sem dados, orientar a primeira ação; com dados, priorizar leitura e alertas.
+3. **Estruturas financeiras devem explicar sua consequência.** Categoria organiza, conta dá contexto de saldo, orçamento informa ritmo e alerta sempre oferece uma ação.
+
+## Decisões propostas
+
+| Frente | Decisão para o Klipper | Evidência observada | Resultado esperado |
+|---|---|---|---|
+| Categorias | Limitar a categoria a pai + filha; criar, ordenar, ocultar e editar em Configurações | seleção opcional de taxonomia com grupos expansíveis no ezBookkeeping | escolha rápida e relatórios coerentes sem árvore profunda |
+| Entrada mobile | Destacar “+” na navegação inferior; abrir folha de lançamento já focada no valor | Cashew mantém a transação como ação central, mesmo apresentando várias áreas | lançamento em até quatro decisões após o valor |
+| Movimentos importados | Abrir uma fila persistente de revisão com filtros salvos, edição em linha/lote e desfazer | a separação entre configurar e operar das referências reduz troca de contexto | importação corrigível sem perder linhas ou filtros |
+| Painel | Começar com patrimônio, evolução temporal e alertas acionáveis; ocultar cards sem dados | Sure usa continuação única no estado vazio e deixa contas como base da leitura | painel compreensível em menos de uma olhada |
+| Conta e orçamento | Tela de conta com saldo atual, histórico, próximos itens e orçamento por disponível/dia | fluxo de conta do Sure coleta saldo, data, moeda e subtipo; Cashew introduz orçamento como período e ritmo | saldo com contexto e orçamento que orienta a decisão de hoje |
+
+## Especificações funcionais de referência
+
+### 1. Categorias em dois níveis e Configurações
+
+**Modelo de dados e regra de uso**
+
+- Uma categoria pode ser de receita ou despesa; transferência não usa categoria de gasto.
+- Uma categoria de topo pode ter filhas; uma filha não pode ter descendentes.
+- Categorias de topo não devem receber novo lançamento quando tiverem filhas ativas; a interface pede uma filha. Movimentos históricos continuam legíveis.
+- Ocultar impede seleção futura sem quebrar histórico, filtros ou importações anteriores.
+
+**Superfícies**
+
+- Em Configurações, a pessoa vê uma árvore de dois níveis por tipo, com ações de criar filha, editar, reordenar e ocultar.
+- No lançamento, o seletor oferece primeiro os grupos e depois as filhas, com busca por qualquer termo. Recentes podem aparecer antes, mas sem inventar uma terceira hierarquia.
+- Na importação, uma linha sem categoria entra na fila de revisão; a atribuição pode ser aplicada a múltiplas linhas compatíveis.
+
+**Aceite**
+
+1. É impossível criar neta de categoria.
+2. Uma categoria oculta permanece em movimentos anteriores, mas não aparece em novo lançamento.
+3. A escolha `Alimentação > Mercado` pode ser feita por teclado e por toque sem abrir Configurações.
+
+**Evidência adicional do ambiente executável:** a lista de categorias do ezBookkeeping separa tipos de movimento e apresenta a categoria primária como contexto explícito das filhas. Para o Klipper, a mesma clareza deve aparecer sem converter o seletor de lançamento em uma tela de administração.
+
+### 2. Lançamento rápido mobile e navegação inferior
+
+**Composição própria sugerida**
+
+- Navegação inferior com quatro destinos: Início, Movimento, `+`, Orçamento e Mais.
+- O `+` abre uma folha modal ancorada abaixo, não uma troca de rota. O primeiro foco é o valor; tipo de movimento (despesa, receita, transferência) fica visível e alternável.
+- Em seguida, conta e categoria são exigidas somente quando necessárias; data, descrição, recorrência e anexos entram em “mais opções”.
+- Salvar mostra confirmação curta com **Desfazer**. Cancelar descarta apenas o rascunho local, com confirmação somente se houver campos preenchidos.
+
+**Métrica inicial**
+
+- Com conta e categoria recentes, registrar uma despesa deve exigir valor, confirmação de categoria/conta e salvar: no máximo quatro toques após tocar `+`.
+- O teclado numérico não pode cobrir o botão de salvar nem esconder a categoria selecionada.
+- Em 390 px, uma linha de movimento não pode depender de rolagem horizontal para revelar conta, valor ou sua ação de correção.
+
+### 3. Busca, filtros e correção pós-importação em Movimento
+
+**Fila de revisão**
+
+- Ao concluir a importação, enviar para `Movimentos > Revisar importação`, com contador de pendências e deep link preservável.
+- Separar de maneira explícita a origem/formato da importação, o mapeamento de colunas, a revisão e a conclusão. O mapeamento só aparece quando o formato exigir, evitando pedir configuração inexistente em exportações conhecidas.
+- Filtros mínimos: período, conta, situação de importação, categoria ausente, possível duplicata e tipo. Eles devem permanecer na URL e sobreviver à edição.
+- Mostrar a origem e o motivo de pendência em texto claro. Nunca transformar uma estimativa de duplicata em descarte automático.
+- Permitir alteração de categoria, conta, data e descrição no contexto da lista; ações em lote devem ter resumo e desfazer.
+- No mobile, representar cada linha como cartão compacto; filtros e seleção em lote devem abrir em folhas, e não em uma tabela comprimida.
+
+**Aceite**
+
+1. Filtrar “sem categoria” e corrigir dez linhas não perde a posição da lista.
+2. Desfazer uma ação em lote restaura as linhas e o filtro.
+3. Ao voltar de um detalhe, período e busca continuam iguais.
+
+**Evidência adicional do ambiente executável:** ao aplicar busca no ezBookkeeping, período e termo foram serializados na URL. O Klipper deve adotar esse princípio para filtro, paginação e fila de revisão — com parâmetros próprios e legíveis — sem assumir que o usuário precise entender a URL.
+
+### 4. Painel de patrimônio, evolução e alarmes
+
+**Prioridade visual**
+
+1. Patrimônio líquido atual e variação no período.
+2. Evolução em gráfico temporal e distribuição por grupo de contas.
+3. Alertas que pedem decisão, cada um com uma ação: revisar lançamento, pagar fatura, categorizar pendência ou atualizar saldo.
+4. Resumo de orçamento por ritmo, não um mural de métricas.
+
+**Estados**
+
+- Sem conta: explicar em uma frase o que aparecerá e oferecer “Adicionar primeira conta”.
+- Com conta sem histórico: exibir patrimônio e pedir movimentos ou uma atualização de saldo, sem renderizar gráfico fictício.
+- Sem alertas: remover a seção ou mostrar estado compacto de tranquilidade; não reservar uma área grande vazia.
+
+### 5. Detalhe de conta, histórico de saldo e orçamento diário
+
+**Detalhe de conta**
+
+- Cabeçalho com saldo, data da última atualização e ação contextual (novo movimento ou atualizar saldo).
+- Linha temporal de saldos, não apenas soma de movimentos; destacar pontos de ajuste e importação.
+- Separar saldo realizado de saldo previsto se houver itens agendados. A data de abertura estabelece o primeiro ponto conhecido.
+
+**Evidência adicional do ambiente executável:** ao inserir saldo inicial em uma conta de teste, a ferramenta registrou um movimento de ajuste de saldo com data/hora. Esse padrão é útil ao Klipper: histórico de saldo não pode ser inferido apenas da fotografia atual.
+
+**Ritmo de orçamento**
+
+- Para cada orçamento ativo, calcular: disponível, dias restantes, limite diário e comparação com o ritmo esperado até hoje.
+- Usar linguagem clara: “R$ X por dia até o fim do ciclo” e “acima/abaixo do ritmo”, acompanhada de cor e ícone — nunca cor isolada.
+- Não indicar falha enquanto o período estiver dentro do ritmo, mesmo que já tenha consumido grande parte do limite cedo em um ciclo curto.
+
+## Ordem recomendada de entrega
+
+1. **Fundação:** modelo de categorias, tela de Configurações e seletor reutilizável.
+2. **Operação:** lançamento mobile, nova navegação inferior e confirmação com desfazer.
+3. **Confiabilidade:** filtros persistentes e fila de revisão de importação.
+4. **Leitura:** detalhe de conta, histórico de saldo e painel de patrimônio.
+5. **Orientação:** orçamento por ritmo e alertas acionáveis.
+
+Essa ordem reduz retrabalho: lançamento, importação e orçamento compartilham o mesmo contrato de categoria, conta e data.
+
+## Restrições de design
+
+- Aplicar os tokens e a direção náutica existentes do Klipper; preservar Inter, Space Grotesk e Phosphor.
+- Não importar a aparência Material, ilustrações, cópia textual, cores, medidas, componentes ou assets das referências.
+- Implementar comportamento responsivo, e não uma versão desktop encolhida: navegação e formulário podem mudar de apresentação; regras e dados permanecem consistentes.
+
+## Lacunas a fechar no próximo ciclo
+
+- Medir toques, estados de erro e desfazer de um lançamento real em mobile.
+- Validar busca/filtro, importação e edição em lote com o conjunto sintético completo.
+- Confirmar quais alertas são suficientemente frequentes e acionáveis para merecer o painel inicial.
+- Testar as propostas com o Klipper em 390 px e 1440 px antes de iniciar uma implementação ampla.

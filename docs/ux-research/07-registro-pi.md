@@ -52,6 +52,16 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 - Nenhum valor visual (cor, espaçamento, raio) desses apps foi medido; os tokens de `04` são os do próprio Klipper (`tokens.css`).
 - Nenhum nome, logo ou marca dos três apps aparece como proposta de UI do Klipper.
 
+## Sessão 2 — 2026-10-19 (observação ao vivo)
+
+| App | Fonte/ambiente | Telas observadas | Código aberto? |
+|---|---|---|---|
+| Sure | imagem oficial em container local isolado | cadastro, onboarding, painel vazio, inclusão manual e escolha de conexão de conta | **Não** |
+| Cashew | PWA oficial em execução | início vazio desktop, onboarding, navegação e ação global de transação | **Não** |
+| ezBookkeeping | imagem oficial em container local isolado | login, cadastro, preferências, conta local sintética, categorias pai/filha, lista, busca e assistente de importação | **Não** |
+
+As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper.
+
 ## Modelo para próximas sessões
 
 ```
