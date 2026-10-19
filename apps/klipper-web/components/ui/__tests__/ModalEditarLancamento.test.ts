@@ -6,6 +6,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { DOMWrapper, type VueWrapper } from '@vue/test-utils'
+import { ref } from 'vue'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import ModalEditarLancamento from '../ModalEditarLancamento.vue'
 import type { Transaction } from '~/composables/useTransactions'
@@ -14,6 +15,7 @@ const mockAddToast = vi.fn()
 const mockUpdateTransaction = vi.fn()
 const mockFetchAccounts = vi.fn()
 const mockFetchCategories = vi.fn()
+const mockFetchMembers = vi.fn()
 
 mockNuxtImport('useToast', () => () => ({
   addToast: mockAddToast,
@@ -29,6 +31,11 @@ mockNuxtImport('useAccounts', () => () => ({
 mockNuxtImport('useCategories', () => () => ({
   categories: { value: [{ id: 1, name: 'Mercado' }] },
   fetchCategories: mockFetchCategories,
+}))
+
+mockNuxtImport('useMembers', () => () => ({
+  members: ref([{ id: 9, name: 'Portador Sintético' }]),
+  fetchMembers: mockFetchMembers,
 }))
 
 mockNuxtImport('useTransactions', () => () => ({
@@ -67,6 +74,7 @@ describe('ModalEditarLancamento', () => {
     vi.setSystemTime(new Date(2026, 7, 15, 12, 0, 0)) // 15/08/2026, meio-dia local
     mockFetchAccounts.mockResolvedValue(undefined)
     mockFetchCategories.mockResolvedValue(undefined)
+    mockFetchMembers.mockResolvedValue(undefined)
     mockUpdateTransaction.mockResolvedValue(makeTransaction())
   })
 
@@ -132,6 +140,17 @@ describe('ModalEditarLancamento', () => {
 
     const payload = mockUpdateTransaction.mock.calls[0][1]
     expect(payload.category_id).toBeNull()
+  })
+
+  it('preenche e envia o portador do lançamento', async () => {
+    await mountModal({ open: true, transaction: makeTransaction({ member_id: 9 }) })
+    const select = body.find('select[aria-label="Portador do lançamento"]').element as HTMLSelectElement
+    expect(select.value).toBe('9')
+
+    await body.find('button.cta').trigger('click')
+    await vi.waitFor(() => expect(mockUpdateTransaction).toHaveBeenCalledWith(
+      42, expect.objectContaining({ member_id: 9 }),
+    ))
   })
 
   it('shows an error toast when the update fails', async () => {

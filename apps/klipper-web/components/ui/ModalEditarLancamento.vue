@@ -81,6 +81,17 @@
       </div>
     </div>
 
+    <div v-if="!isLoadingData" style="margin-bottom:16px">
+      <p class="flbl">Portador (opcional)</p>
+      <div class="select-wrap">
+        <select v-model="portador" class="field select" aria-label="Portador do lançamento">
+          <option :value="null">Sem portador</option>
+          <option v-for="member in members" :key="member.id" :value="member.id">{{ member.name }}</option>
+        </select>
+        <span class="select-arrow">▾</span>
+      </div>
+    </div>
+
     <!-- Data -->
     <p class="flbl">Data</p>
     <input
@@ -122,8 +133,8 @@ const emit = defineEmits(['close'])
 const { addToast } = useToast()
 const { updateTransaction } = useTransactions()
 const {
-  accounts, categories, isLoadingData, tipoOpcoes,
-  tipo, valor, descricao, categoria, conta, data, error,
+  accounts, categories, members, isLoadingData, tipoOpcoes,
+  tipo, valor, descricao, categoria, conta, portador, data, error,
   validate, isValid, buildPayload, fillFrom,
 } = useLancamentoForm()
 
