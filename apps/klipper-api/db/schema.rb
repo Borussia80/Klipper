@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -143,6 +143,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_010000) do
     t.datetime "created_at", null: false
     t.string "dedupe_hash"
     t.string "description", null: false
+    t.string "external_id"
     t.integer "installment_number"
     t.integer "installment_total"
     t.string "kind", default: "regular", null: false
@@ -154,6 +155,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_010000) do
     t.string "transaction_type", default: "debit", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["account_id", "external_id"], name: "index_transactions_on_account_id_and_external_id", unique: true, where: "(external_id IS NOT NULL)"
     t.index ["account_id", "occurred_on"], name: "index_transactions_on_account_id_and_occurred_on"
     t.index ["account_id"], name: "index_transactions_on_account_id"
     t.index ["category_id"], name: "index_transactions_on_category_id"

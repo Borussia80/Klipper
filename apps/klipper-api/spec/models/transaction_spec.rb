@@ -60,4 +60,16 @@ RSpec.describe Transaction, type: :model do
       expect(Transaction.in_month(2026, 6)).not_to include(other)
     end
   end
+
+  describe "external_id index" do
+    it "rejects two equal external ids in the same account" do
+      user = create(:user)
+      account = create(:account, user: user)
+      create(:transaction, user: user, account: account, external_id: "bank-row-1")
+
+      expect do
+        create(:transaction, user: user, account: account, external_id: "bank-row-1")
+      end.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+  end
 end

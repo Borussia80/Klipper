@@ -42,4 +42,36 @@ namespace :transactions do
     end
     puts "Gravado."
   end
+
+  # D5 (spec 06, I-1 a I-3a): preenche external_id dos lançamentos legados
+  # somente depois de revisão. Deliberadamente NÃO é uma migration: a regra usa
+  # a normalização atual e precisa poder ser simulada com DRY_RUN=1; VERBOSE=1
+  # lista as linhas que receberiam o identificador.
+  desc "Preenche external_id dos lançamentos com conta. DRY_RUN=1 simula; VERBOSE=1 lista as linhas."
+  task backfill_external_ids: :environment do
+    dry_run = ENV["DRY_RUN"].present?
+    verbose = ENV["VERBOSE"].present?
+
+    puts dry_run ? "== DRY RUN — nada será gravado ==" : "== Backfill de external_id (D5) =="
+
+    changes = Transaction.where.not(account_id: nil).distinct.order(:account_id).pluck(:account_id).flat_map do |account_id|
+      account = Account.find(account_id)
+      BankImport::ExternalIdBackfill.new(account).call(dry_run: true)
+    end
+
+    changes.group_by { |(transaction, _)| [ transaction.user_id, transaction.account_id ] }.sort.each do |(user_id, account_id), rows|
+      puts format("usuário %d · conta %d · external_id %d", user_id, account_id, rows.size)
+      next unless verbose
+
+      rows.each { |(transaction, external_id)| puts "  ##{transaction.id} → #{external_id}" }
+    end
+
+    puts "Total: #{changes.size} lançamento(s)"
+    next if dry_run
+
+    changes.group_by { |(transaction, _)| transaction.account_id }.each_value do |account_changes|
+      BankImport::ExternalIdBackfill.new(account_changes.first.first.account).call
+    end
+    puts "Gravado."
+  end
 end

@@ -91,6 +91,22 @@ RSpec.describe CsvImportService, type: :service do
     expect(user.transactions.count).to eq(3)
   end
 
+  it "imports identical rows with separate ordinals and dedupes them on reimport" do
+    account = create(:account, user: user)
+    content = <<~CSV
+      Data,Descrição,Valor
+      01/06/2026,CAFÉ X,-5.00
+      01/06/2026,CAFE X,-5.00
+    CSV
+
+    first = run(content, account_id: account.id)
+    second = run(content, account_id: account.id)
+
+    expect(first).to have_attributes(imported: 2, duplicates: 0)
+    expect(second).to have_attributes(imported: 0, duplicates: 2)
+    expect(user.transactions.where(account: account).pluck(:external_id).uniq.size).to eq(2)
+  end
+
   it "only counts as duplicate the rows that match an existing transaction, importing the rest" do
     run(csv_content)
     extra_content = csv_content + "15/06/2026,COMPRA NOVA LOJA,-30.00\n"

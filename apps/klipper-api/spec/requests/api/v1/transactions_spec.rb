@@ -329,6 +329,19 @@ RSpec.describe "Transactions API", type: :request do
       expect(orfas.map { |t| t.reload.account_id }).to all(eq(account.id))
     end
 
+    it "backfills ids so a later import of assigned rows is duplicated" do
+      content = "Data,Descrição,Valor\n01/06/2026,CAFÉ X,-5.00\n"
+      CsvImportService.new(user, StringIO.new(content)).call
+
+      post "/api/v1/transactions/assign_account", params: { account_id: account.id }.to_json, headers: headers
+
+      result = CsvImportService.new(user, StringIO.new(content), account_id: account.id).call
+      transaction = user.transactions.find_by(description: "CAFÉ X")
+
+      expect(transaction.external_id).to be_present
+      expect(result).to have_attributes(imported: 0, duplicates: 1)
+    end
+
     # Só as órfãs: quem já tem conta escolhida não é sobrescrito por uma ação
     # em massa disparada de um banner.
     it "does not touch transactions that already have an account" do
