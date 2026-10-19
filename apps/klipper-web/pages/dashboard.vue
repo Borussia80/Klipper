@@ -163,8 +163,6 @@ definePageMeta({ layout: 'app' })
 
 const {
   transactions,
-  totalDebits,
-  totalCredits,
   fetchTransactions,
   fetchLatestOccurredOn,
   isLoading: transactionsLoading,
@@ -173,6 +171,8 @@ const {
 const { members, fetchMembers, error: membersError } = useMembers()
 const { formatBRL, currentMonthLabel, formatDayMonth, formatFullDate, fmtMonthFull } = useFormatters()
 const {
+  monthly,
+  fetchMonthly,
   naturezaSplit,
   fetchNaturezaSplit,
   monthlySeries,
@@ -253,6 +253,7 @@ async function loadTransactions() {
 // Os recortes do mês só podem ser pedidos depois que se sabe qual é o mês.
 async function loadMes() {
   await loadTransactions()
+  fetchMonthly(refYear.value, refMonth.value, activeMemberId.value)
   fetchNaturezaSplit(refYear.value, refMonth.value, activeMemberId.value)
   fetchReimbursementCoverage(refYear.value, refMonth.value)
   fetchMonthlySeries(refYear.value, refMonth.value, MESES_DA_SERIE, activeMemberId.value)
@@ -282,6 +283,9 @@ function commitmentTone(pct: number | null): 'warn' | 'alert' | 'neutral' {
   if (pct >= 0.4) return 'warn'
   return 'neutral'
 }
+
+const totalDebits = computed(() => monthly.value?.total_debits ?? 0)
+const totalCredits = computed(() => monthly.value?.total_credits ?? 0)
 
 const netResult = computed(() => totalCredits.value - totalDebits.value)
 

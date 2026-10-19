@@ -11,7 +11,7 @@ import type { VueWrapper } from '@vue/test-utils'
 import { flushPromises } from '@vue/test-utils'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import type { Transaction } from '~/composables/useTransactions'
-import type { MonthlySeriesPoint } from '~/composables/useReports'
+import type { MonthlyReport, MonthlySeriesPoint } from '~/composables/useReports'
 import Dashboard from '../dashboard.vue'
 import DataHealthBanner from '~/components/ui/DataHealthBanner.vue'
 
@@ -22,6 +22,8 @@ const latestOccurredOn = ref<string | null>(null)
 
 const mockFetchTransactions = vi.fn(async (_filters?: Record<string, unknown>) => {})
 const mockFetchNaturezaSplit = vi.fn()
+const mockFetchMonthly = vi.fn()
+const monthly = ref<MonthlyReport | null>(null)
 const mockFetchMonthlySeries = vi.fn()
 const monthlySeries = ref<{ points: MonthlySeriesPoint[] } | null>(null)
 const mockFetchDataHealth = vi.fn()
@@ -45,6 +47,8 @@ mockNuxtImport('useMembers', () => () => ({
 }))
 
 mockNuxtImport('useReports', () => () => ({
+  monthly,
+  fetchMonthly: mockFetchMonthly,
   naturezaSplit: ref(null),
   fetchNaturezaSplit: mockFetchNaturezaSplit,
   monthlySeries,
@@ -81,9 +85,11 @@ describe('dashboard.vue — hero do resultado do mês', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     transactions.value = [debit('120.00')]
+    monthly.value = null
   })
 
   afterEach(() => {
+    monthly.value = null
     wrapper?.unmount()
     wrapper = null
   })
@@ -91,6 +97,7 @@ describe('dashboard.vue — hero do resultado do mês', () => {
   it('FIN-004: sem nenhuma entrada no ciclo, mostra ausência de base em vez de barra zerada', async () => {
     totalCredits.value = 0
     totalDebits.value = 120
+    monthly.value = { year: 2026, month: 10, total_credits: 0, total_debits: 120, net: -120, by_category: [] }
 
     wrapper = await mountSuspended(Dashboard)
 
@@ -102,6 +109,7 @@ describe('dashboard.vue — hero do resultado do mês', () => {
   it('FIN-004: com entradas no ciclo, desenha a barra na proporção das saídas', async () => {
     totalCredits.value = 1000
     totalDebits.value = 400
+    monthly.value = { year: 2026, month: 10, total_credits: 1000, total_debits: 400, net: 600, by_category: [] }
 
     wrapper = await mountSuspended(Dashboard)
 
@@ -109,6 +117,44 @@ describe('dashboard.vue — hero do resultado do mês', () => {
     expect(bar.exists()).toBe(true)
     expect(bar.attributes('style')).toContain('width: 40%')
     expect(wrapper.find('[data-testid="readout-no-budget"]').exists()).toBe(false)
+  })
+})
+
+describe('dashboard.vue — totais operacionais mensais', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    transactions.value = [
+      { ...debit('1200.00'), id: 1 },
+      { ...debit('3000.00'), id: 2, transaction_type: 'transfer' },
+      { ...debit('5000.00'), id: 3, transaction_type: 'credit' },
+    ]
+    totalCredits.value = 5000
+    totalDebits.value = 4200
+    monthly.value = {
+      year: 2026,
+      month: 10,
+      total_credits: 5000,
+      total_debits: 1200,
+      net: 3800,
+      by_category: [],
+    }
+  })
+
+  afterEach(() => {
+    monthly.value = null
+    wrapper?.unmount()
+    wrapper = null
+  })
+
+  it('usa o resumo mensal da API, não a soma ingênua que inclui movimentações não operacionais', async () => {
+    wrapper = await mountSuspended(Dashboard)
+    await flushPromises()
+
+    expect(wrapper.find('.hero-num').text()).toBe('R$ 3.800,00')
+    const legs = wrapper.findAll('[data-testid="readout-leg"]')
+    expect(legs[0]!.text()).toContain('R$ 5.000,00')
+    expect(legs[1]!.text()).toContain('R$ 1.200,00')
+    expect(mockFetchMonthly).toHaveBeenLastCalledWith(2026, 10, undefined)
   })
 })
 
@@ -354,11 +400,13 @@ describe('dashboard.vue — densidade do hero', () => {
     transactions.value = [debit('120.00')]
     totalCredits.value = 5000
     totalDebits.value = 2500
+    monthly.value = { year: 2026, month: 9, total_credits: 5000, total_debits: 2500, net: 2500, by_category: [] }
     latestOccurredOn.value = null
   })
 
   afterEach(() => {
     vi.useRealTimers()
+    monthly.value = null
     wrapper?.unmount()
     wrapper = null
   })
