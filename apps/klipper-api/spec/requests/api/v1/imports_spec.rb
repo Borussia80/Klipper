@@ -193,6 +193,59 @@ RSpec.describe "Api::V1::Imports", type: :request do
     end
   end
 
+  describe "POST /api/v1/imports/csv_preview" do
+    let(:nubank_csv_content) do
+      <<~CSV
+        Data,Valor,Identificador,Descrição
+        01/06/2026,-5000.91,id-1,PIX ENVIADO
+        02/06/2026,100.00,id-2,RENDIMENTO CONTA
+        03/06/2026,-42.50,id-3,COMPRA MERCADO
+        04/06/2026,250.25,id-4,PIX RECEBIDO
+      CSV
+    end
+
+    def nubank_csv_file
+      Rack::Test::UploadedFile.new(StringIO.new(nubank_csv_content), "text/csv", original_filename: "nubank.csv")
+    end
+
+    it "requires the destination account like the direct CSV import" do
+      post "/api/v1/imports/csv_preview", params: { file: nubank_csv_file }, headers: auth_headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(JSON.parse(response.body)["error"]).to eq("Conta de destino obrigatória")
+    end
+
+    it "returns four signed rows without persisting them" do
+      expect {
+        post "/api/v1/imports/csv_preview",
+             params: { file: nubank_csv_file, account_id: account.id }, headers: auth_headers
+      }.not_to change { user.transactions.count }
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json).to include("adapter" => "csv", "warnings" => [])
+      expect(json["rows"].size).to eq(4)
+      expect(json["rows"]).to all(include("token"))
+    end
+
+    it "confirms previewed CSV rows and dedupes a reimport by external_id" do
+      post "/api/v1/imports/csv_preview",
+           params: { file: nubank_csv_file, account_id: account.id }, headers: auth_headers
+      rows = JSON.parse(response.body)["rows"]
+
+      post "/api/v1/imports/confirm", params: { rows:, account_id: account.id }, headers: auth_headers
+      expect(JSON.parse(response.body)).to include("imported" => 4, "duplicates" => 0, "errors" => [])
+
+      post "/api/v1/imports/csv_preview",
+           params: { file: nubank_csv_file, account_id: account.id }, headers: auth_headers
+      repeated_rows = JSON.parse(response.body)["rows"]
+      post "/api/v1/imports/confirm", params: { rows: repeated_rows, account_id: account.id }, headers: auth_headers
+
+      expect(JSON.parse(response.body)).to include("imported" => 0, "duplicates" => 4, "errors" => [])
+      expect(user.transactions.count).to eq(4)
+    end
+  end
+
   describe "POST /api/v1/imports/confirm" do
     let(:rows) do
       [

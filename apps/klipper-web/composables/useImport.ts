@@ -78,6 +78,28 @@ export function useImport() {
     }
   }
 
+  async function previewCsvFile(file: File, accountId?: number) {
+    isLoading.value = true
+    error.value = null
+    preview.value = null
+    try {
+      const body = new FormData()
+      body.append('file', file)
+      if (accountId) body.append('account_id', String(accountId))
+      preview.value = await apiFetch<PreviewResponse>('/api/v1/imports/csv_preview', {
+        method: 'POST',
+        body,
+      })
+    } catch (requestError) {
+      const backendError = (requestError as { data?: { error?: unknown } }).data?.error
+      error.value = typeof backendError === 'string'
+        ? backendError
+        : 'Erro ao processar arquivo. Verifique o formato e tente novamente.'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   async function confirmImport(rows: PreviewRow[], accountId?: number) {
     isLoading.value = true
     error.value = null
@@ -100,5 +122,5 @@ export function useImport() {
     error.value = null
   }
 
-  return { result, preview, isLoading, error, uploadFile, previewFile, confirmImport, reset }
+  return { result, preview, isLoading, error, uploadFile, previewFile, previewCsvFile, confirmImport, reset }
 }
