@@ -68,8 +68,9 @@ async function handleConfirm() {
   try {
     await props.payload.onConfirm()
     emit('close')
-  } catch {
-    error.value = 'Não foi possível excluir. Tente novamente.'
+  } catch (failure: unknown) {
+    const data = (failure as { data?: { errors?: string[] } }).data
+    error.value = data?.errors?.join(' ') || 'Não foi possível excluir. Tente novamente.'
   } finally {
     isLoading.value = false
   }
