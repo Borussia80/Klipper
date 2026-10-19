@@ -9,6 +9,7 @@ const props = defineProps<{
   relationship: 'titular' | 'dependente'
   spentLabel: string
 }>()
+defineEmits<{ edit: []; delete: [] }>()
 
 const relationshipLabel = computed(() => (props.relationship === 'titular' ? 'Titular' : 'Dependente'))
 
@@ -32,6 +33,10 @@ const initials = computed(() =>
     <div style="text-align:right;flex-shrink:0">
       <div class="mono" style="font-size:13px;font-weight:500;color:var(--t1)">{{ spentLabel }}</div>
     </div>
+    <div style="display:flex;gap:4px">
+      <button class="member-action" type="button" aria-label="Editar portador" @click="$emit('edit')"><UiAppIcon name="settings" :size="14" /></button>
+      <button class="member-action" type="button" aria-label="Inativar portador" @click="$emit('delete')"><UiAppIcon name="trash" :size="14" /></button>
+    </div>
   </div>
 </template>
 
@@ -49,4 +54,5 @@ const initials = computed(() =>
   font-weight: 600;
   flex-shrink: 0;
 }
+.member-action { display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t3); }
 </style>

@@ -37,6 +37,8 @@
             :name="member.name"
             relationship="titular"
             :spent-label="formatBRL(spendByMember.get(member.id) ?? 0)"
+            @edit="editingMember = member"
+            @delete="confirmDelete(member)"
           />
         </template>
 
@@ -48,6 +50,8 @@
             :name="member.name"
             relationship="dependente"
             :spent-label="formatBRL(spendByMember.get(member.id) ?? 0)"
+            @edit="editingMember = member"
+            @delete="confirmDelete(member)"
           />
         </template>
 
@@ -58,14 +62,16 @@
         </UiEmptyState>
       </template>
     </div>
+    <UiModalEditarMembro :open="!!editingMember" :member="editingMember" @close="editingMember = null" />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { MemberSpend } from '~/composables/useMemberSpending'
+import type { Member } from '~/composables/useMembers'
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { members, isLoading, error, fetchMembers } = useMembers()
+const { members, isLoading, error, fetchMembers, deleteMember } = useMembers()
 const { formatBRL } = useFormatters()
 
 const memberSpends = ref<MemberSpend[]>([])
@@ -81,4 +87,16 @@ onMounted(async () => {
 const titulares = computed(() => members.value.filter((m) => m.relationship === 'titular'))
 const dependentes = computed(() => members.value.filter((m) => m.relationship === 'dependente'))
 const spendByMember = computed(() => new Map(memberSpends.value.map((s: MemberSpend) => [s.memberId, s.totalDebits])))
+const editingMember = ref<Member | null>(null)
+
+function confirmDelete(member: Member) {
+  open('confirm-delete', {
+    title: 'Inativar portador',
+    resourceType: 'portador',
+    itemName: member.name,
+    description: `Tem certeza? O portador “${member.name}” será inativado.`,
+    confirmLabel: 'Inativar portador',
+    onConfirm: () => deleteMember(member.id),
+  })
+}
 </script>
