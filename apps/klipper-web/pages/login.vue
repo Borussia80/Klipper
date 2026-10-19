@@ -25,7 +25,7 @@
       </div>
       <div
         v-if="success"
-        style="background:rgba(37,185,122,0.1);border:1px solid rgba(37,185,122,0.25);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--pos);margin-bottom:16px;text-align:left"
+        style="background:rgba(37,185,122,0.1);border:1px solid rgba(37,185,122,0.25);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--ok);margin-bottom:16px;text-align:left"
         role="status"
       >
         {{ success }}
