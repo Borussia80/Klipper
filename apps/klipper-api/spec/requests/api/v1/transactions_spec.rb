@@ -150,7 +150,7 @@ RSpec.describe "Transactions API", type: :request do
     end
 
     it "expõe os headers de paginação ao navegador" do
-      get "/api/v1/transactions", headers: headers.merge("Origin" => "http://localhost:3001")
+      get "/api/v1/transactions", headers: headers.merge("Origin" => "http://localhost:3000")
 
       exposed = response.headers["Access-Control-Expose-Headers"].to_s
       expect(exposed).to include("X-Next-Cursor", "X-Per-Page")

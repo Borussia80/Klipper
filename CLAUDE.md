@@ -44,6 +44,22 @@ TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/klipper_test" \
   bundle exec rspec --format documentation
 ```
 
+### Alfa local (uso real na própria máquina)
+
+Portas: **front 3000, API 3001** (os padrões do código já são esses). O Docker está desabilitado; o banco do alfa é
+um container Podman persistente, só em 127.0.0.1:
+
+```bash
+podman start klipper-pg-alpha        # 1ª vez: podman run -d --name klipper-pg-alpha -p 127.0.0.1:5433:5432 \
+                                     #   -v klipper_alpha_db:/var/lib/postgresql/data \
+                                     #   -e POSTGRES_HOST_AUTH_METHOD=trust docker.io/library/postgres:16
+cd apps/klipper-api && DATABASE_URL=postgresql://postgres@127.0.0.1:5433/klipper_development \
+  bin/rails db:create db:migrate && DATABASE_URL=... bin/rails server -b 127.0.0.1 -p 3001
+cd apps/klipper-web && npm run dev   # http://localhost:3000, cria a conta em "Criar conta"
+```
+
+O Codex não alcança o Postgres (sandbox): quem roda `rspec` é o Claude.
+
 ### Postgres de teste — Podman, não Docker
 
 O daemon do Docker está **desabilitado** nesta máquina: `docker compose` falha.
