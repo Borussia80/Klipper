@@ -2,12 +2,20 @@ class CsvImportService
   require "csv"
 
   ImportResult = Struct.new(:imported, :duplicates, :errors, keyword_init: true)
+  PreviewResult = Struct.new(:adapter, :rows, :warnings, :error, keyword_init: true) do
+    def error?
+      error.present?
+    end
+  end
+  PreviewRow = Struct.new(:occurred_on, :description, :amount, :page, :metadata,
+                          :installment_number, :installment_total, keyword_init: true)
 
   DATE_HEADER_ALIASES = %w[data date].freeze
   DESCRIPTION_HEADER_ALIASES = %w[descricao description historico title].freeze
   VALUE_HEADER_ALIASES = %w[valor amount value].freeze
   DATE_FORMATS = [ "%d/%m/%Y", "%Y-%m-%d" ].freeze
   FORMULA_TRIGGER_CHARS = %w[= + - @].freeze
+  IncompleteRowError = Class.new(StandardError)
 
   def initialize(user, file_io, account_id: nil)
     @user = user
@@ -45,6 +53,32 @@ class CsvImportService
     ImportResult.new(imported: 0, duplicates: 0, errors: [ "CSV inválido: #{e.message}" ])
   end
 
+  def preview
+    content = @file_io.read
+    rows = CSV.parse(content, headers: true, encoding: "UTF-8", col_sep: detect_col_sep(content))
+    columns = map_columns(rows.headers)
+    return PreviewResult.new(rows: [], warnings: [], error: "CSV sem colunas reconhecidas (data/descrição/valor)") unless columns
+
+    preview_rows = []
+    warnings = []
+    rows.each_with_index do |row, index|
+      preview_row = build_preview_row(row, columns, index + 2)
+      if preview_row[:error]
+        warnings << { page: index + 2, reason: preview_row[:error] }
+      else
+        preview_rows << preview_row[:row]
+      end
+    end
+
+    PreviewResult.new(
+      adapter: "csv",
+      rows: BankImport::PreviewSerializer.new(@user, account_id: @account_id).serialize(preview_rows),
+      warnings:
+    )
+  rescue CSV::MalformedCSVError => e
+    PreviewResult.new(rows: [], warnings: [], error: "CSV inválido: #{e.message}")
+  end
+
   private
 
   def detect_col_sep(content)
@@ -71,29 +105,50 @@ class CsvImportService
   end
 
   def import_row(row, columns, ordinals)
-    raw_date  = row[columns[:date]]&.strip
-    desc      = row[columns[:description]]&.strip
-    raw_value = row[columns[:value]]&.strip
-
-    return { error: "Dados incompletos" } if raw_date.blank? || desc.blank? || raw_value.blank?
-
-    value = BankImport::AmountParser.call(raw_value)
-    occurred_on = parse_date(raw_date)
+    attributes = row_attributes(row, columns)
 
     outcome = BankImport::TransactionWriter.new(@user, account_id: @account_id, ordinals: ordinals).write!(
-      description: sanitize_description(desc),
-      amount:      value,
-      occurred_on: occurred_on
+      **attributes
     )
     return { duplicate: true } if outcome == BankImport::TransactionWriter::DUPLICATE
 
     { ok: true }
+  rescue IncompleteRowError
+    { error: "Dados incompletos" }
   rescue Date::Error
-    { error: "Data inválida: #{raw_date}" }
+    { error: "Data inválida: #{raw_date(row, columns)}" }
   rescue ArgumentError
-    { error: "Valor inválido: #{raw_value}" }
+    { error: "Valor inválido: #{raw_value(row, columns)}" }
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
     { error: e.message }
+  end
+
+  def build_preview_row(row, columns, line_number)
+    attributes = row_attributes(row, columns)
+    { row: PreviewRow.new(**attributes, page: line_number, metadata: {}, installment_number: nil, installment_total: nil) }
+  rescue IncompleteRowError
+    { error: "Dados incompletos" }
+  rescue Date::Error
+    { error: "Data inválida: #{raw_date(row, columns)}" }
+  rescue ArgumentError
+    { error: "Valor inválido: #{raw_value(row, columns)}" }
+  end
+
+  def row_attributes(row, columns)
+    raw_date = raw_date(row, columns)
+    desc = row[columns[:description]]&.strip
+    raw_value = raw_value(row, columns)
+    raise IncompleteRowError if raw_date.blank? || desc.blank? || raw_value.blank?
+
+    { description: sanitize_description(desc), amount: BankImport::AmountParser.call(raw_value), occurred_on: parse_date(raw_date) }
+  end
+
+  def raw_date(row, columns)
+    row[columns[:date]]&.strip
+  end
+
+  def raw_value(row, columns)
+    row[columns[:value]]&.strip
   end
 
   def parse_date(raw)

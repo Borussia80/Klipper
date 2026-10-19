@@ -3,7 +3,7 @@
     <!-- Header -->
     <div style="position:sticky;top:0;background:rgba(7,18,30,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);padding:12px 20px;z-index:10">
       <div style="font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.015em">Importar Extrato</div>
-      <div style="font-size:11px;color:var(--t3)">Formatos suportados: CSV, extrato Itaú (PDF), fatura Itaú (PDF)</div>
+      <div style="font-size:11px;color:var(--t3)">Formatos suportados: CSV com pré-visualização, extrato Itaú (PDF), fatura Itaú (PDF)</div>
     </div>
 
     <div style="padding:24px 20px 40px;max-width:560px">
@@ -17,7 +17,7 @@
 
         <div v-if="preview.warnings.length" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin-bottom:16px">
           <div style="font-weight:600;margin-bottom:4px">{{ preview.warnings.length }} linha{{ preview.warnings.length !== 1 ? 's' : '' }} não reconhecida{{ preview.warnings.length !== 1 ? 's' : '' }}</div>
-          <div v-for="(w, i) in preview.warnings" :key="i">Página {{ w.page }}: {{ w.reason }}</div>
+          <div v-for="(w, i) in preview.warnings" :key="i">{{ warningLocation(preview.adapter, w.page) }}: {{ w.reason }}</div>
         </div>
 
         <div style="font-size:11px;color:var(--t3);margin-bottom:8px">
@@ -158,7 +158,7 @@
 01/06/2026,SUPERMERCADO EXTRA,-150.00
 05/06/2026,PIX RECEBIDO SALÁRIO,5000.00
 10/06/2026,POSTO SHELL,-120.50</code>
-          <div style="font-size:11px;color:var(--t3);margin-top:8px">PDFs de extrato ou fatura Itaú têm o layout detectado automaticamente — você revisa os lançamentos antes de confirmar.</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:8px">CSV e PDFs de extrato ou fatura Itaú têm o layout detectado automaticamente — você revisa os lançamentos antes de confirmar.</div>
         </div>
 
         <button
@@ -168,7 +168,7 @@
           @click="handleUpload"
         >
           <span v-if="isLoading" class="btn-spinner" aria-hidden="true" />
-          {{ isLoading ? 'Processando…' : isPdfSelected ? 'Analisar arquivo' : 'Importar transações' }}
+          {{ isLoading ? 'Processando…' : 'Analisar arquivo' }}
         </button>
       </template>
 
@@ -216,7 +216,7 @@ const router = useRouter()
 const { accounts, fetchAccounts } = useAccounts()
 const { open } = useModal()
 const { members, fetchMembers } = useMembers()
-const { result, preview, isLoading, error, uploadFile, previewFile, confirmImport, reset } = useImport()
+const { result, preview, isLoading, error, previewFile, previewCsvFile, confirmImport, reset } = useImport()
 const { formatFullDate } = useFormatters()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -226,8 +226,6 @@ const isDragging = ref(false)
 const checkedRows = ref<PreviewRow[]>([])
 const transferRows = ref<string[]>([])
 const selectedMemberByGroup = ref<Record<string, number | undefined>>({})
-
-const isPdfSelected = computed(() => isPdfFile(selectedFile.value))
 
 interface RowGroup {
   cardholder: string | null
@@ -307,7 +305,7 @@ async function handleUpload() {
   if (isPdfFile(selectedFile.value)) {
     await previewFile(selectedFile.value, selectedAccountId.value)
   } else {
-    await uploadFile(selectedFile.value, selectedAccountId.value)
+    await previewCsvFile(selectedFile.value, selectedAccountId.value)
   }
 }
 
@@ -338,10 +336,15 @@ function formatBytes(bytes: number): string {
 
 function adapterLabel(adapter: string): string {
   const labels: Record<string, string> = {
+    csv: 'CSV',
     itau_extrato: 'Extrato Itaú (conta-corrente)',
     itau_fatura: 'Fatura Itaú (cartão de crédito)',
   }
   return labels[adapter] ?? adapter
+}
+
+function warningLocation(adapter: string, page: number): string {
+  return `${adapter === 'csv' ? 'Linha' : 'Página'} ${page}`
 }
 
 function formatRowAmount(amount: string): string {

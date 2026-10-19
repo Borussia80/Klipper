@@ -14,6 +14,9 @@ const mockOpen = vi.fn()
 const mockAccounts = ref<{ id: number; name: string }[]>([])
 const mockPreview = ref<unknown>(null)
 const mockConfirmImport = vi.fn()
+const mockUploadFile = vi.fn()
+const mockPreviewFile = vi.fn()
+const mockPreviewCsvFile = vi.fn()
 
 mockNuxtImport('useAccounts', () => () => ({
   accounts: mockAccounts,
@@ -37,8 +40,9 @@ mockNuxtImport('useImport', () => () => ({
   preview: mockPreview,
   isLoading: ref(false),
   error: ref(null),
-  uploadFile: vi.fn(),
-  previewFile: vi.fn(),
+  uploadFile: mockUploadFile,
+  previewFile: mockPreviewFile,
+  previewCsvFile: mockPreviewCsvFile,
   confirmImport: mockConfirmImport,
   reset: vi.fn(),
 }))
@@ -86,7 +90,7 @@ describe('importar.vue — conta de destino obrigatória', () => {
     vm.selectedFile = new File(['Data,Descrição,Valor'], 'extrato.csv', { type: 'text/csv' })
     await nextTick()
 
-    const upload = () => wrapper!.findAll('button').find((b) => b.text().includes('Importar transações'))
+    const upload = () => wrapper!.findAll('button').find((b) => b.text().includes('Analisar arquivo'))
     expect(upload()?.attributes('disabled')).toBeDefined()
 
     vm.selectedAccountId = 1
@@ -117,5 +121,33 @@ describe('importar.vue — conta de destino obrigatória', () => {
       expect.objectContaining({ token: 'b' }),
     ], undefined)
     expect(mockConfirmImport.mock.calls[0][0][1]).not.toHaveProperty('kind')
+  })
+
+  it('para CSV abre a prévia, mostra avisos e confirma os tokens selecionados', async () => {
+    mockAccounts.value = [{ id: 7, name: 'Conta corrente' }]
+    wrapper = await mountSuspended(Importar)
+    const vm = wrapper.vm as unknown as { selectedFile: File | null; selectedAccountId: number | undefined; handleUpload: () => Promise<void> }
+    vm.selectedFile = new File(['Data,Descrição,Valor'], 'extrato.csv', { type: 'text/csv' })
+    vm.selectedAccountId = 7
+
+    await vm.handleUpload()
+    expect(mockPreviewCsvFile).toHaveBeenCalledWith(expect.any(File), 7)
+    expect(mockUploadFile).not.toHaveBeenCalled()
+
+    mockPreview.value = {
+      adapter: 'csv',
+      warnings: [{ page: 6, reason: 'Data inválida' }],
+      rows: [{ occurred_on: '2026-06-02', description: 'PIX entre minhas contas', amount: '-10.00', installment_number: null, installment_total: null, page: 2, metadata: {}, token: 'csv-token', own_transfer: { state: 'paired', counterpart: 'file' } }],
+    }
+    await nextTick()
+
+    expect(wrapper.text()).toContain('PIX entre minhas contas')
+    expect(wrapper.text()).toContain('Linha 6: Data inválida')
+    expect(wrapper.text()).toContain('Transferência entre minhas contas')
+
+    await wrapper.findAll('button').find((button) => button.text().includes('Confirmar importação'))!.trigger('click')
+    expect(mockConfirmImport).toHaveBeenCalledWith([
+      expect.objectContaining({ token: 'csv-token', kind: 'transfer' }),
+    ], 7)
   })
 })

@@ -27,6 +27,7 @@ Rails.application.routes.draw do
       resources :imports,     only: [ :create ] do
         collection do
           post :preview
+          post :csv_preview
           post :confirm
         end
       end

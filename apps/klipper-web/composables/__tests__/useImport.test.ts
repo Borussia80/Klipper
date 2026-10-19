@@ -120,6 +120,32 @@ describe('useImport', () => {
       )
     })
 
+    it('sends CSV files to /api/v1/imports/csv_preview with the destination account', async () => {
+      mockApiFetch.mockResolvedValue({ ...previewResponse, adapter: 'csv' })
+      const { useImport } = await import('../useImport')
+      const { previewCsvFile } = useImport()
+      const file = new File(['Data,Descrição,Valor'], 'extrato.csv', { type: 'text/csv' })
+
+      await previewCsvFile(file, 7)
+
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v1/imports/csv_preview',
+        expect.objectContaining({ method: 'POST' }),
+      )
+      const options = mockApiFetch.mock.calls[0][1]
+      expect((options.body as FormData).get('account_id')).toBe('7')
+    })
+
+    it('shows the backend 422 message when CSV columns are not recognized', async () => {
+      mockApiFetch.mockRejectedValue({ data: { error: 'Nenhuma coluna reconhecida no CSV.' } })
+      const { useImport } = await import('../useImport')
+      const { error, previewCsvFile } = useImport()
+
+      await previewCsvFile(new File(['incompreensível'], 'extrato.csv', { type: 'text/csv' }), 7)
+
+      expect(error.value).toBe('Nenhuma coluna reconhecida no CSV.')
+    })
+
     it('sets error and isLoading=false when preview fails', async () => {
       mockApiFetch.mockRejectedValue(new Error('layout não reconhecido'))
       const { useImport } = await import('../useImport')
