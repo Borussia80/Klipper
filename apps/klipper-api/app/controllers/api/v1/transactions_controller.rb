@@ -42,6 +42,7 @@ module Api
         updated = current_user.transactions.where(account_id: nil).update_all(
           account_id: account.id, updated_at: Time.current
         )
+        BankImport::ExternalIdBackfill.new(account).call
 
         render json: { updated: updated }
       end

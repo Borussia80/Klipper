@@ -27,9 +27,10 @@ class CsvImportService
     imported = 0
     duplicates = 0
     errors = []
+    ordinals = Hash.new(0)
 
     rows.each_with_index do |row, i|
-      result = import_row(row, columns)
+      result = import_row(row, columns, ordinals)
       if result[:error]
         errors << "Linha #{i + 2}: #{result[:error]}"
       elsif result[:duplicate]
@@ -69,7 +70,7 @@ class CsvImportService
           .downcase
   end
 
-  def import_row(row, columns)
+  def import_row(row, columns, ordinals)
     raw_date  = row[columns[:date]]&.strip
     desc      = row[columns[:description]]&.strip
     raw_value = row[columns[:value]]&.strip
@@ -79,7 +80,7 @@ class CsvImportService
     value = BankImport::AmountParser.call(raw_value)
     occurred_on = parse_date(raw_date)
 
-    outcome = BankImport::TransactionWriter.new(@user, account_id: @account_id).write!(
+    outcome = BankImport::TransactionWriter.new(@user, account_id: @account_id, ordinals: ordinals).write!(
       description: sanitize_description(desc),
       amount:      value,
       occurred_on: occurred_on

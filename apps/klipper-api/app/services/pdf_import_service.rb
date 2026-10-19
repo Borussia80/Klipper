@@ -55,9 +55,10 @@ class PdfImportService
     imported = 0
     duplicates = 0
     errors = []
+    ordinals = Hash.new(0)
 
     Array(rows).each_with_index do |row, index|
-      outcome = import_row(row)
+      outcome = import_row(row, ordinals)
       if outcome == BankImport::TransactionWriter::DUPLICATE
         duplicates += 1
       else
@@ -72,11 +73,11 @@ class PdfImportService
 
   private
 
-  def import_row(row)
+  def import_row(row, ordinals)
     row = row.with_indifferent_access
     signed = BankImport::RowSigner.verify!(row[:token])
 
-    BankImport::TransactionWriter.new(@user, account_id: @account_id).write!(
+    BankImport::TransactionWriter.new(@user, account_id: @account_id, ordinals: ordinals).write!(
       description: signed[:description],
       amount: BigDecimal(signed[:amount].to_s),
       occurred_on: Date.parse(signed[:occurred_on].to_s),

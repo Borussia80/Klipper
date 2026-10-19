@@ -23,6 +23,14 @@ RSpec.describe BankImport::ExternalId, type: :service do
     ])
   end
 
+  it "builds an id for an explicit row ordinal" do
+    row = rows.first
+
+    expect(described_class.for_row(row, account_key: "account-a", ordinal: 2)).to eq(
+      Digest::SHA256.hexdigest("account-a|2026-10-10|cafe x|-5.00|2")
+    )
+  end
+
   it "keeps a debit and a credit of the same amount distinct" do
     debit, credit = rows.first(2)
 

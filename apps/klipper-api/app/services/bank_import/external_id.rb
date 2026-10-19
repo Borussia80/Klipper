@@ -9,8 +9,12 @@ module BankImport
       rows.map do |row|
         identity = identity_for(row)
         ordinals[identity] += 1
-        row.merge(external_id: Digest::SHA256.hexdigest([ account_key, *identity, ordinals[identity] ].join("|")))
+        row.merge(external_id: for_row(row, account_key:, ordinal: ordinals[identity]))
       end
+    end
+
+    def self.for_row(row, account_key:, ordinal:)
+      Digest::SHA256.hexdigest([ account_key, *identity_for(row), ordinal ].join("|"))
     end
 
     def self.identity_for(row)
