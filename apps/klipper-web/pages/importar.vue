@@ -53,6 +53,10 @@
               <div style="flex:1;min-width:0">
                 <div style="font-size:12px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ row.description }}</div>
                 <div style="font-size:11px;color:var(--t3)">{{ formatFullDate(row.occurred_on) }}<template v-if="row.installment_number"> · parcela {{ row.installment_number }}/{{ row.installment_total }}</template></div>
+                <label v-if="row.own_transfer" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--blue);margin-top:5px;cursor:pointer">
+                  <input v-model="transferRows" type="checkbox" :value="row.token">
+                  <span>Transferência entre minhas contas · {{ ownTransferLabel(row) }}</span>
+                </label>
               </div>
               <div style="font-size:12px;font-family:var(--mono);color:var(--t2);white-space:nowrap">{{ formatRowAmount(row.amount) }}</div>
             </label>
@@ -220,6 +224,7 @@ const selectedFile = ref<File | null>(null)
 const selectedAccountId = ref<number | undefined>(undefined)
 const isDragging = ref(false)
 const checkedRows = ref<PreviewRow[]>([])
+const transferRows = ref<string[]>([])
 const selectedMemberByGroup = ref<Record<string, number | undefined>>({})
 
 const isPdfSelected = computed(() => isPdfFile(selectedFile.value))
@@ -254,6 +259,7 @@ onMounted(() => {
 
 watch(preview, (value: PreviewResponse | null) => {
   checkedRows.value = value ? [...value.rows] : []
+  transferRows.value = value ? value.rows.filter((row: PreviewRow) => row.own_transfer?.state === 'paired').map((row: PreviewRow) => row.token) : []
   selectedMemberByGroup.value = {}
   if (!value) return
   for (const row of value.rows) {
@@ -264,7 +270,7 @@ watch(preview, (value: PreviewResponse | null) => {
       selectedMemberByGroup.value[cardholder] = row.suggested_member_id ?? undefined
     }
   }
-})
+}, { immediate: true })
 
 function onGroupMemberChange(cardholder: string, event: Event) {
   const value = (event.target as HTMLSelectElement).value
@@ -307,7 +313,8 @@ async function handleUpload() {
 
 async function handleConfirm() {
   if (!checkedRows.value.length) return
-  await confirmImport(checkedRows.value, selectedAccountId.value)
+  const rows = checkedRows.value.map((row: PreviewRow) => transferRows.value.includes(row.token) ? { ...row, kind: 'transfer' as const } : row)
+  await confirmImport(rows, selectedAccountId.value)
 }
 
 function handleReset() {
@@ -315,6 +322,7 @@ function handleReset() {
   selectedFile.value = null
   selectedAccountId.value = undefined
   checkedRows.value = []
+  transferRows.value = []
   if (fileInputRef.value) fileInputRef.value.value = ''
 }
 
@@ -340,6 +348,15 @@ function formatRowAmount(amount: string): string {
   const value = Number(amount)
   const formatted = Math.abs(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   return `${value < 0 ? '-' : '+'} R$ ${formatted}`
+}
+
+function ownTransferLabel(row: PreviewRow): string {
+  const labels = {
+    paired: 'pareada com outra linha do arquivo',
+    to_link: 'sugestão para vincular a uma conta existente',
+    investment: 'sugestão de movimentação de investimento',
+  }
+  return row.own_transfer ? labels[row.own_transfer.state] : ''
 }
 </script>
 

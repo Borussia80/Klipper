@@ -12,6 +12,8 @@ import Importar from '../importar.vue'
 
 const mockOpen = vi.fn()
 const mockAccounts = ref<{ id: number; name: string }[]>([])
+const mockPreview = ref<unknown>(null)
+const mockConfirmImport = vi.fn()
 
 mockNuxtImport('useAccounts', () => () => ({
   accounts: mockAccounts,
@@ -32,12 +34,12 @@ mockNuxtImport('useModal', () => () => ({
 
 mockNuxtImport('useImport', () => () => ({
   result: ref(null),
-  preview: ref(null),
+  preview: mockPreview,
   isLoading: ref(false),
   error: ref(null),
   uploadFile: vi.fn(),
   previewFile: vi.fn(),
-  confirmImport: vi.fn(),
+  confirmImport: mockConfirmImport,
   reset: vi.fn(),
 }))
 
@@ -47,6 +49,7 @@ describe('importar.vue — conta de destino obrigatória', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockAccounts.value = []
+    mockPreview.value = null
   })
 
   afterEach(() => {
@@ -90,5 +93,29 @@ describe('importar.vue — conta de destino obrigatória', () => {
     await nextTick()
 
     expect(upload()?.attributes('disabled')).toBeUndefined()
+  })
+
+  it('pré-seleciona só a transferência pareada e confirma kind transfer sem alterar linha comum', async () => {
+    mockPreview.value = {
+      adapter: 'itau_extrato', warnings: [], rows: [
+        { occurred_on: '2026-06-01', description: 'Transferência pareada', amount: '-10.00', installment_number: null, installment_total: null, page: 1, metadata: {}, token: 'a', own_transfer: { state: 'paired', counterpart: 'existing' } },
+        { occurred_on: '2026-06-02', description: 'Compra comum', amount: '-20.00', installment_number: null, installment_total: null, page: 1, metadata: {}, token: 'b', own_transfer: null },
+      ],
+    }
+    wrapper = await mountSuspended(Importar)
+    await nextTick()
+
+    expect(wrapper.text()).toContain('Transferência entre minhas contas')
+    const checkboxes = wrapper.findAll('input[type="checkbox"]')
+    expect((checkboxes[0].element as HTMLInputElement).checked).toBe(true)
+    expect((checkboxes[1].element as HTMLInputElement).checked).toBe(true)
+    expect((checkboxes[2].element as HTMLInputElement).checked).toBe(true)
+
+    await wrapper.findAll('button').find((button) => button.text().includes('Confirmar importação'))!.trigger('click')
+    expect(mockConfirmImport).toHaveBeenCalledWith([
+      expect.objectContaining({ token: 'a', kind: 'transfer' }),
+      expect.objectContaining({ token: 'b' }),
+    ], undefined)
+    expect(mockConfirmImport.mock.calls[0][0][1]).not.toHaveProperty('kind')
   })
 })

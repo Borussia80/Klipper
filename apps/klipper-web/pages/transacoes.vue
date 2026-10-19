@@ -4,9 +4,13 @@
     <div style="position:sticky;top:0;background:rgba(7,18,30,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:10">
       <div>
         <div style="font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.015em">Transações</div>
-        <div style="font-size:11px;color:var(--t3)">{{ fmtMonthFull() }} · {{ filteredTransactions.length }} lançamento{{ filteredTransactions.length !== 1 ? 's' : '' }}</div>
+        <div style="font-size:11px;color:var(--t3)">{{ fmtMonthFull(selectedMonth) }} · {{ filteredTransactions.length }} lançamento{{ filteredTransactions.length !== 1 ? 's' : '' }}</div>
       </div>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:6px;min-width:0">
+      <div style="display:flex;align-items:center;gap:4px;margin-left:auto">
+        <button type="button" class="btn-i" aria-label="Mês anterior" @click="changeMonth(-1)">‹</button>
+        <button type="button" class="btn-i" aria-label="Mês seguinte" @click="changeMonth(1)">›</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;min-width:0">
         <div class="filter-pills">
           <button :class="['pill', activeFilter === 'all' ? 'on' : '']" @click="activeFilter = 'all'">Todos</button>
           <button :class="['pill', activeFilter === 'credit' ? 'on' : '']" @click="activeFilter = 'credit'">Entradas</button>
@@ -59,6 +63,7 @@
       <UiSkeletonTransactionList v-if="isLoading" :count="4" />
 
       <template v-else>
+        <div v-if="error" role="alert" style="background:var(--ald);border:1px solid var(--alert);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--alert);margin:16px 0">{{ error }}</div>
         <UiEmptyState v-if="!filteredTransactions.length" size="lg" message="Nenhum lançamento no período.">
           <template #actions>
             <button class="btn btn-p" @click="open('novo-lancamento')">Adicionar lançamento</button>
@@ -129,16 +134,26 @@ import type { Transaction } from '~/composables/useTransactions'
 
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { transactions, isLoading, fetchTransactions, deleteTransaction } = useTransactions()
+const { transactions, isLoading, error, fetchTransactions, deleteTransaction } = useTransactions()
 const { formatBRL, fmtMonthFull, formatDayMonth } = useFormatters()
 const { addToast } = useToast()
 
-const now = new Date()
-onMounted(() => fetchTransactions({ year: now.getFullYear(), month: now.getMonth() + 1 }))
+const selectedMonth = ref(new Date())
+onMounted(() => fetchSelectedMonth())
 
 const activeFilter = ref<'all' | 'credit' | 'debit'>('all')
 const isCompactView = ref(false)
 const selectedIds = ref<number[]>([])
+
+function fetchSelectedMonth() {
+  fetchTransactions({ year: selectedMonth.value.getFullYear(), month: selectedMonth.value.getMonth() + 1 })
+}
+
+function changeMonth(offset: number) {
+  selectedMonth.value = new Date(selectedMonth.value.getFullYear(), selectedMonth.value.getMonth() + offset, 1)
+  selectedIds.value = []
+  fetchSelectedMonth()
+}
 
 // A seleção não sobrevive à troca de filtro — linhas que somem da tela não
 // podem continuar marcadas para uma exclusão em lote que o usuário não vê mais.

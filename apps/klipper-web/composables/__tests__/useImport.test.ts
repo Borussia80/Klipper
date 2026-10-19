@@ -200,5 +200,18 @@ describe('useImport', () => {
         }),
       )
     })
+
+    it('envia kind transfer somente para as linhas marcadas como transferência', async () => {
+      mockApiFetch.mockResolvedValue({ imported: 2, errors: [] })
+      const { useImport } = await import('../useImport')
+      const { confirmImport } = useImport()
+      const transfer = { ...rows[0], kind: 'transfer' as const }
+      await confirmImport([transfer, rows[0]], 7)
+
+      expect(mockApiFetch).toHaveBeenCalledWith(
+        '/api/v1/imports/confirm',
+        expect.objectContaining({ body: { rows: [transfer, rows[0]], account_id: 7 } }),
+      )
+    })
   })
 })

@@ -14,6 +14,7 @@ const mockOpen = vi.fn()
 const mockFetchTransactions = vi.fn()
 const mockDeleteTransaction = vi.fn()
 const mockAddToast = vi.fn()
+const mockError = ref<string | null>(null)
 
 const transaction = {
   id: 7,
@@ -48,6 +49,7 @@ mockNuxtImport('useModal', () => () => ({
 mockNuxtImport('useTransactions', () => () => ({
   transactions: mockTransactions,
   isLoading: ref(false),
+  error: mockError,
   fetchTransactions: mockFetchTransactions,
   deleteTransaction: mockDeleteTransaction,
 }))
@@ -68,6 +70,7 @@ describe('transacoes.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockTransactions.value = [transaction, transaction2]
+    mockError.value = null
     mockDeleteTransaction.mockResolvedValue(undefined)
   })
 
@@ -188,5 +191,20 @@ describe('transacoes.vue', () => {
 
     expect(wrapper.find('button[aria-label="Visualização confortável"]').exists()).toBe(true)
     expect(wrapper.find('.txr.is-compact').exists()).toBe(true)
+  })
+
+  it('mostra o erro de carregamento em vez de uma lista vazia sem explicação', async () => {
+    mockTransactions.value = []
+    mockError.value = 'Erro ao carregar lançamentos.'
+    const wrapper = await mountSuspended(Transacoes)
+
+    expect(wrapper.find('[role="alert"]').text()).toContain('Erro ao carregar lançamentos.')
+  })
+
+  it('troca para o mês anterior e busca as transações daquele período', async () => {
+    const wrapper = await mountSuspended(Transacoes)
+    await wrapper.find('button[aria-label="Mês anterior"]').trigger('click')
+
+    expect(mockFetchTransactions).toHaveBeenCalledWith(expect.objectContaining({ year: expect.any(Number), month: expect.any(Number) }))
   })
 })

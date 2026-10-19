@@ -1,5 +1,8 @@
 <script setup lang="ts">
 const { isOffline } = useConnectionStatus()
+const { user } = useAuth()
+const userName = computed(() => user.value?.name || user.value?.email || 'Usuário')
+const initials = computed(() => userName.value.split(/\s+/).filter(Boolean).slice(0, 2).map((part: string) => part[0]).join('').toUpperCase())
 </script>
 
 <template>
@@ -42,9 +45,9 @@ const { isOffline } = useConnectionStatus()
         </svg>
         <span class="tb-cta-label">Lançamento</span>
       </button>
-      <button class="btn-avatar" aria-label="Menu do usuário" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blt));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;cursor:pointer;border:none">
-        <span aria-hidden="true">RM</span>
-        <span class="sr-only">Roberto Milet</span>
+      <button class="btn-avatar" :aria-label="`Configurações de ${userName}`" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blt));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;cursor:pointer;border:none" @click="navigateTo('/configuracoes')">
+        <span aria-hidden="true">{{ initials }}</span>
+        <span class="sr-only">{{ userName }}</span>
       </button>
     </div>
   </header>
