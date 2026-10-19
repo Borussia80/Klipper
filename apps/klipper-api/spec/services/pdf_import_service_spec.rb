@@ -6,6 +6,46 @@ RSpec.describe PdfImportService do
   let(:service) { described_class.new(user, account_id: account.id) }
 
   describe "#preview" do
+    def stub_pdf_rows(rows)
+      fake_page = Struct.new(:text).new("texto qualquer")
+      allow(PDF::Reader).to receive(:new).and_return(instance_double(PDF::Reader, pages: [ fake_page ]))
+      PdfAdapters::BaseAdapter
+      adapter_class = class_double("PdfAdapters::ItauExtratoAdapter", adapter_key: "itau_extrato").as_stubbed_const
+      allow(PdfAdapters::Registry).to receive(:detect).and_return(adapter_class)
+      allow(adapter_class).to receive(:new).and_return(
+        instance_double(adapter_class, parse: PdfAdapters::ParseResult.new(rows:, warnings: []))
+      )
+    end
+
+    def parsed_row(description:, amount:, occurred_on: Date.new(2026, 6, 25))
+      PdfAdapters::Registry # Row mora em base_adapter.rb; o Registry carrega os adapters na ordem certa
+      PdfAdapters::Row.new(
+        occurred_on:, description:, amount: BigDecimal(amount), installment_number: nil, installment_total: nil,
+        page: 1, raw_line: "", metadata: {}
+      )
+    end
+
+    it "suggests paired own transfers from the file and another existing account with one existing-row query" do
+      user.update!(own_names: [ "Jose Teste Da Silva" ], own_cpf_mask: "123.456")
+      other_account = create(:account, user: user)
+      create(:transaction, user: user, account: other_account, description: "PIX recebido Jose Teste Da Silva 123.456",
+             amount: 500, transaction_type: "credit", occurred_on: Date.new(2026, 6, 25))
+      stub_pdf_rows([ parsed_row(description: "PIX TRANSF Jose Teste Da Silva", amount: "-500.00") ])
+
+      queries = count_queries { @preview_result = service.preview(StringIO.new("fake")) }
+
+      expect(@preview_result.rows.first[:own_transfer]).to eq(state: "paired", counterpart: "existing")
+      expect(queries.grep(/FROM "transactions"/).size).to eq(1)
+    end
+
+    it "keeps own_transfer nil and preserves the preview when no identity is registered" do
+      stub_pdf_rows([ parsed_row(description: "PIX TRANSF Jose Teste Da Silva", amount: "-500.00") ])
+
+      result = service.preview(StringIO.new("fake"))
+
+      expect(result.rows.first[:own_transfer]).to be_nil
+    end
+
     it "retorna erro sem levantar exceção quando o PDF está corrompido/ilegível" do
       allow(PDF::Reader).to receive(:new).and_raise(PDF::Reader::MalformedPDFError, "não é PDF")
 
@@ -286,6 +326,23 @@ RSpec.describe PdfImportService do
       expect(result.imported).to eq(1)
       tx = user.transactions.find_by(description: "JoaoEMaria")
       expect(tx.member_id).to eq(chosen_member.id)
+    end
+
+    it "persists an explicitly selected transfer without adding kind to the signed token" do
+      row = signed_row(occurred_on: "2026-06-25", description: "PIX TRANSF Jose Teste Da Silva", amount: "-500.00")
+
+      service.confirm([ row.merge("kind" => "transfer") ])
+
+      tx = user.transactions.find_by(description: "PIX TRANSF Jose Teste Da Silva")
+      expect(tx).to have_attributes(kind: "transfer", category: nil)
+    end
+
+    it "ignores an unsupported client kind" do
+      row = signed_row(occurred_on: "2026-06-25", description: "PIX TRANSF Jose Teste Da Silva", amount: "-500.00")
+
+      service.confirm([ row.merge("kind" => "card_payment") ])
+
+      expect(user.transactions.find_by(description: "PIX TRANSF Jose Teste Da Silva").kind).to eq("regular")
     end
   end
 end

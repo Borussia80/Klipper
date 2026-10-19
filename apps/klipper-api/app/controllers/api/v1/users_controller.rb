@@ -76,7 +76,7 @@ module Api
       private
 
       def update_params
-        params.permit(:name, :email)
+        params.permit(:name, :email, :own_cpf_mask, own_names: [])
       end
 
       def changing_email?
@@ -84,7 +84,10 @@ module Api
       end
 
       def user_json(user)
-        { id: user.id, email: user.email, name: user.name, created_at: user.created_at }
+        {
+          id: user.id, email: user.email, name: user.name, created_at: user.created_at,
+          own_names: user.own_names, own_cpf_mask: user.own_cpf_mask
+        }
       end
 
       def log_export_audit_event

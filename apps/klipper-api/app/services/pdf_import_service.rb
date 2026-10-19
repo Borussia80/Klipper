@@ -36,9 +36,12 @@ class PdfImportService
 
     result = adapter_class.new(pages).parse
     suggestions = cardholder_suggestions(result.rows)
+    own_transfer_suggestions = own_transfer_suggestions(result.rows)
     PreviewResult.new(
       adapter: adapter_class.adapter_key,
-      rows: result.rows.map { |row| serialize_row(row, suggestions) },
+      rows: result.rows.each_with_index.map do |row, index|
+        serialize_row(row, suggestions, own_transfer_suggestions[index])
+      end,
       warnings: result.warnings.map { |warning| serialize_warning(warning) }
     )
   rescue Timeout::Error
@@ -83,7 +86,8 @@ class PdfImportService
       occurred_on: Date.parse(signed[:occurred_on].to_s),
       installment_number: signed[:installment_number].presence,
       installment_total: signed[:installment_total].presence,
-      member_id: row[:member_id].presence
+      member_id: row[:member_id].presence,
+      kind: row[:kind] == "transfer" ? "transfer" : nil
     )
   end
 
@@ -94,13 +98,44 @@ class PdfImportService
     end
   end
 
+  def own_transfer_suggestions(rows)
+    identity = @user.own_identity
+    return {} unless identity
+
+    dates = rows.map(&:occurred_on)
+    return {} if dates.empty?
+
+    file_rows = rows.each_with_index.map do |row, index|
+      { account_key: @account_id, occurred_on: row.occurred_on, description: row.description, amount: row.amount,
+        source: :file, source_index: index }
+    end
+    existing_rows = @user.transactions.where.not(account_id: @account_id)
+                         .where(occurred_on: (dates.min - 3)..(dates.max + 3)).map do |transaction|
+      { account_key: transaction.account_id, occurred_on: transaction.occurred_on, description: transaction.description,
+        amount: transaction.transaction_type == "credit" ? transaction.amount : -transaction.amount, source: :existing }
+    end
+    matched_rows = BankImport::OwnTransferMatcher.call(file_rows + existing_rows, identity:)
+
+    file_rows.each_with_index.to_h do |row, index|
+      suggestion = row[:own_transfer]
+      counterpart = suggestion && matched_rows[suggestion[:pair_index]]
+      [ index, serialize_own_transfer(suggestion, counterpart) ]
+    end
+  end
+
+  def serialize_own_transfer(suggestion, counterpart)
+    return unless suggestion
+
+    { state: suggestion[:state].to_s, counterpart: counterpart&.fetch(:source)&.to_s }
+  end
+
   # member_id fica de fora do canonical (RowSigner/SEC-17) de propósito: os outros 5 campos são
   # fato financeiro que tem que rastrear ao PDF original, mas member_id é sugestão editável — o
   # usuário corrige o portador auto-detectado antes de confirmar (ver ModalConfirmarImportacao/
   # importar.vue:264, seleção por grupo de titular). Assinar member_id travaria essa correção no
   # valor sugerido no preview. O risco real (member_id de outro usuário) já é bloqueado em
   # BankImport::TransactionWriter#write! (validação de posse contra @user.members, SEC-05).
-  def serialize_row(row, suggestions = {})
+  def serialize_row(row, suggestions = {}, own_transfer = nil)
     canonical = {
       occurred_on: row.occurred_on.iso8601,
       description: row.description,
@@ -113,6 +148,7 @@ class PdfImportService
       page: row.page,
       metadata: row.metadata,
       suggested_member_id: suggestions[row.metadata[:cardholder]],
+      own_transfer:,
       token: BankImport::RowSigner.sign(canonical)
     )
   end

@@ -8,7 +8,7 @@ module BankImport
       @ordinals = ordinals
     end
 
-    def write!(description:, amount:, occurred_on:, installment_number: nil, installment_total: nil, notes: nil, member_id: nil)
+    def write!(description:, amount:, occurred_on:, installment_number: nil, installment_total: nil, notes: nil, member_id: nil, kind: nil)
       raise ActiveRecord::RecordNotFound, "Conta inválida" if @account_id.present? && !@user.accounts.exists?(id: @account_id)
       raise ActiveRecord::RecordNotFound, "Portador inválido" if member_id.present? && !@user.members.exists?(id: member_id)
 
@@ -26,10 +26,11 @@ module BankImport
       return DUPLICATE if external_id && @user.transactions.where(account_id: @account_id).exists?(external_id:)
       return DUPLICATE if @user.transactions.where(dedupe_hash: hash, external_id: nil).exists?
 
-      kind = BankImport::KindDetector.call(description: description, amount: amount)
+      kind = nil unless kind == "transfer"
+      kind ||= BankImport::KindDetector.call(description: description, amount: amount)
       # Pagamento de fatura não é gasto nem renda: sem categoria, para não cair
       # em nenhum orçamento (spec 03, L-5).
-      category = kind == "card_payment" ? nil : AutoCategorizerService.call(description, @user)
+      category = %w[card_payment transfer].include?(kind) ? nil : AutoCategorizerService.call(description, @user)
 
       @user.transactions.create!(
         description: description,
