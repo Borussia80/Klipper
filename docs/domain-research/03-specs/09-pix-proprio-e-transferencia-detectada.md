@@ -28,6 +28,11 @@ despesa (outubro: Itaú → Santander R$ 13.276,44 e Caixa → Nubank R$ 16.000)
 8. **P-8.** O boleto ao emissor do cartão (`PAG BOLETO ITAU UNIBANCO HOLDING`) segue ambíguo até o D4; com a fatura
    aberta de mesmo valor e mesmo banco, a pré-visualização o mostra como **provável pagamento de fatura** (D4).
 
+9. **P-9.** **Interface (achado no código de 2026-10-19):** `KindDetector.call(description:, amount:)` não conhece o
+   usuário, e a regra P-2 precisa da identidade do titular. A regra de titular **não** entra no `KindDetector` puro: fica
+   num passo próprio (`OwnTransferMatcher`) que roda **depois** dele e só atua em linhas `regular`. Assim o detector
+   atual, já coberto por teste, não muda de assinatura.
+
 ## Casos de teste
 
 ```ruby

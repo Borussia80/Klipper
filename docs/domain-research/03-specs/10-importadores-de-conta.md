@@ -25,6 +25,12 @@ Hoje existem adapters de Itaú, fatura Nubank e BTG. Os extratos de conta mais u
    explícito para o usuário escolher; nunca cai em silêncio no CSV genérico.
 8. **X-8.** Fixtures de teste são **sintéticas** (mesma estrutura, dados inventados). Extrato real não entra no Git.
 
+9. **X-9.** **Dependência da deduplicação (achado no código de 2026-10-19):** hoje a chave é `dedupe_hash`, sem
+   ordinal e dependente da conta (R2, R3); o `external_id` por conteúdo e ordinal só chega no D5 (spec 06, I-1 a I-3a).
+   O extrato do Santander não traz identificador, então **depende** dessa chave. Dois caminhos, a decidir pelo
+   Roberto: (a) puxar o `external_id` do D5 para antes dos leitores; (b) liberar os leitores com a chave atual e o
+   risco conhecido de colapsar duas linhas idênticas no mesmo dia. A spec recomenda (a).
+
 ## Casos de teste
 
 ```ruby
