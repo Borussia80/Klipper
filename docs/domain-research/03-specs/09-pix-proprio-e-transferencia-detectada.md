@@ -14,6 +14,16 @@ despesa (outubro: Itaú → Santander R$ 13.276,44 e Caixa → Nubank R$ 16.000)
 2. **P-2.** Uma linha de conta é **candidata a transferência própria** quando a descrição contém um nome do titular
    **e** (a máscara do CPF **ou** o rótulo de transferência do banco: "PIX TRANSF", "Transferência recebida/enviada").
    Só o nome, sem máscara nem rótulo, **não** basta (homônimo, pagamento a pessoa).
+2a. **P-2a.** **Achados de 2026-10-19 em extratos reais:** (i) o titular aparece com **mais de uma grafia** (nome
+   abreviado no meio e nome completo), então P-1 guarda uma lista; (ii) pessoas **de terceiros** também vêm com CPF
+   mascarado, então a máscara só vale se for **a do titular**, nunca "qualquer máscara"; (iii) o Santander **trunca a
+   contraparte em ~21 caracteres** e não traz CPF, só o rótulo "Pix recebido/enviado": nesse caso o nome casa por
+   **prefixo** (mínimo de 15 caracteres e pelo menos duas palavras), e como o sinal é mais fraco o par de P-4 passa a
+   ser **obrigatório** para sugerir; sem par fica "a ligar" (P-5), nunca definitiva; (iv) "Transferência recebida pelo
+   Pix via Open Banking" e "Transferência recebida pelo Pix" são o mesmo rótulo; (v) "Pix devolvido" é devolução da
+   contraparte, não transferência própria; (vi) alguns extratos (Itaú) imprimem **só o primeiro nome**, às vezes colado
+   à data ("PIX TRANSF NOME01/10"): vale como candidato **fraco**, que só conta **pareado** com um candidato **forte** do
+   outro lado (dois fracos nunca se pareiam), e o primeiro nome casa como palavra inteira ("JOSEFA" não é "JOSE").
 3. **P-3.** Candidata ganha `kind: transfer`, **sugerido**: aparece marcada na pré-visualização e só vira definitiva
    com a confirmação do usuário (L-12).
 4. **P-4.** **Par encontrado**: outra linha candidata de sinal oposto, mesmo valor, datas a ±3 dias, contas

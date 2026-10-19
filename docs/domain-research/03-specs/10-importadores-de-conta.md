@@ -14,11 +14,26 @@ Hoje existem adapters de Itaú, fatura Nubank e BTG. Os extratos de conta mais u
 2. **X-2.** **Santander CSV:** separador `;`, codificação latin-1 (com BOM), sete linhas de cabeçalho antes de
    `Data;Descrição;Detalhe;Valor;Saldo`, valor no formato `-R$ 1.234,56`. A codificação é detectada, não suposta;
    arquivo que não decodifica é recusado com mensagem, nunca importado com caracteres trocados.
+   **Achado de 2026-10-19:** o extrato real enviado pelo Roberto é **PDF** (2 páginas, com camada de texto), não CSV.
+   O leitor prioritário é o adapter de PDF X-2a; o CSV segue especificado, mas sem amostra real.
+2a. **X-2a.** **Santander PDF** (estrutura observada, sem copiar dados): título "EXTRATO DE CONTA", agência, conta,
+   período, quadro com saldo inicial, entradas, saídas e saldo final, e "DETALHE DOS MOVIMENTOS" agrupado por dia com
+   cabeçalho "<dia da semana>, DD de <mês> de AAAA". Cada movimento ocupa **três linhas**: descrição ("Pix enviado",
+   "Pix recebido", "Pix devolvido", "Pagamento cartao credito"…); data, valor (`-R$ 1.234,56`) e saldo após a linha;
+   contraparte **truncada em ~21 caracteres**. Ordem do mais novo para o mais antigo. O saldo final do quadro é o
+   saldo confirmado (X-6). Conferência: saldo inicial + entradas − saídas = saldo final.
 3. **X-3.** **Santander xlsx:** mesmas colunas do CSV. Lido sem executar macro nem fórmula; só a primeira planilha.
 4. **X-4.** **Nubank conta CSV:** `Data,Valor,Identificador,Descrição`. O `Identificador` vira `external_id` (spec 06,
    I-1), então reimportar não duplica.
-5. **X-5.** **Caixa:** formato **a levantar**. Não há extrato de exemplo; sem ele o leitor não é escrito (nada de
-   adivinhar colunas). Pergunta aberta: CSV ou OFX (o OFX já está no escopo do D5).
+4a. **X-4a.** **Achado de 2026-10-19 (Nubank conta, amostra real de 01 a 16/10):** cabeçalho `Data,Valor,Identificador,
+   Descrição`; data `DD/MM/AAAA`; valor com **ponto decimal e sinal** (`-5000.91`); `Identificador` é UUID; sem coluna de
+   saldo. O `AmountParser` atual já lê esse valor (um só separador: ponto, 2 casas). A descrição de Pix traz nome,
+   documento (CPF mascarado ou CNPJ) e banco da contraparte; "Aplicação RDB", "Pagamento de fatura" e "Pagamento de
+   boleto efetuado - <favorecido>" vêm sem contraparte. Sem coluna de saldo, a reconciliação (X-6) não vem deste arquivo.
+5. **X-5.** **Caixa:** formato **a levantar**. Em 2026-10-19 chegou só um **comprovante de Pix** em PDF **sem camada de
+   texto** (imagem): não é extrato e não serve de amostra de leitor. Falta um extrato da conta.
+   Sem extrato de exemplo o leitor não é escrito (nada de adivinhar colunas). Pergunta aberta: CSV ou OFX (o OFX já
+   está no escopo do D5).
 6. **X-6.** A coluna `Saldo`, quando existe, alimenta a reconciliação do D2 (spec 02): saldo confirmado = saldo da
    última linha do arquivo, com a data dela.
 7. **X-7.** O registry escolhe o leitor pelo **cabeçalho/estrutura**. Dois leitores casando, ou nenhum, vira erro
