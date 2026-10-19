@@ -115,5 +115,26 @@ RSpec.describe BankImport::TransactionWriter, type: :service do
       expect(tx.transaction_type).to eq("credit")
       expect(tx.category&.name).to eq("Lazer")
     end
+
+    it "persists an explicitly confirmed transfer without a category" do
+      create(:category, user: user, name: "Lazer")
+
+      tx = described_class.new(user).write!(
+        description: "PIX TRANSF Jose Teste Da Silva", amount: BigDecimal("-500.00"),
+        occurred_on: Date.new(2026, 6, 25), kind: "transfer"
+      )
+
+      expect(tx.kind).to eq("transfer")
+      expect(tx.category).to be_nil
+    end
+
+    it "ignores an unsupported optional kind and uses the detector" do
+      tx = described_class.new(user).write!(
+        description: "PIX TRANSF Jose Teste Da Silva", amount: BigDecimal("-500.00"),
+        occurred_on: Date.new(2026, 6, 25), kind: "card_payment"
+      )
+
+      expect(tx.kind).to eq("regular")
+    end
   end
 end

@@ -72,7 +72,7 @@ module Api
       private
 
       def confirm_rows
-        permitted = params.permit(rows: [ :occurred_on, :description, :amount, :installment_number, :installment_total, :page, :member_id, :token ])[:rows] || []
+        permitted = params.permit(rows: [ :occurred_on, :description, :amount, :installment_number, :installment_total, :page, :member_id, :kind, :token ])[:rows] || []
         permitted.map(&:to_h)
       end
 

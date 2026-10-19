@@ -68,6 +68,16 @@ RSpec.describe "Api::V1::Users", type: :request do
       expect(user.reload.name).to eq("Roberto M. Atualizado")
     end
 
+    it "updates the own-transfer identity" do
+      patch "/api/v1/users/me",
+        params: { own_names: [ "Jose Teste Da Silva" ], own_cpf_mask: "123.456" },
+        headers: auth_headers
+
+      expect(response).to have_http_status(:ok)
+      expect(user.reload.own_names).to eq([ "Jose Teste Da Silva" ])
+      expect(user.own_cpf_mask).to eq("123.456")
+    end
+
     it "updates email when current_password is correct" do
       patch "/api/v1/users/me",
         params: { email: "novo@example.com", current_password: "secret123" },
