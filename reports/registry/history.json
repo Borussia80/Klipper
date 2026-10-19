@@ -131,6 +131,23 @@
         "finance": 6,
         "security": 84
       }
+    },
+    {
+      "date": "2026-10-19T13:47:31.392Z",
+      "trigger": "workflow_run",
+      "commit": "917c200d8fcb5543fce874a75263546d7ec6cc7f",
+      "branch": "main",
+      "depth": "fast",
+      "baseline": {
+        "branch": "main",
+        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65"
+      },
+      "overall_score": 53.67,
+      "section_scores": {
+        "architecture": 76,
+        "finance": 5,
+        "security": 80
+      }
     }
   ]
 }
