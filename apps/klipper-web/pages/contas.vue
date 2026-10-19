@@ -39,7 +39,7 @@
       <template v-else>
         <template v-if="checkingAccounts.length">
           <div style="font-size:10px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;font-family:'Space Grotesk',monospace;margin-bottom:10px">Contas correntes</div>
-          <div v-for="acc in checkingAccounts" :key="acc.id" class="ac">
+          <div v-for="acc in checkingAccounts" :key="acc.id" class="ac" role="button" tabindex="0" @click="editingAccount = acc" @keydown.enter="editingAccount = acc">
             <UiBankIcon :institution="acc.institution" :name="acc.name" :size="36" />
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600;color:var(--t1)">{{ acc.name }}</div>
@@ -48,6 +48,7 @@
             <div style="text-align:right;flex-shrink:0">
               <div class="mono" style="font-size:15px;font-weight:500;color:var(--t1)">{{ formatBRL(parseFloat(acc.balance)) }}</div>
             </div>
+            <button type="button" style="display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t3)" :aria-label="`Excluir ${acc.name}`" @click.stop="confirmDelete(acc)"><UiAppIcon name="trash" :size="14" /></button>
           </div>
         </template>
 
@@ -101,13 +102,16 @@
         </UiEmptyState>
       </template>
     </div>
+    <UiModalEditarConta :open="!!editingAccount" :account="editingAccount" @close="editingAccount = null" />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { Account } from '~/composables/useAccounts'
+
 definePageMeta({ layout: 'app' })
 const { open } = useModal()
-const { accounts, isLoading, error, fetchAccounts } = useAccounts()
+const { accounts, isLoading, error, fetchAccounts, deleteAccount } = useAccounts()
 const { formatBRL } = useFormatters()
 const { debtRanking, fetchDebtRanking } = useReports()
 
@@ -120,4 +124,16 @@ const checkingAccounts = computed(() => accounts.value.filter((a) => a.account_t
 const creditCards = computed(() => accounts.value.filter((a) => a.account_type === 'credit_card'))
 const checkingTotal = computed(() => sumCheckingBalance(checkingAccounts.value))
 const debtChargesTotal = computed(() => sumDebtCharges(debtRanking.value?.cards ?? []))
+const editingAccount = ref<Account | null>(null)
+
+function confirmDelete(account: Account) {
+  open('confirm-delete', {
+    title: 'Excluir conta',
+    resourceType: 'conta',
+    itemName: account.name,
+    description: `Tem certeza? A conta “${account.name}” será inativada.`,
+    confirmLabel: 'Excluir conta',
+    onConfirm: () => deleteAccount(account.id),
+  })
+}
 </script>

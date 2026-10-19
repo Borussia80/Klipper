@@ -4,13 +4,12 @@
     <div style="position:sticky;top:0;background:rgba(7,18,30,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;align-items:center;gap:12px;z-index:10">
       <div>
         <div style="font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.015em">Orçamento</div>
-        <div style="font-size:11px;color:var(--t3)">{{ fmtMonthFull() }} · {{ daysLeftInMonth() }} dias restantes</div>
+        <div style="font-size:11px;color:var(--t3)">{{ fmtMonthFull(selectedMonth) }} · {{ daysLeftInMonth() }} dias restantes</div>
       </div>
       <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
-        <button class="sel-chip">
-          {{ fmtMonthFull() }}
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.5 4L5 6.5 7.5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
+        <button class="sel-chip" type="button" aria-label="Mês anterior" @click="changeMonth(-1)">‹</button>
+        <button class="sel-chip" type="button" aria-label="Mês atual" @click="goToCurrentMonth">{{ fmtMonthFull(selectedMonth) }}</button>
+        <button class="sel-chip" type="button" aria-label="Próximo mês" @click="changeMonth(1)">›</button>
         <button class="btn btn-g" @click="open('nova-categoria')">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
             <line x1="5.5" y1="1" x2="5.5" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -87,12 +86,29 @@ const { reimbursementCoverage, fetchReimbursementCoverage } = useReports()
 const { formatBRL, fmtMonthFull, daysLeftInMonth } = useFormatters()
 
 const now = new Date()
+const selectedMonth = ref(new Date(now.getFullYear(), now.getMonth(), 1))
 
 onMounted(() => {
-  fetchSummary(now.getFullYear(), now.getMonth() + 1)
+  loadMonth()
   fetchCategories()
-  fetchReimbursementCoverage(now.getFullYear(), now.getMonth() + 1)
 })
+
+function loadMonth() {
+  const year = selectedMonth.value.getFullYear()
+  const month = selectedMonth.value.getMonth() + 1
+  fetchSummary(year, month)
+  fetchReimbursementCoverage(year, month)
+}
+
+function changeMonth(amount: number) {
+  selectedMonth.value = new Date(selectedMonth.value.getFullYear(), selectedMonth.value.getMonth() + amount, 1)
+  loadMonth()
+}
+
+function goToCurrentMonth() {
+  selectedMonth.value = new Date(now.getFullYear(), now.getMonth(), 1)
+  loadMonth()
+}
 
 const categories = computed(() =>
   summary.value.map((row) => ({

@@ -57,11 +57,12 @@ describe('ModalConfirmDelete', () => {
   })
 
   it('mostra erro quando a exclusão falha', async () => {
-    const { wrapper: w } = await mountModal(vi.fn().mockRejectedValue(new Error('fail')))
+    const erroDaApi = Object.assign(new Error('fail'), { data: { errors: ['A conta possui lançamentos.'] } })
+    const { wrapper: w } = await mountModal(vi.fn().mockRejectedValue(erroDaApi))
 
     await body.find('button.confirm-danger').trigger('click')
 
-    await vi.waitFor(() => expect(body.find('[role="alert"]').text()).toContain('Não foi possível excluir'))
+    await vi.waitFor(() => expect(body.find('[role="alert"]').text()).toContain('A conta possui lançamentos.'))
     expect(w.emitted('close')).toBeFalsy()
   })
 })

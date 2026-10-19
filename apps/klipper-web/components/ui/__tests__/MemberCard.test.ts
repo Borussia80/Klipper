@@ -51,4 +51,16 @@ describe('MemberCard', () => {
     })
     expect(wrapper.find('.chip').exists()).toBe(false)
   })
+
+  it('emite ações de editar e inativar quando os controles são usados', async () => {
+    const wrapper = await mountSuspended(MemberCard, {
+      props: { name: 'Pessoa Sintética', relationship: 'dependente', spentLabel: 'R$ 0,00' },
+    })
+
+    await wrapper.find('button[aria-label="Editar portador"]').trigger('click')
+    await wrapper.find('button[aria-label="Inativar portador"]').trigger('click')
+
+    expect(wrapper.emitted('edit')).toHaveLength(1)
+    expect(wrapper.emitted('delete')).toHaveLength(1)
+  })
 })

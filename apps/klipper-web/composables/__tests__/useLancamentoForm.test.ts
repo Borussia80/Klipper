@@ -22,6 +22,11 @@ mockNuxtImport('useCategories', () => () => ({
   fetchCategories: vi.fn(),
 }))
 
+mockNuxtImport('useMembers', () => () => ({
+  members: { value: [{ id: 9, name: 'Portador Sintético' }] },
+  fetchMembers: vi.fn(),
+}))
+
 type Form = ReturnType<typeof useLancamentoForm>
 
 async function mountForm(): Promise<Form> {
@@ -126,10 +131,12 @@ describe('buildPayload', () => {
     form.descricao.value = '  Supermercado  '
     form.conta.value = 1
     form.categoria.value = 7
+    form.portador.value = 9
 
     expect(form.buildPayload()).toEqual({
       account_id: 1,
       category_id: 7,
+      member_id: 9,
       description: 'Supermercado',
       amount: '1234.56',
       transaction_type: 'debit',
@@ -162,6 +169,16 @@ describe('buildPayload', () => {
     // Distinto de undefined de propósito: null é o que apaga a categoria na
     // edição, e foi essa diferença que já parou de funcionar num dos modais.
     expect(payload.category_id).toBeNull()
+  })
+
+  it('sends null member_id to clear a portador and restores it while editing', async () => {
+    const form = await mountForm()
+    await fillValid(form)
+    form.portador.value = null
+    expect(form.buildPayload().member_id).toBeNull()
+
+    form.fillFrom(makeTransaction({ member_id: 9 }))
+    expect(form.portador.value).toBe(9)
   })
 })
 

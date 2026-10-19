@@ -28,10 +28,11 @@ function tipoToTxType(tipo: LancamentoTipo): Transaction['transaction_type'] {
 export function useLancamentoForm() {
   const { accounts, fetchAccounts } = useAccounts()
   const { categories, fetchCategories } = useCategories()
+  const { members, fetchMembers } = useMembers()
 
   const isLoadingData = ref(true)
   onMounted(async () => {
-    await Promise.all([fetchAccounts(), fetchCategories()])
+    await Promise.all([fetchAccounts(), fetchCategories(), fetchMembers()])
     isLoadingData.value = false
   })
 
@@ -40,6 +41,7 @@ export function useLancamentoForm() {
   const descricao = ref('')
   const categoria = ref<number | null>(null)
   const conta = ref<number | null>(null)
+  const portador = ref<number | null>(null)
   const data = ref(todayISO())
   const error = ref<string | null>(null)
 
@@ -58,6 +60,7 @@ export function useLancamentoForm() {
     return {
       account_id: conta.value ?? undefined,
       category_id: categoria.value,
+      member_id: portador.value,
       description: descricao.value.trim(),
       amount: String(amount),
       transaction_type: tipoToTxType(tipo.value),
@@ -71,6 +74,7 @@ export function useLancamentoForm() {
     descricao.value = transaction.description
     categoria.value = transaction.category_id
     conta.value = transaction.account_id
+    portador.value = transaction.member_id
     data.value = transaction.occurred_on
     error.value = null
   }
@@ -78,6 +82,7 @@ export function useLancamentoForm() {
   return {
     accounts,
     categories,
+    members,
     isLoadingData,
     tipoOpcoes: TIPO_OPCOES,
     tipo,
@@ -85,6 +90,7 @@ export function useLancamentoForm() {
     descricao,
     categoria,
     conta,
+    portador,
     data,
     error,
     validate,

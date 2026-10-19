@@ -9,6 +9,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { DOMWrapper, type VueWrapper } from '@vue/test-utils'
+import { ref } from 'vue'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import ModalNovoLancamento from '../ModalNovoLancamento.vue'
 
@@ -16,6 +17,7 @@ const mockAddToast = vi.fn()
 const mockCreateTransaction = vi.fn()
 const mockFetchAccounts = vi.fn()
 const mockFetchCategories = vi.fn()
+const mockFetchMembers = vi.fn()
 
 mockNuxtImport('useToast', () => () => ({
   addToast: mockAddToast,
@@ -31,6 +33,11 @@ mockNuxtImport('useAccounts', () => () => ({
 mockNuxtImport('useCategories', () => () => ({
   categories: { value: [{ id: 1, name: 'Mercado' }] },
   fetchCategories: mockFetchCategories,
+}))
+
+mockNuxtImport('useMembers', () => () => ({
+  members: ref([{ id: 9, name: 'Portador Sintético' }]),
+  fetchMembers: mockFetchMembers,
 }))
 
 mockNuxtImport('useTransactions', () => () => ({
@@ -57,6 +64,7 @@ describe('ModalNovoLancamento', () => {
     vi.setSystemTime(new Date(2026, 7, 15, 12, 0, 0)) // 15/08/2026, meio-dia local
     mockFetchAccounts.mockResolvedValue(undefined)
     mockFetchCategories.mockResolvedValue(undefined)
+    mockFetchMembers.mockResolvedValue(undefined)
     mockCreateTransaction.mockResolvedValue({ id: 1 })
   })
 
@@ -100,5 +108,16 @@ describe('ModalNovoLancamento', () => {
       expect.objectContaining({ occurred_on: '2026-08-15', transaction_type: 'debit' }),
     )
     expect(w.emitted('close')).toBeTruthy()
+  })
+
+  it('envia o portador opcional selecionado', async () => {
+    await mountModal()
+    await fillValidFields()
+    await body.find('select[aria-label="Portador do lançamento"]').setValue('9')
+    await body.find('button.cta').trigger('click')
+
+    await vi.waitFor(() => expect(mockCreateTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ member_id: 9 }),
+    ))
   })
 })
