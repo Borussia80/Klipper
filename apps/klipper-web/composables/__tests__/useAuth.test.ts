@@ -57,22 +57,22 @@ describe('useAuth', () => {
   })
 
   describe('signUp', () => {
-    it('creates the account, stores the session, then navigates to /dashboard', async () => {
+    it('creates the account without storing a session or navigating', async () => {
       mockApiFetch.mockResolvedValue({
-        token: 'jwt-token-new',
         user: { id: 2, email: 'new@example.com', name: 'Novo' },
       })
       const { signUp, user } = useAuth()
 
-      await signUp('new@example.com', 'senha1234', 'Novo')
+      const response = await signUp('new@example.com', 'senha1234', 'Novo')
 
       expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/auth/sign_up', {
         method: 'POST',
         body: { email: 'new@example.com', password: 'senha1234', name: 'Novo' },
       })
-      expect(mockToken.value).toBe('jwt-token-new')
-      expect(user.value).toEqual({ id: 2, email: 'new@example.com', name: 'Novo' })
-      expect(mockNavigateTo).toHaveBeenCalledWith('/dashboard')
+      expect(response).toEqual({ user: { id: 2, email: 'new@example.com', name: 'Novo' } })
+      expect(mockToken.value).toBeNull()
+      expect(user.value).toBeNull()
+      expect(mockNavigateTo).not.toHaveBeenCalled()
     })
 
     it('propagates validation errors without creating a session', async () => {

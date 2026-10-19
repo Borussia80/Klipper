@@ -10,8 +10,9 @@ module Api
         user = User.new(sign_up_params)
         if user.save
           DefaultCategoriesSeederService.call(user)
-          token = issue_tokens(user)
-          render json: { token: token, user: user_json(user) }, status: :created
+          # Registration deliberately does not establish a session. The person
+          # must explicitly authenticate with the credentials they just chose.
+          render json: { user: user_json(user) }, status: :created
         else
           render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
         end

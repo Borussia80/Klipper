@@ -7,13 +7,14 @@ RSpec.describe "Auth endpoints", type: :request do
     end
 
     context "with valid params" do
-      it "creates a user and returns a token" do
+      it "creates a user without authenticating it" do
         post "/api/v1/auth/sign_up", params: valid_params.to_json,
           headers: { "Content-Type" => "application/json" }
 
         expect(response).to have_http_status(:created)
-        expect(json_response[:token]).to be_present
         expect(json_response[:user][:email]).to eq("new@example.com")
+        expect(json_response[:token]).to be_nil
+        expect(response.headers["Set-Cookie"]).to be_nil
       end
 
       it "seeds default categories so the user isn't starting from a blank slate" do

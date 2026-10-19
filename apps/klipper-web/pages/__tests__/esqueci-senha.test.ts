@@ -1,14 +1,21 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import EsqueciSenha from '../esqueci-senha.vue'
 
 const requestPasswordReset = vi.fn()
+const logout = vi.fn()
 
 mockNuxtImport('useAuth', () => () => ({
   requestPasswordReset,
+  logout,
 }))
 
 describe('esqueci-senha.vue', () => {
+  beforeEach(() => {
+    requestPasswordReset.mockReset()
+    logout.mockReset()
+  })
+
   it('shows the generic success message after submitting an e-mail', async () => {
     requestPasswordReset.mockResolvedValueOnce(undefined)
     const wrapper = await mountSuspended(EsqueciSenha)
@@ -31,5 +38,14 @@ describe('esqueci-senha.vue', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.text()).toContain('Não foi possível processar o pedido.')
+  })
+
+  it('ends any current session before returning to login', async () => {
+    logout.mockResolvedValueOnce(undefined)
+    const wrapper = await mountSuspended(EsqueciSenha)
+
+    await wrapper.get('button:not(.btn-p)').trigger('click')
+
+    expect(logout).toHaveBeenCalledOnce()
   })
 })
