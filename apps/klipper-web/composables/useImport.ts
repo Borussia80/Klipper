@@ -15,6 +15,11 @@ export interface PreviewRow {
   suggested_member_id?: number | null
   member_id?: number | null
   token: string
+  kind?: 'transfer'
+  own_transfer?: {
+    state: 'paired' | 'to_link' | 'investment'
+    counterpart: 'file' | 'existing' | null
+  } | null
 }
 
 export interface PreviewWarning {

@@ -2,6 +2,8 @@ interface User {
   id: number
   email: string
   name: string | null
+  own_names?: string[]
+  own_cpf_mask?: string | null
 }
 
 interface AuthResponse {
@@ -48,6 +50,10 @@ export function useAuth() {
     user.value = await apiFetch<User>('/api/v1/users/me')
   }
 
+  async function updateProfile(profile: Pick<User, 'name' | 'email' | 'own_names' | 'own_cpf_mask'>) {
+    user.value = await apiFetch<User>('/api/v1/users/me', { method: 'PATCH', body: profile })
+  }
+
   async function requestPasswordReset(email: string) {
     await apiFetch('/api/v1/password_resets', { method: 'POST', body: { email } })
   }
@@ -67,6 +73,7 @@ export function useAuth() {
     signUp,
     logout,
     fetchCurrentUser,
+    updateProfile,
     requestPasswordReset,
     confirmPasswordReset,
     isAuthenticated,

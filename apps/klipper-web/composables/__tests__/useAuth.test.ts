@@ -135,6 +135,22 @@ describe('useAuth', () => {
     })
   })
 
+  describe('updateProfile', () => {
+    it('PATCHes /users/me and replaces the cached user with the saved profile', async () => {
+      const saved = { id: 3, email: 'novo@example.com', name: 'Novo Nome', own_names: ['Nome alternativo'], own_cpf_mask: '123.456' }
+      mockApiFetch.mockResolvedValue(saved)
+      const { updateProfile, user } = useAuth()
+
+      await updateProfile({ name: 'Novo Nome', email: 'novo@example.com', own_names: ['Nome alternativo'], own_cpf_mask: '123.456' })
+
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/users/me', {
+        method: 'PATCH',
+        body: { name: 'Novo Nome', email: 'novo@example.com', own_names: ['Nome alternativo'], own_cpf_mask: '123.456' },
+      })
+      expect(user.value).toEqual(saved)
+    })
+  })
+
   describe('isAuthenticated', () => {
     it('is false without a token and true once one is set', () => {
       const { isAuthenticated } = useAuth()
