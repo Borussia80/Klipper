@@ -4,6 +4,8 @@
 **Base factual:** `09-observacao-ao-vivo.md`.  
 **Objetivo:** separar evidência observada, lacuna de pesquisa e requisito verificável antes de usar este estudo como base de implementação ou de merge.
 
+**Proveniência:** a classificação UX/técnica de cada referência e a regra de separação de contexto estão em `12-protocolo-de-proveniencia-e-clean-room.md`.
+
 ## Como ler a matriz
 
 - **O** — observado de ponta a ponta com estado relevante (vazio, preenchido, erro ou sucesso).

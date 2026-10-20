@@ -70,7 +70,9 @@ As observações de comportamento desta sessão estão em `09-observacao-ao-vivo
 
 O usuário autorizou expressamente leitura, inspeção e estudo de código sob GPL/AGPL e outras licenças livres. A partir desta data, referências podem incluir comportamento executável e análise técnica, desde que cada achado registre origem e licença quando relevante.
 
-Essa autorização **não** altera a política de implementação do Klipper: nenhuma cópia de código copyleft entrará no repositório sem revisão explícita de compatibilidade, atribuição e obrigações de distribuição. A implementação preferida continua sendo autoral, baseada em requisito e comportamento observável.
+Essa autorização **não** transforma automaticamente a análise em *clean room*. Uma fonte cujo código seja lido passa a ser classificada como técnica/"dirty" para aquela linha de trabalho. O Ghostfolio, nesta sessão, tem essa classificação limitada: a configuração de ambiente foi lida; portanto, este contexto não deve implementar uma reconstituição *clean room* derivada da análise técnica dele.
+
+Nenhuma cópia de código copyleft entrará no repositório sem revisão explícita de compatibilidade, atribuição e obrigações de distribuição. A implementação preferida continua sendo autoral, baseada em requisito funcional; o processo formal fica definido em `12-protocolo-de-proveniencia-e-clean-room.md`.
 
 ## Modelo para próximas sessões
 
