@@ -61,8 +61,10 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 | ezBookkeeping | imagem oficial em container local isolado | login, cadastro, preferências, conta local sintética, categorias pai/filha, lista, busca e assistente de importação | **Não** |
 | Firefly III | demonstração pública oficial em execução | painel preenchido, orçamento, detalhe de conta e largura de 390 px | **Não** |
 | Actual Budget | demonstração pública oficial em execução, sem sincronização | orçamento preenchido, histórico de conta, estados de agendamento e largura de 390 px | **Não** |
+| Wealthfolio (AGPL-3.0) | binário oficial em servidor local isolado | onboarding, criação de conta, fotografia de saldo, detalhe/histórico de snapshots e painel preenchido | **Não** |
+| Ghostfolio (AGPL-3.0) | páginas públicas oficiais | escopo de patrimônio, composição, passivos, reserva, importação/exportação e limites anunciados | **Não** |
 
-As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper.
+As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper. O Wealthfolio foi executado apenas como binário distribuído oficialmente; seu código não foi aberto. No Ghostfolio, não houve cadastro, login nem uso de produto autenticado.
 
 ## Modelo para próximas sessões
 

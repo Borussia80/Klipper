@@ -13,6 +13,8 @@
 | Cashew | PWA oficial | rapidez de lançamento e padrões mobile | ativo |
 | Firefly III | demonstração pública oficial | governança financeira, conta auditável, orçamento periódico e relatórios | ativo |
 | Actual Budget | demonstração pública oficial, banco local no navegador | envelopes, orçamento operacional, lançamentos e navegação mobile | ativo |
+| Wealthfolio | servidor oficial local isolado, porta 4102 | patrimônio, posições por fotografia, evolução e distinção entre saldo e desempenho | ativo |
+| Ghostfolio | site público oficial | escopo de patrimônio consolidado, composição, passivos e riscos | leitura pública concluída; sem conta criada |
 
 Os ambientes não compartilham banco, cookie, volume ou porta com o Klipper. As contas e transações criadas durante o estudo devem ser descartáveis e sintéticas.
 
@@ -145,6 +147,25 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 **Hipótese para o Klipper:** priorizar alerta agregador acionável para itens acima do limite, histórico que una previsto e realizado e navegação mobile explícita. O modelo de envelopes não deve ser adotado automaticamente: ele é uma opção de produto a validar contra o orçamento por ritmo já proposto.
 
+### Wealthfolio — fotografia patrimonial com limites explícitos
+
+- O onboarding começa pela escolha entre acompanhar **posições atuais** ou registrar **transações**. A primeira opção favorece patrimônio e alocação, mas declara que não calcula retorno temporal; a segunda libera métricas de desempenho ao exigir o histórico completo de atividade. Preferências visuais (tema, fonte e navegação) são ajustadas antes do painel, não misturadas ao cadastro financeiro.
+- A criação de conta pede nome, grupo, tipo, moeda, visibilidade e modo de acompanhamento. Conta, carteira e classificação são entidades separadas em Configurações, o que deixa a organização patrimonial fora do fluxo de registrar um valor.
+- Em uma conta local sintética configurada como fotografia, o registro de uma posição/caixa abre um formulário datado. Ao salvar um saldo em dinheiro, a conta passa a mostrar valor atual, valor de caixa, valor investido, valor contábil, seletores de período e uma tabela de **histórico de fotografias** com data, origem, quantidade de posições e caixa.
+- Em conta transacional, a primeira decisão é o tipo de atividade: compra, venda, aporte, retirada, dividendo, transferência, desdobramento, taxa, juros, imposto ou crédito. Sem tipo, os campos seguintes não aparecem. Ao escolher aporte, a conta já vem selecionada e o formulário reúne data e valor, com notas como detalhe progressivo.
+- Métricas indisponíveis não são substituídas por zero: retorno, P&L, volatilidade e drawdown aparecem como não calculáveis, com explicação de que TWR/IRR requerem acompanhamento transacional. A tela oferece um ponto de ajuda, em vez de ocultar a limitação.
+- O painel preenchido agrega por grupo de conta e expõe patrimônio, recorte temporal, contas, posições e metas. Sem posições ou metas, as respectivas seções permanecem curtas e oferecem uma continuação específica.
+
+**Hipótese para o Klipper:** separar claramente os contratos de “saldo/fotografia” e “histórico de movimentos”. Um saldo manual datado pode alimentar patrimônio e evolução, mas não deve fingir rentabilidade ou precisão que só o histórico de transações permite. Quando um dado impedir uma métrica, explicar o requisito e oferecer a próxima ação adequada.
+
+### Ghostfolio — abrangência de patrimônio, sem inferir fluxo interno
+
+- A página pública oficial apresenta um escopo de patrimônio que inclui ações, ETFs, renda fixa, criptoativos, dividendos, itens patrimoniais, fundo de emergência e passivos; também anuncia múltiplas contas e importação/exportação de atividades.
+- A leitura agregada é apresentada por intervalos de retorno e por composição: conta, classe de ativo, moeda, região e setor. Há ainda uma análise de risco de portfólio e lista de acompanhamento de ativos.
+- A investigação ficou deliberadamente no material público: não houve registro, login, importação, conexão externa, operação com dinheiro nem leitura do repositório AGPL.
+
+**Hipótese para o Klipper:** o conceito de patrimônio líquido deve comportar, desde o modelo, ativos, reservas e passivos — sem obrigar a primeira versão a reproduzir análises de mercado. Na fase inicial, conta/grupo, classe de ativo, liquidez e dívida são dimensões mais úteis que cotações e benchmark; composição e risco entram somente quando houver dados e objetivo claros.
+
 ## Trilhas de pesquisa e decisão
 
 | Trilha | Perguntas a responder | Produtos de maior evidência | Saída prevista |
@@ -152,8 +173,9 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 | Categorias e Configurações | Como criar, localizar, ordenar, ocultar e associar pai/filha sem perder contexto? | ezBookkeeping, Cashew | spec de árvore fixa de dois níveis + gestão em Configurações |
 | Lançamento rápido mobile | Quanto tempo e quantos toques até salvar? Valor vem antes da descrição? Como cancelar e desfazer? | Cashew | folha móvel, “+” central e critérios de ≤ 4 ações |
 | Movimento pós-importação | Como chegar às linhas importadas, filtrar, corrigir em lote e retornar ao contexto? | ezBookkeeping, Sure | filtros persistentes, deep link de revisão e desfazer |
-| Painel e alarmes | Qual leitura domina? O que some sem dados? Quando um alerta vira ação? | Sure, Cashew | painel de patrimônio, evolução e alarmes acionáveis |
-| Contas e orçamento | Como agrupar, datar saldo, abrir detalhe, mostrar histórico e ritmo diário? | Sure, ezBookkeeping, Cashew | detalhe de conta e orçamento orientado ao disponível diário |
+| Painel e alarmes | Qual leitura domina? O que some sem dados? Quando um alerta vira ação? | Sure, Cashew, Wealthfolio | painel de patrimônio, evolução e alarmes acionáveis |
+| Contas e orçamento | Como agrupar, datar saldo, abrir detalhe, mostrar histórico e ritmo diário? | Sure, ezBookkeeping, Cashew, Wealthfolio | detalhe de conta e orçamento orientado ao disponível diário |
+| Patrimônio e investimentos | Quais dados sustentam patrimônio, composição e retorno sem prometer precisão falsa? | Wealthfolio, Ghostfolio | contrato de fotografia/transação e modelo inicial de ativos/passivos |
 
 ## Decisões já preservadas
 
@@ -170,4 +192,5 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 4. Repetir a criação de conta preenchida no Sure quando o formulário local responder, registrando painel, detalhe/histórico de saldo e alertas com o mesmo conjunto sintético.
 5. Percorrer importação, busca, filtro e correção em lote no ezBookkeeping e Sure quando disponíveis.
 6. Exercitar, apenas em dados de demonstração/local, erro e recuperação de filtros, conciliação e recorrência no Firefly III e no Actual Budget.
-7. Registrar capturas e converter os achados em specs de implementação do Klipper.
+7. Observar no Wealthfolio local a conta em modo transacional e os estados de erro/recuperação sem conectar corretora ou provedor externo.
+8. Registrar capturas e converter os achados em specs de implementação do Klipper.

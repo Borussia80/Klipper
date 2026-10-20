@@ -11,6 +11,7 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 1. **Preparar configurações uma vez; lançar muitas vezes.** Moeda, taxonomia e contas não podem disputar atenção com valor, data e categoria durante um lançamento.
 2. **O estado vazio tem uma única continuação principal.** Sem dados, orientar a primeira ação; com dados, priorizar leitura e alertas.
 3. **Estruturas financeiras devem explicar sua consequência.** Categoria organiza, conta dá contexto de saldo, orçamento informa ritmo e alerta sempre oferece uma ação.
+4. **Não calcular além da evidência disponível.** Uma fotografia de saldo sustenta patrimônio; rentabilidade, volatilidade e retorno exigem histórico de transações ou preços compatíveis.
 
 ## Decisões propostas
 
@@ -28,6 +29,13 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 |---|---|---|---|
 | Firefly III | histórico de conta auditável: saldo acumulado, contrapartida, categoria, orçamento, transferências e divisões | grade muito larga e navegação desktop densa, sem reorganização adequada em 390 px | detalhe de conta com linha temporal e detalhe progressivo; não expor todas as colunas na lista mobile |
 | Actual Budget | orçamento operacional: saldo por categoria, excesso consolidado e ação para cobrir; previsto, vencendo e atrasado no histórico | envelope completo adiciona um modelo mental e regras de alocação que o Klipper ainda não decidiu adotar | alertas de orçamento acionáveis, saldo por ritmo, lançamentos previstos no mesmo histórico e navegação inferior mobile |
+
+## Complemento comparativo: Wealthfolio e Ghostfolio
+
+| Referência | Ponto mais útil | Limite a não transportar | Aplicação própria no Klipper |
+|---|---|---|---|
+| Wealthfolio | separação explícita entre fotografia de posições e histórico transacional; histórico de saldos datados; métrica indisponível explicada em vez de zerada | onboarding longo e métricas de investimento antes de existir base suficiente | conta pode registrar saldo/manual datado e alimentar evolução; retorno e risco só aparecem quando o contrato de dados os sustentar |
+| Ghostfolio | visão de patrimônio que inclui ativos, reserva e passivos, com composição por dimensões | dependência de cotação, benchmark e análises de mercado para entregar valor inicial | modelar desde já ativo/passivo, grupo de conta, classe e liquidez; adiar mercado, benchmark e recomendações para uma fase orientada por necessidade real |
 
 ## Especificações funcionais de referência
 
@@ -113,6 +121,10 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 
 **Evidência adicional do ambiente executável:** o fluxo do Sure solicita saldo inicial e data de abertura, mas a criação da conta sintética não foi concluída nesta sessão: após preencher e enviar, o formulário permaneceu aberto sem sucesso ou erro visível. O princípio para o Klipper continua válido, porém precisa ser validado no próprio produto com dados sintéticos: histórico de saldo não pode ser inferido apenas da fotografia atual.
 
+**Evidência adicional do Wealthfolio local:** uma conta configurada como fotografia registrou um saldo de caixa datado e passou a exibir patrimônio, valores de caixa/investimento/contábil e histórico de snapshots. Em contrapartida, retorno, P&L, volatilidade e drawdown ficaram indisponíveis com uma explicação de pré-requisito. O Klipper deve seguir a mesma honestidade sem herdar a interface: histórico de saldo é válido, mas não é histórico de performance.
+
+Quando uma conta usar histórico transacional, o formulário do Wealthfolio primeiro pede a natureza da atividade e só então mostra campos específicos, mantendo a conta de origem já contextualizada. Para o Klipper, aplicar esse princípio como redução de erro: movimento comum mantém o caminho curto; operações patrimoniais específicas revelam campos apenas depois do tipo, sem misturar um aporte, uma transferência e uma compra de ativo.
+
 **Ritmo de orçamento**
 
 - Para cada orçamento ativo, calcular: disponível, dias restantes, limite diário e comparação com o ritmo esperado até hoje.
@@ -128,6 +140,7 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 3. **Confiabilidade:** filtros persistentes e fila de revisão de importação.
 4. **Leitura:** detalhe de conta, histórico de saldo e painel de patrimônio.
 5. **Orientação:** orçamento por ritmo e alertas acionáveis.
+6. **Patrimônio estruturado:** ativos/passivos, grupos de conta e fotografia de saldo antes de indicadores de investimento.
 
 Essa ordem reduz retrabalho: lançamento, importação e orçamento compartilham o mesmo contrato de categoria, conta e data.
 
@@ -142,4 +155,5 @@ Essa ordem reduz retrabalho: lançamento, importação e orçamento compartilham
 - Medir o desfazer após exclusão de um lançamento sintético em mobile (depende de confirmação pontual para descarte local).
 - Validar busca/filtro, importação e edição em lote com o conjunto sintético completo.
 - Confirmar quais alertas são suficientemente frequentes e acionáveis para merecer o painel inicial.
+- Testar, com conta sintética local, como uma conta transacional recupera erro de dado incompleto e como sua atividade altera o painel de patrimônio.
 - Testar as propostas com o Klipper em 390 px e 1440 px antes de iniciar uma implementação ampla.
