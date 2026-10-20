@@ -100,6 +100,14 @@ Nenhum código, stylesheet, configuração, template ou asset do Sure foi aberto
 
 Nenhum código, stylesheet, configuração, template ou asset foi aberto. Não houve conta externa, corretora, fonte de mercado nem IA conectada.
 
+## Sessão 7 — 2026-10-20 (Actual: integridade inicial de movimento)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Actual Budget | servidor oficial local, porta 4105, orçamento de demonstração descartável | Criação de despesa sintética e transferência sintética entre Bank of America e Ally Savings; conferência das duas pontas, total consolidado e reação de conta/orçamento | **Não** |
+
+Nenhum código foi lido nesta sessão. A tentativa de atalho de desfazer ocorreu enquanto a linha permanecia em edição e, portanto, não foi tomada como evidência de inexistência de outra rota de recuperação.
+
 ## Autorização de estudo de software livre — 2026-10-20
 
 O usuário autorizou expressamente leitura, inspeção e estudo de código sob GPL/AGPL e outras licenças livres. A partir desta data, referências podem incluir comportamento executável e análise técnica, desde que cada achado registre origem e licença quando relevante.
