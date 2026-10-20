@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "meta": {
+    "date": "2026-10-20T20:56:39.067Z",
+    "trigger": "workflow_run",
+    "depth": "fast",
+    "branch": "main",
+    "commit": "e16b90e134cd11985b23b14161035f80629b7078",
+    "missing_agents": [
+      "architecture",
+      "finance"
+    ]
+  },
+  "overall_score": 7,
+  "sections": [
+    {
+      "agent": "security",
+      "name": "Segurança",
+      "score": 7,
+      "risk": "low"
+    }
+  ],
+  "findings": [
+    {
+      "natural_key": "web-apps-outdated-dev-transient-deps",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "npm audit --json em apps/klipper-web e apps/quebec-web (ambos resolvendo nuxt 3.21.11 / @nuxt/cli 3.37.0 / nitropack 2.13.4 / listhen 1.10.1 idênticos) reporta 11 pacotes 'high' (braces GHSA-vfj7-8cjw-p6xm e node-forge GHSA-86w9-cpqp-85rv, propagados por nitropack→listhen e @nuxt/cli→listhen) sem versão corrigida publicada, mais vite/launch-editor 'moderate' e esbuild 'low'. Rodar `node .github/scripts/audit-gate.mjs` contra os dois audits retorna `npm audit ok (2 exceções em uso)` para ambos — o portão de CI (.github/workflows/ci.yml) já trata as duas advisories high como exceção documentada e datada (2026-10-17), com justificativa de alcance (braces só entra via glob do build; node-forge só no servidor de dev do @nuxt/cli) revisada no próprio audit-gate.mjs.",
+      "description": "As duas únicas advisories 'high' presentes no npm audit de ambos os frontends (braces ReDoS e node-forge RSA signature bypass) seguem sem versão corrigida publicada pelo Nuxt, mas já estão cobertas por exceção explícita e justificada no portão de CI (audit-gate.mjs), com o restante (vite/esbuild moderate/low) já catalogado em SEC-003; nenhuma advisory nova sem tratamento foi encontrada nesta auditoria.",
+      "recommendation": "Manter o processo já em vigor: revisar EXCECOES em audit-gate.mjs a cada bump de nuxt (o comentário do próprio arquivo já pede isso), e remover a exceção quando a advisory desaparecer do audit. Nenhuma ação nova necessária agora.",
+      "impact": 2,
+      "frequency": 3,
+      "reach": 3,
+      "effort": 1,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 18,
+      "id": "SEC-003",
+      "adr": null
+    },
+    {
+      "natural_key": "password-reset-redemption-endpoint-unthrottled",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/config/initializers/rack_attack.rb:3-6 — a regra auth/ip só cobre POST para /api/v1/auth/sign_in, /api/v1/auth/sign_up e /api/v1/password_resets; a rota PATCH /api/v1/password_resets/:token (redenção do token, app/controllers/api/v1/password_resets_controller.rb#update) não é coberta por nenhuma regra throttle(...) no mesmo arquivo.",
+      "description": "O endpoint de redenção de token de reset de senha continua sem rate limiting, ao contrário de todas as outras rotas de autenticação não-autenticadas, permitindo tentativas ilimitadas de adivinhar um token válido por IP.",
+      "recommendation": "Adicionar uma regra de throttle no Rack::Attack para `req.patch? && req.path.start_with?(\"/api/v1/password_resets/\")`, por IP, espelhando a regra auth/ip existente.",
+      "impact": 3,
+      "frequency": 2,
+      "reach": 2,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 6,
+      "id": "SEC-005",
+      "adr": null
+    },
+    {
+      "natural_key": "spa-access-token-cookie-js-readable",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-web/composables/useApi.ts:18-22 — `useCookie<string | null>('klipper_token', { sameSite: 'lax', secure: cookieSecure, maxAge: 60*15 })` não define `httpOnly` (Nuxt `useCookie` roda no client e nunca pode setar HttpOnly), então o access token de 15 minutos é legível por qualquer JavaScript que corra na página; o ADR que decidiria aceitar esse risco ou migrar para HttpOnly+CSRF permanece em docs/adrs/proposed/ADR-2026-09-17-003.md, sem decisão registrada.",
+      "description": "O access token da SPA continua exposto a JavaScript via cookie não-HttpOnly, e a decisão arquitetural de aceitar ou mitigar esse risco segue sem resolução formal.",
+      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar); se aceitar, mover o ADR para `accepted` documentando a mitigação já existente via CSP com nonce em apps/klipper-web/server/middleware/csp.ts (script-src 'self' 'nonce-...' em produção, sem 'unsafe-inline'), que reduz mas não elimina o risco residual de um sink de XSS futuro roubar o token.",
+      "impact": 4,
+      "frequency": 1,
+      "reach": 2,
+      "effort": 4,
+      "adr_candidate": true,
+      "agent": "security",
+      "priority_score": 2,
+      "id": "SEC-006",
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-003.md"
+    }
+  ],
+  "possible_regressions": [],
+  "trend": {
+    "overall_score": -48.33,
+    "sections": [
+      {
+        "agent": "security",
+        "delta": -77
+      }
+    ],
+    "baseline": {
+      "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+      "branch": "main",
+      "date": "2026-09-18T13:03:39.167Z",
+      "note": null
+    }
+  }
+}
