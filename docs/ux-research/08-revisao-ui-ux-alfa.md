@@ -31,7 +31,7 @@
 
 - Sure com dados preenchidos: painel de patrimônio, alertas, detalhe/histórico de conta, orçamento e movimentos ainda não foram percorridos ponta a ponta.
 - Cashew com dados preenchidos em 390 px: lançamento, edição, cancelamento, desfazer, filtros e orçamento ainda não foram percorridos ponta a ponta.
-- Actual Budget: o fluxo de importação foi aberto na demo oficial, mas o navegador integrado não entregou o CSV ao seletor oculto; importação, reimportação e confirmação seguem bloqueadas até haver servidor local ou upload funcional.
+- Actual Budget: o servidor local oficial completou importação e reimportação. Com mesclagem ativa, bloqueou duplicatas exatas e também a quase duplicata de mesma data/valor; o CSV revelou ainda que colunas sem semântica compatível precisam ser sinalizadas na prévia.
 - Sucesso/erro real de upload, confirmação, transferência, retry, foco e leitor de tela ainda não foram executados em todos os apps. No ezBookkeeping, o fluxo foi concluído pela API local: conta de destino, categorias e data anterior ao saldo inicial produziram erros recuperáveis; uma nova importação inseriu novamente as linhas sem comparar seu conteúdo.
 - `docs/ux-research/prints/` agora contém o CSV sintético do Lote 0; não há captura visual nova associada ao piloto.
 
@@ -39,10 +39,9 @@
 
 ### P0 — fechar lacunas críticas antes da implementação ampla
 
-1. **Actual importação:** repetir A1 em servidor local oficial na porta 4105, ou navegador com upload funcional; testar duplicata, quase duplicata e confirmação.
-2. **Sure preenchido:** criar contas, movimentos, orçamento e alertas sintéticos; registrar painel, detalhe de conta, histórico de saldo, filtros e estados de vazio/erro/sucesso em 1440 px e 390 px.
-3. **Cashew preenchido:** registrar lançamento rápido, edição, cancelamento, desfazer, filtros, orçamento e navegação inferior em 390 px e desktop; medir toques até salvar.
-4. **Matriz final:** confrontar os sete produtos por tarefa, separar evidência de hipótese e atualizar os critérios de aceite próprios do Klipper. Apps copyleft continuam como UX observável nesta fila; leituras MIT seguem classificadas como técnica/dirty no 12.
+1. **Sure preenchido:** criar contas, movimentos, orçamento e alertas sintéticos; registrar painel, detalhe de conta, histórico de saldo, filtros e estados de vazio/erro/sucesso em 1440 px e 390 px.
+2. **Cashew preenchido:** registrar lançamento rápido, edição, cancelamento, desfazer, filtros, orçamento e navegação inferior em 390 px e desktop; medir toques até salvar.
+3. **Matriz final:** confrontar os sete produtos por tarefa, separar evidência de hipótese e atualizar os critérios de aceite próprios do Klipper. Apps copyleft continuam como UX observável nesta fila; leituras MIT seguem classificadas como técnica/dirty no 12.
 
 ### P1 — implementação no Klipper, após a matriz final
 

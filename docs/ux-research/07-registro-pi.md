@@ -69,7 +69,7 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 | App | Fonte/ambiente | Evidência e escopo | Código aberto? |
 |---|---|---|---|
 | ezBookkeeping | container local e API local do produto | CSV sintético, mapeamento, três falhas recuperáveis, conclusão 13/13 e reimportação 13/13; fonte MIT no commit `3dcc316e1fb6a190d6a0dd13fbe4052d17b9315c` | **Sim — somente para critério técnico de repetição de envio** |
-| Actual Budget | demonstração pública oficial | conta aberta e fluxo de importação iniciado; sandbox não entregou o arquivo ao seletor oculto, portanto nenhuma alteração foi concluída | **Sim — somente contrato técnico de identificador externo de importação no commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc`** |
+| Actual Budget | servidor oficial local na porta 4105 | CSV sintético, mapeamento, primeira importação e reimportação; duplicatas exatas e quase duplicata foram bloqueadas antes da confirmação | **Sim — contrato técnico de identificador externo de importação no commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc`** |
 
 Nenhum código, texto de interface, schema ou asset dessas referências foi copiado para o Klipper. As regras nos relatórios são descritas em linguagem funcional própria.
 

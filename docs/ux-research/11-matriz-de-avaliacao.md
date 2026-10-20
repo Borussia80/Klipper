@@ -27,7 +27,7 @@ Uma referência não é uma especificação. A matriz registra comportamentos de
 | Transferência e contrapartida | N | P | N | O | P | P | N | A regra financeira pode ser proposta, mas o fluxo comparável ainda exige teste dedicado. |
 | Exclusão e recuperação | N | N | P | N | N | N | N | Não concluir padrão de exclusão; é lacuna P0/P1, conforme impacto no saldo. |
 | Busca, filtros e persistência de contexto | O | O | O | P | O | N | N | Há evidência para filtros persistentes; filtros patrimoniais ainda precisam de estudo. |
-| Importação, deduplicação e correção em lote | P | O | N | N | P | P | N | ezBookkeeping completou arquivo, correções e reimportação; duplicatas de conteúdo foram inseridas sem aviso. Actual continua pendente por bloqueio do upload no navegador integrado. |
+| Importação, deduplicação e correção em lote | P | O | N | N | O | P | N | ezBookkeeping completou arquivo, correções e reimportação, mas inseriu duplicatas de conteúdo sem aviso. Actual completou o mesmo CSV localmente e bloqueou tanto duplicatas exatas como a quase duplicata por valor e proximidade temporal. |
 | Conciliação e saldo previsto | N | N | N | P | O | N | N | Actual oferece melhor evidência; a regra precisa ser validada por cenários sintéticos do Klipper. |
 | Orçamento, ritmo e excedente | P | N | O | O | O | N | N | Ritmo diário, período e alerta acionável têm evidência; não há decisão de adotar envelopes. |
 | Painel, alertas e estado vazio | O | P | O | P | O | O | P | Existe base para hierarquia, mas alertas do Sure preenchido continuam sem evidência. |
