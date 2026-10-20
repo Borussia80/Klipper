@@ -96,7 +96,7 @@ Nenhum código, stylesheet, configuração, template ou asset do Sure foi aberto
 | App | Fonte/ambiente | Evidência e escopo | Código aberto? |
 |---|---|---|---|
 | Wealthfolio | binário local isolado, porta 4102 | Painel patrimonial preenchido e sem holdings em 390 px; leitura de valor, período, conta, decomposição e navegação móvel | **Não** |
-| Ghostfolio | imagem local isolada, porta 4103 | Onboarding sem contas nem atividades em 390 px; passos, CTA e navegação compacta | **Não** |
+| Ghostfolio | imagem local isolada, porta 4103 | Onboarding sem contas nem atividades em 390 px; passos, CTA, navegação compacta e sequência inicial de foco por teclado | **Não** |
 
 Nenhum código, stylesheet, configuração, template ou asset foi aberto. Não houve conta externa, corretora, fonte de mercado nem IA conectada.
 

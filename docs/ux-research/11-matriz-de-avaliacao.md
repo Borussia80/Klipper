@@ -33,7 +33,7 @@ Uma referência não é uma especificação. A matriz registra comportamentos de
 | Painel, alertas e estado vazio | O | P | O | P | O | O | P | Existe base para hierarquia, mas alertas do Sure preenchido continuam sem evidência. |
 | Erro, validação e recuperação | O | P | P | N | P | P | P | Sure bloqueou descrição ausente e enumerou o erro de data por linha; ainda falta ensaio sistemático de rede, permissão, duplicata e conflito. |
 | Mobile a 390 px, densidade e navegação | P | P | O | O | O | P | N | Cashew e Actual sustentam a proposta mobile. Wealthfolio confirmou apenas painel; contas e atividades patrimoniais continuam pendentes, assim como o fluxo preenchido do Ghostfolio. |
-| Acessibilidade por teclado, foco, leitor de tela e contraste | N | N | N | N | N | N | N | Nenhuma conclusão; é exigência de validação do Klipper, não uma comparação encerrada. |
+| Acessibilidade por teclado, foco, leitor de tela e contraste | N | N | N | N | N | N | P | No Ghostfolio, o onboarding móvel alcançou o CTA de conta por Tab e expôs nome descritivo; isso não cobre formulários, erro, contraste nem as jornadas críticas. |
 
 ## Achados priorizados → requisitos do Klipper
 
