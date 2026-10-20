@@ -22,6 +22,13 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 | Painel | Começar com patrimônio, evolução temporal e alertas acionáveis; ocultar cards sem dados | Sure usa continuação única no estado vazio e deixa contas como base da leitura | painel compreensível em menos de uma olhada |
 | Conta e orçamento | Tela de conta com saldo atual, histórico, próximos itens e orçamento por disponível/dia | fluxo de conta do Sure coleta saldo, data, moeda e subtipo; Cashew introduz orçamento como período e ritmo | saldo com contexto e orçamento que orienta a decisão de hoje |
 
+## Complemento comparativo: Firefly III e Actual Budget
+
+| Referência | Ponto mais útil | Limite a não transportar | Aplicação própria no Klipper |
+|---|---|---|---|
+| Firefly III | histórico de conta auditável: saldo acumulado, contrapartida, categoria, orçamento, transferências e divisões | grade muito larga e navegação desktop densa, sem reorganização adequada em 390 px | detalhe de conta com linha temporal e detalhe progressivo; não expor todas as colunas na lista mobile |
+| Actual Budget | orçamento operacional: saldo por categoria, excesso consolidado e ação para cobrir; previsto, vencendo e atrasado no histórico | envelope completo adiciona um modelo mental e regras de alocação que o Klipper ainda não decidiu adotar | alertas de orçamento acionáveis, saldo por ritmo, lançamentos previstos no mesmo histórico e navegação inferior mobile |
+
 ## Especificações funcionais de referência
 
 ### 1. Categorias em dois níveis e Configurações

@@ -59,6 +59,8 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 | Sure | imagem oficial em container local isolado | cadastro, onboarding, painel vazio, tentativa de conta manual sintética, movimentos vazios/filtros e configuração/validação de orçamento | **Não** |
 | Cashew | PWA oficial em execução | início vazio desktop, lançamento sintético, edição, filtros, confirmação de cancelamento e formulário em 390 px | **Não** |
 | ezBookkeeping | imagem oficial em container local isolado | login, cadastro, preferências, conta local sintética, categorias pai/filha, lista, busca e assistente de importação | **Não** |
+| Firefly III | demonstração pública oficial em execução | painel preenchido, orçamento, detalhe de conta e largura de 390 px | **Não** |
+| Actual Budget | demonstração pública oficial em execução, sem sincronização | orçamento preenchido, histórico de conta, estados de agendamento e largura de 390 px | **Não** |
 
 As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper.
 

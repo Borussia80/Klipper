@@ -11,6 +11,8 @@
 | Sure | container oficial local, porta 4100 | hierarquia desktop, patrimônio, contas e alertas | ativo |
 | ezBookkeeping | container oficial local, porta 4101 | estrutura de categorias, filtros, importação e configurações | ativo |
 | Cashew | PWA oficial | rapidez de lançamento e padrões mobile | ativo |
+| Firefly III | demonstração pública oficial | governança financeira, conta auditável, orçamento periódico e relatórios | ativo |
+| Actual Budget | demonstração pública oficial, banco local no navegador | envelopes, orçamento operacional, lançamentos e navegação mobile | ativo |
 
 Os ambientes não compartilham banco, cookie, volume ou porta com o Klipper. As contas e transações criadas durante o estudo devem ser descartáveis e sintéticas.
 
@@ -126,6 +128,23 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 **Hipótese para o Klipper:** abrir o lançamento diretamente no valor é mais rápido que exigir título antes da categoria; validar título, conta/categoria e valor de modo consistente, sem deixar um caminho intermediário ambíguo. Após salvar ou editar, oferecer confirmação curta com desfazer; ao cancelar, confirmar somente se houver alteração local.
 
+### Firefly III — conta, orçamento e densidade operacional
+
+- A demonstração oficial fornece uma conta preenchida cujo detalhe reúne gráfico de evolução, decomposição por categoria e por orçamento, e histórico de lançamentos. Cada linha do histórico expõe descrição, valor, saldo acumulado, data, conta de origem/destino, categoria e orçamento; transferências e divisões permanecem identificáveis.
+- O orçamento organiza período, total disponível, total orçado, gasto e saldo. Cada orçamento mostra valor planejado, gasto total e por dia, saldo restante e disponível diário; inclui também gastos fora de orçamento e orçamentos inativos.
+- A arquitetura privilegia rastreabilidade e múltiplas dimensões financeiras, mas a apresentação de conta usa uma tabela muito larga. No ensaio em 390 px, ela não se reorganizou numa lista/carteira mobile: a interface preservou a navegação lateral e múltiplos gráficos, tornando-se uma referência de densidade a evitar no Klipper.
+
+**Hipótese para o Klipper:** absorver o contrato de histórico auditável — especialmente saldo acumulado, contrapartida, categoria e vínculo de orçamento — sem transportar a grade. No mobile, usar uma linha de duas camadas e abrir saldo/contrapartida no detalhe, mantendo o gráfico como seção opcional.
+
+### Actual Budget — envelope, operação de conta e mobile
+
+- A demonstração local abre diretamente em um orçamento preenchido: grupos de categorias, colunas de orçado, gasto e saldo, meses vizinhos e indicador de recursos a alocar. Categorias excedidas aparecem em um aviso consolidado com ação de cobertura, evitando que o erro fique apenas como número negativo em uma linha.
+- O histórico de conta mostra saldo no cabeçalho, busca, filtro, conciliação, importação e criação de movimento. Linhas agendadas se distinguem das realizadas por estado temporal; lançamentos divididos ficam aninhados sob o lançamento principal, preservando as categorias filhas.
+- Em 390 px, a conta mantém saldo, busca e estados de agendamento (futuro, vencendo, atrasado), e a navegação passa para a base. O orçamento mantém grupos e categorias com menus contextuais, ação de ver movimentos e saldo, sem reduzir a experiência a uma tabela horizontal.
+- A demonstração explica que seus dados ficam no dispositivo e oferece sincronização separadamente; nenhuma sincronização ou conta externa foi conectada durante a pesquisa.
+
+**Hipótese para o Klipper:** priorizar alerta agregador acionável para itens acima do limite, histórico que una previsto e realizado e navegação mobile explícita. O modelo de envelopes não deve ser adotado automaticamente: ele é uma opção de produto a validar contra o orçamento por ritmo já proposto.
+
 ## Trilhas de pesquisa e decisão
 
 | Trilha | Perguntas a responder | Produtos de maior evidência | Saída prevista |
@@ -150,4 +169,5 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 3. Executar a exclusão/desfazer de um lançamento sintético no Cashew somente mediante confirmação pontual, para completar essa célula do protocolo.
 4. Repetir a criação de conta preenchida no Sure quando o formulário local responder, registrando painel, detalhe/histórico de saldo e alertas com o mesmo conjunto sintético.
 5. Percorrer importação, busca, filtro e correção em lote no ezBookkeeping e Sure quando disponíveis.
-6. Registrar capturas e converter os achados em specs de implementação do Klipper.
+6. Exercitar, apenas em dados de demonstração/local, erro e recuperação de filtros, conciliação e recorrência no Firefly III e no Actual Budget.
+7. Registrar capturas e converter os achados em specs de implementação do Klipper.
