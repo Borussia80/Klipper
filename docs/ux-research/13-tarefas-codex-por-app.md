@@ -106,6 +106,14 @@ Repositório: `github.com/actualbudget/actual`.
 
 Não habilitar nem configurar a área de IA.
 
+### Complemento solicitado — contas de crédito e dívida
+
+Antes de considerar o Sure concluído, acrescentar uma sessão específica, sempre com dados sintéticos:
+
+| ID | UXR / matriz | Tarefa |
+|---|---|---|
+| S6 | UXR-02, UXR-03, UXR-01 | Criar conta de cartão de crédito e conta de financiamento. Para cartão, registrar compra, fatura e pagamento; para financiamento, registrar parcela, amortização e vencimento. Conferir principal, juros, saldo, impacto patrimonial, datas e validações. Executar em 1440 px e 390 px. |
+
 ## Cashew — GPL-3.0 · caixa-preta · PWA oficial
 
 | ID | UXR / matriz | Tarefa |

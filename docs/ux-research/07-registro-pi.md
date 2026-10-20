@@ -73,6 +73,14 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 
 Nenhum código, texto de interface, schema ou asset dessas referências foi copiado para o Klipper. As regras nos relatórios são descritas em linguagem funcional própria.
 
+## Sessão 4 — 2026-10-20 (Sure: contas, movimentos, transferência e importação)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Sure | container local isolado, porta 4100 | Criação manual de duas contas, saldo inicial, despesa, validação, edição automática, transferência e remoção do vínculo, importação CSV até a limpeza por erros de data | **Não** |
+
+Nenhum código, stylesheet, configuração, template ou asset do Sure foi aberto. A área de IA permaneceu desabilitada e não foi configurada. As observações estão registradas em `relatorios/sure.md` em linguagem funcional própria.
+
 As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper. O Wealthfolio foi executado apenas como binário distribuído oficialmente; seu código não foi aberto. No Ghostfolio, a inspeção limitada de configuração confirmou a variável de conexão de cache necessária para o ambiente local; nenhuma implementação do Klipper foi derivada por cópia.
 
 ## Autorização de estudo de software livre — 2026-10-20
