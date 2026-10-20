@@ -112,6 +112,8 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 - Usar linguagem clara: “R$ X por dia até o fim do ciclo” e “acima/abaixo do ritmo”, acompanhada de cor e ícone — nunca cor isolada.
 - Não indicar falha enquanto o período estiver dentro do ritmo, mesmo que já tenha consumido grande parte do limite cedo em um ciclo curto.
 
+**Evidência adicional do ambiente executável:** o Cashew apresentou, em um orçamento local de R$ 200 com R$ 50 já consumidos, saldo restante, fração do período e uma recomendação de gasto por dia. O Klipper deve adotar o cálculo de ritmo, com apresentação e redação próprias.
+
 ## Ordem recomendada de entrega
 
 1. **Fundação:** modelo de categorias, tela de Configurações e seletor reutilizável.
