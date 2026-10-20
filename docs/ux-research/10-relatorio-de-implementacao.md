@@ -1,8 +1,10 @@
 # 10 — Relatório de implementação: padrões observados e decisões para o Klipper
 
-**Status:** primeiro ciclo de observação ao vivo — 2026-10-19
+**Status:** primeiro ciclo de observação ao vivo; insuficiente para encerrar decisões de produto — 2026-10-20
 **Escopo:** categorias, entrada rápida, painel, contas e orçamento.
 **Base factual:** `09-observacao-ao-vivo.md`. Este documento transforma evidência em proposta própria; não reproduz interface, código, assets ou textos das referências.
+
+> Antes de implementar ou usar este relatório como justificativa de merge, consultar a [matriz de avaliação](11-matriz-de-avaliacao.md). Ela separa evidência completa, parcial e ausente, classifica gravidade e associa cada decisão a um critério de aceite.
 
 ## Síntese executiva
 
@@ -159,3 +161,4 @@ Essa ordem reduz retrabalho: lançamento, importação e orçamento compartilham
 - Confirmar quais alertas são suficientemente frequentes e acionáveis para merecer o painel inicial.
 - Testar, com conta sintética local, como uma conta transacional recupera erro de dado incompleto e como sua atividade altera o painel de patrimônio.
 - Testar as propostas com o Klipper em 390 px e 1440 px antes de iniciar uma implementação ampla.
+- Executar os ciclos A, B e C da matriz de avaliação, com registro de evidência e atualização da cobertura antes de declarar o estudo encerrado.
