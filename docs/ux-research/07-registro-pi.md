@@ -56,8 +56,8 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 
 | App | Fonte/ambiente | Telas observadas | Código aberto? |
 |---|---|---|---|
-| Sure | imagem oficial em container local isolado | cadastro, onboarding, painel vazio, inclusão manual e escolha de conexão de conta | **Não** |
-| Cashew | PWA oficial em execução | início vazio desktop, onboarding, navegação e ação global de transação | **Não** |
+| Sure | imagem oficial em container local isolado | cadastro, onboarding, painel vazio, tentativa de conta manual sintética, movimentos vazios/filtros e configuração/validação de orçamento | **Não** |
+| Cashew | PWA oficial em execução | início vazio desktop, lançamento sintético, edição, filtros, confirmação de cancelamento e formulário em 390 px | **Não** |
 | ezBookkeeping | imagem oficial em container local isolado | login, cadastro, preferências, conta local sintética, categorias pai/filha, lista, busca e assistente de importação | **Não** |
 
 As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper.

@@ -17,7 +17,7 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 | Frente | Decisão para o Klipper | Evidência observada | Resultado esperado |
 |---|---|---|---|
 | Categorias | Limitar a categoria a pai + filha; criar, ordenar, ocultar e editar em Configurações | seleção opcional de taxonomia com grupos expansíveis no ezBookkeeping | escolha rápida e relatórios coerentes sem árvore profunda |
-| Entrada mobile | Destacar “+” na navegação inferior; abrir folha de lançamento já focada no valor | Cashew mantém a transação como ação central, mesmo apresentando várias áreas | lançamento em até quatro decisões após o valor |
+| Entrada mobile | Destacar “+” na navegação inferior; abrir folha de lançamento já focada no valor | Cashew mantém a transação como ação central, mesmo apresentando várias áreas; o fluxo observado hoje pede título/categoria antes do valor | lançamento em até quatro decisões após o valor |
 | Movimentos importados | Abrir uma fila persistente de revisão com filtros salvos, edição em linha/lote e desfazer | a separação entre configurar e operar das referências reduz troca de contexto | importação corrigível sem perder linhas ou filtros |
 | Painel | Começar com patrimônio, evolução temporal e alertas acionáveis; ocultar cards sem dados | Sure usa continuação única no estado vazio e deixa contas como base da leitura | painel compreensível em menos de uma olhada |
 | Conta e orçamento | Tela de conta com saldo atual, histórico, próximos itens e orçamento por disponível/dia | fluxo de conta do Sure coleta saldo, data, moeda e subtipo; Cashew introduz orçamento como período e ritmo | saldo com contexto e orçamento que orienta a decisão de hoje |
@@ -52,9 +52,9 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 **Composição própria sugerida**
 
 - Navegação inferior com quatro destinos: Início, Movimento, `+`, Orçamento e Mais.
-- O `+` abre uma folha modal ancorada abaixo, não uma troca de rota. O primeiro foco é o valor; tipo de movimento (despesa, receita, transferência) fica visível e alternável.
+- O `+` abre uma folha modal ancorada abaixo, não uma troca de rota. O primeiro foco é o valor; tipo de movimento (despesa, receita, transferência) fica visível e alternável. Esta é uma melhoria deliberada sobre o fluxo observado, que começa por título/categoria.
 - Em seguida, conta e categoria são exigidas somente quando necessárias; data, descrição, recorrência e anexos entram em “mais opções”.
-- Salvar mostra confirmação curta com **Desfazer**. Cancelar descarta apenas o rascunho local, com confirmação somente se houver campos preenchidos.
+- Salvar e editar mostram confirmação curta com **Desfazer**. Cancelar descarta apenas o rascunho local, com confirmação somente se houver campos preenchidos. O Cashew confirmou o segundo comportamento; nesta rodada não exibiu desfazer após salvar/editar.
 
 **Métrica inicial**
 
@@ -104,7 +104,7 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 - Linha temporal de saldos, não apenas soma de movimentos; destacar pontos de ajuste e importação.
 - Separar saldo realizado de saldo previsto se houver itens agendados. A data de abertura estabelece o primeiro ponto conhecido.
 
-**Evidência adicional do ambiente executável:** ao inserir saldo inicial em uma conta de teste, a ferramenta registrou um movimento de ajuste de saldo com data/hora. Esse padrão é útil ao Klipper: histórico de saldo não pode ser inferido apenas da fotografia atual.
+**Evidência adicional do ambiente executável:** o fluxo do Sure solicita saldo inicial e data de abertura, mas a criação da conta sintética não foi concluída nesta sessão: após preencher e enviar, o formulário permaneceu aberto sem sucesso ou erro visível. O princípio para o Klipper continua válido, porém precisa ser validado no próprio produto com dados sintéticos: histórico de saldo não pode ser inferido apenas da fotografia atual.
 
 **Ritmo de orçamento**
 
@@ -130,7 +130,7 @@ Essa ordem reduz retrabalho: lançamento, importação e orçamento compartilham
 
 ## Lacunas a fechar no próximo ciclo
 
-- Medir toques, estados de erro e desfazer de um lançamento real em mobile.
+- Medir o desfazer após exclusão de um lançamento sintético em mobile (depende de confirmação pontual para descarte local).
 - Validar busca/filtro, importação e edição em lote com o conjunto sintético completo.
 - Confirmar quais alertas são suficientemente frequentes e acionáveis para merecer o painel inicial.
 - Testar as propostas com o Klipper em 390 px e 1440 px antes de iniciar uma implementação ampla.

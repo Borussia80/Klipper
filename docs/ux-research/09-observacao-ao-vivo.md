@@ -55,6 +55,16 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 **Hipótese para o Klipper:** em vez de uma tela genérica de “nova conta”, usar uma decisão inicial de natureza da conta e deixar integrações fora do caminho manual. No painel, mostrar patrimônio somente quando houver base de dados; no vazio, oferecer a próxima ação inequívoca.
 
+### Sure — movimentos, orçamento e tratamento de erro
+
+- A tela de movimentos vazia traz totalizadores de quantidade, entradas e saídas antes da lista, uma busca e filtros por **conta, data, tipo, status, valor, categoria, tag e comerciante**. Há também um filtro rotulado como IA; ele não foi acionado, pois depende de recurso externo que não faz parte deste estudo.
+- O estado vazio não esconde as ferramentas: mantém busca, filtros, importação e criação de movimento disponíveis, além de uma explicação curta do que fazer em seguida.
+- O orçamento abre por mês, com navegação anterior/próxima e resumo de planejado, receita e despesas. A configuração é um fluxo de duas etapas: valores planejados primeiro e categorias depois.
+- Ao tentar seguir no orçamento sem preencher despesa planejada e receita esperada, o navegador recebe validação nativa localizada: **“Preencha este campo.”**, com foco retornando ao campo obrigatório. A sugestão automática por IA permaneceu desligada.
+- Tentamos criar uma conta manual sintética, preenchendo nome, saldo, data, moeda e subtipo no fluxo normal. O formulário permaneceu na própria tela, sem conta criada, mensagem de sucesso ou erro visível e sem erro de console. Por isso, nesta sessão não foi possível produzir de forma confiável o painel preenchido, o detalhe/histórico de saldo, nem alertas acionáveis do Sure. Isso é um resultado de teste, não uma conclusão sobre o produto.
+
+**Hipótese para o Klipper:** manter filtros densos em uma superfície progressiva no desktop, mas apresentar os filtros mais frequentes como folhas compactas no mobile. Para orçamentos, aplicar validação local e associada ao campo; não oferecer automação remota como saída padrão. O painel de patrimônio, histórico e alertas do Klipper deve ser implementado com dados sintéticos próprios e validado independentemente da lacuna observada no Sure.
+
 ### ezBookkeeping — entrada desktop
 
 - Login apresenta credenciais, recuperação de senha, criação de conta e seletor de idioma na mesma superfície.
@@ -105,6 +115,16 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 **Hipótese para o Klipper:** o primeiro uso pode explicar o valor em poucos passos e deixar sincronização como escolha posterior. Para o orçamento, o vocabulário de “ritmo” é mais acionável do que somente “limite mensal”.
 
+### Cashew — lançamento, edição, filtros e cancelamento
+
+- O lançamento rápido começa por um pequeno modal de título/categoria e segue para um teclado numérico próprio. Na sequência, a tela principal mantém tipo, valor/categoria, data, estado (padrão, futuro, assinatura, recorrência e empréstimos), título, notas e anexos. Com dados de teste, uma despesa de `R$ 50` em `Mercado` foi salva e apareceu no painel e na lista de transações.
+- A edição abre na própria estrutura do lançamento e confirma o resultado retornando à lista com o título alterado. O fluxo não apresentou um snackbar de “desfazer” após salvar ou editar; desfazer por exclusão não foi acionado porque exigiria descartar um registro local.
+- A lista reúne meses, totais de entrada/saída e filtros. O painel de filtros contém categorias, faixa de valor, tipo (receita/despesa), situação (padrão, futuro, recorrente, pago/não pago/pulado/excluído), conta, texto de título e notas. O filtro aplicado permanece visível como chip na lista.
+- Um rascunho sem título e com valor zero pode avançar até a tela principal, mas o CTA muda para **“Insira a Quantia”** e não permite concluir. Ao tentar sair de um rascunho alterado, abre uma confirmação explícita de descarte; o estudo escolheu “Cancelar” para preservar o rascunho.
+- Em **390 px**, o formulário deixa de usar a lateral, mantém a hierarquia vertical e fixa o CTA no rodapé. Data, estados, título, notas e “Mais opções” continuam acessíveis sem tabela ou rolagem horizontal.
+
+**Hipótese para o Klipper:** abrir o lançamento diretamente no valor é mais rápido que exigir título antes da categoria; validar título, conta/categoria e valor de modo consistente, sem deixar um caminho intermediário ambíguo. Após salvar ou editar, oferecer confirmação curta com desfazer; ao cancelar, confirmar somente se houver alteração local.
+
 ## Trilhas de pesquisa e decisão
 
 | Trilha | Perguntas a responder | Produtos de maior evidência | Saída prevista |
@@ -126,6 +146,7 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 1. Concluir o ambiente descartável do ezBookkeeping e carregar o conjunto padrão de dados sintéticos.
 2. Percorrer categorias e configurações em desktop e mobile.
-3. Percorrer lançamento rápido, cancelamento e desfazer no Cashew.
-4. Percorrer importação, busca, filtro e correção em lote no ezBookkeeping e Sure quando disponíveis.
-5. Registrar capturas e converter os achados em specs de implementação do Klipper.
+3. Executar a exclusão/desfazer de um lançamento sintético no Cashew somente mediante confirmação pontual, para completar essa célula do protocolo.
+4. Repetir a criação de conta preenchida no Sure quando o formulário local responder, registrando painel, detalhe/histórico de saldo e alertas com o mesmo conjunto sintético.
+5. Percorrer importação, busca, filtro e correção em lote no ezBookkeeping e Sure quando disponíveis.
+6. Registrar capturas e converter os achados em specs de implementação do Klipper.
