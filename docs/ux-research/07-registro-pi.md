@@ -108,6 +108,14 @@ Nenhum código, stylesheet, configuração, template ou asset foi aberto. Não h
 
 Nenhum código foi lido nesta sessão. A tentativa de atalho de desfazer ocorreu enquanto a linha permanecia em edição e, portanto, não foi tomada como evidência de inexistência de outra rota de recuperação.
 
+## Sessão 8 — 2026-10-20 (Cashew: integridade e lançamento móvel)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Cashew | PWA oficial, armazenamento local de laboratório | Criação de duas contas sintéticas, receita, transferência, exclusão das duas pontas, três despesas em 390 px e exclusão de despesa comum | **Não** |
+
+Nenhum código, CSS, template, configuração ou asset do Cashew foi aberto. Não houve login, sincronização, conta externa ou arquivo importado. As linhas excluídas pertenciam somente aos dados sintéticos desta sessão.
+
 ## Autorização de estudo de software livre — 2026-10-20
 
 O usuário autorizou expressamente leitura, inspeção e estudo de código sob GPL/AGPL e outras licenças livres. A partir desta data, referências podem incluir comportamento executável e análise técnica, desde que cada achado registre origem e licença quando relevante.
