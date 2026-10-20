@@ -189,11 +189,11 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 ## Próximas observações
 
-1. Concluir o ambiente descartável do ezBookkeeping e carregar o conjunto padrão de dados sintéticos.
-2. Percorrer categorias e configurações em desktop e mobile.
-3. Executar a exclusão/desfazer de um lançamento sintético no Cashew somente mediante confirmação pontual, para completar essa célula do protocolo.
-4. Repetir a criação de conta preenchida no Sure quando o formulário local responder, registrando painel, detalhe/histórico de saldo e alertas com o mesmo conjunto sintético.
-5. Percorrer importação, busca, filtro e correção em lote no ezBookkeeping e Sure quando disponíveis.
-6. Exercitar, apenas em dados de demonstração/local, erro e recuperação de filtros, conciliação e recorrência no Firefly III e no Actual Budget.
-7. Observar no Wealthfolio local a conta em modo transacional e os estados de erro/recuperação sem conectar corretora ou provedor externo.
-8. Registrar capturas e converter os achados em specs de implementação do Klipper.
+As tarefas detalhadas por app estão em [13 — Tarefas do Codex por app](13-tarefas-codex-por-app.md). Os itens abaixo são o resumo.
+
+1. Executar a exclusão/desfazer de um lançamento sintético no Cashew somente mediante confirmação pontual, para completar essa célula do protocolo.
+2. Repetir a criação de conta preenchida no Sure quando o formulário local responder, registrando painel, detalhe/histórico de saldo e alertas com o mesmo conjunto sintético.
+3. Percorrer importação, busca, filtro e correção em lote no ezBookkeeping e Sure quando disponíveis.
+4. Exercitar, apenas em dados de demonstração/local, erro e recuperação de filtros, conciliação e recorrência no Firefly III e no Actual Budget.
+5. Observar no Wealthfolio local a conta em modo transacional e os estados de erro/recuperação sem conectar corretora ou provedor externo.
+6. Registrar capturas e converter os achados em specs de implementação do Klipper.

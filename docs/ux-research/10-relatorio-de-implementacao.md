@@ -8,7 +8,7 @@
 
 ## Síntese executiva
 
-O Klipper deve concentrar sua próxima evolução em cinco capacidades conectadas: uma taxonomia simples de dois níveis, lançamento móvel com baixa fricção, correção confiável pós-importação, painel orientado a patrimônio e contas com leitura temporal. As referências convergem em três princípios úteis:
+O Klipper deve concentrar sua próxima evolução em cinco capacidades conectadas: uma taxonomia simples de dois níveis, lançamento móvel com baixa fricção, correção confiável pós-importação, painel orientado a patrimônio e contas com leitura temporal. As referências convergem em quatro princípios úteis:
 
 1. **Preparar configurações uma vez; lançar muitas vezes.** Moeda, taxonomia e contas não podem disputar atenção com valor, data e categoria durante um lançamento.
 2. **O estado vazio tem uma única continuação principal.** Sem dados, orientar a primeira ação; com dados, priorizar leitura e alertas.
@@ -68,7 +68,7 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 
 **Composição própria sugerida**
 
-- Navegação inferior com quatro destinos: Início, Movimento, `+`, Orçamento e Mais.
+- Navegação inferior com quatro destinos (Início, Movimento, Orçamento e Mais) e a ação `+` ao centro.
 - O `+` abre uma folha modal ancorada abaixo, não uma troca de rota. O primeiro foco é o valor; tipo de movimento (despesa, receita, transferência) fica visível e alternável. Esta é uma melhoria deliberada sobre o fluxo observado, que começa por título/categoria.
 - Em seguida, conta e categoria são exigidas somente quando necessárias; data, descrição, recorrência e anexos entram em “mais opções”.
 - Salvar e editar mostram confirmação curta com **Desfazer**. Cancelar descarta apenas o rascunho local, com confirmação somente se houver campos preenchidos. O Cashew confirmou o segundo comportamento; nesta rodada não exibiu desfazer após salvar/editar.

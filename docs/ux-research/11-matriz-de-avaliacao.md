@@ -20,7 +20,7 @@ Uma referência não é uma especificação. A matriz registra comportamentos de
 | Jornada / estado exigido | Sure | ezBookkeeping | Cashew | Firefly III | Actual Budget | Wealthfolio | Ghostfolio | Leitura responsável |
 |---|---:|---:|---:|---:|---:|---:|---:|---|
 | Primeiro acesso, autenticação e retorno à sessão | P | O | O | P | P | O | O | Há boas referências de onboarding; recuperação e expiração ainda precisam de roteiro próprio no Klipper. |
-| Criar conta e saldo inicial | P | O | O | O | O | O | O | Sure falhou silenciosamente no laboratório; usar os demais para contrato de dados, não como prova de correção do Sure. |
+| Criar conta e saldo inicial | P | O | N | N | N | O | O | Sure falhou silenciosamente no laboratório. Cashew, Firefly e Actual não têm criação de conta registrada no 09 (as demonstrações do Firefly e do Actual já vinham com contas). Usar ezBookkeeping, Wealthfolio e Ghostfolio para contrato de dados. |
 | Conta preenchida, evolução e histórico | N | P | P | O | O | O | P | Firefly, Actual e Wealthfolio dão evidência suficiente para desenhar; falta validar a execução no Klipper. |
 | Lançamento de despesa/receita rápido | P | O | O | P | O | P | P | Cashew é a referência mobile principal; nem todas as variações foram exercitadas. |
 | Edição, cancelamento e desfazer | N | P | P | P | P | N | N | Cancelamento de rascunho foi visto no Cashew; desfazer após salvar/excluir não foi confirmado. |
