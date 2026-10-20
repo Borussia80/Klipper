@@ -32,12 +32,15 @@ erDiagram
   users ||--o{ import_batches : tem
   accounts ||--o{ transactions : "lançamentos"
   accounts ||--o{ card_statements : "faturas (cartão)"
+  accounts ||--o{ loan_schedule_items : "cronograma (financiamento)"
+  accounts ||--o{ loan_payment_allocations : "alocações de parcela"
   accounts ||--o{ reconciliations : "conferências"
   card_statements ||--o{ transactions : "compras da fatura"
   installment_plans ||--o{ transactions : "parcelas"
   scheduled_transactions ||--o{ transactions : "ocorrências"
   import_batches ||--o{ transactions : "linhas importadas"
   transactions ||--o| transactions : "transfer_pair_id"
+  transactions ||--o| loan_payment_allocations : "pagamento de financiamento"
   transactions ||--o| transactions : "refund_of_id"
   transactions ||--o{ transactions : "parent_transaction_id (split)"
   categories ||--o{ categories : "parent_id (Fatia 1)"
@@ -81,6 +84,21 @@ erDiagram
     int n
     decimal taxa_am
   }
+  loan_schedule_items {
+    date due_on
+    decimal payment_amount
+    decimal principal_amount
+    decimal interest_amount
+    decimal remaining_principal
+  }
+  loan_payment_allocations {
+    decimal paid_amount
+    decimal principal_amount
+    decimal interest_amount
+    decimal fees_amount
+    decimal principal_before
+    decimal principal_after
+  }
   reconciliations {
     date on
     decimal bank_balance
@@ -97,7 +115,7 @@ erDiagram
 | `categories` | Fatia 1 de UX (`parent_id`, `position`, `merged_into_id`) |
 | `budgets` | + `rollover` |
 | `net_worth_snapshots` | `(14,2)` → `(15,2)` |
-| novas | `card_statements`, `installment_plans`, `scheduled_transactions`, `import_batches`, `reconciliations`, `categorization_rules`, `iof_rates` |
+| novas | `card_statements`, `installment_plans`, `loan_schedule_items`, `loan_payment_allocations`, `scheduled_transactions`, `import_batches`, `reconciliations`, `categorization_rules`, `iof_rates` |
 
 ## Plano de migrations (ordem segura)
 

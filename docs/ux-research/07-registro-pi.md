@@ -69,11 +69,52 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 | App | Fonte/ambiente | Evidência e escopo | Código aberto? |
 |---|---|---|---|
 | ezBookkeeping | container local e API local do produto | CSV sintético, mapeamento, três falhas recuperáveis, conclusão 13/13 e reimportação 13/13; fonte MIT no commit `3dcc316e1fb6a190d6a0dd13fbe4052d17b9315c` | **Sim — somente para critério técnico de repetição de envio** |
-| Actual Budget | demonstração pública oficial | conta aberta e fluxo de importação iniciado; sandbox não entregou o arquivo ao seletor oculto, portanto nenhuma alteração foi concluída | **Sim — somente contrato técnico de identificador externo de importação no commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc`** |
+| Actual Budget | servidor oficial local na porta 4105 | CSV sintético, mapeamento, primeira importação e reimportação; duplicatas exatas e quase duplicata foram bloqueadas antes da confirmação | **Sim — contrato técnico de identificador externo de importação no commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc`** |
 
 Nenhum código, texto de interface, schema ou asset dessas referências foi copiado para o Klipper. As regras nos relatórios são descritas em linguagem funcional própria.
 
+## Sessão 4 — 2026-10-20 (Sure: contas, movimentos, transferência e importação)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Sure | container local isolado, porta 4100 | Criação manual de duas contas, saldo inicial, despesa, validação, edição automática, transferência e remoção do vínculo, importação CSV até a limpeza por erros de data | **Não** |
+
+Nenhum código, stylesheet, configuração, template ou asset do Sure foi aberto. A área de IA permaneceu desabilitada e não foi configurada. As observações estão registradas em `relatorios/sure.md` em linguagem funcional própria.
+
 As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper. O Wealthfolio foi executado apenas como binário distribuído oficialmente; seu código não foi aberto. No Ghostfolio, a inspeção limitada de configuração confirmou a variável de conexão de cache necessária para o ambiente local; nenhuma implementação do Klipper foi derivada por cópia.
+
+## Sessão 5 — 2026-10-20 (Sure: cartão e financiamento)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Sure | container local isolado, porta 4100 | Criação de cartão e financiamento sintéticos; compra no cartão, pagamento por transferência, consulta de extratos/cobertura, cronograma de financiamento e parcela por transferência seguida de recarga do detalhe | **Não** |
+
+Nenhum código, stylesheet, configuração, template ou asset do Sure foi aberto. O pagamento de financiamento permaneceu registrado como transferência após a recarga, sem alterar o saldo principal exibido; a observação e os requisitos próprios estão em `relatorios/sure.md`.
+
+## Sessão 6 — 2026-10-20 (patrimônio em 390 px)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Wealthfolio | binário local isolado, porta 4102 | Painel patrimonial preenchido e sem holdings em 390 px; leitura de valor, período, conta, decomposição e navegação móvel | **Não** |
+| Ghostfolio | imagem local isolada, porta 4103 | Onboarding sem contas nem atividades em 390 px; passos, CTA, navegação compacta e sequência inicial de foco por teclado | **Não** |
+
+Nenhum código, stylesheet, configuração, template ou asset foi aberto. Não houve conta externa, corretora, fonte de mercado nem IA conectada.
+
+## Sessão 7 — 2026-10-20 (Actual: integridade inicial de movimento)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Actual Budget | servidor oficial local, porta 4105, orçamento de demonstração descartável | Criação de despesa sintética, transferência sintética entre Bank of America e Ally Savings e exclusão confirmada da transferência; conferência das duas pontas, total consolidado e reação de conta/orçamento | **Não** |
+
+Nenhum código foi lido nesta sessão. A tentativa de atalho de desfazer ocorreu enquanto a linha permanecia em edição e, portanto, não foi tomada como evidência de inexistência de outra rota de recuperação.
+
+## Sessão 8 — 2026-10-20 (Cashew: integridade e lançamento móvel)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Cashew | PWA oficial, armazenamento local de laboratório | Criação de duas contas sintéticas, receita, transferência, exclusão das duas pontas, três despesas em 390 px e exclusão de despesa comum | **Não** |
+
+Nenhum código, CSS, template, configuração ou asset do Cashew foi aberto. Não houve login, sincronização, conta externa ou arquivo importado. As linhas excluídas pertenciam somente aos dados sintéticos desta sessão.
 
 ## Autorização de estudo de software livre — 2026-10-20
 
