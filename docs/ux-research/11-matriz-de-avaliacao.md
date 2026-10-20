@@ -4,6 +4,8 @@
 **Base factual:** `09-observacao-ao-vivo.md`.  
 **Objetivo:** separar evidência observada, lacuna de pesquisa e requisito verificável antes de usar este estudo como base de implementação ou de merge.
 
+**Proveniência:** a classificação UX/técnica de cada referência e a regra de separação de contexto estão em `12-protocolo-de-proveniencia-e-clean-room.md`.
+
 ## Como ler a matriz
 
 - **O** — observado de ponta a ponta com estado relevante (vazio, preenchido, erro ou sucesso).
@@ -18,14 +20,14 @@ Uma referência não é uma especificação. A matriz registra comportamentos de
 | Jornada / estado exigido | Sure | ezBookkeeping | Cashew | Firefly III | Actual Budget | Wealthfolio | Ghostfolio | Leitura responsável |
 |---|---:|---:|---:|---:|---:|---:|---:|---|
 | Primeiro acesso, autenticação e retorno à sessão | P | O | O | P | P | O | O | Há boas referências de onboarding; recuperação e expiração ainda precisam de roteiro próprio no Klipper. |
-| Criar conta e saldo inicial | P | O | O | O | O | O | O | Sure falhou silenciosamente no laboratório; usar os demais para contrato de dados, não como prova de correção do Sure. |
+| Criar conta e saldo inicial | P | O | N | N | N | O | O | Sure falhou silenciosamente no laboratório. Cashew, Firefly e Actual não têm criação de conta registrada no 09 (as demonstrações do Firefly e do Actual já vinham com contas). Usar ezBookkeeping, Wealthfolio e Ghostfolio para contrato de dados. |
 | Conta preenchida, evolução e histórico | N | P | P | O | O | O | P | Firefly, Actual e Wealthfolio dão evidência suficiente para desenhar; falta validar a execução no Klipper. |
 | Lançamento de despesa/receita rápido | P | O | O | P | O | P | P | Cashew é a referência mobile principal; nem todas as variações foram exercitadas. |
 | Edição, cancelamento e desfazer | N | P | P | P | P | N | N | Cancelamento de rascunho foi visto no Cashew; desfazer após salvar/excluir não foi confirmado. |
 | Transferência e contrapartida | N | P | N | O | P | P | N | A regra financeira pode ser proposta, mas o fluxo comparável ainda exige teste dedicado. |
 | Exclusão e recuperação | N | N | P | N | N | N | N | Não concluir padrão de exclusão; é lacuna P0/P1, conforme impacto no saldo. |
 | Busca, filtros e persistência de contexto | O | O | O | P | O | N | N | Há evidência para filtros persistentes; filtros patrimoniais ainda precisam de estudo. |
-| Importação, deduplicação e correção em lote | P | P | N | N | P | P | N | O assistente de importação foi visto, mas nenhum fluxo completo de arquivo+correção+desfazer foi concluído. |
+| Importação, deduplicação e correção em lote | P | O | N | N | P | P | N | ezBookkeeping completou arquivo, correções e reimportação; duplicatas de conteúdo foram inseridas sem aviso. Actual continua pendente por bloqueio do upload no navegador integrado. |
 | Conciliação e saldo previsto | N | N | N | P | O | N | N | Actual oferece melhor evidência; a regra precisa ser validada por cenários sintéticos do Klipper. |
 | Orçamento, ritmo e excedente | P | N | O | O | O | N | N | Ritmo diário, período e alerta acionável têm evidência; não há decisão de adotar envelopes. |
 | Painel, alertas e estado vazio | O | P | O | P | O | O | P | Existe base para hierarquia, mas alertas do Sure preenchido continuam sem evidência. |

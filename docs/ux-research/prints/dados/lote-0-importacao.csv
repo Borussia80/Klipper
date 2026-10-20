@@ -1,0 +1,14 @@
+date,description,amount,category,account,destination_account,type
+2026-11-01,Salário sintético,5000.00,Receita,Conta Pesquisa,,income
+2026-11-02,Mercado Sol,125.40,Alimentação,Conta Pesquisa,,expense
+2026-11-03,Combustível Pesquisa,180.00,Transporte Público,Conta Pesquisa,,expense
+2026-11-04,Conta de energia,210.55,Aluguel e Hipoteca,Conta Pesquisa,,expense
+2026-11-05,Restaurante sintético,76.20,Alimentação,Conta Pesquisa,,expense
+2026-11-06,Assinatura de teste,29.90,Assinaturas,Conta Pesquisa,,expense
+2026-11-07,Medicamento sintético,44.10,Medicamentos,Conta Pesquisa,,expense
+2026-11-08,Taxi sem categoria,32.00,,Conta Pesquisa,,expense
+2026-11-09,Transferência para reserva,300.00,Transferências,Conta Pesquisa,Reserva Pesquisa,transfer
+2026-11-10,Receita extra sintética,250.00,Receita,Conta Pesquisa,,income
+2026-11-02,Mercado Sol,125.40,Alimentação,Conta Pesquisa,,expense
+2026-11-03,Combustível Pesquisa,180.00,Transporte Público,Conta Pesquisa,,expense
+2026-11-02,Mercado Sol alternativa,125.40,Alimentação,Conta Pesquisa,,expense

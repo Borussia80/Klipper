@@ -64,13 +64,24 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 | Wealthfolio (AGPL-3.0) | binário oficial em servidor local isolado | onboarding, criação de conta, fotografia de saldo, detalhe/histórico de snapshots e painel preenchido | **Não** |
 | Ghostfolio (AGPL-3.0) | páginas públicas oficiais e imagem oficial em ambiente local isolado | escopo de patrimônio, criação de administrador local, token de recuperação, onboarding, contas e falha de dependência local | **Sim — somente configuração de ambiente distribuída, para ligar o Redis local** |
 
+## Sessão 3 — 2026-10-20 (Lote 0: importação)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| ezBookkeeping | container local e API local do produto | CSV sintético, mapeamento, três falhas recuperáveis, conclusão 13/13 e reimportação 13/13; fonte MIT no commit `3dcc316e1fb6a190d6a0dd13fbe4052d17b9315c` | **Sim — somente para critério técnico de repetição de envio** |
+| Actual Budget | demonstração pública oficial | conta aberta e fluxo de importação iniciado; sandbox não entregou o arquivo ao seletor oculto, portanto nenhuma alteração foi concluída | **Sim — somente contrato técnico de identificador externo de importação no commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc`** |
+
+Nenhum código, texto de interface, schema ou asset dessas referências foi copiado para o Klipper. As regras nos relatórios são descritas em linguagem funcional própria.
+
 As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper. O Wealthfolio foi executado apenas como binário distribuído oficialmente; seu código não foi aberto. No Ghostfolio, a inspeção limitada de configuração confirmou a variável de conexão de cache necessária para o ambiente local; nenhuma implementação do Klipper foi derivada por cópia.
 
 ## Autorização de estudo de software livre — 2026-10-20
 
 O usuário autorizou expressamente leitura, inspeção e estudo de código sob GPL/AGPL e outras licenças livres. A partir desta data, referências podem incluir comportamento executável e análise técnica, desde que cada achado registre origem e licença quando relevante.
 
-Essa autorização **não** altera a política de implementação do Klipper: nenhuma cópia de código copyleft entrará no repositório sem revisão explícita de compatibilidade, atribuição e obrigações de distribuição. A implementação preferida continua sendo autoral, baseada em requisito e comportamento observável.
+Essa autorização **não** transforma automaticamente a análise em *clean room*. Uma fonte cujo código seja lido passa a ser classificada como técnica/"dirty" para aquela linha de trabalho. O Ghostfolio, nesta sessão, tem essa classificação limitada: a configuração de ambiente foi lida; portanto, este contexto não deve implementar uma reconstituição *clean room* derivada da análise técnica dele.
+
+Nenhuma cópia de código copyleft entrará no repositório sem revisão explícita de compatibilidade, atribuição e obrigações de distribuição. A implementação preferida continua sendo autoral, baseada em requisito funcional; o processo formal fica definido em `12-protocolo-de-proveniencia-e-clean-room.md`.
 
 ## Modelo para próximas sessões
 
