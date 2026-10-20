@@ -124,7 +124,11 @@ distorcem os números (R1, R6); D0 não corrige nada visível sozinha.
 ### D8 — Orçamento
 - `countable` no `BudgetEngine` (já feito em D1), `rollover`, alertas 80 %/100 % e ritmo.
 
-### D9 — Planejamento e investimentos (importante, depois do essencial)
+### Módulo P — Patrimônio e investimentos (separado, depois do núcleo)
+
+O antigo D9 deixa de ser uma sprint do núcleo. Sua fronteira, contrato com o ledger e portas de entrada estão em
+`03-specs/20-fronteira-do-nucleo-e-modulo-patrimonio.md`. Só inicia depois de D1–D8 e dos cenários P0 de
+transferência, cartão, financiamento e importação estarem aprovados.
 
 Fórmulas registradas para quando o sprint for aberto:
 
