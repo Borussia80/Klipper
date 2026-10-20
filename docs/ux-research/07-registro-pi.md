@@ -91,6 +91,15 @@ As observações de comportamento desta sessão estão em `09-observacao-ao-vivo
 
 Nenhum código, stylesheet, configuração, template ou asset do Sure foi aberto. O pagamento de financiamento permaneceu registrado como transferência após a recarga, sem alterar o saldo principal exibido; a observação e os requisitos próprios estão em `relatorios/sure.md`.
 
+## Sessão 6 — 2026-10-20 (patrimônio em 390 px)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Wealthfolio | binário local isolado, porta 4102 | Painel patrimonial preenchido e sem holdings em 390 px; leitura de valor, período, conta, decomposição e navegação móvel | **Não** |
+| Ghostfolio | imagem local isolada, porta 4103 | Onboarding sem contas nem atividades em 390 px; passos, CTA e navegação compacta | **Não** |
+
+Nenhum código, stylesheet, configuração, template ou asset foi aberto. Não houve conta externa, corretora, fonte de mercado nem IA conectada.
+
 ## Autorização de estudo de software livre — 2026-10-20
 
 O usuário autorizou expressamente leitura, inspeção e estudo de código sob GPL/AGPL e outras licenças livres. A partir desta data, referências podem incluir comportamento executável e análise técnica, desde que cada achado registre origem e licença quando relevante.

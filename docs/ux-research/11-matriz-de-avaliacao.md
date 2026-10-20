@@ -32,7 +32,7 @@ Uma referência não é uma especificação. A matriz registra comportamentos de
 | Orçamento, ritmo e excedente | P | N | O | O | O | N | N | Ritmo diário, período e alerta acionável têm evidência; não há decisão de adotar envelopes. |
 | Painel, alertas e estado vazio | O | P | O | P | O | O | P | Existe base para hierarquia, mas alertas do Sure preenchido continuam sem evidência. |
 | Erro, validação e recuperação | O | P | P | N | P | P | P | Sure bloqueou descrição ausente e enumerou o erro de data por linha; ainda falta ensaio sistemático de rede, permissão, duplicata e conflito. |
-| Mobile a 390 px, densidade e navegação | P | P | O | O | O | N | N | Cashew e Actual sustentam a proposta mobile; patrimônio/investimentos ainda devem passar pelo mesmo ensaio. |
+| Mobile a 390 px, densidade e navegação | P | P | O | O | O | P | N | Cashew e Actual sustentam a proposta mobile. Wealthfolio confirmou apenas painel; contas e atividades patrimoniais continuam pendentes, assim como o fluxo preenchido do Ghostfolio. |
 | Acessibilidade por teclado, foco, leitor de tela e contraste | N | N | N | N | N | N | N | Nenhuma conclusão; é exigência de validação do Klipper, não uma comparação encerrada. |
 
 ## Achados priorizados → requisitos do Klipper
