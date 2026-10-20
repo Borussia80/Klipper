@@ -48,11 +48,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-10-20T17:51:59.515Z"
       },
-      "occurrences": 8,
+      "occurrences": 9,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -93,10 +93,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-10-20T17:51:59.515Z",
+          "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+          "severity": "medium"
         }
       ],
-      "description": "InstrumentReadout continua com o rótulo fixo '% da renda' hardcoded, então orcamento.vue (que mede proporção do orçamento) exibe um rótulo semanticamente errado para a métrica que de fato calcula.",
-      "recommendation": "Tornar o rótulo da razão ('% da renda' / '% do orçamento') prop do InstrumentReadout, com cada página passando o texto correspondente ao que a razão de fato mede.",
+      "description": "InstrumentReadout usa dois textos fixos ('% da renda' e 'Sem orçamento definido') pensados para o contexto de orçamento, mas o mesmo componente é reusado no dashboard para uma razão de renda — cada página acaba exibindo um rótulo que não corresponde à métrica que o número realmente representa.",
+      "recommendation": "Tornar o rótulo da razão e o texto do estado 'sem base' props do InstrumentReadout, com cada página passando o texto correspondente ao que a razão de fato mede ('% da renda'/'% do orçamento', 'Sem receita no período'/'Sem orçamento definido').",
       "impact": 4,
       "frequency": 6,
       "reach": 5,
@@ -390,7 +395,7 @@
       "id": "ARCH-004",
       "category": "architecture",
       "natural_key": "financial-modals-zero-coverage",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -454,7 +459,7 @@
       "id": "SEC-003",
       "category": "security",
       "natural_key": "web-apps-outdated-dev-transient-deps",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -518,7 +523,7 @@
       "id": "ARCH-005",
       "category": "architecture",
       "natural_key": "wealth-pages-no-page-tests",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -693,7 +698,7 @@
       "id": "ARCH-008",
       "category": "architecture",
       "natural_key": "modal-lancamento-template-css-duplicated",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -810,11 +815,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-10-20T17:51:59.515Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -845,6 +850,11 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-10-20T17:51:59.515Z",
+          "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+          "severity": "low"
         }
       ],
       "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset de senha) continua sem qualquer rate limiting, ao contrário de todas as outras rotas de autenticação não-autenticadas.",
@@ -860,7 +870,7 @@
       "id": "FIN-004",
       "category": "finance",
       "natural_key": "dashboard-hero-spent-ratio-conflates-no-income-with-zero",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -919,7 +929,7 @@
       "id": "ARCH-009",
       "category": "architecture",
       "natural_key": "base-modal-focus-trap-untested",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -982,11 +992,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-10-20T17:51:59.515Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -1017,9 +1027,14 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-10-20T17:51:59.515Z",
+          "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+          "severity": "medium"
         }
       ],
-      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição documentada como não verificada contra nenhum débito real, e nenhum teste trava esse sinal — dado de patrimônio de importações BTG segue com risco não coberto de inversão silenciosa de sinal.",
+      "description": "BtgExtratoAdapter segue propagando o sinal de 'Movimentação R$' sob uma suposição documentada como não verificada contra nenhum débito real, e nenhum teste trava esse sinal.",
       "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado (já está), não silenciar.",
       "impact": 7,
       "frequency": 2,
@@ -1080,11 +1095,11 @@
         "date": "2026-09-17T09:59:23.653Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-10-20T17:51:59.515Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T09:59:23.653Z",
@@ -1105,10 +1120,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-10-20T17:51:59.515Z",
+          "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+          "severity": "low"
         }
       ],
       "description": "O access token da SPA continua exposto a JavaScript via cookie não-httpOnly, e a decisão arquitetural de aceitar esse risco (mitigado pela CSP com nonce) ou migrar para cookie HttpOnly + CSRF segue sem resolução formal.",
-      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar). Se aceitar, mover o ADR para `accepted` documentando a mitigação via CSP; nenhum sink de XSS explorável foi encontrado nesta auditoria em apps/klipper-web/server/middleware/csp.ts (script-src com nonce em produção), o que reduz o risco residual, mas não o elimina.",
+      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar). Se aceitar, mover o ADR para `accepted` documentando a mitigação via CSP; nenhum sink de XSS explorável foi encontrado nesta auditoria em apps/klipper-web/server/middleware/csp.ts, o que reduz o risco residual, mas não o elimina.",
       "impact": 4,
       "frequency": 1,
       "reach": 2,
@@ -1168,11 +1188,11 @@
         "date": "2026-09-17T10:49:00.167Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-10-20T17:51:59.515Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T10:49:00.167Z",
@@ -1192,6 +1212,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-10-20T17:51:59.515Z",
+          "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
           "severity": "medium"
         }
       ],
@@ -1247,7 +1272,7 @@
       "id": "ARCH-011",
       "category": "architecture",
       "natural_key": "global-singleton-composables-untested",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1320,7 +1345,7 @@
       "id": "ARCH-013",
       "category": "architecture",
       "natural_key": "investment-signed-cost-triple-implementation",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1359,7 +1384,7 @@
       "id": "ARCH-014",
       "category": "architecture",
       "natural_key": "modal-field-css-duplicated-across-entity-modals",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1398,7 +1423,7 @@
       "id": "ARCH-015",
       "category": "architecture",
       "natural_key": "occurred-on-validation-duplicated-across-models",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1446,25 +1471,98 @@
         "date": "2026-09-18T13:03:39.167Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-10-20T17:51:59.515Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-10-20T17:51:59.515Z",
+          "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+          "severity": "low"
         }
       ],
-      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada em PortfolioService#allocation e ReimbursementCoverageCalculator#call para o mesmo tipo de razão sem denominador válido; o caminho é coberto por teste e inalcançável via fluxo normal do app (validação impede amount_limit <= 0), mas dado legado ou uma edição direta na base ainda produziria um card de orçamento mostrando '0% usado' em vez de sinalizar ausência de limite.",
+      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada em PortfolioService e ReimbursementCoverageCalculator para o mesmo tipo de razão sem denominador válido; o caminho é só alcançável via edição direta na base, não pelo fluxo normal do app.",
       "recommendation": "Alinhar BudgetEngine#summary à mesma convenção nil já usada por PortfolioService e ReimbursementCoverageCalculator para razão sem base válida, e ajustar orcamento.vue/UiBudgetCategoryCard para tratar pct_used nulo como estado distinto de 0%.",
       "impact": 3,
       "frequency": 1,
       "reach": 3,
       "effort": 2,
       "priority_score": 4.5,
+      "adr_candidate": false
+    },
+    {
+      "id": "FIN-011",
+      "category": "finance",
+      "natural_key": "itau-fatura-credit-sign-untested",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+        "branch": "main",
+        "date": "2026-10-20T17:51:59.515Z"
+      },
+      "last_seen": {
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+        "branch": "main",
+        "date": "2026-10-20T17:51:59.515Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-10-20T17:51:59.515Z",
+          "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+          "severity": "critical"
+        }
+      ],
+      "description": "ItauFaturaAdapter inverte o sinal de toda linha da fatura para separar compra de pagamento/estorno, mas só o braço 'compra' desse cálculo tem teste — o braço 'pagamento' (que ocorre em toda fatura real) nunca é exercitado, apesar do adapter irmão (Nubank) provar que o caso é testável sem fixture real.",
+      "recommendation": "Adicionar ao spec sintético do ItauFaturaAdapter uma linha de 'Pagamento efetuado' (ou estorno) com valor impresso negativo, travando que o amount resultante fica positivo (crédito) — mesmo padrão já usado em nubank_fatura_adapter_spec.rb:51.",
+      "impact": 7,
+      "frequency": 8,
+      "reach": 7,
+      "effort": 2,
+      "priority_score": 196,
+      "adr_candidate": false
+    },
+    {
+      "id": "SEC-007",
+      "category": "security",
+      "natural_key": "bundler-audit-brakeman-unverifiable-in-checkout",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+        "branch": "main",
+        "date": "2026-10-20T17:51:59.515Z"
+      },
+      "last_seen": {
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+        "branch": "main",
+        "date": "2026-10-20T17:51:59.515Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-10-20T17:51:59.515Z",
+          "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+          "severity": "low"
+        }
+      ],
+      "description": "A verificação de dependências Ruby (bundler-audit) e do scanner estático (brakeman) não pôde ser reproduzida neste checkout por falta do `bundle` instalado, então a seção de segurança do lado Rails depende inteiramente do gate de CI já configurado, sem confirmação independente nesta auditoria.",
+      "recommendation": "Rodar esta auditoria em um ambiente com `bundle install` disponível (ou consumir o artefato do job de CI `bin/bundler-audit`/`bin/brakeman` da run mais recente) para obter `finding_confidence: high` sobre o lado Ruby.",
+      "impact": 2,
+      "frequency": 1,
+      "reach": 1,
+      "effort": 1,
+      "priority_score": 0.6,
       "adr_candidate": false
     }
   ]

@@ -1,0 +1,202 @@
+{
+  "schema_version": "1.0.0",
+  "meta": {
+    "date": "2026-10-20T17:51:59.515Z",
+    "trigger": "workflow_run",
+    "depth": "fast",
+    "branch": "main",
+    "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+    "missing_agents": [
+      "architecture"
+    ]
+  },
+  "overall_score": 70,
+  "sections": [
+    {
+      "agent": "finance",
+      "name": "Domínio financeiro",
+      "score": 60,
+      "risk": "high"
+    },
+    {
+      "agent": "security",
+      "name": "Segurança",
+      "score": 80,
+      "risk": "low"
+    }
+  ],
+  "findings": [
+    {
+      "natural_key": "itau-fatura-credit-sign-untested",
+      "category": "finance",
+      "severity": "critical",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/pdf_adapters/itau_fatura_adapter.rb:94-97 inverte o sinal de todo valor da fatura ('amount: -BankImport::AmountParser.call(amount_str)') para distinguir compra (débito) de pagamento/estorno (crédito), mas spec/services/pdf_adapters/itau_fatura_adapter_spec.rb só afirma o sinal para linhas de compra ('MERCADOX' -50.00, 'FOREIGNMERCH' -116.42, 'ANTHROPIC' -116.42 no fixture real) — nenhuma linha de pagamento/estorno (crédito) aparece nem no teste sintético nem no fixture. O adapter irmão NubankFaturaAdapter, que faz exatamente a mesma inversão de sinal (nubank_fatura_adapter.rb:83), tem a contraparte testada em spec/services/pdf_adapters/nubank_fatura_adapter_spec.rb:51 ('pagamento.amount eq 160.00 # pagamento = crédito, sinal invertido'), prova de que o caso não depende de fixture real — é sintetizável, só não foi escrito para o adapter do banco primário (Itaú, FIN-1).",
+      "description": "ItauFaturaAdapter inverte o sinal de toda linha da fatura para separar compra de pagamento/estorno, mas só o braço 'compra' desse cálculo tem teste — o braço 'pagamento' (que ocorre em toda fatura real) nunca é exercitado, apesar do adapter irmão (Nubank) provar que o caso é testável sem fixture real.",
+      "recommendation": "Adicionar ao spec sintético do ItauFaturaAdapter uma linha de 'Pagamento efetuado' (ou estorno) com valor impresso negativo, travando que o amount resultante fica positivo (crédito) — mesmo padrão já usado em nubank_fatura_adapter_spec.rb:51.",
+      "impact": 7,
+      "frequency": 8,
+      "reach": 7,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 196,
+      "id": "FIN-011",
+      "adr": null
+    },
+    {
+      "natural_key": "instrument-readout-mislabeled-budget-ratio",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-web/components/ui/InstrumentReadout.vue:62 renderiza o texto fixo '% da renda' para QUALQUER spentRatio recebido; apps/klipper-web/pages/orcamento.vue:134 passa budgetSpentRatio (proporção do orçamento, não da renda) para esse mesmo componente, então a tela de orçamento exibe um rótulo semanticamente errado. Na direção inversa, InstrumentReadout.vue:48-50 mostra o texto fixo 'Sem orçamento definido' sempre que spentRatio é null; apps/klipper-web/pages/dashboard.vue:292 usa pctOfIncome (que retorna null quando não há receita no período, não quando falta orçamento) para esse mesmo prop, e o teste apps/klipper-web/pages/__tests__/dashboard.test.ts:104-106 confirma que o dashboard (que não tem noção de 'orçamento') chega a exibir esse texto.",
+      "description": "InstrumentReadout usa dois textos fixos ('% da renda' e 'Sem orçamento definido') pensados para o contexto de orçamento, mas o mesmo componente é reusado no dashboard para uma razão de renda — cada página acaba exibindo um rótulo que não corresponde à métrica que o número realmente representa.",
+      "recommendation": "Tornar o rótulo da razão e o texto do estado 'sem base' props do InstrumentReadout, com cada página passando o texto correspondente ao que a razão de fato mede ('% da renda'/'% do orçamento', 'Sem receita no período'/'Sem orçamento definido').",
+      "impact": 4,
+      "frequency": 6,
+      "reach": 5,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 60,
+      "id": "FIN-001",
+      "adr": null
+    },
+    {
+      "natural_key": "transaction-import-provenance-missing",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/bank_import/transaction_writer.rb:35-49 persiste a transação sem nenhuma referência ao arquivo/lote de origem do import (sem import_batch_id, sem nome/checksum do arquivo na própria transação); nenhuma tela de apps/klipper-web/pages/transacoes.vue permite voltar da transação ao arquivo que a originou.",
+      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o requisito de rastreabilidade da seção financeira.",
+      "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo/checksum) na transação no momento do import, e expor essa proveniência em transacoes.vue.",
+      "impact": 5,
+      "frequency": 4,
+      "reach": 6,
+      "effort": 4,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 30,
+      "id": "FIN-008",
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-005.md"
+    },
+    {
+      "natural_key": "btg-extrato-debit-sign-assumption-untested",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/pdf_adapters/btg_extrato_adapter.rb:15-19 documenta que a propagação do sinal de 'Movimentação R$' sem inversão foi confirmada só contra 1 relatório real com 5 lançamentos, todos crédito ('RENDIMENTOS') — 'Sem exemplo real de débito nessa conta corrente'. Nenhum spec em spec/services/pdf_adapters/btg_extrato_adapter_spec.rb trava o sinal esperado para uma linha de débito.",
+      "description": "BtgExtratoAdapter segue propagando o sinal de 'Movimentação R$' sob uma suposição documentada como não verificada contra nenhum débito real, e nenhum teste trava esse sinal.",
+      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado (já está), não silenciar.",
+      "impact": 7,
+      "frequency": 2,
+      "reach": 4,
+      "effort": 3,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 18.67,
+      "id": "FIN-005",
+      "adr": null
+    },
+    {
+      "natural_key": "password-reset-redemption-endpoint-unthrottled",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/config/routes.rb:10 declara `patch \"password_resets/:token\", to: \"password_resets#update\"`; apps/klipper-api/config/initializers/rack_attack.rb:3-5 só casa `req.path` contra o literal \"/api/v1/password_resets\" (a rota de create, POST), nunca contra \"/api/v1/password_resets/:token\" (a rota de update/redenção, PATCH). A regra `auth/ip` não cobre PATCH de forma alguma, já que o bloco só retorna IP quando `req.post?`.",
+      "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset de senha) continua sem qualquer rate limiting, ao contrário de todas as outras rotas de autenticação não-autenticadas.",
+      "recommendation": "Adicionar uma regra de throttle no Rack::Attack para `req.patch? && req.path.start_with?(\"/api/v1/password_resets/\")`, por IP, espelhando a regra `auth/ip` existente em rack_attack.rb:3.",
+      "impact": 3,
+      "frequency": 2,
+      "reach": 2,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 6,
+      "id": "SEC-005",
+      "adr": null
+    },
+    {
+      "natural_key": "budget-engine-pct-used-zero-vs-nil-inconsistency",
+      "category": "finance",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/budget_engine.rb:16 usa 0.0 quando amount_limit não é positivo ('pct = budget.amount_limit.positive? ? ... : 0.0'), divergindo da convenção nil já adotada em PortfolioService#allocation (portfolio_service.rb:22) e ReimbursementCoverageCalculator#call (reimbursement_coverage_calculator.rb:57) para o mesmo tipo de razão sem denominador válido; spec/services/budget_engine_spec.rb:59-62 trava explicitamente esse 0.0 via budget.update_column(:amount_limit, 0), via update direto na coluna (bypassando a validação de amount_limit > 0 do fluxo normal da aplicação).",
+      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada em PortfolioService e ReimbursementCoverageCalculator para o mesmo tipo de razão sem denominador válido; o caminho é só alcançável via edição direta na base, não pelo fluxo normal do app.",
+      "recommendation": "Alinhar BudgetEngine#summary à mesma convenção nil já usada por PortfolioService e ReimbursementCoverageCalculator para razão sem base válida, e ajustar orcamento.vue/UiBudgetCategoryCard para tratar pct_used nulo como estado distinto de 0%.",
+      "impact": 3,
+      "frequency": 1,
+      "reach": 3,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 4.5,
+      "id": "FIN-010",
+      "adr": null
+    },
+    {
+      "natural_key": "spa-access-token-cookie-js-readable",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-web/composables/useApi.ts:18-22 define o cookie `klipper_token` via `useCookie` sem `httpOnly` (API do Nuxt não expõe essa flag para cookie lido no client), e o `onRequest` em useApi.ts:31-38 lê `token.value` em JS para montar o header Authorization. docs/adrs/proposed/ADR-2026-09-17-003.md:2 segue com `status: proposed`, não `accepted` — a decisão sobre aceitar o risco (mitigado por CSP) ou migrar para cookie HttpOnly segue formalmente pendente. apps/klipper-web/server/middleware/csp.ts confirma `script-src 'self' 'nonce-<nonce>'` em produção (sem 'unsafe-inline'), reduzindo mas não eliminando a superfície de XSS que exploraria esse cookie.",
+      "description": "O access token da SPA continua exposto a JavaScript via cookie não-httpOnly, e a decisão arquitetural de aceitar esse risco (mitigado pela CSP com nonce) ou migrar para cookie HttpOnly + CSRF segue sem resolução formal.",
+      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar). Se aceitar, mover o ADR para `accepted` documentando a mitigação via CSP; nenhum sink de XSS explorável foi encontrado nesta auditoria em apps/klipper-web/server/middleware/csp.ts, o que reduz o risco residual, mas não o elimina.",
+      "impact": 4,
+      "frequency": 1,
+      "reach": 2,
+      "effort": 4,
+      "adr_candidate": true,
+      "agent": "security",
+      "priority_score": 2,
+      "id": "SEC-006",
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-003.md"
+    },
+    {
+      "natural_key": "bundler-audit-brakeman-unverifiable-in-checkout",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "low",
+      "evidence": "Evidence unavailable. `bundle` não está instalado neste ambiente de execução (`bundle: command not found`), então `bin/bundler-audit` e `bin/brakeman` não puderam ser executados; apps/klipper-api/Gemfile.lock lista rails 8.1.3.1, rack 3.2.7, nokogiri 1.19.4, puma 8.0.2, jwt 3.3.0 — versões recentes, mas sem rodar bundler-audit não há como confirmar ausência de CVE com certeza. O gate roda em CI (.github/workflows/ci.yml:480-485) e config/brakeman.ignore:1-21 mostra apenas 2 falsos-positivos de Mass Assignment já justificados com teste associado (SEC-04 em spec/requests/api/v1/investments_spec.rb:152), não uma lista de supressão ampla.",
+      "description": "A verificação de dependências Ruby (bundler-audit) e do scanner estático (brakeman) não pôde ser reproduzida neste checkout por falta do `bundle` instalado, então a seção de segurança do lado Rails depende inteiramente do gate de CI já configurado, sem confirmação independente nesta auditoria.",
+      "recommendation": "Rodar esta auditoria em um ambiente com `bundle install` disponível (ou consumir o artefato do job de CI `bin/bundler-audit`/`bin/brakeman` da run mais recente) para obter `finding_confidence: high` sobre o lado Ruby.",
+      "impact": 2,
+      "frequency": 1,
+      "reach": 1,
+      "effort": 1,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 0.6,
+      "id": "SEC-007",
+      "adr": null
+    }
+  ],
+  "possible_regressions": [],
+  "trend": {
+    "overall_score": 14.67,
+    "sections": [
+      {
+        "agent": "finance",
+        "delta": 54
+      },
+      {
+        "agent": "security",
+        "delta": -4
+      }
+    ],
+    "baseline": {
+      "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+      "branch": "main",
+      "date": "2026-09-18T13:03:39.167Z",
+      "note": null
+    }
+  }
+}
