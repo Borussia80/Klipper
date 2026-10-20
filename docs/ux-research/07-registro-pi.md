@@ -62,9 +62,15 @@ Cópias locais ficaram no scratchpad da sessão, fora do repositório. **Nenhum 
 | Firefly III | demonstração pública oficial em execução | painel preenchido, orçamento, detalhe de conta e largura de 390 px | **Não** |
 | Actual Budget | demonstração pública oficial em execução, sem sincronização | orçamento preenchido, histórico de conta, estados de agendamento e largura de 390 px | **Não** |
 | Wealthfolio (AGPL-3.0) | binário oficial em servidor local isolado | onboarding, criação de conta, fotografia de saldo, detalhe/histórico de snapshots e painel preenchido | **Não** |
-| Ghostfolio (AGPL-3.0) | páginas públicas oficiais | escopo de patrimônio, composição, passivos, reserva, importação/exportação e limites anunciados | **Não** |
+| Ghostfolio (AGPL-3.0) | páginas públicas oficiais e imagem oficial em ambiente local isolado | escopo de patrimônio, criação de administrador local, token de recuperação, onboarding, contas e falha de dependência local | **Sim — somente configuração de ambiente distribuída, para ligar o Redis local** |
 
-As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper. O Wealthfolio foi executado apenas como binário distribuído oficialmente; seu código não foi aberto. No Ghostfolio, não houve cadastro, login nem uso de produto autenticado.
+As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper. O Wealthfolio foi executado apenas como binário distribuído oficialmente; seu código não foi aberto. No Ghostfolio, a inspeção limitada de configuração confirmou a variável de conexão de cache necessária para o ambiente local; nenhuma implementação do Klipper foi derivada por cópia.
+
+## Autorização de estudo de software livre — 2026-10-20
+
+O usuário autorizou expressamente leitura, inspeção e estudo de código sob GPL/AGPL e outras licenças livres. A partir desta data, referências podem incluir comportamento executável e análise técnica, desde que cada achado registre origem e licença quando relevante.
+
+Essa autorização **não** altera a política de implementação do Klipper: nenhuma cópia de código copyleft entrará no repositório sem revisão explícita de compatibilidade, atribuição e obrigações de distribuição. A implementação preferida continua sendo autoral, baseada em requisito e comportamento observável.
 
 ## Modelo para próximas sessões
 

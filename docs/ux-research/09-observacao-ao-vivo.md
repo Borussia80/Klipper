@@ -14,7 +14,7 @@
 | Firefly III | demonstração pública oficial | governança financeira, conta auditável, orçamento periódico e relatórios | ativo |
 | Actual Budget | demonstração pública oficial, banco local no navegador | envelopes, orçamento operacional, lançamentos e navegação mobile | ativo |
 | Wealthfolio | servidor oficial local isolado, porta 4102 | patrimônio, posições por fotografia, evolução e distinção entre saldo e desempenho | ativo |
-| Ghostfolio | site público oficial | escopo de patrimônio consolidado, composição, passivos e riscos | leitura pública concluída; sem conta criada |
+| Ghostfolio | imagem oficial local isolada, porta 4103 | patrimônio consolidado, contas, atividades, composição e recuperação de acesso | ativo |
 
 Os ambientes não compartilham banco, cookie, volume ou porta com o Klipper. As contas e transações criadas durante o estudo devem ser descartáveis e sintéticas.
 
@@ -162,9 +162,12 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 - A página pública oficial apresenta um escopo de patrimônio que inclui ações, ETFs, renda fixa, criptoativos, dividendos, itens patrimoniais, fundo de emergência e passivos; também anuncia múltiplas contas e importação/exportação de atividades.
 - A leitura agregada é apresentada por intervalos de retorno e por composição: conta, classe de ativo, moeda, região e setor. Há ainda uma análise de risco de portfólio e lista de acompanhamento de ativos.
-- A investigação ficou deliberadamente no material público: não houve registro, login, importação, conexão externa, operação com dinheiro nem leitura do repositório AGPL.
+- A instância local inicia o administrador por um fluxo de duas etapas: entendimento de que o token de recuperação é único e apresentação do token, que precisa ser copiado antes de habilitar a criação. Após criar a conta, o painel conduz para contas, atividades e portfólio.
+- A lista de contas vazia já contém uma conta inicial mínima e uma linha de total. Criar conta adicional pede nome, moeda, saldo disponível em dinheiro, nota e marcadores; a lista mostra conta, plataforma, quantidade de atividades, caixa, valor e moeda.
+- No primeiro arranque local sem Redis, a lista de contas ficou em carregamento contínuo depois de salvar uma conta, sem mensagem orientada à pessoa. Ao completar a dependência local, a mesma tela passou a carregar a conta e o total. Isso é uma evidência de robustez de ambiente, não uma afirmação sobre a operação hospedada do produto.
+- Nenhuma corretora, fonte de mercado, importação externa ou operação com dinheiro foi conectada durante a pesquisa.
 
-**Hipótese para o Klipper:** o conceito de patrimônio líquido deve comportar, desde o modelo, ativos, reservas e passivos — sem obrigar a primeira versão a reproduzir análises de mercado. Na fase inicial, conta/grupo, classe de ativo, liquidez e dívida são dimensões mais úteis que cotações e benchmark; composição e risco entram somente quando houver dados e objetivo claros.
+**Hipótese para o Klipper:** o conceito de patrimônio líquido deve comportar, desde o modelo, ativos, reservas e passivos — sem obrigar a primeira versão a reproduzir análises de mercado. Na fase inicial, conta/grupo, classe de ativo, liquidez e dívida são dimensões mais úteis que cotações e benchmark; composição e risco entram somente quando houver dados e objetivo claros. No primeiro acesso, uma conta mínima pode evitar um painel estruturalmente vazio, mas deve continuar claramente editável. Toda falha de carga precisa ter estado de erro com recuperação, nunca carregamento sem fim.
 
 ## Trilhas de pesquisa e decisão
 

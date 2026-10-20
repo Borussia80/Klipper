@@ -35,7 +35,7 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 | Referência | Ponto mais útil | Limite a não transportar | Aplicação própria no Klipper |
 |---|---|---|---|
 | Wealthfolio | separação explícita entre fotografia de posições e histórico transacional; histórico de saldos datados; métrica indisponível explicada em vez de zerada | onboarding longo e métricas de investimento antes de existir base suficiente | conta pode registrar saldo/manual datado e alimentar evolução; retorno e risco só aparecem quando o contrato de dados os sustentar |
-| Ghostfolio | visão de patrimônio que inclui ativos, reserva e passivos, com composição por dimensões | dependência de cotação, benchmark e análises de mercado para entregar valor inicial | modelar desde já ativo/passivo, grupo de conta, classe e liquidez; adiar mercado, benchmark e recomendações para uma fase orientada por necessidade real |
+| Ghostfolio | visão de patrimônio que inclui ativos, reserva e passivos, com composição por dimensões; primeira conta e total como estado funcional | dependência de cotação, benchmark e análises de mercado para entregar valor inicial; carregamento sem erro acionável quando uma dependência falha | modelar desde já ativo/passivo, grupo de conta, classe e liquidez; adiar mercado, benchmark e recomendações para uma fase orientada por necessidade real; sempre oferecer recuperação em falha de carregamento |
 
 ## Especificações funcionais de referência
 
@@ -122,6 +122,8 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 **Evidência adicional do ambiente executável:** o fluxo do Sure solicita saldo inicial e data de abertura, mas a criação da conta sintética não foi concluída nesta sessão: após preencher e enviar, o formulário permaneceu aberto sem sucesso ou erro visível. O princípio para o Klipper continua válido, porém precisa ser validado no próprio produto com dados sintéticos: histórico de saldo não pode ser inferido apenas da fotografia atual.
 
 **Evidência adicional do Wealthfolio local:** uma conta configurada como fotografia registrou um saldo de caixa datado e passou a exibir patrimônio, valores de caixa/investimento/contábil e histórico de snapshots. Em contrapartida, retorno, P&L, volatilidade e drawdown ficaram indisponíveis com uma explicação de pré-requisito. O Klipper deve seguir a mesma honestidade sem herdar a interface: histórico de saldo é válido, mas não é histórico de performance.
+
+**Evidência adicional do Ghostfolio local:** uma conta inicial e a linha de total tornam a página de contas funcional mesmo antes de haver atividades. O Klipper pode usar esse princípio como orientação inicial, desde que a conta de exemplo não seja confundida com dado real e possa ser editada ou removida. Também fica explícito um requisito transversal: `loading` precisa expirar em erro compreensível, com tentar novamente e diagnóstico técnico fora da superfície principal.
 
 Quando uma conta usar histórico transacional, o formulário do Wealthfolio primeiro pede a natureza da atividade e só então mostra campos específicos, mantendo a conta de origem já contextualizada. Para o Klipper, aplicar esse princípio como redução de erro: movimento comum mantém o caminho curto; operações patrimoniais específicas revelam campos apenas depois do tipo, sem misturar um aporte, uma transferência e uma compra de ativo.
 
