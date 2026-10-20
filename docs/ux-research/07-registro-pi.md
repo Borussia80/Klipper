@@ -83,6 +83,14 @@ Nenhum código, stylesheet, configuração, template ou asset do Sure foi aberto
 
 As observações de comportamento desta sessão estão em `09-observacao-ao-vivo.md`. Nenhum código, stylesheet, template, asset ou texto de interface foi copiado para o Klipper. O Wealthfolio foi executado apenas como binário distribuído oficialmente; seu código não foi aberto. No Ghostfolio, a inspeção limitada de configuração confirmou a variável de conexão de cache necessária para o ambiente local; nenhuma implementação do Klipper foi derivada por cópia.
 
+## Sessão 5 — 2026-10-20 (Sure: cartão e financiamento)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Sure | container local isolado, porta 4100 | Criação de cartão e financiamento sintéticos; compra no cartão, pagamento por transferência, consulta de extratos/cobertura, cronograma de financiamento e parcela por transferência seguida de recarga do detalhe | **Não** |
+
+Nenhum código, stylesheet, configuração, template ou asset do Sure foi aberto. O pagamento de financiamento permaneceu registrado como transferência após a recarga, sem alterar o saldo principal exibido; a observação e os requisitos próprios estão em `relatorios/sure.md`.
+
 ## Autorização de estudo de software livre — 2026-10-20
 
 O usuário autorizou expressamente leitura, inspeção e estudo de código sob GPL/AGPL e outras licenças livres. A partir desta data, referências podem incluir comportamento executável e análise técnica, desde que cada achado registre origem e licença quando relevante.
