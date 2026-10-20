@@ -78,6 +78,11 @@
         "date": "2026-09-18T13:03:39.167Z",
         "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
         "score": 6
+      },
+      {
+        "date": "2026-10-20T17:51:59.515Z",
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+        "score": 60
       }
     ],
     "security": [
@@ -115,6 +120,11 @@
         "date": "2026-09-18T13:03:39.167Z",
         "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
         "score": 84
+      },
+      {
+        "date": "2026-10-20T17:51:59.515Z",
+        "commit": "c648bffc84bbaa957df38ebb58be4a1cd48f65e6",
+        "score": 80
       }
     ]
   }
