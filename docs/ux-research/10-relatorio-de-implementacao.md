@@ -1,8 +1,10 @@
 # 10 — Relatório de implementação: padrões observados e decisões para o Klipper
 
-**Status:** primeiro ciclo de observação ao vivo — 2026-10-19
+**Status:** primeiro ciclo de observação ao vivo; insuficiente para encerrar decisões de produto — 2026-10-20
 **Escopo:** categorias, entrada rápida, painel, contas e orçamento.
 **Base factual:** `09-observacao-ao-vivo.md`. Este documento transforma evidência em proposta própria; não reproduz interface, código, assets ou textos das referências.
+
+> Antes de implementar ou usar este relatório como justificativa de merge, consultar a [matriz de avaliação](11-matriz-de-avaliacao.md). Ela separa evidência completa, parcial e ausente, classifica gravidade e associa cada decisão a um critério de aceite.
 
 ## Síntese executiva
 
@@ -11,16 +13,31 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 1. **Preparar configurações uma vez; lançar muitas vezes.** Moeda, taxonomia e contas não podem disputar atenção com valor, data e categoria durante um lançamento.
 2. **O estado vazio tem uma única continuação principal.** Sem dados, orientar a primeira ação; com dados, priorizar leitura e alertas.
 3. **Estruturas financeiras devem explicar sua consequência.** Categoria organiza, conta dá contexto de saldo, orçamento informa ritmo e alerta sempre oferece uma ação.
+4. **Não calcular além da evidência disponível.** Uma fotografia de saldo sustenta patrimônio; rentabilidade, volatilidade e retorno exigem histórico de transações ou preços compatíveis.
 
 ## Decisões propostas
 
 | Frente | Decisão para o Klipper | Evidência observada | Resultado esperado |
 |---|---|---|---|
 | Categorias | Limitar a categoria a pai + filha; criar, ordenar, ocultar e editar em Configurações | seleção opcional de taxonomia com grupos expansíveis no ezBookkeeping | escolha rápida e relatórios coerentes sem árvore profunda |
-| Entrada mobile | Destacar “+” na navegação inferior; abrir folha de lançamento já focada no valor | Cashew mantém a transação como ação central, mesmo apresentando várias áreas | lançamento em até quatro decisões após o valor |
+| Entrada mobile | Destacar “+” na navegação inferior; abrir folha de lançamento já focada no valor | Cashew mantém a transação como ação central, mesmo apresentando várias áreas; o fluxo observado hoje pede título/categoria antes do valor | lançamento em até quatro decisões após o valor |
 | Movimentos importados | Abrir uma fila persistente de revisão com filtros salvos, edição em linha/lote e desfazer | a separação entre configurar e operar das referências reduz troca de contexto | importação corrigível sem perder linhas ou filtros |
 | Painel | Começar com patrimônio, evolução temporal e alertas acionáveis; ocultar cards sem dados | Sure usa continuação única no estado vazio e deixa contas como base da leitura | painel compreensível em menos de uma olhada |
 | Conta e orçamento | Tela de conta com saldo atual, histórico, próximos itens e orçamento por disponível/dia | fluxo de conta do Sure coleta saldo, data, moeda e subtipo; Cashew introduz orçamento como período e ritmo | saldo com contexto e orçamento que orienta a decisão de hoje |
+
+## Complemento comparativo: Firefly III e Actual Budget
+
+| Referência | Ponto mais útil | Limite a não transportar | Aplicação própria no Klipper |
+|---|---|---|---|
+| Firefly III | histórico de conta auditável: saldo acumulado, contrapartida, categoria, orçamento, transferências e divisões | grade muito larga e navegação desktop densa, sem reorganização adequada em 390 px | detalhe de conta com linha temporal e detalhe progressivo; não expor todas as colunas na lista mobile |
+| Actual Budget | orçamento operacional: saldo por categoria, excesso consolidado e ação para cobrir; previsto, vencendo e atrasado no histórico | envelope completo adiciona um modelo mental e regras de alocação que o Klipper ainda não decidiu adotar | alertas de orçamento acionáveis, saldo por ritmo, lançamentos previstos no mesmo histórico e navegação inferior mobile |
+
+## Complemento comparativo: Wealthfolio e Ghostfolio
+
+| Referência | Ponto mais útil | Limite a não transportar | Aplicação própria no Klipper |
+|---|---|---|---|
+| Wealthfolio | separação explícita entre fotografia de posições e histórico transacional; histórico de saldos datados; métrica indisponível explicada em vez de zerada | onboarding longo e métricas de investimento antes de existir base suficiente | conta pode registrar saldo/manual datado e alimentar evolução; retorno e risco só aparecem quando o contrato de dados os sustentar |
+| Ghostfolio | visão de patrimônio que inclui ativos, reserva e passivos, com composição por dimensões; primeira conta e total como estado funcional | dependência de cotação, benchmark e análises de mercado para entregar valor inicial; carregamento sem erro acionável quando uma dependência falha | modelar desde já ativo/passivo, grupo de conta, classe e liquidez; adiar mercado, benchmark e recomendações para uma fase orientada por necessidade real; sempre oferecer recuperação em falha de carregamento |
 
 ## Especificações funcionais de referência
 
@@ -52,9 +69,9 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 **Composição própria sugerida**
 
 - Navegação inferior com quatro destinos: Início, Movimento, `+`, Orçamento e Mais.
-- O `+` abre uma folha modal ancorada abaixo, não uma troca de rota. O primeiro foco é o valor; tipo de movimento (despesa, receita, transferência) fica visível e alternável.
+- O `+` abre uma folha modal ancorada abaixo, não uma troca de rota. O primeiro foco é o valor; tipo de movimento (despesa, receita, transferência) fica visível e alternável. Esta é uma melhoria deliberada sobre o fluxo observado, que começa por título/categoria.
 - Em seguida, conta e categoria são exigidas somente quando necessárias; data, descrição, recorrência e anexos entram em “mais opções”.
-- Salvar mostra confirmação curta com **Desfazer**. Cancelar descarta apenas o rascunho local, com confirmação somente se houver campos preenchidos.
+- Salvar e editar mostram confirmação curta com **Desfazer**. Cancelar descarta apenas o rascunho local, com confirmação somente se houver campos preenchidos. O Cashew confirmou o segundo comportamento; nesta rodada não exibiu desfazer após salvar/editar.
 
 **Métrica inicial**
 
@@ -104,13 +121,21 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 - Linha temporal de saldos, não apenas soma de movimentos; destacar pontos de ajuste e importação.
 - Separar saldo realizado de saldo previsto se houver itens agendados. A data de abertura estabelece o primeiro ponto conhecido.
 
-**Evidência adicional do ambiente executável:** ao inserir saldo inicial em uma conta de teste, a ferramenta registrou um movimento de ajuste de saldo com data/hora. Esse padrão é útil ao Klipper: histórico de saldo não pode ser inferido apenas da fotografia atual.
+**Evidência adicional do ambiente executável:** o fluxo do Sure solicita saldo inicial e data de abertura, mas a criação da conta sintética não foi concluída nesta sessão: após preencher e enviar, o formulário permaneceu aberto sem sucesso ou erro visível. O princípio para o Klipper continua válido, porém precisa ser validado no próprio produto com dados sintéticos: histórico de saldo não pode ser inferido apenas da fotografia atual.
+
+**Evidência adicional do Wealthfolio local:** uma conta configurada como fotografia registrou um saldo de caixa datado e passou a exibir patrimônio, valores de caixa/investimento/contábil e histórico de snapshots. Em contrapartida, retorno, P&L, volatilidade e drawdown ficaram indisponíveis com uma explicação de pré-requisito. O Klipper deve seguir a mesma honestidade sem herdar a interface: histórico de saldo é válido, mas não é histórico de performance.
+
+**Evidência adicional do Ghostfolio local:** uma conta inicial e a linha de total tornam a página de contas funcional mesmo antes de haver atividades. O Klipper pode usar esse princípio como orientação inicial, desde que a conta de exemplo não seja confundida com dado real e possa ser editada ou removida. Também fica explícito um requisito transversal: `loading` precisa expirar em erro compreensível, com tentar novamente e diagnóstico técnico fora da superfície principal.
+
+Quando uma conta usar histórico transacional, o formulário do Wealthfolio primeiro pede a natureza da atividade e só então mostra campos específicos, mantendo a conta de origem já contextualizada. Para o Klipper, aplicar esse princípio como redução de erro: movimento comum mantém o caminho curto; operações patrimoniais específicas revelam campos apenas depois do tipo, sem misturar um aporte, uma transferência e uma compra de ativo.
 
 **Ritmo de orçamento**
 
 - Para cada orçamento ativo, calcular: disponível, dias restantes, limite diário e comparação com o ritmo esperado até hoje.
 - Usar linguagem clara: “R$ X por dia até o fim do ciclo” e “acima/abaixo do ritmo”, acompanhada de cor e ícone — nunca cor isolada.
 - Não indicar falha enquanto o período estiver dentro do ritmo, mesmo que já tenha consumido grande parte do limite cedo em um ciclo curto.
+
+**Evidência adicional do ambiente executável:** o Cashew apresentou, em um orçamento local de R$ 200 com R$ 50 já consumidos, saldo restante, fração do período e uma recomendação de gasto por dia. O Klipper deve adotar o cálculo de ritmo, com apresentação e redação próprias.
 
 ## Ordem recomendada de entrega
 
@@ -119,6 +144,7 @@ O Klipper deve concentrar sua próxima evolução em cinco capacidades conectada
 3. **Confiabilidade:** filtros persistentes e fila de revisão de importação.
 4. **Leitura:** detalhe de conta, histórico de saldo e painel de patrimônio.
 5. **Orientação:** orçamento por ritmo e alertas acionáveis.
+6. **Patrimônio estruturado:** ativos/passivos, grupos de conta e fotografia de saldo antes de indicadores de investimento.
 
 Essa ordem reduz retrabalho: lançamento, importação e orçamento compartilham o mesmo contrato de categoria, conta e data.
 
@@ -130,7 +156,9 @@ Essa ordem reduz retrabalho: lançamento, importação e orçamento compartilham
 
 ## Lacunas a fechar no próximo ciclo
 
-- Medir toques, estados de erro e desfazer de um lançamento real em mobile.
+- Medir o desfazer após exclusão de um lançamento sintético em mobile (depende de confirmação pontual para descarte local).
 - Validar busca/filtro, importação e edição em lote com o conjunto sintético completo.
 - Confirmar quais alertas são suficientemente frequentes e acionáveis para merecer o painel inicial.
+- Testar, com conta sintética local, como uma conta transacional recupera erro de dado incompleto e como sua atividade altera o painel de patrimônio.
 - Testar as propostas com o Klipper em 390 px e 1440 px antes de iniciar uma implementação ampla.
+- Executar os ciclos A, B e C da matriz de avaliação, com registro de evidência e atualização da cobertura antes de declarar o estudo encerrado.

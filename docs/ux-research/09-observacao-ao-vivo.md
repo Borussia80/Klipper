@@ -11,6 +11,10 @@
 | Sure | container oficial local, porta 4100 | hierarquia desktop, patrimônio, contas e alertas | ativo |
 | ezBookkeeping | container oficial local, porta 4101 | estrutura de categorias, filtros, importação e configurações | ativo |
 | Cashew | PWA oficial | rapidez de lançamento e padrões mobile | ativo |
+| Firefly III | demonstração pública oficial | governança financeira, conta auditável, orçamento periódico e relatórios | ativo |
+| Actual Budget | demonstração pública oficial, banco local no navegador | envelopes, orçamento operacional, lançamentos e navegação mobile | ativo |
+| Wealthfolio | servidor oficial local isolado, porta 4102 | patrimônio, posições por fotografia, evolução e distinção entre saldo e desempenho | ativo |
+| Ghostfolio | imagem oficial local isolada, porta 4103 | patrimônio consolidado, contas, atividades, composição e recuperação de acesso | ativo |
 
 Os ambientes não compartilham banco, cookie, volume ou porta com o Klipper. As contas e transações criadas durante o estudo devem ser descartáveis e sintéticas.
 
@@ -54,6 +58,16 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 - O painel também exibe uma área opcional de IA. Ela foi deliberadamente ignorada nesta pesquisa: não foi habilitada, configurada nem recebeu dados.
 
 **Hipótese para o Klipper:** em vez de uma tela genérica de “nova conta”, usar uma decisão inicial de natureza da conta e deixar integrações fora do caminho manual. No painel, mostrar patrimônio somente quando houver base de dados; no vazio, oferecer a próxima ação inequívoca.
+
+### Sure — movimentos, orçamento e tratamento de erro
+
+- A tela de movimentos vazia traz totalizadores de quantidade, entradas e saídas antes da lista, uma busca e filtros por **conta, data, tipo, status, valor, categoria, tag e comerciante**. Há também um filtro rotulado como IA; ele não foi acionado, pois depende de recurso externo que não faz parte deste estudo.
+- O estado vazio não esconde as ferramentas: mantém busca, filtros, importação e criação de movimento disponíveis, além de uma explicação curta do que fazer em seguida.
+- O orçamento abre por mês, com navegação anterior/próxima e resumo de planejado, receita e despesas. A configuração é um fluxo de duas etapas: valores planejados primeiro e categorias depois.
+- Ao tentar seguir no orçamento sem preencher despesa planejada e receita esperada, o navegador recebe validação nativa localizada: **“Preencha este campo.”**, com foco retornando ao campo obrigatório. A sugestão automática por IA permaneceu desligada.
+- Tentamos criar uma conta manual sintética, preenchendo nome, saldo, data, moeda e subtipo no fluxo normal. O formulário permaneceu na própria tela, sem conta criada, mensagem de sucesso ou erro visível e sem erro de console. Por isso, nesta sessão não foi possível produzir de forma confiável o painel preenchido, o detalhe/histórico de saldo, nem alertas acionáveis do Sure. Isso é um resultado de teste, não uma conclusão sobre o produto.
+
+**Hipótese para o Klipper:** manter filtros densos em uma superfície progressiva no desktop, mas apresentar os filtros mais frequentes como folhas compactas no mobile. Para orçamentos, aplicar validação local e associada ao campo; não oferecer automação remota como saída padrão. O painel de patrimônio, histórico e alertas do Klipper deve ser implementado com dados sintéticos próprios e validado independentemente da lacuna observada no Sure.
 
 ### ezBookkeeping — entrada desktop
 
@@ -105,6 +119,56 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 **Hipótese para o Klipper:** o primeiro uso pode explicar o valor em poucos passos e deixar sincronização como escolha posterior. Para o orçamento, o vocabulário de “ritmo” é mais acionável do que somente “limite mensal”.
 
+### Cashew — lançamento, edição, filtros e cancelamento
+
+- O lançamento rápido começa por um pequeno modal de título/categoria e segue para um teclado numérico próprio. Na sequência, a tela principal mantém tipo, valor/categoria, data, estado (padrão, futuro, assinatura, recorrência e empréstimos), título, notas e anexos. Com dados de teste, uma despesa de `R$ 50` em `Mercado` foi salva e apareceu no painel e na lista de transações.
+- A edição abre na própria estrutura do lançamento e confirma o resultado retornando à lista com o título alterado. O fluxo não apresentou um snackbar de “desfazer” após salvar ou editar; desfazer por exclusão não foi acionado porque exigiria descartar um registro local.
+- A lista reúne meses, totais de entrada/saída e filtros. O painel de filtros contém categorias, faixa de valor, tipo (receita/despesa), situação (padrão, futuro, recorrente, pago/não pago/pulado/excluído), conta, texto de título e notas. O filtro aplicado permanece visível como chip na lista.
+- A criação de orçamento separa escopo (**apenas transações adicionadas** ou **todas as transações**), natureza (gasto ou poupança), valor, período, contas e categorias. Um orçamento sintético de R$ 200, com gasto existente de R$ 50, foi salvo e exibiu saldo restante, progresso no período e recomendação diária até o fim do ciclo.
+- Um rascunho sem título e com valor zero pode avançar até a tela principal, mas o CTA muda para **“Insira a Quantia”** e não permite concluir. Ao tentar sair de um rascunho alterado, abre uma confirmação explícita de descarte; o estudo escolheu “Cancelar” para preservar o rascunho.
+- Em **390 px**, o formulário deixa de usar a lateral, mantém a hierarquia vertical e fixa o CTA no rodapé. Data, estados, título, notas e “Mais opções” continuam acessíveis sem tabela ou rolagem horizontal.
+
+**Hipótese para o Klipper:** abrir o lançamento diretamente no valor é mais rápido que exigir título antes da categoria; validar título, conta/categoria e valor de modo consistente, sem deixar um caminho intermediário ambíguo. Após salvar ou editar, oferecer confirmação curta com desfazer; ao cancelar, confirmar somente se houver alteração local.
+
+### Firefly III — conta, orçamento e densidade operacional
+
+- A demonstração oficial fornece uma conta preenchida cujo detalhe reúne gráfico de evolução, decomposição por categoria e por orçamento, e histórico de lançamentos. Cada linha do histórico expõe descrição, valor, saldo acumulado, data, conta de origem/destino, categoria e orçamento; transferências e divisões permanecem identificáveis.
+- O orçamento organiza período, total disponível, total orçado, gasto e saldo. Cada orçamento mostra valor planejado, gasto total e por dia, saldo restante e disponível diário; inclui também gastos fora de orçamento e orçamentos inativos.
+- A arquitetura privilegia rastreabilidade e múltiplas dimensões financeiras, mas a apresentação de conta usa uma tabela muito larga. No ensaio em 390 px, ela não se reorganizou numa lista/carteira mobile: a interface preservou a navegação lateral e múltiplos gráficos, tornando-se uma referência de densidade a evitar no Klipper.
+
+**Hipótese para o Klipper:** absorver o contrato de histórico auditável — especialmente saldo acumulado, contrapartida, categoria e vínculo de orçamento — sem transportar a grade. No mobile, usar uma linha de duas camadas e abrir saldo/contrapartida no detalhe, mantendo o gráfico como seção opcional.
+
+### Actual Budget — envelope, operação de conta e mobile
+
+- A demonstração local abre diretamente em um orçamento preenchido: grupos de categorias, colunas de orçado, gasto e saldo, meses vizinhos e indicador de recursos a alocar. Categorias excedidas aparecem em um aviso consolidado com ação de cobertura, evitando que o erro fique apenas como número negativo em uma linha.
+- O histórico de conta mostra saldo no cabeçalho, busca, filtro, conciliação, importação e criação de movimento. Linhas agendadas se distinguem das realizadas por estado temporal; lançamentos divididos ficam aninhados sob o lançamento principal, preservando as categorias filhas.
+- Em 390 px, a conta mantém saldo, busca e estados de agendamento (futuro, vencendo, atrasado), e a navegação passa para a base. O orçamento mantém grupos e categorias com menus contextuais, ação de ver movimentos e saldo, sem reduzir a experiência a uma tabela horizontal.
+- A demonstração explica que seus dados ficam no dispositivo e oferece sincronização separadamente; nenhuma sincronização ou conta externa foi conectada durante a pesquisa.
+
+**Hipótese para o Klipper:** priorizar alerta agregador acionável para itens acima do limite, histórico que una previsto e realizado e navegação mobile explícita. O modelo de envelopes não deve ser adotado automaticamente: ele é uma opção de produto a validar contra o orçamento por ritmo já proposto.
+
+### Wealthfolio — fotografia patrimonial com limites explícitos
+
+- O onboarding começa pela escolha entre acompanhar **posições atuais** ou registrar **transações**. A primeira opção favorece patrimônio e alocação, mas declara que não calcula retorno temporal; a segunda libera métricas de desempenho ao exigir o histórico completo de atividade. Preferências visuais (tema, fonte e navegação) são ajustadas antes do painel, não misturadas ao cadastro financeiro.
+- A criação de conta pede nome, grupo, tipo, moeda, visibilidade e modo de acompanhamento. Conta, carteira e classificação são entidades separadas em Configurações, o que deixa a organização patrimonial fora do fluxo de registrar um valor.
+- Em uma conta local sintética configurada como fotografia, o registro de uma posição/caixa abre um formulário datado. Ao salvar um saldo em dinheiro, a conta passa a mostrar valor atual, valor de caixa, valor investido, valor contábil, seletores de período e uma tabela de **histórico de fotografias** com data, origem, quantidade de posições e caixa.
+- Em conta transacional, a primeira decisão é o tipo de atividade: compra, venda, aporte, retirada, dividendo, transferência, desdobramento, taxa, juros, imposto ou crédito. Sem tipo, os campos seguintes não aparecem. Ao escolher aporte, a conta já vem selecionada e o formulário reúne data e valor, com notas como detalhe progressivo.
+- Métricas indisponíveis não são substituídas por zero: retorno, P&L, volatilidade e drawdown aparecem como não calculáveis, com explicação de que TWR/IRR requerem acompanhamento transacional. A tela oferece um ponto de ajuda, em vez de ocultar a limitação.
+- O painel preenchido agrega por grupo de conta e expõe patrimônio, recorte temporal, contas, posições e metas. Sem posições ou metas, as respectivas seções permanecem curtas e oferecem uma continuação específica.
+
+**Hipótese para o Klipper:** separar claramente os contratos de “saldo/fotografia” e “histórico de movimentos”. Um saldo manual datado pode alimentar patrimônio e evolução, mas não deve fingir rentabilidade ou precisão que só o histórico de transações permite. Quando um dado impedir uma métrica, explicar o requisito e oferecer a próxima ação adequada.
+
+### Ghostfolio — abrangência de patrimônio, sem inferir fluxo interno
+
+- A página pública oficial apresenta um escopo de patrimônio que inclui ações, ETFs, renda fixa, criptoativos, dividendos, itens patrimoniais, fundo de emergência e passivos; também anuncia múltiplas contas e importação/exportação de atividades.
+- A leitura agregada é apresentada por intervalos de retorno e por composição: conta, classe de ativo, moeda, região e setor. Há ainda uma análise de risco de portfólio e lista de acompanhamento de ativos.
+- A instância local inicia o administrador por um fluxo de duas etapas: entendimento de que o token de recuperação é único e apresentação do token, que precisa ser copiado antes de habilitar a criação. Após criar a conta, o painel conduz para contas, atividades e portfólio.
+- A lista de contas vazia já contém uma conta inicial mínima e uma linha de total. Criar conta adicional pede nome, moeda, saldo disponível em dinheiro, nota e marcadores; a lista mostra conta, plataforma, quantidade de atividades, caixa, valor e moeda.
+- No primeiro arranque local sem Redis, a lista de contas ficou em carregamento contínuo depois de salvar uma conta, sem mensagem orientada à pessoa. Ao completar a dependência local, a mesma tela passou a carregar a conta e o total. Isso é uma evidência de robustez de ambiente, não uma afirmação sobre a operação hospedada do produto.
+- Nenhuma corretora, fonte de mercado, importação externa ou operação com dinheiro foi conectada durante a pesquisa.
+
+**Hipótese para o Klipper:** o conceito de patrimônio líquido deve comportar, desde o modelo, ativos, reservas e passivos — sem obrigar a primeira versão a reproduzir análises de mercado. Na fase inicial, conta/grupo, classe de ativo, liquidez e dívida são dimensões mais úteis que cotações e benchmark; composição e risco entram somente quando houver dados e objetivo claros. No primeiro acesso, uma conta mínima pode evitar um painel estruturalmente vazio, mas deve continuar claramente editável. Toda falha de carga precisa ter estado de erro com recuperação, nunca carregamento sem fim.
+
 ## Trilhas de pesquisa e decisão
 
 | Trilha | Perguntas a responder | Produtos de maior evidência | Saída prevista |
@@ -112,8 +176,9 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 | Categorias e Configurações | Como criar, localizar, ordenar, ocultar e associar pai/filha sem perder contexto? | ezBookkeeping, Cashew | spec de árvore fixa de dois níveis + gestão em Configurações |
 | Lançamento rápido mobile | Quanto tempo e quantos toques até salvar? Valor vem antes da descrição? Como cancelar e desfazer? | Cashew | folha móvel, “+” central e critérios de ≤ 4 ações |
 | Movimento pós-importação | Como chegar às linhas importadas, filtrar, corrigir em lote e retornar ao contexto? | ezBookkeeping, Sure | filtros persistentes, deep link de revisão e desfazer |
-| Painel e alarmes | Qual leitura domina? O que some sem dados? Quando um alerta vira ação? | Sure, Cashew | painel de patrimônio, evolução e alarmes acionáveis |
-| Contas e orçamento | Como agrupar, datar saldo, abrir detalhe, mostrar histórico e ritmo diário? | Sure, ezBookkeeping, Cashew | detalhe de conta e orçamento orientado ao disponível diário |
+| Painel e alarmes | Qual leitura domina? O que some sem dados? Quando um alerta vira ação? | Sure, Cashew, Wealthfolio | painel de patrimônio, evolução e alarmes acionáveis |
+| Contas e orçamento | Como agrupar, datar saldo, abrir detalhe, mostrar histórico e ritmo diário? | Sure, ezBookkeeping, Cashew, Wealthfolio | detalhe de conta e orçamento orientado ao disponível diário |
+| Patrimônio e investimentos | Quais dados sustentam patrimônio, composição e retorno sem prometer precisão falsa? | Wealthfolio, Ghostfolio | contrato de fotografia/transação e modelo inicial de ativos/passivos |
 
 ## Decisões já preservadas
 
@@ -126,6 +191,9 @@ Cada fluxo é registrado nas larguras **1440 px** e **390 px**, com quatro estad
 
 1. Concluir o ambiente descartável do ezBookkeeping e carregar o conjunto padrão de dados sintéticos.
 2. Percorrer categorias e configurações em desktop e mobile.
-3. Percorrer lançamento rápido, cancelamento e desfazer no Cashew.
-4. Percorrer importação, busca, filtro e correção em lote no ezBookkeeping e Sure quando disponíveis.
-5. Registrar capturas e converter os achados em specs de implementação do Klipper.
+3. Executar a exclusão/desfazer de um lançamento sintético no Cashew somente mediante confirmação pontual, para completar essa célula do protocolo.
+4. Repetir a criação de conta preenchida no Sure quando o formulário local responder, registrando painel, detalhe/histórico de saldo e alertas com o mesmo conjunto sintético.
+5. Percorrer importação, busca, filtro e correção em lote no ezBookkeeping e Sure quando disponíveis.
+6. Exercitar, apenas em dados de demonstração/local, erro e recuperação de filtros, conciliação e recorrência no Firefly III e no Actual Budget.
+7. Observar no Wealthfolio local a conta em modo transacional e os estados de erro/recuperação sem conectar corretora ou provedor externo.
+8. Registrar capturas e converter os achados em specs de implementação do Klipper.
