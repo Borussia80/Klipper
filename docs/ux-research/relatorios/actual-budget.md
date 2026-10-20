@@ -4,7 +4,7 @@
 - Versão ou commit: `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc` (MIT confirmado em `LICENSE.txt`)
 - Ambiente: servidor oficial local, porta 4105, orçamento de demonstração descartável
 - Data: 2026-10-20
-- Tarefas executadas / bloqueadas: A1, A2.1 e A3.1 executadas; edição, exclusão e restauração ainda pendentes
+- Tarefas executadas / bloqueadas: A1, A2.1, A3.1 e A3.2 executadas; edição e desfazer explícito ainda pendentes
 
 | # | Estado inicial | Ação | Reação na tela | Reação nos dados (saldo, lista, orçamento) | Fonte | Regra extraída | Teste de aceite no Klipper |
 |---|---|---|---|---|---|---|---|
@@ -13,6 +13,7 @@
 | A1.3 | Fonte MIT local e execução concluída | Verificar o contrato técnico de importação | — | — | código · `packages/loot-core/src/types/models/import-transaction.ts@8fba0e8` | Um identificador externo estável aumenta a segurança da deduplicação quando o extrato o fornece; sem ele, a correspondência observada deve permanecer explicável e reversível. | UXR-06: conservar identificador de origem quando houver e registrar a base da correspondência quando não houver. |
 | A2.1 | Conta de demonstração local com saldo R$ 6.249,13 | Criar despesa categorizada de R$ 12,34 | A linha entrou na lista no mesmo dia; a superfície observada não ofereceu confirmação explícita de desfazer. Uma tentativa de atalho de teclado não reverteu a inclusão enquanto a linha estava em edição. | Conta e total dentro do orçamento caíram R$ 12,34, para R$ 6.236,79 e R$ 9.958,11. | execução · servidor local | Um lançamento confirmado deve atualizar conta e orçamento de forma coerente. A ausência de desfazer visível não prova que não exista outra rota. | UXR-04: ao alterar ou excluir movimento, o Klipper anuncia desfazer com escopo e duração; conta e orçamento voltam juntos ao estado anterior. |
 | A3.1 | Bank of America R$ 6.236,79 e Ally Savings R$ 3.943,53 | Criar transferência de R$ 10,00 para Ally Savings | O formulário trocou categoria por `Transferência`; o destino exibiu uma linha vinculada, com ação para abrir a conta de transferência. | Origem caiu para R$ 6.226,79 e destino subiu para R$ 3.953,53; o total consolidado não mudou. | execução · servidor local | A criação de transferência precisa produzir duas pontas reconhecíveis e preservar o patrimônio total. Edição, exclusão e desfazer ainda precisam de ensaio próprio. | UXR-03: criação mostra destino/origem e atualiza ambas as contas atomicamente; editar ou desfazer mantém o mesmo vínculo. |
+| A3.2 | Transferência A3.1 vinculada e visível na conta de destino | Selecionar a linha, abrir ações e confirmar `Excluir` | O menu indicou que havia uma transação selecionada, pediu confirmação de exclusão e não mostrou opção de desfazer após concluir. | A linha sumiu da conta de destino, seu saldo voltou para R$ 3.943,53 e a conta de origem voltou para R$ 6.236,79; o total consolidado continuou inalterado. | execução · servidor local | A exclusão da ponta de destino propagou-se para a origem, preservando a integridade da transferência. A recuperação não foi oferecida como ação posterior observável. | UXR-03 e UXR-04: exclusão de transferência deve explicar que afeta as duas pontas e disponibilizar desfazer temporal; o restauro precisa recompor ambas sem duplicar saldo. |
 
 ## Testes de aceite novos ou alterados por UXR
 
