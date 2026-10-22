@@ -1,0 +1,7 @@
+[Unit]
+Description=Backup do Postgres local do Klipper
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/klipper-backup.env
+ExecStart=%h/klipper/scripts/backup/klipper-backup.sh
