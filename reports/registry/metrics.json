@@ -36,6 +36,11 @@
         "date": "2026-09-18T13:03:39.167Z",
         "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
         "score": 76
+      },
+      {
+        "date": "2026-10-19T15:44:25.332Z",
+        "commit": "be3536a7c706fbf04339ea96809e70eee6c28bdf",
+        "score": 6
       }
     ],
     "finance": [
@@ -78,6 +83,11 @@
         "date": "2026-09-18T13:03:39.167Z",
         "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
         "score": 6
+      },
+      {
+        "date": "2026-10-19T15:44:25.332Z",
+        "commit": "be3536a7c706fbf04339ea96809e70eee6c28bdf",
+        "score": 66
       }
     ],
     "security": [
@@ -115,6 +125,11 @@
         "date": "2026-09-18T13:03:39.167Z",
         "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
         "score": 84
+      },
+      {
+        "date": "2026-10-19T15:44:25.332Z",
+        "commit": "be3536a7c706fbf04339ea96809e70eee6c28bdf",
+        "score": 87
       }
     ]
   }
