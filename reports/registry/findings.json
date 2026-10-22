@@ -48,11 +48,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 8,
+      "occurrences": 9,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -93,9 +93,14 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "low"
         }
       ],
-      "description": "InstrumentReadout continua com o rótulo fixo '% da renda' hardcoded, então orcamento.vue (que mede proporção do orçamento) exibe um rótulo semanticamente errado para a métrica que de fato calcula.",
+      "description": "InstrumentReadout continua com o rótulo fixo '% da renda' hardcoded, então orcamento.vue (que mede proporção do orçamento) exibe um rótulo semanticamente errado para a métrica que de fato calcula — idêntico ao já catalogado em FIN-001.",
       "recommendation": "Tornar o rótulo da razão ('% da renda' / '% do orçamento') prop do InstrumentReadout, com cada página passando o texto correspondente ao que a razão de fato mede.",
       "impact": 4,
       "frequency": 6,
@@ -399,11 +404,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 7,
+      "occurrences": 8,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -438,6 +443,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
           "severity": "medium"
         }
       ],
@@ -463,11 +473,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 7,
+      "occurrences": 8,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -503,15 +513,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "low"
         }
       ],
-      "description": "`devalue` (nova advisory moderate desde a última auditoria) e `esbuild` (low, recorrente) seguem desatualizados em devDependencies transitivas de ambos os frontends; o lado Ruby não pôde ser verificado neste ambiente por falta de bundler instalado.",
-      "recommendation": "Rodar `npm audit fix` (ou atualizar a versão de `nuxt`/`vite` que resolve `devalue` e `esbuild`) em apps/klipper-web e apps/quebec-web. O gate de CI já existente (`npm audit --audit-level=high`) não bloqueia essas duas advisories de propósito (moderate/low ficam abaixo do limiar) — se o apetite de risco mudar, baixar o `--audit-level` para `moderate` nos workflows.",
+      "description": "devalue e esbuild seguem desatualizados como dependências transitivas de dev em ambos os frontends Nuxt, e o lado Rails não pôde ser auditado neste ambiente por falta de bundler instalado.",
+      "recommendation": "Rodar `npm audit fix` (ou atualizar a versão de `nuxt`/`vite` que resolve devalue e esbuild) em apps/klipper-web e apps/quebec-web; rodar bin/bundler-audit e bin/brakeman em um ambiente com bundler instalado para fechar a lacuna de cobertura no lado Ruby.",
       "impact": 2,
       "frequency": 3,
       "reach": 3,
       "effort": 1,
-      "priority_score": 10.8,
+      "priority_score": 18,
       "adr_candidate": false
     },
     {
@@ -527,11 +542,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 7,
+      "occurrences": 8,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -567,9 +582,14 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "medium"
         }
       ],
-      "description": "Quatro páginas centrais do Wealth OS (dashboard, contas, orçamento, portadores) continuam sem nenhum teste de página, embora investimentos já tenha sido corrigido desde a última auditoria.",
+      "description": "Quatro páginas centrais do Wealth OS (dashboard, contas, orçamento, portadores) continuam sem nenhum teste de página.",
       "recommendation": "Adicionar testes de página para dashboard, contas, orcamento e portadores seguindo o padrão já usado em relatorios.test.ts e transacoes.test.ts.",
       "impact": 6,
       "frequency": 5,
@@ -702,11 +722,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -737,10 +757,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "medium"
         }
       ],
       "description": "ModalNovoLancamento e ModalEditarLancamento compartilham a lógica de formulário via useLancamentoForm, mas o template de apresentação e o CSS scoped inteiro continuam duplicados quase byte a byte entre os dois arquivos.",
-      "recommendation": "Extrair o template e o <style scoped> comuns para um componente de apresentação único (ex: LancamentoFormFields.vue), parametrizado por modo create/edit, deixando cada modal responsável só por título, CTA e chamada de submit — seguindo a mesma motivação que já levou à extração de useLancamentoForm.",
+      "recommendation": "Extrair o template e o <style scoped> comuns para um componente de apresentação único (ex: LancamentoFormFields.vue), parametrizado por modo create/edit, deixando cada modal responsável só por título, CTA e chamada de submit.",
       "impact": 4,
       "frequency": 3,
       "reach": 4,
@@ -810,11 +835,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -845,9 +870,14 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "low"
         }
       ],
-      "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset de senha) continua sem qualquer rate limiting, ao contrário de todas as outras rotas de autenticação não-autenticadas.",
+      "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset de senha) continua sem qualquer rate limiting, ao contrário das outras rotas de autenticação não-autenticadas.",
       "recommendation": "Adicionar uma regra de throttle no Rack::Attack para `req.patch? && req.path.start_with?(\"/api/v1/password_resets/\")`, por IP, espelhando a regra `auth/ip` existente em rack_attack.rb:3.",
       "impact": 3,
       "frequency": 2,
@@ -869,11 +899,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -904,10 +934,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "critical"
         }
       ],
-      "description": "O hero do dashboard ainda calcula spentRatio inline com fallback para 0 em vez de reusar pctOfIncome() (já disponível no mesmo composable e já usado duas linhas abaixo), então um ciclo sem receita nenhuma é desenhado como '0% gasto, dentro da faixa' em vez de 'sem dado' — o mesmo defeito catalogado como FIN-004 continua sem correção.",
-      "recommendation": "Substituir `const spentRatio = computed(() => (totalCredits.value > 0 ? totalDebits.value / totalCredits.value : 0))` por `pctOfIncome(totalDebits.value, totalCredits.value)`, mesma função já importada e usada para fixoPct/cartaoPct.",
+      "description": "O hero do dashboard (UiInstrumentReadout) continua calculando spentRatio inline com fallback para 0 em vez de pctOfIncome(), então um ciclo sem receita nenhuma é desenhado como '0% gasto, dentro da faixa do ciclo' em vez de 'Sem orçamento definido' — o mesmo defeito já catalogado como FIN-004 permanece sem correção após 6 execuções de auditoria consecutivas (primeira detecção 2026-09-17, última 2026-09-18), apesar de a correção ser uma substituição de uma linha por uma função já disponível no mesmo arquivo.",
+      "recommendation": "Substituir a linha 211 de dashboard.vue por `const spentRatio = computed(() => pctOfIncome(totalDebits.value, totalCredits.value))`, mesma função já importada e usada para fixoPct/cartaoPct nas linhas seguintes.",
       "impact": 8,
       "frequency": 9,
       "reach": 8,
@@ -928,11 +963,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 5,
+      "occurrences": 6,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -958,9 +993,14 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "medium"
         }
       ],
-      "description": "O componente-base compartilhado por todos os modais do app (Escape para fechar, focus trap e restauração de foco ao gatilho) não tem nenhuma cobertura de teste, direta ou indireta.",
+      "description": "O componente-base compartilhado por todos os modais do app (Escape para fechar, focus trap e restauração de foco ao gatilho) continua sem nenhuma cobertura de teste, direta ou indireta.",
       "recommendation": "Adicionar um teste de montagem para BaseModal.vue (ou para useFocusTrap.ts isoladamente com jsdom) cobrindo: Escape emite close, Tab no último elemento focável volta ao primeiro (e vice-versa com Shift+Tab), e o foco retorna ao elemento que disparou a abertura ao fechar.",
       "impact": 6,
       "frequency": 4,
@@ -982,11 +1022,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -1017,15 +1057,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "medium"
         }
       ],
-      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição documentada como não verificada contra nenhum débito real, e nenhum teste trava esse sinal — dado de patrimônio de importações BTG segue com risco não coberto de inversão silenciosa de sinal.",
+      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição documentada como não verificada contra nenhum débito real, e nenhum teste trava esse sinal — dado de patrimônio de importações BTG segue com risco não coberto de inversão silenciosa de sinal, idêntico ao já catalogado em FIN-005.",
       "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado (já está), não silenciar.",
       "impact": 7,
       "frequency": 2,
       "reach": 4,
       "effort": 3,
-      "priority_score": 18.67,
+      "priority_score": 11.2,
       "adr_candidate": false
     },
     {
@@ -1080,11 +1125,11 @@
         "date": "2026-09-17T09:59:23.653Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T09:59:23.653Z",
@@ -1105,10 +1150,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "low"
         }
       ],
-      "description": "O access token da SPA continua exposto a JavaScript via cookie não-httpOnly, e a decisão arquitetural de aceitar esse risco (mitigado pela CSP com nonce) ou migrar para cookie HttpOnly + CSRF segue sem resolução formal.",
-      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar). Se aceitar, mover o ADR para `accepted` documentando a mitigação via CSP; nenhum sink de XSS explorável foi encontrado nesta auditoria em apps/klipper-web/server/middleware/csp.ts (script-src com nonce em produção), o que reduz o risco residual, mas não o elimina.",
+      "description": "O access token da SPA segue exposto a JavaScript via cookie não-httpOnly, e a decisão arquitetural de aceitar esse risco ou migrar para cookie HttpOnly + CSRF (ADR-2026-09-17-003) segue sem resolução formal.",
+      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar); se aceitar, mover o ADR de `proposed` para `accepted` documentando a mitigação via CSP com nonce já implementada.",
       "impact": 4,
       "frequency": 1,
       "reach": 2,
@@ -1168,11 +1218,11 @@
         "date": "2026-09-17T10:49:00.167Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T10:49:00.167Z",
@@ -1193,10 +1243,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "medium"
         }
       ],
-      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o requisito de rastreabilidade da seção financeira.",
-      "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo/checksum) na transação no momento do import, e expor essa proveniência em transacoes.vue.",
+      "description": "Uma transação importada via CSV ou PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o requisito de rastreabilidade da seção financeira — continua idêntico ao estado já catalogado em FIN-008.",
+      "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo/checksum) na transação no momento do import em BankImport::TransactionWriter#write!, e expor essa proveniência em transacoes.vue.",
       "impact": 5,
       "frequency": 4,
       "reach": 6,
@@ -1256,11 +1311,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1271,9 +1326,14 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "high"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "high"
         }
       ],
-      "description": "useModal (roteamento de todo modal financeiro do app) e useToast (todo feedback ao usuário) continuam sem nenhum teste direto — open()/close()/reset de payload e o auto-dismiss via setTimeout só são exercitados incidentalmente através de mocks em testes de componentes individuais.",
+      "description": "useModal (roteamento de todo modal financeiro do app) e useToast (todo feedback ao usuário) continuam sem nenhum teste direto, cobertos só incidentalmente via mocks em testes de componente.",
       "recommendation": "Adicionar composables/__tests__/useModal.test.ts cobrindo open/close, reset de payload ao trocar de modal e chamadas sequenciais de open(); adicionar useToast.test.ts cobrindo addToast, auto-remoção após duration e removeToast manual.",
       "impact": 7,
       "frequency": 6,
@@ -1329,11 +1389,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1344,9 +1404,14 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "medium"
         }
       ],
-      "description": "A lógica de sinal buy/sell (documentada no próprio arquivo como causa do bug real FIN-002 quando duplicada) tem uma terceira reimplementação não coberta pelo teste de paridade existente entre signed_cost e signed_cost_sql, então uma mudança na regra de sinal pode divergir silenciosamente na validação de venda sem que o teste de paridade acuse.",
+      "description": "A lógica de sinal buy/sell, que o próprio código documenta como causa do bug real FIN-002 quando duplicada, tem uma terceira reimplementação não coberta pelo teste de paridade existente.",
       "recommendation": "Extrair um único Investment.net_quantity(user_id:, ticker:, excluding: nil) que sufficient_quantity_for_sell chame, reaproveitando a mesma fonte de verdade do sinal buy/sell usada por signed_cost, e incluir esse método no teste de paridade já existente em investment_spec.rb.",
       "impact": 6,
       "frequency": 3,
@@ -1368,11 +1433,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1383,10 +1448,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "medium"
         }
       ],
-      "description": "O padrão visual de campo com select (label, wrapper, seta customizada) é reimplementado em CSS scoped duplicado em pelo menos três modais de entidade diferentes dos de lançamento, então qualquer ajuste visual (ex: acessibilidade do caret, espaçamento) precisa ser replicado manualmente em cada arquivo e tende a divergir.",
-      "recommendation": "Extrair um componente BaseSelectField.vue (ou classes utilitárias globais em assets/css) reutilizado por todos os modais de criação/edição de entidade, seguindo a mesma motivação já reconhecida para o par de modais de lançamento.",
+      "description": "O padrão visual de campo com select é reimplementado em CSS scoped duplicado em pelo menos três modais de entidade diferentes dos de lançamento, então qualquer ajuste visual precisa ser replicado manualmente em cada arquivo.",
+      "recommendation": "Extrair um componente BaseSelectField.vue (ou classes utilitárias globais em assets/css) reutilizado por todos os modais de criação/edição de entidade.",
       "impact": 3,
       "frequency": 3,
       "reach": 4,
@@ -1407,11 +1477,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1421,6 +1491,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "low"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
           "severity": "low"
         }
       ],
@@ -1446,25 +1521,64 @@
         "date": "2026-09-18T13:03:39.167Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T13:27:53.743Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "low"
         }
       ],
-      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada em PortfolioService#allocation e ReimbursementCoverageCalculator#call para o mesmo tipo de razão sem denominador válido; o caminho é coberto por teste e inalcançável via fluxo normal do app (validação impede amount_limit <= 0), mas dado legado ou uma edição direta na base ainda produziria um card de orçamento mostrando '0% usado' em vez de sinalizar ausência de limite.",
+      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada em PortfolioService#allocation e ReimbursementCoverageCalculator#call para o mesmo tipo de razão sem denominador válido; o caminho é coberto por teste e inalcançável via fluxo normal do app (validação de Budget impede amount_limit <= 0), mas dado legado ou uma edição direta na base ainda produziria um card de orçamento mostrando '0% usado' em vez de sinalizar ausência de limite.",
       "recommendation": "Alinhar BudgetEngine#summary à mesma convenção nil já usada por PortfolioService e ReimbursementCoverageCalculator para razão sem base válida, e ajustar orcamento.vue/UiBudgetCategoryCard para tratar pct_used nulo como estado distinto de 0%.",
       "impact": 3,
       "frequency": 1,
       "reach": 3,
       "effort": 2,
       "priority_score": 4.5,
+      "adr_candidate": false
+    },
+    {
+      "id": "FIN-011",
+      "category": "finance",
+      "natural_key": "investment-gain-loss-ignores-signed-cost",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+        "branch": "main",
+        "date": "2026-09-18T13:27:53.743Z"
+      },
+      "last_seen": {
+        "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+        "branch": "main",
+        "date": "2026-09-18T13:27:53.743Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-18T13:27:53.743Z",
+          "commit": "1e73b8a2f3f85e984fddee854fca3d0469cffc5e",
+          "severity": "medium"
+        }
+      ],
+      "description": "Investment#gain_loss e #current_value ignoram o sinal de venda que o próprio #signed_cost da mesma classe já resolve (o fix do FIN-002): para uma posição com operation_type: sell, os dois métodos usam o custo bruto da linha em vez do custo líquido com sinal, então o dia em que StockQuoteService (que já existe e já busca current_price via brapi.dev) for conectado a eles, qualquer posição com histórico de venda vai reportar ganho/perda com sinal errado — o mesmo padrão de bug que já causou o FIN-002 no snapshot de patrimônio, latente aqui porque os métodos nunca chegaram a ser chamados nem testados.",
+      "recommendation": "Corrigir gain_loss/current_value para usar #signed_cost (ou remover os dois métodos como código morto até serem conectados a uma fonte real de current_price) e adicionar teste cobrindo uma posição com sell antes de qualquer tela passar a consumi-los.",
+      "impact": 6,
+      "frequency": 1,
+      "reach": 3,
+      "effort": 2,
+      "priority_score": 9,
       "adr_candidate": false
     }
   ]
