@@ -48,11 +48,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 8,
+      "occurrences": 9,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -93,10 +93,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "medium"
         }
       ],
-      "description": "InstrumentReadout continua com o rótulo fixo '% da renda' hardcoded, então orcamento.vue (que mede proporção do orçamento) exibe um rótulo semanticamente errado para a métrica que de fato calcula.",
-      "recommendation": "Tornar o rótulo da razão ('% da renda' / '% do orçamento') prop do InstrumentReadout, com cada página passando o texto correspondente ao que a razão de fato mede.",
+      "description": "InstrumentReadout continua com o rótulo '% da renda' hardcoded no template, então orcamento.vue exibe um rótulo semanticamente incorreto para a métrica de gasto-sobre-orçamento que de fato calcula.",
+      "recommendation": "Tornar o texto do rótulo prop de InstrumentReadout (ex: ratio-label), com orcamento.vue passando '% do orçamento' e dashboard.vue/contas.vue mantendo '% da renda'.",
       "impact": 4,
       "frequency": 6,
       "reach": 5,
@@ -399,11 +404,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 7,
+      "occurrences": 8,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -439,22 +444,27 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "high"
         }
       ],
-      "description": "Quatro componentes Vue de entrada/edição de dados financeiros continuam sem nenhuma cobertura de teste, direta ou indireta.",
-      "recommendation": "Adicionar testes de montagem para ModalNovaConta, ModalNovoMembro, ModalEditarReembolso e ModalMount seguindo o padrão já usado em ModalNovoLancamento.test.ts.",
+      "description": "Três modais de entrada/edição de dados financeiros (nova conta, novo portador/membro, editar vínculo de reembolso) continuam sem nenhuma cobertura de teste, reduzido de quatro para três desde a última auditoria.",
+      "recommendation": "Adicionar testes de componente para ModalNovaConta.vue, ModalNovoMembro.vue e ModalEditarReembolso.vue seguindo o padrão de ModalStress.test.ts.",
       "impact": 6,
       "frequency": 5,
-      "reach": 6,
-      "effort": 3,
-      "priority_score": 60,
+      "reach": 5,
+      "effort": 4,
+      "priority_score": 37.5,
       "adr_candidate": false
     },
     {
       "id": "SEC-003",
       "category": "security",
       "natural_key": "web-apps-outdated-dev-transient-deps",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -527,11 +537,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 7,
+      "occurrences": 8,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -567,15 +577,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "medium"
         }
       ],
-      "description": "Quatro páginas centrais do Wealth OS (dashboard, contas, orçamento, portadores) continuam sem nenhum teste de página, embora investimentos já tenha sido corrigido desde a última auditoria.",
-      "recommendation": "Adicionar testes de página para dashboard, contas, orcamento e portadores seguindo o padrão já usado em relatorios.test.ts e transacoes.test.ts.",
-      "impact": 6,
+      "description": "A página dashboard ganhou teste desde a última auditoria, mas contas, orçamento e portadores continuam sem nenhum teste de página.",
+      "recommendation": "Adicionar testes de página para contas.vue, orcamento.vue e portadores.vue seguindo o padrão de dashboard.test.ts.",
+      "impact": 5,
       "frequency": 5,
-      "reach": 6,
+      "reach": 5,
       "effort": 4,
-      "priority_score": 45,
+      "priority_score": 31.25,
       "adr_candidate": false
     },
     {
@@ -702,11 +717,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -737,15 +752,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "low"
         }
       ],
-      "description": "ModalNovoLancamento e ModalEditarLancamento compartilham a lógica de formulário via useLancamentoForm, mas o template de apresentação e o CSS scoped inteiro continuam duplicados quase byte a byte entre os dois arquivos.",
-      "recommendation": "Extrair o template e o <style scoped> comuns para um componente de apresentação único (ex: LancamentoFormFields.vue), parametrizado por modo create/edit, deixando cada modal responsável só por título, CTA e chamada de submit — seguindo a mesma motivação que já levou à extração de useLancamentoForm.",
-      "impact": 4,
+      "description": "Os modais de criar e editar 'lançamento' compartilham lógica de formulário via composable mas duplicam integralmente template e CSS.",
+      "recommendation": "Extrair um subcomponente apresentacional de campos compartilhado pelos dois modais, ou unificar em um modal com prop de modo (create/edit).",
+      "impact": 3,
       "frequency": 3,
-      "reach": 4,
+      "reach": 3,
       "effort": 5,
-      "priority_score": 9.6,
+      "priority_score": 5.4,
       "adr_candidate": false
     },
     {
@@ -801,7 +821,7 @@
       "id": "SEC-005",
       "category": "security",
       "natural_key": "password-reset-redemption-endpoint-unthrottled",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -869,11 +889,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -904,15 +924,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "critical"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "low"
         }
       ],
-      "description": "O hero do dashboard ainda calcula spentRatio inline com fallback para 0 em vez de reusar pctOfIncome() (já disponível no mesmo composable e já usado duas linhas abaixo), então um ciclo sem receita nenhuma é desenhado como '0% gasto, dentro da faixa' em vez de 'sem dado' — o mesmo defeito catalogado como FIN-004 continua sem correção.",
-      "recommendation": "Substituir `const spentRatio = computed(() => (totalCredits.value > 0 ? totalDebits.value / totalCredits.value : 0))` por `pctOfIncome(totalDebits.value, totalCredits.value)`, mesma função já importada e usada para fixoPct/cartaoPct.",
-      "impact": 8,
-      "frequency": 9,
-      "reach": 8,
+      "description": "O bug histórico do hero do dashboard (spentRatio com fallback para 0 em vez de null quando não há receita) já foi corrigido — dashboard.vue agora reusa pctOfIncome, que retorna null nesse caso.",
+      "recommendation": "Nenhuma ação necessária; fechar FIN-004 no registry como resolvido nesta execução.",
+      "impact": 1,
+      "frequency": 1,
+      "reach": 1,
       "effort": 1,
-      "priority_score": 576,
+      "priority_score": 1,
       "adr_candidate": false
     },
     {
@@ -928,11 +953,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 5,
+      "occurrences": 6,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -958,15 +983,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "medium"
         }
       ],
-      "description": "O componente-base compartilhado por todos os modais do app (Escape para fechar, focus trap e restauração de foco ao gatilho) não tem nenhuma cobertura de teste, direta ou indireta.",
-      "recommendation": "Adicionar um teste de montagem para BaseModal.vue (ou para useFocusTrap.ts isoladamente com jsdom) cobrindo: Escape emite close, Tab no último elemento focável volta ao primeiro (e vice-versa com Shift+Tab), e o foco retorna ao elemento que disparou a abertura ao fechar.",
-      "impact": 6,
-      "frequency": 4,
-      "reach": 7,
+      "description": "BaseModal.vue, componente compartilhado por praticamente todos os modais do app (ESC, clique no backdrop, focus trap via useFocusTrap, restauração de foco), continua sem nenhum teste direto ou indireto.",
+      "recommendation": "Adicionar teste unitário/de componente para BaseModal.vue cobrindo fechamento por ESC, clique no backdrop, tab-trap com wrap-around e restauração de foco ao fechar.",
+      "impact": 5,
+      "frequency": 6,
+      "reach": 8,
       "effort": 3,
-      "priority_score": 56,
+      "priority_score": 80,
       "adr_candidate": false
     },
     {
@@ -982,11 +1012,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -1017,15 +1047,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "medium"
         }
       ],
-      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição documentada como não verificada contra nenhum débito real, e nenhum teste trava esse sinal — dado de patrimônio de importações BTG segue com risco não coberto de inversão silenciosa de sinal.",
-      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado (já está), não silenciar.",
+      "description": "BtgExtratoAdapter propaga o sinal de débito/crédito de extrato BTG a partir de uma suposição documentada como não verificada, e nenhum teste trava esse sinal — dado de patrimônio de importações BTG segue com risco não coberto de inversão silenciosa de sinal caso a suposição esteja errada.",
+      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; risco aceito e já documentado no código, não silenciar.",
       "impact": 7,
       "frequency": 2,
       "reach": 4,
       "effort": 3,
-      "priority_score": 18.67,
+      "priority_score": 11.2,
       "adr_candidate": false
     },
     {
@@ -1071,7 +1106,7 @@
       "id": "SEC-006",
       "category": "security",
       "natural_key": "spa-access-token-cookie-js-readable",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": "docs/adrs/proposed/ADR-2026-09-17-003.md",
       "first_seen": {
@@ -1168,11 +1203,11 @@
         "date": "2026-09-17T10:49:00.167Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T10:49:00.167Z",
@@ -1193,9 +1228,14 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "medium"
         }
       ],
-      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o requisito de rastreabilidade da seção financeira.",
+      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o requisito de rastreabilidade da seção financeira (toda transação precisa ser rastreável até sua origem).",
       "recommendation": "Persistir uma referência de origem (import_batch_id ou nome do arquivo/checksum) na transação no momento do import, e expor essa proveniência em transacoes.vue.",
       "impact": 5,
       "frequency": 4,
@@ -1256,11 +1296,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1271,15 +1311,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "high"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "medium"
         }
       ],
-      "description": "useModal (roteamento de todo modal financeiro do app) e useToast (todo feedback ao usuário) continuam sem nenhum teste direto — open()/close()/reset de payload e o auto-dismiss via setTimeout só são exercitados incidentalmente através de mocks em testes de componentes individuais.",
-      "recommendation": "Adicionar composables/__tests__/useModal.test.ts cobrindo open/close, reset de payload ao trocar de modal e chamadas sequenciais de open(); adicionar useToast.test.ts cobrindo addToast, auto-remoção após duration e removeToast manual.",
-      "impact": 7,
-      "frequency": 6,
-      "reach": 8,
-      "effort": 3,
-      "priority_score": 112,
+      "description": "Os dois composables singleton que controlam qual modal financeiro está aberto e qual toast é exibido em todo o app continuam sem teste unitário direto.",
+      "recommendation": "Adicionar testes unitários para useModal (abrir/fechar/estado de payload) e useToast (adicionar/remover/auto-dismiss).",
+      "impact": 4,
+      "frequency": 4,
+      "reach": 6,
+      "effort": 2,
+      "priority_score": 48,
       "adr_candidate": false
     },
     {
@@ -1320,7 +1365,7 @@
       "id": "ARCH-013",
       "category": "architecture",
       "natural_key": "investment-signed-cost-triple-implementation",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -1368,11 +1413,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1383,15 +1428,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "low"
         }
       ],
-      "description": "O padrão visual de campo com select (label, wrapper, seta customizada) é reimplementado em CSS scoped duplicado em pelo menos três modais de entidade diferentes dos de lançamento, então qualquer ajuste visual (ex: acessibilidade do caret, espaçamento) precisa ser replicado manualmente em cada arquivo e tende a divergir.",
-      "recommendation": "Extrair um componente BaseSelectField.vue (ou classes utilitárias globais em assets/css) reutilizado por todos os modais de criação/edição de entidade, seguindo a mesma motivação já reconhecida para o par de modais de lançamento.",
-      "impact": 3,
+      "description": "O padrão visual de campo select com seta customizada é copiado como CSS scoped em pelo menos 4 componentes de modal em vez de ser um componente/estilo compartilhado.",
+      "recommendation": "Extrair um componente FormSelect/FieldSelect compartilhado ou uma classe utilitária global para .fi-sel/.sel-wrap/.sel-caret.",
+      "impact": 2,
       "frequency": 3,
       "reach": 4,
-      "effort": 4,
-      "priority_score": 9,
+      "effort": 3,
+      "priority_score": 8,
       "adr_candidate": false
     },
     {
@@ -1407,11 +1457,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1422,15 +1472,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "low"
         }
       ],
-      "description": "A regra 'occurred_on não pode ser futuro' está duplicada verbatim entre Transaction e Investment em vez de viver num concern compartilhado, apesar de o diretório de concerns já existir no projeto para esse propósito.",
-      "recommendation": "Extrair um concern (ex: OccurredOnValidatable) incluído por Transaction e Investment, movendo a validação e a mensagem para um único lugar.",
-      "impact": 2,
+      "description": "A regra 'occurred_on não pode ser futuro' está implementada duas vezes, de forma independente, em Investment e Transaction, sem concern compartilhado para mantê-las sincronizadas.",
+      "recommendation": "Extrair um concern OccurredOnValidatable (ou validador customizado) compartilhado pelos dois models.",
+      "impact": 3,
       "frequency": 2,
       "reach": 3,
       "effort": 2,
-      "priority_score": 6,
+      "priority_score": 9,
       "adr_candidate": false
     },
     {
@@ -1446,26 +1501,65 @@
         "date": "2026-09-18T13:03:39.167Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-09-18T17:43:10.716Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "low"
         }
       ],
-      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada em PortfolioService#allocation e ReimbursementCoverageCalculator#call para o mesmo tipo de razão sem denominador válido; o caminho é coberto por teste e inalcançável via fluxo normal do app (validação impede amount_limit <= 0), mas dado legado ou uma edição direta na base ainda produziria um card de orçamento mostrando '0% usado' em vez de sinalizar ausência de limite.",
-      "recommendation": "Alinhar BudgetEngine#summary à mesma convenção nil já usada por PortfolioService e ReimbursementCoverageCalculator para razão sem base válida, e ajustar orcamento.vue/UiBudgetCategoryCard para tratar pct_used nulo como estado distinto de 0%.",
+      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada em PortfolioService#allocation e ReimbursementCoverageCalculator#call para o mesmo tipo de razão sem denominador válido; o caminho é coberto por teste e inalcançável via fluxo normal do app (validação de Budget impede amount_limit <= 0), mas dado legado ou edição direta na base ainda produziria um card de orçamento mostrando '0% usado' em vez de sinalizar ausência de limite.",
+      "recommendation": "Alinhar BudgetEngine#summary à convenção nil já usada por PortfolioService e ReimbursementCoverageCalculator para razão sem base válida, e ajustar orcamento.vue/UiBudgetCategoryCard para tratar pct_used nulo como estado distinto de 0%.",
       "impact": 3,
       "frequency": 1,
       "reach": 3,
       "effort": 2,
       "priority_score": 4.5,
       "adr_candidate": false
+    },
+    {
+      "id": "ARCH-016",
+      "category": "architecture",
+      "natural_key": "stock-quote-feature-not-integrated-in-frontend",
+      "status": "open",
+      "component": null,
+      "adr": "docs/adrs/proposed/ADR-2026-09-18-006.md",
+      "first_seen": {
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+        "branch": "main",
+        "date": "2026-09-18T17:43:10.716Z"
+      },
+      "last_seen": {
+        "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+        "branch": "main",
+        "date": "2026-09-18T17:43:10.716Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-09-18T17:43:10.716Z",
+          "commit": "ff373f5c7b8cb8ff1ce8e4f9af5011e19a125e8b",
+          "severity": "medium"
+        }
+      ],
+      "description": "O backend implementa e testa uma capacidade de cotação ao vivo (endpoint de quotes + métodos current_value/gain_loss em Investment), mas nada no frontend chama esse endpoint e nenhum service/controller alimenta o current_price necessário, deixando a funcionalidade órfã.",
+      "recommendation": "Conectar QuotesController à página de investimentos para calcular/exibir valor de mercado e ganho/perda, ou remover/marcar explicitamente como fora de escopo os métodos current_value/gain_loss e o endpoint de quotes para evitar confusão futura sobre o que está 'ao vivo'.",
+      "impact": 4,
+      "frequency": 3,
+      "reach": 4,
+      "effort": 6,
+      "priority_score": 8,
+      "adr_candidate": true
     }
   ]
 }
