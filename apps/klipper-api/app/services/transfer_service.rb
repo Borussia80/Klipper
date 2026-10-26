@@ -1,5 +1,6 @@
 class TransferService
   InvalidTransfer = Class.new(StandardError)
+  LockedEntry = Class.new(StandardError)
   Result = Data.define(:debit, :credit)
 
   def initialize(user, source_account:, destination_account:, amount:, occurred_on:, description:, status: "efetivado")
@@ -24,6 +25,11 @@ class TransferService
   end
 
   def self.soft_delete(transaction)
+    # Conciliado não se exclui (spec 03, L-22): desconcilia antes, ou reverte.
+    if entries_for(transaction).exists?(status: "conciliado")
+      raise LockedEntry, "Lançamento conciliado não pode ser excluído; desconcilie antes"
+    end
+
     Transaction.transaction do
       entries_for(transaction).update_all(deleted_at: Time.current, updated_at: Time.current)
       audit(transaction.user, "TRANSACTION_DELETED", transaction.transfer_pair_id || transaction.id)

@@ -8,7 +8,7 @@ class AuditLog < ApplicationRecord
             inclusion: { in: %w[success failure] }
   validates :event_type, inclusion: { in: %w[
     IMPORT_DATA EXPORT_DATA BACKFILL_NET_WORTH TRANSFER_CREATED TRANSFER_UPDATED
-    TRANSACTION_DELETED TRANSACTION_RESTORED
+    TRANSACTION_DELETED TRANSACTION_RESTORED TRANSACTION_UNRECONCILED
   ] }
 
   scope :recent_first, -> { order(created_at: :desc) }

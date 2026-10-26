@@ -53,6 +53,7 @@ module Api
         unless valid_transaction_fks?
           return render json: { errors: [ "Conta, categoria ou portador inválido" ] }, status: :unprocessable_entity
         end
+        return render_single_leg_transfer if transfer_requested?
 
         txn = current_user.transactions.build(transaction_params)
         if txn.category_id.blank?
@@ -71,8 +72,10 @@ module Api
           return render json: { errors: [ "Conta, categoria ou portador inválido" ] }, status: :unprocessable_entity
         end
         return update_transfer_pair if @transaction.transfer_pair_id.present?
+        return render_single_leg_transfer if transfer_requested? && @transaction.kind != "transfer"
 
         if @transaction.update(transaction_params)
+          audit_unreconcile
           render json: @transaction
         else
           render json: { errors: @transaction.errors.full_messages }, status: :unprocessable_entity
@@ -82,6 +85,8 @@ module Api
       def destroy
         TransferService.soft_delete(@transaction)
         head :no_content
+      rescue TransferService::LockedEntry => error
+        render json: { errors: [ error.message ] }, status: :unprocessable_entity
       end
 
       def restore
@@ -97,8 +102,28 @@ module Api
       def update_transfer_pair
         TransferService.update(@transaction, params.permit(:amount, :description, :occurred_on, :status).to_h.symbolize_keys)
         render json: @transaction.reload
-      rescue TransferService::InvalidTransfer, ActiveRecord::RecordInvalid => error
+      rescue TransferService::InvalidTransfer => error
         render json: { errors: [ error.message ] }, status: :unprocessable_entity
+      rescue ActiveRecord::RecordInvalid => error
+        render json: { errors: error.record.errors.full_messages }, status: :unprocessable_entity
+      end
+
+      # Transferência só nasce com as duas pontas (L-7), por /transfers. Pelo
+      # endpoint comum ela seria uma saída sem entrada, ou o contrário.
+      def transfer_requested?
+        params[:kind] == "transfer" || params[:transaction_type] == "transfer"
+      end
+
+      def render_single_leg_transfer
+        render json: { errors: [ "Transferência deve ser registrada com origem e destino" ] },
+          status: :unprocessable_entity
+      end
+
+      # Desconciliar é ação explícita e registrada (C-9).
+      def audit_unreconcile
+        return unless @transaction.saved_change_to_status&.first == "conciliado"
+
+        TransferService.audit(current_user, "TRANSACTION_UNRECONCILED", @transaction.id)
       end
 
       # O cursor carrega a última chave da ordenação (data + id). Assim, novos

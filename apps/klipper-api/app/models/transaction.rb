@@ -14,6 +14,9 @@ class Transaction < ApplicationRecord
   KINDS = %w[regular transfer refund adjustment card_payment].freeze
   COUNTABLE_KINDS = %w[regular refund].freeze
   STATUSES = %w[previsto efetivado conciliado].freeze
+  # Conferido com o banco, o lançamento só muda de valor, data ou conta depois
+  # de desconciliado (spec 02, C-9). Descrição, categoria e notas seguem livres.
+  RECONCILED_LOCKED_FIELDS = %w[amount occurred_on account_id transaction_type kind].freeze
 
   validates :description, presence: true, length: { maximum: 255 }
   validates :amount, numericality: { greater_than: 0 }
@@ -24,6 +27,7 @@ class Transaction < ApplicationRecord
   validates :transaction_type, inclusion: { in: %w[credit], message: "de estorno deve ser crédito" }, if: -> { kind == "refund" }
   validate  :installment_fields_consistent
   validate  :occurred_on_not_in_future
+  validate  :reconciled_entry_locked, on: :update
 
   # O formulário do front ainda envia transaction_type "transfer"; sem isto a
   # transferência voltaria a ser somada como receita ou despesa.
@@ -63,6 +67,13 @@ class Transaction < ApplicationRecord
     elsif installment_number > installment_total
       errors.add(:installment_number, "cannot exceed installment_total")
     end
+  end
+
+  def reconciled_entry_locked
+    return unless status_in_database == "conciliado"
+    return if (RECONCILED_LOCKED_FIELDS & changed_attribute_names_to_save).empty?
+
+    errors.add(:base, "Lançamento conciliado: desconcilie antes de alterar valor, data, conta ou tipo")
   end
 
   def occurred_on_not_in_future

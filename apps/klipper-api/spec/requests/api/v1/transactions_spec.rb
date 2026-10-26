@@ -347,6 +347,116 @@ RSpec.describe "Transactions API", type: :request do
     end
   end
 
+  describe "single-leg transfer through the generic endpoint" do
+    it "rejects kind transfer on create without persisting anything" do
+      expect {
+        post "/api/v1/transactions", params: {
+          account_id: account.id, description: "Pix", amount: 50, occurred_on: "2026-06-20",
+          transaction_type: "debit", kind: "transfer"
+        }.to_json, headers: headers
+      }.not_to change(Transaction, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "rejects legacy transaction_type transfer on create" do
+      expect {
+        post "/api/v1/transactions", params: {
+          account_id: account.id, description: "Pix", amount: 50, occurred_on: "2026-06-20",
+          transaction_type: "transfer"
+        }.to_json, headers: headers
+      }.not_to change(Transaction, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "rejects turning a regular entry into a transfer" do
+      txn = create(:transaction, user: user, account: account, category: category)
+
+      patch "/api/v1/transactions/#{txn.id}", params: { kind: "transfer" }.to_json, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(txn.reload.kind).to eq("regular")
+    end
+
+    it "still lets an imported single-leg transfer be edited" do
+      txn = create(:transaction, user: user, account: account, kind: "transfer")
+
+      patch "/api/v1/transactions/#{txn.id}", params: { kind: "transfer", description: "Pix para reserva" }.to_json,
+        headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(txn.reload.description).to eq("Pix para reserva")
+    end
+  end
+
+  describe "reconciled entry lock" do
+    let(:txn) { create(:transaction, user: user, account: account, category: category, amount: 80, status: "conciliado") }
+
+    it "refuses changing the amount" do
+      patch "/api/v1/transactions/#{txn.id}", params: { amount: "90" }.to_json, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(json_response[:errors].first).to include("desconcilie")
+      expect(txn.reload.amount).to eq(80)
+    end
+
+    it "refuses unreconciling and changing the amount in the same request" do
+      patch "/api/v1/transactions/#{txn.id}", params: { status: "efetivado", amount: "90" }.to_json, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(txn.reload).to have_attributes(amount: 80, status: "conciliado")
+    end
+
+    it "allows description changes and an unchanged amount" do
+      patch "/api/v1/transactions/#{txn.id}", params: { amount: "80.00", description: "Mercado do mês" }.to_json,
+        headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(txn.reload.description).to eq("Mercado do mês")
+    end
+
+    it "unreconciles as an audited step, after which the amount can change" do
+      expect {
+        patch "/api/v1/transactions/#{txn.id}", params: { status: "efetivado" }.to_json, headers: headers
+      }.to change { AuditLog.where(event_type: "TRANSACTION_UNRECONCILED").count }.by(1)
+
+      patch "/api/v1/transactions/#{txn.id}", params: { amount: "90" }.to_json, headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(txn.reload.amount).to eq(90)
+    end
+
+    it "refuses deletion" do
+      delete "/api/v1/transactions/#{txn.id}", headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(txn.reload.deleted_at).to be_nil
+    end
+
+    it "refuses deleting a transfer whose other leg is reconciled" do
+      destination = create(:account, user: user)
+      pair = TransferService.new(user, source_account: account, destination_account: destination,
+        amount: 50, occurred_on: Date.new(2026, 6, 20), description: "Reserva").create
+      pair.credit.update!(status: "conciliado")
+
+      delete "/api/v1/transactions/#{pair.debit.id}", headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(user.transactions.kept.count).to eq(2)
+    end
+
+    it "refuses changing the amount of a reconciled transfer" do
+      destination = create(:account, user: user)
+      pair = TransferService.new(user, source_account: account, destination_account: destination,
+        amount: 50, occurred_on: Date.new(2026, 6, 20), description: "Reserva", status: "conciliado").create
+
+      patch "/api/v1/transactions/#{pair.debit.id}", params: { amount: "30" }.to_json, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(pair.credit.reload.amount).to eq(50)
+    end
+  end
+
   describe "transfer pair integrity" do
     let(:destination) { create(:account, user: user) }
     let!(:pair) do

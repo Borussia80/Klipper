@@ -169,8 +169,10 @@ async function submit() {
   try {
     await updateTransaction(props.transaction.id, buildPayload())
     emit('close')
-  } catch {
-    addToast('Erro ao salvar. Tente novamente.', 'alert')
+  } catch (e: unknown) {
+    const details = e as { data?: { errors?: string[] } }
+    const backendMessage = details.data?.errors?.[0]
+    addToast(backendMessage ?? 'Erro ao salvar. Tente novamente.', 'alert')
   } finally {
     isLoading.value = false
   }

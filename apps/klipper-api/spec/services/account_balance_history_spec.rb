@@ -13,6 +13,6 @@ RSpec.describe AccountBalanceHistory do
 
     expect(result[:opening_balance]).to eq(100)
     expect(result[:closing_balance]).to eq(130)
-    expect(result[:entries].map { |entry| entry[:balance] }).to eq([80, 130])
+    expect(result[:entries].map { |entry| entry[:balance] }).to eq([ 80, 130 ])
   end
 end
