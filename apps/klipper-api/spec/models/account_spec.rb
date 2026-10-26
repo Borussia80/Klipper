@@ -62,4 +62,13 @@ RSpec.describe Account, type: :model do
         .not_to change(account, :saldo_atualizado_em)
     end
   end
+
+  describe "#current_balance" do
+    it "uses the legacy balance as the opening balance for a new account" do
+      account = create(:account, balance: 250)
+
+      expect(account.opening_balance).to eq(250)
+      expect(account.current_balance).to eq(250)
+    end
+  end
 end

@@ -118,7 +118,7 @@ module Api
 
         render json: {
           **totals,
-          accounts:            accounts.map { |a| { id: a.id, name: a.name, balance: a.balance.to_f } },
+          accounts:            accounts.map { |a| { id: a.id, name: a.name, balance: a.current_balance.to_f } },
           investments_by_type: by_type
         }
       end

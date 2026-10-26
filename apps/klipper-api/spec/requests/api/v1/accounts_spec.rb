@@ -59,6 +59,20 @@ RSpec.describe "Accounts API", type: :request do
     end
   end
 
+  describe "GET /api/v1/accounts/:id/balance-history" do
+    it "returns calculated balance and excludes planned transactions" do
+      account = create(:account, user: user, opening_balance: 100, opening_balance_on: "2026-10-01")
+      create(:transaction, user: user, account: account, amount: 25, transaction_type: "debit", occurred_on: "2026-10-02")
+      create(:transaction, user: user, account: account, amount: 99, status: "previsto", occurred_on: "2026-10-03")
+
+      get "/api/v1/accounts/#{account.id}/balance-history?from=2026-10-01&to=2026-10-03", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response[:closing_balance].to_d).to eq(75)
+      expect(json_response[:entries].length).to eq(1)
+    end
+  end
+
   describe "PATCH /api/v1/accounts/:id" do
     let(:account) { create(:account, user: user, name: "Old Name") }
 

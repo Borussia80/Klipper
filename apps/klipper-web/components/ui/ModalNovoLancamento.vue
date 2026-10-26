@@ -42,6 +42,18 @@
       aria-label="Descrição do lançamento"
     />
 
+    <div style="margin-bottom:16px">
+      <p class="flbl">Situação</p>
+      <div class="select-wrap">
+        <select v-model="status" class="field select" aria-label="Situação do lançamento">
+          <option value="efetivado">Efetivado</option>
+          <option value="previsto">Previsto — não altera o saldo</option>
+          <option value="conciliado">Conciliado</option>
+        </select>
+        <span class="select-arrow">▾</span>
+      </div>
+    </div>
+
     <!-- Detalhes: categoria + conta + data -->
     <div class="gh" style="padding-top:6px">
       <span class="gl">Detalhes</span>
@@ -59,6 +71,17 @@
           <select v-model="categoria" class="field select" aria-label="Categoria do lançamento">
             <option :value="null">Sem categoria</option>
             <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+      </div>
+
+      <div v-if="tipo === 'transferencia'">
+        <p class="flbl">Conta de destino</p>
+        <div class="select-wrap">
+          <select v-model="contaDestino" class="field select" aria-label="Conta de destino">
+            <option :value="null">Selecionar destino</option>
+            <option v-for="acc in accounts.filter((acc) => acc.id !== conta)" :key="acc.id" :value="acc.id">{{ acc.name }}</option>
           </select>
           <span class="select-arrow">▾</span>
         </div>
@@ -125,9 +148,10 @@ const emit = defineEmits(['close'])
 
 const { addToast } = useToast()
 const { createTransaction } = useTransactions()
+const { createTransfer } = useTransfers()
 const {
   accounts, categories, members, isLoadingData, tipoOpcoes,
-  tipo, valor, descricao, categoria, conta, portador, data, error,
+  tipo, valor, descricao, categoria, conta, contaDestino, portador, status, data, error,
   validate, isValid, buildPayload,
 } = useLancamentoForm()
 
@@ -145,11 +169,21 @@ async function submit() {
 
   isLoading.value = true
   try {
-    await createTransaction(buildPayload())
+    const payload = buildPayload()
+    if (tipo.value === 'transferencia') {
+      await createTransfer({
+        source_account_id: conta.value!,
+        destination_account_id: contaDestino.value!,
+        amount: payload.amount!, occurred_on: payload.occurred_on!, description: payload.description!,
+      })
+    } else {
+      await createTransaction(payload)
+    }
     emit('close')
     valor.value = ''
     descricao.value = ''
     conta.value = null
+    contaDestino.value = null
     categoria.value = null
     portador.value = null
   } catch {

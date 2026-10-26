@@ -298,10 +298,88 @@ RSpec.describe "Transactions API", type: :request do
   describe "DELETE /api/v1/transactions/:id" do
     let(:txn) { create(:transaction, user: user, account: account, category: category) }
 
-    it "destroys the transaction" do
+    it "soft-deletes the transaction and permits restoration" do
       delete "/api/v1/transactions/#{txn.id}", headers: headers
       expect(response).to have_http_status(:no_content)
-      expect { txn.reload }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(txn.reload.deleted_at).to be_present
+
+      post "/api/v1/transactions/#{txn.id}/restore", headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(txn.reload.deleted_at).to be_nil
+    end
+  end
+
+  describe "D1 fields" do
+    it "accepts kind and status and filters them" do
+      transaction = create(:transaction, user: user, account: account, category: category,
+        kind: "adjustment", status: "conciliado")
+
+      get "/api/v1/transactions?kind=adjustment&status=conciliado", headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response.map { |row| row[:id] }).to include(transaction.id)
+    end
+  end
+
+  describe "POST /api/v1/transfers" do
+    let(:destination) { create(:account, user: user) }
+
+    it "creates a linked debit and credit and never reports them as income or expense" do
+      post "/api/v1/transfers", params: {
+        source_account_id: account.id, destination_account_id: destination.id,
+        amount: 50, occurred_on: "2026-06-20", description: "Reserva"
+      }.to_json, headers: headers
+
+      expect(response).to have_http_status(:created)
+      expect(json_response[:debit][:transfer_pair_id]).to eq(json_response[:credit][:transfer_pair_id])
+      expect(user.transactions.countable).to be_empty
+    end
+
+    it "rejects identical accounts without a partial ledger entry" do
+      expect {
+        post "/api/v1/transfers", params: {
+          source_account_id: account.id, destination_account_id: account.id,
+          amount: 50, occurred_on: "2026-06-20", description: "Erro"
+        }.to_json, headers: headers
+      }.not_to change(Transaction, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  describe "transfer pair integrity" do
+    let(:destination) { create(:account, user: user) }
+    let!(:pair) do
+      TransferService.new(user, source_account: account, destination_account: destination,
+        amount: 50, occurred_on: Date.new(2026, 6, 20), description: "Reserva").create
+    end
+
+    it "edits both legs when one leg goes through the generic endpoint, keeping it a transfer" do
+      patch "/api/v1/transactions/#{pair.debit.id}", params: {
+        amount: "30", description: "Reserva mensal", kind: "regular", transaction_type: "debit"
+      }.to_json, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(pair.debit.reload).to have_attributes(amount: 30, kind: "transfer", description: "Reserva mensal")
+      expect(pair.credit.reload).to have_attributes(amount: 30, kind: "transfer", description: "Reserva mensal")
+      expect(user.transactions.countable).to be_empty
+    end
+
+    it "edits both legs through PATCH /api/v1/transfers/:id" do
+      patch "/api/v1/transfers/#{pair.credit.id}", params: { amount: "20" }.to_json, headers: headers
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response[:debit][:amount].to_d).to eq(20)
+      expect(json_response[:credit][:amount].to_d).to eq(20)
+    end
+
+    it "deletes and restores both legs together" do
+      delete "/api/v1/transactions/#{pair.debit.id}", headers: headers
+      expect(user.transactions.kept).to be_empty
+
+      post "/api/v1/transactions/#{pair.debit.id}/restore", headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(user.transactions.kept.pluck(:id)).to contain_exactly(pair.debit.id, pair.credit.id)
     end
   end
 

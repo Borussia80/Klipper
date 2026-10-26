@@ -32,13 +32,27 @@ class Transaction < ApplicationRecord
   scope :debits,   -> { where(transaction_type: "debit") }
   scope :credits,  -> { where(transaction_type: "credit") }
   scope :in_month, ->(year, month) { where(occurred_on: Date.new(year, month).all_month) }
+  scope :kept, -> { where(deleted_at: nil) }
+  scope :booked, -> { where.not(status: "previsto") }
 
   # Única definição do que entra em receita e despesa (spec 03, L-3 a L-6).
   # Todo calculator parte destes scopes; nenhum filtra transaction_type sozinho.
-  scope :countable,       -> { where(kind: COUNTABLE_KINDS).where.not(status: "previsto") }
+  scope :countable,       -> { kept.booked.where(kind: COUNTABLE_KINDS) }
   scope :income_entries,  -> { countable.where(kind: "regular", transaction_type: "credit") }
   scope :expense_entries, -> { countable.where(kind: "regular", transaction_type: "debit") }
   scope :refund_entries,  -> { countable.where(kind: "refund") }
+
+  def ledger_delta
+    transaction_type == "credit" ? amount : -amount
+  end
+
+  def debit?
+    transaction_type == "debit"
+  end
+
+  def credit?
+    transaction_type == "credit"
+  end
 
   private
 

@@ -41,6 +41,19 @@
       />
     </div>
 
+    <div style="margin-bottom:24px">
+      <label class="flbl">Saldo inicial</label>
+      <input
+        v-model="saldoInicial"
+        type="text"
+        inputmode="decimal"
+        placeholder="0,00"
+        class="fi"
+        aria-label="Saldo inicial da conta"
+      />
+      <p style="color:var(--t3);font-size:11px;margin:-8px 0 0">Usaremos este valor como ponto de partida do histórico.</p>
+    </div>
+
     <div
       v-if="error"
       style="font-size:12px;color:var(--alert);margin-bottom:10px;padding:8px 12px;background:var(--ald);border-radius:var(--r)"
@@ -85,12 +98,14 @@ watch(() => props.open, (aberto: boolean) => {
   if (aberto) tipo.value = props.presetTipo ?? 'corrente'
 })
 const identificador = ref('')
+const saldoInicial = ref('')
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
 function validate(): string | null {
   if (!instituicao.value.trim()) return 'Informe o nome da instituição'
   if (!identificador.value.trim()) return 'Informe um identificador para a conta'
+  if (saldoInicial.value && !Number.isFinite(Number(saldoInicial.value.replace('.', '').replace(',', '.')))) return 'Informe um saldo inicial válido'
   return null
 }
 
@@ -107,9 +122,12 @@ async function submit() {
       institution: instituicao.value.trim(),
       account_type: ACCOUNT_TYPE_MAP[tipo.value] ?? 'checking',
       currency: 'BRL',
+      opening_balance: saldoInicial.value ? saldoInicial.value.replace('.', '').replace(',', '.') : '0',
+      opening_balance_on: todayISO(),
     })
     instituicao.value = ''
     identificador.value = ''
+    saldoInicial.value = ''
     tipo.value = 'corrente'
     emit('close')
   } catch {

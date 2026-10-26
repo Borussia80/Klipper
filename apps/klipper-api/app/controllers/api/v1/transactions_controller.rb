@@ -4,14 +4,16 @@ module Api
       PER_PAGE_DEFAULT = 50
       PER_PAGE_MAX = 200
 
-      before_action :set_transaction, only: %i[show update destroy]
+      before_action :set_transaction, only: %i[show update destroy restore]
 
       def index
-        txns = current_user.transactions.includes(:account, :category)
+        txns = current_user.transactions.kept.includes(:account, :category)
         txns = txns.in_month(params[:year].to_i, params[:month].to_i) if params[:year] && params[:month]
         txns = txns.where(account_id: params[:account_id]) if params[:account_id]
         txns = txns.where(member_id: params[:member_id]) if params[:member_id]
         txns = txns.where(transaction_type: params[:type]) if params[:type]
+        txns = txns.where(kind: params[:kind]) if params[:kind]
+        txns = txns.where(status: params[:status]) if params[:status]
         return unless valid_cursor?
 
         render json: paginate_by_cursor(txns.order(occurred_on: :desc, id: :desc))
@@ -68,6 +70,7 @@ module Api
         unless valid_transaction_fks?
           return render json: { errors: [ "Conta, categoria ou portador inválido" ] }, status: :unprocessable_entity
         end
+        return update_transfer_pair if @transaction.transfer_pair_id.present?
 
         if @transaction.update(transaction_params)
           render json: @transaction
@@ -77,11 +80,26 @@ module Api
       end
 
       def destroy
-        @transaction.destroy!
+        TransferService.soft_delete(@transaction)
         head :no_content
       end
 
+      def restore
+        TransferService.restore(@transaction)
+        render json: @transaction.reload
+      end
+
       private
+
+      # Uma ponta de transferência editada sozinha desfaz o par (L-8): o valor
+      # sai de uma conta e não chega na outra. Só valor, data, descrição e
+      # situação mudam, e mudam nas duas; tipo, conta e kind são ignorados.
+      def update_transfer_pair
+        TransferService.update(@transaction, params.permit(:amount, :description, :occurred_on, :status).to_h.symbolize_keys)
+        render json: @transaction.reload
+      rescue TransferService::InvalidTransfer, ActiveRecord::RecordInvalid => error
+        render json: { errors: [ error.message ] }, status: :unprocessable_entity
+      end
 
       # O cursor carrega a última chave da ordenação (data + id). Assim, novos
       # lançamentos não deslocam a próxima página nem fazem um registro repetir.
@@ -131,7 +149,7 @@ module Api
 
       def transaction_params
         params.permit(:account_id, :category_id, :member_id, :description, :amount,
-          :transaction_type, :occurred_on, :notes, :installment_total, :installment_number)
+          :transaction_type, :kind, :status, :occurred_on, :notes, :installment_total, :installment_number)
       end
 
 

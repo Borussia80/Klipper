@@ -224,7 +224,7 @@ function confirmDeleteBulk() {
     title: `Excluir ${count} lançamentos`,
     resourceType: 'lançamentos selecionados',
     itemName: `${count} transações em lote`,
-    description: 'Todas as transações selecionadas serão excluídas permanentemente.',
+    description: 'Todas as transações selecionadas serão excluídas.',
     onConfirm: deleteBulkSelected,
   })
 }

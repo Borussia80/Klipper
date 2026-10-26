@@ -62,6 +62,9 @@ function makeTx(overrides: Partial<{
   notes: string | null
   installment_total: number | null
   installment_number: number | null
+  kind: string
+  status: string
+  transfer_pair_id: string | null
 }> = {}) {
   return {
     id: 1,
@@ -74,6 +77,8 @@ function makeTx(overrides: Partial<{
     notes: null,
     installment_total: null,
     installment_number: null,
+    kind: 'regular',
+    status: 'efetivado',
     ...overrides,
   }
 }
@@ -356,7 +361,28 @@ describe('useTransactions', () => {
       await fetchTransactions()
       await deleteTransaction(1)
 
-      expect(mockAddToast).toHaveBeenCalledWith('Lançamento removido', 'ok')
+      expect(mockAddToast).toHaveBeenCalledWith('Lançamento removido', 'ok', 6000, expect.objectContaining({ label: 'Desfazer' }))
+    })
+
+    it('removes both transfer legs and restores both through the toast action without duplicates', async () => {
+      const legA = makeTx({ id: 10, transaction_type: 'transfer', kind: 'transfer', transfer_pair_id: 'pair-1' })
+      const legB = makeTx({ id: 11, transaction_type: 'transfer', kind: 'transfer', transfer_pair_id: 'pair-1' })
+      mockApiFetch.mockResolvedValueOnce([legA, legB, makeTx({ id: 12, description: 'Keep' })])
+      mockApiFetch.mockResolvedValueOnce(undefined)
+      mockApiFetch.mockResolvedValueOnce(legA)
+
+      const { transactions, fetchTransactions, deleteTransaction } = useTransactions()
+      await fetchTransactions()
+      await deleteTransaction(10)
+
+      expect(transactions.value.map((row) => row.id)).toEqual([12])
+      const action = mockAddToast.mock.calls[0][3] as { onClick: () => Promise<unknown> }
+      await action.onClick()
+
+      expect(mockApiFetch).toHaveBeenCalledWith('/api/v1/transactions/10/restore', { method: 'POST' })
+      expect(transactions.value.map((row) => row.id).sort()).toEqual([10, 11, 12])
+      expect(transactions.value.filter((row) => row.id === 10)).toHaveLength(1)
+      expect(transactions.value.filter((row) => row.id === 11)).toHaveLength(1)
     })
   })
 })
