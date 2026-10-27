@@ -1,0 +1,202 @@
+{
+  "schema_version": "1.0.0",
+  "meta": {
+    "date": "2026-10-27T16:25:42.944Z",
+    "trigger": "workflow_run",
+    "depth": "fast",
+    "branch": "main",
+    "commit": "842c4f6dfec8618b23cd2843d4bc173f763b290f",
+    "missing_agents": [
+      "architecture"
+    ]
+  },
+  "overall_score": 73,
+  "sections": [
+    {
+      "agent": "finance",
+      "name": "Domínio financeiro",
+      "score": 62,
+      "risk": "medium"
+    },
+    {
+      "agent": "security",
+      "name": "Segurança",
+      "score": 84,
+      "risk": "low"
+    }
+  ],
+  "findings": [
+    {
+      "natural_key": "instrument-readout-mislabeled-budget-ratio",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-web/components/ui/InstrumentReadout.vue:62 — `<span class=\"mono\">{{ Math.round((spentRatio ?? 0) * 100) }}% da renda</span>` continua com o texto '% da renda' hardcoded no template. apps/klipper-web/pages/orcamento.vue:35 usa o mesmo componente com `:spent-ratio=\"spentRatio\"`, onde `spentRatio` (orcamento.vue:134) vem de `budgetSpentRatio(totalSpent.value, totalAllocated.value)` — uma razão de orçamento (gasto/alocado), não de renda.",
+      "description": "InstrumentReadout tem o rótulo fixo '% da renda' hardcoded no template, então orcamento.vue (que mede proporção do orçamento gasto, não renda) exibe um rótulo semanticamente errado para a métrica que de fato calcula — a matemática está certa, a leitura é ambígua.",
+      "recommendation": "Tornar o rótulo da razão ('% da renda' / '% do orçamento') prop do InstrumentReadout, com cada página passando o texto correspondente ao que a razão de fato mede.",
+      "impact": 4,
+      "frequency": 6,
+      "reach": 5,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 60,
+      "id": "FIN-001",
+      "adr": null
+    },
+    {
+      "natural_key": "transaction-import-provenance-missing",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/db/schema.rb:144 — a tabela transactions tem apenas a coluna dedupe_hash (usada só para rejeitar duplicata no momento do import, em bank_import/dedupe_hash.rb); não há import_batch_id, source_filename nem qualquer FK/coluna que aponte de volta para o arquivo/lote de origem. apps/klipper-web/pages/transacoes.vue não expõe nenhum campo de proveniência (grep por 'origem'/'lote'/'arquivo' na tela não retorna nada ligado a uma transação individual).",
+      "description": "Uma transação importada via CSV/PDF não pode ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído, quebrando o requisito de rastreabilidade do domínio financeiro.",
+      "recommendation": "Persistir uma referência de origem (import_batch_id, ou nome do arquivo + checksum já calculado em AuditLog) na transação no momento da escrita (BankImport::TransactionWriter#write!), e expor essa proveniência em transacoes.vue.",
+      "impact": 5,
+      "frequency": 4,
+      "reach": 6,
+      "effort": 4,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 30,
+      "id": "FIN-008",
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-005.md"
+    },
+    {
+      "natural_key": "btg-extrato-debit-sign-assumption-untested",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/pdf_adapters/btg_extrato_adapter.rb:15-19 — comentário no próprio arquivo: 'Confirmado apenas contra 1 relatório real com 5 lançamentos, todos RENDIMENTOS (crédito). Sem exemplo real de débito nessa conta corrente — assume-se que a coluna Movimentação R$ já usa o sinal correto na origem [...] sem precisar de inversão como nas faturas de cartão.' apps/klipper-api/spec/services/pdf_adapters/btg_extrato_adapter_spec.rb existe mas, consistente com o comentário, não há caso de teste travando o sinal de um débito real.",
+      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição documentada como não verificada contra nenhum débito real, e nenhum teste trava esse sinal — dado de patrimônio de importações BTG segue com risco não coberto de inversão silenciosa de sinal caso a suposição esteja errada.",
+      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado (já está no próprio arquivo), não silenciar.",
+      "impact": 7,
+      "frequency": 2,
+      "reach": 4,
+      "effort": 3,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 18.67,
+      "id": "FIN-005",
+      "adr": null
+    },
+    {
+      "natural_key": "web-apps-outdated-dev-transient-deps",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "npm audit --json em apps/klipper-web e apps/quebec-web (ambos resolvem nuxt 3.21.11, package-lock.json convergiram — SEC-001 confirmado resolvido): 3 advisories moderate em nuxt/@nuxt/nitro-server/@nuxt/vite-builder (GHSA-vjh5-4x84-xrqp — route rules case-insensitive bypass; GHSA-xfq5-w38q-pc2x — useHeadSafe sem sanitização em server islands; GHSA-jjm6-p2m9-9w4x — fix incompleto de javascript: URL em NuxtLink) e 1 low em esbuild (GHSA-g7r4-m6w7-qqqr). Nenhuma rota usa `routeRules` (grep vazio em apps/klipper-web/nuxt.config.ts e apps/quebec-web/nuxt.config.ts), nenhum uso de <NuxtIsland>/component-island (grep vazio), e `pages` não está desabilitado em nenhum dos dois — então as três condições de exploração das advisories de nuxt não estão presentes no código atual. .github/scripts/audit-gate.mjs:12 só bloqueia severity high/critical, então essas 4 advisories moderate/low seguem passando o CI indefinidamente sem rastreamento formal (mesmo padrão de SEC-003 original, agora com pacotes diferentes).",
+      "description": "Ambos os frontends (klipper-web e quebec-web) carregam nuxt 3.21.11 com 3 advisories moderate e 1 low que o portão de CI (audit-gate.mjs, só bloqueia high/critical) nunca vai pegar, e as condições de exploração (routeRules, server islands, pages desabilitado) não estão presentes no código hoje, mas o código vulnerável continua embarcado.",
+      "recommendation": "Atualizar nuxt para a versão que resolve GHSA-vjh5/GHSA-xfq5/GHSA-jjm6 (checar release notes do Nuxt para a versão corrigida da linha 3.21.x ou considerar o bump para 4.x) e a transitiva de esbuild; se a correção não estiver disponível ainda, documentar a exceção em EXCECOES de audit-gate.mjs com o motivo e a data de revisão, em vez de deixar as advisories passarem silenciosamente.",
+      "impact": 2,
+      "frequency": 3,
+      "reach": 3,
+      "effort": 1,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 18,
+      "id": "SEC-003",
+      "adr": null
+    },
+    {
+      "natural_key": "auth-gate-decode-failure-no-request-spec",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/spec/services/jwt_service_spec.rb:55-69 cobre JwtService.decode retornando nil para token malformado, assinatura inválida e token expirado — mas apenas no nível de unidade. apps/klipper-api/spec/requests/api/v1/authentication_spec.rb só exercita, via HTTP, um access token válido, um refresh token usado como bearer, um token sem token_type e um token com token_type desconhecido (linhas 9-47) — nenhum caso envia um token malformado/adulterado/expirado diretamente a uma rota protegida para confirmar o 401 fim-a-fim em BaseController#authenticate_request! (base_controller.rb:8-23).",
+      "description": "O caminho de decode-failure do JWT (token malformado, assinatura inválida, expirado) é testado isoladamente em JwtService mas nunca exercitado via request spec contra uma rota protegida real, deixando o comportamento fim-a-fim do portão de autenticação sem cobertura direta para esse cenário específico.",
+      "recommendation": "Adicionar a authentication_spec.rb um caso que envie um token adulterado (assinatura trocada) e outro expirado (via `travel`) como Bearer contra uma rota protegida, confirmando 401, para cobrir o mesmo caminho que ARCH-001 já fechou no nível de unidade também no nível de integração.",
+      "impact": 2,
+      "frequency": 2,
+      "reach": 3,
+      "effort": 1,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 12,
+      "id": "SEC-007",
+      "adr": null
+    },
+    {
+      "natural_key": "password-reset-redemption-endpoint-unthrottled",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/config/initializers/rack_attack.rb:3-5 — a throttle `auth/ip` só casa `req.post?` contra a lista literal `[/api/v1/auth/sign_in, /api/v1/auth/sign_up, /api/v1/password_resets]`; o endpoint de redenção é `patch \"password_resets/:token\"` (config/routes.rb:10), método PATCH e path com sufixo `:token`, então nunca bate na condição da throttle (nem o verbo nem o path batem). Nenhuma outra regra em rack_attack.rb cobre PATCH /api/v1/password_resets/*.",
+      "description": "O endpoint PATCH /api/v1/password_resets/:token (redenção do token de reset) continua fora de qualquer regra de throttle do Rack::Attack, permitindo tentativas ilimitadas de adivinhar/forçar um token de reset por IP.",
+      "recommendation": "Adicionar uma regra dedicada em rack_attack.rb, por IP, para `req.patch? && req.path.start_with?(\"/api/v1/password_resets/\")`, espelhando o limite já usado em `auth/ip`.",
+      "impact": 3,
+      "frequency": 2,
+      "reach": 2,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 6,
+      "id": "SEC-005",
+      "adr": null
+    },
+    {
+      "natural_key": "budget-engine-pct-used-zero-vs-nil-inconsistency",
+      "category": "finance",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/budget_engine.rb:16 — `pct = budget.amount_limit.positive? ? (spent / budget.amount_limit * 100).round(1) : 0.0` usa 0.0 para 'sem base de cálculo', divergindo da convenção nil já adotada em PortfolioService#allocation (app/services/portfolio_service.rb:22, comentário explícito citando FIN-007) e ReimbursementCoverageCalculator#call (app/services/reimbursement_coverage_calculator.rb:57, comentário citando FIN-009) para o mesmo tipo de razão sem denominador válido.",
+      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada por dois outros calculadores de proporção financeira do mesmo domínio; o caminho é inalcançável via fluxo normal do app (validação de Budget impede amount_limit <= 0), mas dado legado ou edição direta no banco ainda produziria um card de orçamento mostrando '0% usado' em vez de sinalizar ausência de limite.",
+      "recommendation": "Alinhar BudgetEngine#summary à mesma convenção nil já usada por PortfolioService e ReimbursementCoverageCalculator para razão sem base válida, e ajustar orcamento.vue/UiBudgetCategoryCard para tratar pct_used nulo como estado distinto de 0%.",
+      "impact": 3,
+      "frequency": 1,
+      "reach": 3,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 4.5,
+      "id": "FIN-010",
+      "adr": null
+    },
+    {
+      "natural_key": "spa-access-token-cookie-js-readable",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-web/composables/useApi.ts:18-22 — `useCookie('klipper_token', { sameSite: 'lax', secure: cookieSecure, maxAge: 900 })`, sem httpOnly (useCookie do Nuxt não suporta httpOnly no client, o token fica legível por qualquer script no documento). docs/adrs/proposed/ADR-2026-09-17-003.md segue com `status: proposed`, decisão ainda não formalizada. Mitigação permanece em vigor: apps/klipper-web/server/middleware/csp.ts:29-31 aplica `script-src 'self' 'nonce-<random>'` em produção (sem 'unsafe-inline'), reduzindo a superfície de XSS que exploraria esse cookie.",
+      "description": "O access token da SPA continua exposto a JavaScript via cookie não-httpOnly, e a decisão arquitetural (ADR-2026-09-17-003) de aceitar formalmente esse risco ou migrar para httpOnly+CSRF segue sem resolução.",
+      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003: mover para `accepted` documentando a mitigação via CSP com nonce, ou implementar a migração para cookie HttpOnly + CSRF token se o apetite de risco mudar.",
+      "impact": 4,
+      "frequency": 1,
+      "reach": 2,
+      "effort": 4,
+      "adr_candidate": true,
+      "agent": "security",
+      "priority_score": 2,
+      "id": "SEC-006",
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-003.md"
+    }
+  ],
+  "possible_regressions": [],
+  "trend": {
+    "overall_score": 17.67,
+    "sections": [
+      {
+        "agent": "finance",
+        "delta": 56
+      },
+      {
+        "agent": "security",
+        "delta": 0
+      }
+    ],
+    "baseline": {
+      "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+      "branch": "main",
+      "date": "2026-09-18T13:03:39.167Z",
+      "note": null
+    }
+  }
+}
