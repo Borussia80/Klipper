@@ -63,6 +63,14 @@ describe('sumCheckingBalance', () => {
     const accounts = [makeAccount({ account_type: 'credit_card', balance: '-500.00' })]
     expect(sumCheckingBalance(accounts)).toBe(0)
   })
+
+  it('ignores an account without balance yet (opening date in the future)', () => {
+    const accounts = [
+      makeAccount({ id: 1, balance: '1500.50' }),
+      makeAccount({ id: 2, balance: null }),
+    ]
+    expect(sumCheckingBalance(accounts)).toBeCloseTo(1500.5)
+  })
 })
 
 describe('sumDebtCharges', () => {

@@ -3,7 +3,8 @@ export interface Account {
   name: string
   institution: string | null
   account_type: string
-  balance: string
+  // null antes de opening_balance_on: a conta ainda não existia (spec 02, C-4a)
+  balance: string | null
   opening_balance?: string
   opening_balance_on?: string
   currency: string
@@ -84,7 +85,7 @@ export function useAccounts() {
   }
 
   const totalBalance = computed(() =>
-    accounts.value.reduce((sum, a) => sum + parseFloat(a.balance), 0)
+    accounts.value.reduce((sum, a) => sum + (a.balance === null ? 0 : parseFloat(a.balance)), 0)
   )
 
   return { accounts, isLoading, error, fetchAccounts, createAccount, updateAccount, deleteAccount, fetchBalanceHistory, totalBalance }

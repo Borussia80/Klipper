@@ -61,7 +61,7 @@ module Api
 
       def account_json(account)
         account.as_json.merge(
-          "balance" => account.current_balance.to_s("F"),
+          "balance" => account.current_balance&.to_s("F"),
           "opening_balance" => account.opening_balance.to_s("F"),
           "opening_balance_on" => account.opening_balance_on
         )

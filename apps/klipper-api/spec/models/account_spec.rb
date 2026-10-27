@@ -71,4 +71,13 @@ RSpec.describe Account, type: :model do
       expect(account.current_balance).to eq(250)
     end
   end
+
+  describe "#balance_at" do
+    it "returns nil before the opening balance date (C-4a)" do
+      account = create(:account, opening_balance: 500, opening_balance_on: Date.new(2026, 10, 10))
+
+      expect(account.balance_at(Date.new(2026, 10, 9))).to be_nil
+      expect(account.balance_at(Date.new(2026, 10, 10))).to eq(500)
+    end
+  end
 end

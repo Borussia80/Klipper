@@ -18,7 +18,7 @@ class AccountBalanceHistory
   private
 
   def opening_balance
-    @opening_balance ||= @account.balance_at(@from - 1.day)
+    @opening_balance ||= @account.balance_at(@from - 1.day) || @account.opening_balance
   end
 
   def transactions

@@ -22,6 +22,8 @@ class Account < ApplicationRecord
   scope :with_debt_data, -> { where.not(saldo_fatura_atual: nil).where.not(juros_rotativo_am: nil) }
 
   def balance_at(date)
+    return nil if date < opening_balance_on
+
     movements = transactions.booked.kept.where("occurred_on <= ?", date).sum(&:ledger_delta)
     opening_balance + movements
   end

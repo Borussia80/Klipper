@@ -11,7 +11,7 @@ class NetWorthSnapshotService
   # faria a assinatura prometer "patrimônio em X" que o método não entrega — a
   # mesma classe de divergência silenciosa que a extração existe para eliminar.
   def self.compute(user)
-    accounts_total = user.accounts.active.sum { |account| account.current_balance }.to_f.round(2)
+    accounts_total = user.accounts.active.filter_map(&:current_balance).sum.to_f.round(2)
     investments_cost = user.investments.sum(Investment.signed_cost_sql).to_f.round(2)
 
     {
