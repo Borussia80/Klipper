@@ -14,16 +14,9 @@ const BLOQUEIA = new Set(['high', 'critical']);
 
 // Revisar a cada atualização do nuxt: quando sair versão corrigida, o aviso
 // some do audit e a exceção passa a falhar como não usada.
-export const EXCECOES = {
-  // braces <=3.0.3 (última publicada é 3.0.3). DoS por padrão glob aninhado;
-  // entra via nitropack → globby → micromatch, só no build, com padrões do
-  // próprio repo — nenhuma entrada de usuário chega até ele.
-  'GHSA-vfj7-8cjw-p6xm': 'braces sem versão corrigida; só no build',
-  // node-forge <=1.4.0 (última publicada é 1.4.0). Falha na verificação de
-  // assinatura RSA; entra via @nuxt/cli → listhen, que só gera o certificado
-  // do servidor de desenvolvimento. O SPA publicado não carrega o node-forge.
-  'GHSA-86w9-cpqp-85rv': 'node-forge sem versão corrigida; só no dev server',
-};
+// Vazia desde 2026-10-27: braces (GHSA-vfj7-8cjw-p6xm) saiu do audit e
+// node-forge (GHSA-86w9-cpqp-85rv) ganhou versão corrigida.
+export const EXCECOES = {};
 
 export function avaliar(audit, excecoes = EXCECOES) {
   const vistos = new Set();
