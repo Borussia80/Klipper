@@ -92,3 +92,41 @@ comportamento do Firefly e do Data Importer (sem teste nos próprios projetos e 
 como oráculo (exige instalá-lo em ambiente isolado).
 
 **Exposição:** esta sessão leu código GPL/AGPL; ver a tabela "Quem implementa" no `05-plano-implementacao.md`.
+
+## Sessão 3 — 2026-10-20 a 2026-10-25 (implementação do alfa D1–D3)
+
+Proveniência do código do alfa (saldo derivado, transferência em duas pontas, exclusão restaurável), commitado em
+`1bbf81e` e ajustado em `8cd999f` no branch `codex/alpha-financial-core`. Apurada em 2026-10-25 pelos registros de
+sessão do Codex (`~/.codex/sessions`), examinando **só os comandos** executados, não as saídas, para não trazer
+material restrito para a sessão que apurou.
+
+**Autor.** Sessão do Codex Desktop `01a15560-3e0b-76c1-ab57-4d9fd5400a77`, aberta em 2026-10-19 15:15 (-03). Era a
+sessão da pesquisa de UX (`docs/ux-research/09-observacao-ao-vivo.md` e `relatorios/`). Criou em 2026-10-20, entre
+17:58 e 18:05, `TransferService`, `AccountBalanceHistory`, `TransfersController`, a migration `20261020010000`,
+`useTransfers`, os testes correspondentes e `docs/alpha/01-operacao-segura.md`.
+
+| Material | Lido antes de escrever o código? | Como |
+|---|---|---|
+| `docs/reports/` (relatórios forense e técnicos) | **Não** | nenhum comando o referencia |
+| Código do Sure (`/tmp/sure` ou outro clone) | **Não** | só baixou `compose.example.yml` e usou o app em execução (caixa-preta) |
+| Código do hledger, Firefly III e Data Importer | **Não** | Firefly III só pela demonstração pública, no navegador |
+| Código do ezBookkeeping (MIT) | **Sim** | clone `--depth 1` em `~/AgentSandbox`; buscas em `pkg/models` e `pkg/core`, inclusive o enum de tipos de lançamento (transferência) e fuso horário |
+| Código do Actual (MIT) | **Sim** | clone `--depth 1`; contrato de importação |
+| Configuração do Ghostfolio (AGPL-3.0) | **Sim** | busca de variáveis `REDIS_` no container, para executá-lo |
+| `05-plano-implementacao.md` e `12-protocolo-de-proveniencia-e-clean-room.md` | Sim | a sessão conhecia a regra de quem implementa |
+
+**Conclusão.** A regra da tabela "Quem implementa" para D2/D3 (não ler o código de Sure ou hledger nem
+`docs/reports/`) **não foi violada**, segundo o exame dos comandos. Não é, porém, um clean room formal no
+sentido do item 5 do protocolo: a sessão não era um contexto novo que recebeu só a especificação, e tinha lido
+código MIT (ezBookkeeping, Actual). Não há indício de cópia; licença MIT exige atribuição só em reuso literal. A
+leitura do Ghostfolio não toca D2/D3; vale o limite já registrado no protocolo.
+
+**Continuação em 2026-10-25.** Uma sessão do Claude Code commitou o alfa (`1bbf81e`, `8cd999f`) e fez, com parte
+delegada a subagentes Codex, só estas mudanças sobre o código da sessão `01a15560`: edição de uma ponta de
+transferência altera as duas; a edição preserva o `kind`; "Desfazer" da exclusão; recusa de transferência de uma
+ponta só no endpoint comum; trava do lançamento conciliado (C-9, L-22). Nenhum deles abriu `docs/reports/`, `*.zip` de pesquisa ou clones
+de terceiros; os briefs proibiam. A sessão do Claude leu trechos de `03-specs/02` e `03`, do plano e de
+`implementation-traceability.md`, e recebeu um panorama dos estudos feito só sobre documentos liberados.
+
+**Limite.** O exame cobriu os comandos registrados, não as saídas; não permite confirmar leituras feitas por outros
+meios, como navegador ou ferramentas sem comando registrado.

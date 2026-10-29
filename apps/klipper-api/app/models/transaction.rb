@@ -14,6 +14,9 @@ class Transaction < ApplicationRecord
   KINDS = %w[regular transfer refund adjustment card_payment].freeze
   COUNTABLE_KINDS = %w[regular refund].freeze
   STATUSES = %w[previsto efetivado conciliado].freeze
+  # Conferido com o banco, o lançamento só muda de valor, data ou conta depois
+  # de desconciliado (spec 02, C-9). Descrição, categoria e notas seguem livres.
+  RECONCILED_LOCKED_FIELDS = %w[amount occurred_on account_id transaction_type kind].freeze
 
   validates :description, presence: true, length: { maximum: 255 }
   validates :amount, numericality: { greater_than: 0 }
@@ -24,6 +27,7 @@ class Transaction < ApplicationRecord
   validates :transaction_type, inclusion: { in: %w[credit], message: "de estorno deve ser crédito" }, if: -> { kind == "refund" }
   validate  :installment_fields_consistent
   validate  :occurred_on_not_in_future
+  validate  :reconciled_entry_locked, on: :update
 
   # O formulário do front ainda envia transaction_type "transfer"; sem isto a
   # transferência voltaria a ser somada como receita ou despesa.
@@ -32,13 +36,27 @@ class Transaction < ApplicationRecord
   scope :debits,   -> { where(transaction_type: "debit") }
   scope :credits,  -> { where(transaction_type: "credit") }
   scope :in_month, ->(year, month) { where(occurred_on: Date.new(year, month).all_month) }
+  scope :kept, -> { where(deleted_at: nil) }
+  scope :booked, -> { where.not(status: "previsto") }
 
   # Única definição do que entra em receita e despesa (spec 03, L-3 a L-6).
   # Todo calculator parte destes scopes; nenhum filtra transaction_type sozinho.
-  scope :countable,       -> { where(kind: COUNTABLE_KINDS).where.not(status: "previsto") }
+  scope :countable,       -> { kept.booked.where(kind: COUNTABLE_KINDS) }
   scope :income_entries,  -> { countable.where(kind: "regular", transaction_type: "credit") }
   scope :expense_entries, -> { countable.where(kind: "regular", transaction_type: "debit") }
   scope :refund_entries,  -> { countable.where(kind: "refund") }
+
+  def ledger_delta
+    transaction_type == "credit" ? amount : -amount
+  end
+
+  def debit?
+    transaction_type == "debit"
+  end
+
+  def credit?
+    transaction_type == "credit"
+  end
 
   private
 
@@ -49,6 +67,13 @@ class Transaction < ApplicationRecord
     elsif installment_number > installment_total
       errors.add(:installment_number, "cannot exceed installment_total")
     end
+  end
+
+  def reconciled_entry_locked
+    return unless status_in_database == "conciliado"
+    return if (RECONCILED_LOCKED_FIELDS & changed_attribute_names_to_save).empty?
+
+    errors.add(:base, "Lançamento conciliado: desconcilie antes de alterar valor, data, conta ou tipo")
   end
 
   def occurred_on_not_in_future

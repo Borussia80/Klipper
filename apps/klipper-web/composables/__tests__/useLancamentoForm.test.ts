@@ -140,6 +140,8 @@ describe('buildPayload', () => {
       description: 'Supermercado',
       amount: '1234.56',
       transaction_type: 'debit',
+      kind: 'regular',
+      status: 'efetivado',
       occurred_on: isoDaysFromToday(0),
     })
   })
@@ -179,6 +181,13 @@ describe('buildPayload', () => {
 
     form.fillFrom(makeTransaction({ member_id: 9 }))
     expect(form.portador.value).toBe(9)
+  })
+
+  it('preserves the transaction kind when editing a refund', async () => {
+    const form = await mountForm()
+    form.fillFrom(makeTransaction({ kind: 'refund' }))
+
+    expect(form.buildPayload().kind).toBe('refund')
   })
 })
 

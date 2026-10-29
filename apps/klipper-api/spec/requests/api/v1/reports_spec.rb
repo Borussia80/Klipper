@@ -549,6 +549,22 @@ RSpec.describe "Api::V1::Reports", type: :request do
       expect(json["accounts"].length).to eq(2)
     end
 
+    it "lists only the accounts counted in accounts_total (C-12)" do
+      create(:account, user: user, balance: 700.00, active: false)
+
+      get "/api/v1/reports/net_worth", headers: auth_headers
+      json = JSON.parse(response.body)
+      expect(json["accounts"].sum { |a| a["balance"] }).to be_within(0.01).of(json["accounts_total"].to_f)
+    end
+
+    it "leaves out accounts whose opening balance date is in the future (C-4a)" do
+      create(:account, user: user, opening_balance: 900.00, opening_balance_on: Date.current + 1)
+
+      get "/api/v1/reports/net_worth", headers: auth_headers
+      json = JSON.parse(response.body)
+      expect(json["accounts_total"].to_f).to be_within(0.01).of(4500.50)
+    end
+
     it "includes investments grouped by type" do
       get "/api/v1/reports/net_worth", headers: auth_headers
       json = JSON.parse(response.body)

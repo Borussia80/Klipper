@@ -47,6 +47,18 @@
       aria-label="Descrição do lançamento"
     />
 
+    <div style="margin-bottom:16px">
+      <p class="flbl">Situação</p>
+      <div class="select-wrap">
+        <select v-model="status" class="field select" aria-label="Situação do lançamento">
+          <option value="efetivado">Efetivado</option>
+          <option value="previsto">Previsto — não altera o saldo</option>
+          <option value="conciliado">Conciliado</option>
+        </select>
+        <span class="select-arrow">▾</span>
+      </div>
+    </div>
+
     <!-- Detalhes: categoria + conta + data -->
     <div class="gh" style="padding-top:6px">
       <span class="gl">Detalhes</span>
@@ -134,7 +146,7 @@ const { addToast } = useToast()
 const { updateTransaction } = useTransactions()
 const {
   accounts, categories, members, isLoadingData, tipoOpcoes,
-  tipo, valor, descricao, categoria, conta, portador, data, error,
+  tipo, valor, descricao, categoria, conta, portador, status, data, error,
   validate, isValid, buildPayload, fillFrom,
 } = useLancamentoForm()
 
@@ -157,8 +169,10 @@ async function submit() {
   try {
     await updateTransaction(props.transaction.id, buildPayload())
     emit('close')
-  } catch {
-    addToast('Erro ao salvar. Tente novamente.', 'alert')
+  } catch (e: unknown) {
+    const details = e as { data?: { errors?: string[] } }
+    const backendMessage = details.data?.errors?.[0]
+    addToast(backendMessage ?? 'Erro ao salvar. Tente novamente.', 'alert')
   } finally {
     isLoading.value = false
   }

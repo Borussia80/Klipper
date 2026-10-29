@@ -10,6 +10,10 @@ export interface Transaction {
   installment_total: number | null
   installment_number: number | null
   member_id: number | null
+  kind?: 'regular' | 'transfer' | 'refund' | 'adjustment' | 'card_payment'
+  status?: 'previsto' | 'efetivado' | 'conciliado'
+  deleted_at?: string | null
+  transfer_pair_id?: string | null
 }
 
 export interface TransactionFilters {
@@ -18,6 +22,8 @@ export interface TransactionFilters {
   account_id?: number
   member_id?: number
   type?: string
+  kind?: Transaction['kind']
+  status?: Transaction['status']
 }
 
 /**
@@ -99,8 +105,25 @@ export function useTransactions() {
 
   async function deleteTransaction(id: number, options: { silent?: boolean } = {}) {
     await apiFetch(`/api/v1/transactions/${id}`, { method: 'DELETE' })
-    transactions.value = transactions.value.filter((t) => t.id !== id)
-    if (!options.silent) addToast('Lançamento removido', 'ok')
+    const removed = transactions.value.filter((t) => t.id === id)
+    const pairId = removed[0]?.transfer_pair_id
+    const rows = transactions.value.filter((t) => t.id === id || (pairId != null && t.transfer_pair_id === pairId))
+    transactions.value = transactions.value.filter((t) => !rows.some((row) => row.id === t.id))
+    if (!options.silent) {
+      addToast('Lançamento removido', 'ok', 6000, {
+        label: 'Desfazer',
+        onClick: () => restoreTransaction(id, rows),
+      })
+    }
+  }
+
+  async function restoreTransaction(id: number, rows?: Transaction[]) {
+    const data = await apiFetch<Transaction>(`/api/v1/transactions/${id}/restore`, { method: 'POST' })
+    const restoredRows = rows?.length ? rows : [data]
+    const existingIds = new Set(transactions.value.map((t) => t.id))
+    transactions.value = [...restoredRows.filter((row) => !existingIds.has(row.id)), ...transactions.value]
+    addToast('Lançamento restaurado', 'ok')
+    return data
   }
 
   // O extrato importado antes do UR-2 entrou sem conta. A correção é em massa
@@ -133,6 +156,7 @@ export function useTransactions() {
     createTransaction,
     updateTransaction,
     deleteTransaction,
+    restoreTransaction,
     assignAccountToOrphans,
     totalDebits,
     totalCredits,

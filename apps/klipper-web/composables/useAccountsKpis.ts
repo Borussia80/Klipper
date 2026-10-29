@@ -4,7 +4,7 @@ import type { DebtRankingRow } from './useReports'
 export function sumCheckingBalance(accounts: Account[]): number {
   return accounts
     .filter((a) => a.account_type !== 'credit_card')
-    .reduce((sum, a) => sum + parseFloat(a.balance), 0)
+    .reduce((sum, a) => sum + (a.balance === null ? 0 : parseFloat(a.balance)), 0)
 }
 
 export function sumDebtCharges(cards: DebtRankingRow[]): number {

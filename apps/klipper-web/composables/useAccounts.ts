@@ -3,7 +3,10 @@ export interface Account {
   name: string
   institution: string | null
   account_type: string
-  balance: string
+  // null antes de opening_balance_on: a conta ainda não existia (spec 02, C-4a)
+  balance: string | null
+  opening_balance?: string
+  opening_balance_on?: string
   currency: string
   active: boolean
   created_at: string
@@ -14,6 +17,20 @@ export interface Account {
   juros_rotativo_aa: string | null
   iof_projetado: string | null
   saldo_atualizado_em: string | null
+}
+
+export interface BalanceHistoryEntry {
+  id: number
+  occurred_on: string
+  description: string
+  delta: string
+  balance: string
+}
+
+export interface BalanceHistory {
+  opening_balance: string
+  closing_balance: string
+  entries: BalanceHistoryEntry[]
 }
 
 export function useAccounts() {
@@ -61,9 +78,15 @@ export function useAccounts() {
     addToast('Conta removida', 'ok')
   }
 
+  async function fetchBalanceHistory(id: number, from?: string, to?: string) {
+    return apiFetch<BalanceHistory>(`/api/v1/accounts/${id}/balance-history`, {
+      query: { ...(from ? { from } : {}), ...(to ? { to } : {}) },
+    })
+  }
+
   const totalBalance = computed(() =>
-    accounts.value.reduce((sum, a) => sum + parseFloat(a.balance), 0)
+    accounts.value.reduce((sum, a) => sum + (a.balance === null ? 0 : parseFloat(a.balance)), 0)
   )
 
-  return { accounts, isLoading, error, fetchAccounts, createAccount, updateAccount, deleteAccount, totalBalance }
+  return { accounts, isLoading, error, fetchAccounts, createAccount, updateAccount, deleteAccount, fetchBalanceHistory, totalBalance }
 }

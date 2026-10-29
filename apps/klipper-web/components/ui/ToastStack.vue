@@ -11,6 +11,7 @@
         >
           <span class="toast-dot" />
           <span class="toast-msg">{{ toast.message }}</span>
+          <button v-if="toast.action" class="toast-action" @click="runAction(toast)">{{ toast.action.label }}</button>
           <button class="toast-close btn-i" aria-label="Fechar" @click="removeToast(toast.id)">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
               <path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
@@ -24,6 +25,11 @@
 
 <script setup lang="ts">
 const { toasts, removeToast } = useToast()
+
+async function runAction(toast: (typeof toasts.value)[number]) {
+  await toast.action?.onClick()
+  removeToast(toast.id)
+}
 </script>
 
 <style scoped>
@@ -69,6 +75,17 @@ const { toasts, removeToast } = useToast()
 .toast-warn  { border-color: rgba(229,144,16,0.28); }
 
 .toast-msg { flex: 1; }
+
+.toast-action {
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--blue);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
 
 .toast-close {
   width: 22px; height: 22px;

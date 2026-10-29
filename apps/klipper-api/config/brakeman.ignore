@@ -3,13 +3,13 @@
     {
       "warning_type": "Mass Assignment",
       "warning_code": 105,
-      "fingerprint": "5a14218de733a5cc8a9b863c217c7afafde913d5f9b0bef73e24614f8806fb3a",
+      "fingerprint": "bb372f29430740590eea810afc14eab5f62ffabfd3b3307717c9f3e510214642",
       "check_name": "PermitAttributes",
       "message": "Potentially dangerous key allowed for mass assignment",
       "file": "app/controllers/api/v1/transactions_controller.rb",
-      "line": 62,
+      "line": 176,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
-      "note": "Falso positivo: category_id/account_id/member_id são validados por posse via valid_transaction_fks? (current_user.accounts/categories/members.exists?) antes de qualquer save. Não há STI nem associação polimórfica nesse model."
+      "note": "Falso positivo: category_id/account_id/member_id são validados por posse via valid_transaction_fks? (current_user.accounts/categories/members.exists?) antes de qualquer save. Não há STI nem associação polimórfica nesse model. Cenário BOLA coberto por spec/requests/api/v1/transactions_spec.rb (SEC-04). Fingerprint refeito em 2026-10-27: o alfa D1–D3 incluiu :kind e :status no permit (validados por inclusion no model)."
     },
     {
       "warning_type": "Mass Assignment",

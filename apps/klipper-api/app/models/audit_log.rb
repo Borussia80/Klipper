@@ -6,7 +6,10 @@ class AuditLog < ApplicationRecord
   validates :record_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :status, presence: true,
             inclusion: { in: %w[success failure] }
-  validates :event_type, inclusion: { in: %w[IMPORT_DATA EXPORT_DATA BACKFILL_NET_WORTH] }
+  validates :event_type, inclusion: { in: %w[
+    IMPORT_DATA EXPORT_DATA BACKFILL_NET_WORTH TRANSFER_CREATED TRANSFER_UPDATED
+    TRANSACTION_DELETED TRANSACTION_RESTORED TRANSACTION_UNRECONCILED
+  ] }
 
   scope :recent_first, -> { order(created_at: :desc) }
 

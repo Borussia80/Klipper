@@ -30,7 +30,7 @@ function makeAccount(overrides: Partial<{
   name: string
   institution: string
   account_type: string
-  balance: string
+  balance: string | null
   currency: string
   active: boolean
   created_at: string
@@ -134,6 +134,16 @@ describe('useAccounts', () => {
 
     it('handles a single account correctly', async () => {
       mockApiFetch.mockResolvedValue([makeAccount({ balance: '250.75' })])
+      const { totalBalance, fetchAccounts } = useAccounts()
+      await fetchAccounts()
+      expect(totalBalance.value).toBeCloseTo(250.75)
+    })
+
+    it('ignores an account without balance yet (opening date in the future)', async () => {
+      mockApiFetch.mockResolvedValue([
+        makeAccount({ id: 1, balance: '250.75' }),
+        makeAccount({ id: 2, balance: null }),
+      ])
       const { totalBalance, fetchAccounts } = useAccounts()
       await fetchAccounts()
       expect(totalBalance.value).toBeCloseTo(250.75)

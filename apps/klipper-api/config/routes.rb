@@ -9,12 +9,16 @@ Rails.application.routes.draw do
       post  "password_resets",        to: "password_resets#create"
       patch "password_resets/:token", to: "password_resets#update"
 
-      resources :accounts,      only: %i[index show create update destroy]
+      resources :accounts,      only: %i[index show create update destroy] do
+        member { get "balance-history", action: :balance_history }
+      end
       resources :categories,    only: %i[index show create update destroy]
       resources :members,       only: %i[index show create update destroy]
       resources :transactions,  only: %i[index show create update destroy] do
         collection { post :assign_account }
+        member { post :restore }
       end
+      resources :transfers, only: %i[create update]
       resources :investments,   only: %i[index show create update destroy] do
         collection { get :portfolio }
       end

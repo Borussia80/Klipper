@@ -163,4 +163,13 @@ describe('ModalEditarLancamento', () => {
     expect(mockAddToast).toHaveBeenCalledWith('Erro ao salvar. Tente novamente.', 'alert')
     expect(w.emitted('close')).toBeFalsy()
   })
+
+  it('shows the backend error message when the update is rejected', async () => {
+    const message = 'Lançamento conciliado: desconcilie antes de alterar valor, data, conta ou tipo'
+    mockUpdateTransaction.mockRejectedValue({ data: { errors: [message] } })
+    await mountModal({ open: true, transaction: makeTransaction() })
+
+    await body.find('button.cta').trigger('click')
+    await vi.waitFor(() => expect(mockAddToast).toHaveBeenCalledWith(message, 'alert'))
+  })
 })

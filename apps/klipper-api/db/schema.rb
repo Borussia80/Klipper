@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_20_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,6 +25,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_010000) do
     t.decimal "juros_rotativo_aa", precision: 7, scale: 3
     t.decimal "juros_rotativo_am", precision: 6, scale: 3
     t.string "name", null: false
+    t.decimal "opening_balance", precision: 15, scale: 2, default: "0.0", null: false
+    t.date "opening_balance_on", null: false
     t.decimal "pagamento_minimo", precision: 15, scale: 2
     t.datetime "saldo_atualizado_em"
     t.decimal "saldo_fatura_atual", precision: 15, scale: 2
@@ -142,6 +144,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_010000) do
     t.bigint "category_id"
     t.datetime "created_at", null: false
     t.string "dedupe_hash"
+    t.datetime "deleted_at"
     t.string "description", null: false
     t.string "external_id"
     t.integer "installment_number"
@@ -153,14 +156,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_010000) do
     t.bigint "parent_transaction_id"
     t.string "status", default: "efetivado", null: false
     t.string "transaction_type", default: "debit", null: false
+    t.string "transfer_pair_id"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["account_id", "external_id"], name: "index_transactions_on_account_id_and_external_id", unique: true, where: "(external_id IS NOT NULL)"
     t.index ["account_id", "occurred_on"], name: "index_transactions_on_account_id_and_occurred_on"
     t.index ["account_id"], name: "index_transactions_on_account_id"
     t.index ["category_id"], name: "index_transactions_on_category_id"
+    t.index ["deleted_at"], name: "index_transactions_on_deleted_at"
     t.index ["member_id"], name: "index_transactions_on_member_id"
     t.index ["parent_transaction_id"], name: "index_transactions_on_parent_transaction_id"
+    t.index ["transfer_pair_id"], name: "index_transactions_on_transfer_pair_id"
     t.index ["user_id", "dedupe_hash"], name: "index_transactions_on_user_id_and_dedupe_hash"
     t.index ["user_id", "kind", "occurred_on"], name: "index_transactions_on_user_id_and_kind_and_occurred_on"
     t.index ["user_id", "occurred_on"], name: "index_transactions_on_user_id_and_occurred_on"
