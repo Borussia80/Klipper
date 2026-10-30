@@ -6,7 +6,33 @@ on:
     branches: [ main ]
 
 jobs:
+  scope:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Classificar arquivos do PR
+        id: classify
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CI_EVENT_NAME: ${{ github.event_name }}
+          CI_CHANGED_FILES: ${{ github.event.pull_request.changed_files }}
+        run: |
+          docs_only=false
+          if [ "$CI_EVENT_NAME" = "pull_request" ] && \
+             gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files?per_page=100" > "$RUNNER_TEMP/ci-files.json"; then
+            docs_only=$(node .github/scripts/ci-scope.mjs "$RUNNER_TEMP/ci-files.json") || docs_only=false
+          fi
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+
   scan_ruby:
+    needs: scope
+    if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
     # Ruby 3.3.7 has no prebuilt setup-ruby image for Ubuntu 26.04.
     runs-on: ubuntu-24.04
     steps:
@@ -23,6 +49,8 @@ jobs:
         working-directory: apps/klipper-api
 
   lint:
+    needs: scope
+    if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
@@ -41,6 +69,8 @@ jobs:
         working-directory: apps/klipper-api
 
   test:
+    needs: scope
+    if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     services:
       postgres:
@@ -75,6 +105,8 @@ jobs:
   # Portão completo do frontend: mudanças em Vue/TypeScript só entram com
   # lint, tipos e comportamento verificados no mesmo checkout.
   web:
+    needs: scope
+    if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -144,6 +176,8 @@ jobs:
         run: node --test '.github/scripts/__tests__/*.test.mjs'
 
   quebec:
+    needs: scope
+    if: ${{ always() && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
