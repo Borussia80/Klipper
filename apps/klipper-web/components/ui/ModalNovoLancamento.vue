@@ -1,6 +1,15 @@
 <template>
-  <UiBaseModal title="Novo lançamento" :open="open" @close="$emit('close')">
+  <UiBaseModal title="Novo lançamento" :open="open" @close="requestClose">
 
+    <div v-if="confirmDiscard" role="alert" class="discard-confirm">
+      <p>Descartar este lançamento?</p>
+      <div class="discard-actions">
+        <button ref="keepButton" class="btn btn-ghost" type="button" data-testid="manter-rascunho" @click="keepDraft">Continuar editando</button>
+        <button class="btn btn-p" type="button" data-testid="descartar-rascunho" @click="discard">Descartar</button>
+      </div>
+    </div>
+
+    <div v-else>
     <!-- Type toggle -->
     <div class="tipo-toggle">
       <button
@@ -21,6 +30,7 @@
     <div class="valor-wrap" :class="{ receita: tipo === 'receita' }">
       <span class="valor-prefix">R$</span>
       <input
+        ref="amountInput"
         v-model="valor"
         class="valor-input"
         :class="{ receita: tipo === 'receita' }"
@@ -123,6 +133,7 @@
     <!-- Validation error -->
     <div
       v-if="error"
+      role="alert"
       style="font-size:12px;color:var(--alert);margin-bottom:10px;padding:8px 12px;background:var(--ald);border-radius:var(--r)"
     >
       {{ error }}
@@ -138,6 +149,7 @@
       <span v-if="isLoading" class="btn-spinner" />
       <span v-else>{{ ctaLabel }}</span>
     </button>
+    </div>
 
   </UiBaseModal>
 </template>
@@ -146,7 +158,6 @@
 const { open } = defineProps<{ open: boolean }>()
 const emit = defineEmits(['close'])
 
-const { addToast } = useToast()
 const { createTransaction } = useTransactions()
 const { createTransfer } = useTransfers()
 const {
@@ -156,6 +167,48 @@ const {
 } = useLancamentoForm()
 
 const isLoading = ref(false)
+const confirmDiscard = ref(false)
+const keepButton = ref<HTMLButtonElement | null>(null)
+const amountInput = ref<HTMLInputElement | null>(null)
+
+function keepDraft() {
+  confirmDiscard.value = false
+  nextTick(() => amountInput.value?.focus())
+}
+
+function resetForm() {
+  tipo.value = 'gasto'
+  valor.value = ''
+  descricao.value = ''
+  conta.value = null
+  contaDestino.value = null
+  categoria.value = null
+  portador.value = null
+  status.value = 'efetivado'
+  data.value = todayISO()
+  error.value = null
+}
+
+function requestClose() {
+  if (isLoading.value) return
+  if (confirmDiscard.value) {
+    keepDraft()
+    return
+  }
+  const dirty = valor.value || descricao.value || conta.value || contaDestino.value || categoria.value ||
+    portador.value || tipo.value !== 'gasto' || status.value !== 'efetivado' || data.value !== todayISO()
+  if (dirty) {
+    confirmDiscard.value = true
+    nextTick(() => keepButton.value?.focus())
+  }
+  else emit('close')
+}
+
+function discard() {
+  resetForm()
+  confirmDiscard.value = false
+  emit('close')
+}
 
 const ctaLabel = computed(() => {
   if (tipo.value === 'receita') return 'Registrar receita'
@@ -180,14 +233,9 @@ async function submit() {
       await createTransaction(payload)
     }
     emit('close')
-    valor.value = ''
-    descricao.value = ''
-    conta.value = null
-    contaDestino.value = null
-    categoria.value = null
-    portador.value = null
+    resetForm()
   } catch {
-    addToast('Erro ao salvar. Tente novamente.', 'alert')
+    error.value = 'Não foi possível salvar. Seus dados continuam aqui. Tente novamente.'
   } finally {
     isLoading.value = false
   }
@@ -195,6 +243,20 @@ async function submit() {
 </script>
 
 <style scoped>
+.discard-confirm {
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--bd2);
+  border-radius: var(--r);
+  color: var(--t1);
+}
+
+.discard-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* ── Type toggle ─────────────────────────────────────────── */
 .tipo-toggle {
   display: grid;
