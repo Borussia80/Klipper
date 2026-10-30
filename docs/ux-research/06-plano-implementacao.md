@@ -14,6 +14,57 @@ saldo, cartão e agendados.
 
 ---
 
+## Plano de execução — jornadas do alfa
+
+Este plano detalha as Fatias 2–4 para o alfa manual. Não altera as dependências ou os bloqueios registrados abaixo: a liberação de cada fatia e de suas regras financeiras deve ser verificada contra o plano de domínio vigente. O estado de cada item deve ser confirmado no código e no CI antes de ser marcado como concluído.
+
+### 0. Referência e preparação
+
+- [ ] Executar RSpec, Vitest e typecheck; registrar falhas preexistentes.
+- [ ] Com dados fictícios, percorrer contas, receita, despesa, transferência, exclusão e restauração; registrar resultados em desktop, 390 px e teclado.
+- [ ] Confirmar os contratos atuais de saldo, histórico, transações e relatórios.
+
+### 1. Navegação e lançamento — Fatia 2
+
+- [ ] Incluir “+” central na navegação mobile; mover Investimentos para Mais e abrir lançamento rápido com foco no valor.
+- [ ] Reutilizar formulário e componentes existentes; oferecer entrada/saída, conta e data padrão editáveis e categoria opcional.
+- [ ] Validar valor; preservar rascunho em erro; confirmar descarte quando alterado; oferecer confirmação e desfazer após salvar.
+- [ ] Preservar acesso e atalhos no desktop. Avaliador de expressões pode ser entregue em PR separado, seguindo a spec 02 e a política de terceiros do plano de domínio.
+- **Aceite:** despesa com padrões em até quatro toques após o “+” (digitação como sequência); 390 px sem rolagem horizontal; desfazer recompõe saldo; fluxo completo por teclado.
+
+### 2. Movimento — Fatia 4
+
+- [ ] Acrescentar busca e filtros por período, tipo, conta, categoria e portador; preservar consulta ao editar e retornar.
+- [ ] Exibir filtros ativos, ação de limpar e lista mobile legível, além de estados de carregamento, vazio, erro e nova tentativa.
+- [ ] Entregar edição em lote em incremento próprio se necessário: operação transacional, escopada por usuário, sem alteração parcial.
+- **Aceite:** filtro de categoria pai inclui filhas; contexto sobrevive à edição; IDs de outro usuário são rejeitados sem alterações; exclusão/restauração de transferência mantém as duas pontas; teclado acessa todas as ações.
+
+### 3. Detalhe de conta — Fatia 4, dependente de D1/D2
+
+- [ ] Criar detalhe com saldo, saldo inicial datado e movimentos, reutilizando a lista de Movimento.
+- [ ] Usar o contrato real do histórico e as regras do domínio; identificar transferências e preservar contexto ao voltar.
+- [ ] Tratar ausência de movimentos, histórico insuficiente, carregamento e erro isolado.
+- **Aceite:** abertura R$ 1.000 + receita R$ 500 − despesa R$ 200 resulta em R$ 1.300; transferência aparece nas duas contas; datas anteriores à abertura são “sem dado”; falha no histórico não oculta os demais dados.
+- Cartões, fechamento e vencimento dependem de D4; não bloqueiam o detalhe das contas do alfa manual.
+
+### 4. Painel — Fatia 3, conforme dependências de domínio
+
+- [ ] Destacar patrimônio ou saldo consolidado conforme dados e definições suportados; mostrar resultado mensal e últimos movimentos.
+- [ ] Incluir alertas acionáveis apenas quando fundamentados em dados disponíveis; isolar carregamento e falha por bloco.
+- [ ] Mostrar evolução somente com histórico suficiente; oferecer estados vazios e recuperação.
+- **Aceite:** valores coincidem com contas e relatórios; conta negativa gera alerta que desaparece ao corrigir; não há gráfico fictício; 390 px sem rolagem horizontal; falha de uma fonte não derruba outros blocos.
+- Alertas de fatura e ritmo avançado dependem das regras correspondentes; não simular dados.
+
+### 5. Validação integrada e liberação
+
+- [ ] Criar duas contas fictícias; registrar receita, despesa e transferência; filtrar e editar; conferir saldos e histórico; excluir/restaurar transferência e comparar o painel com os relatórios.
+- [ ] Repetir em desktop, 390 px e somente com teclado.
+- [ ] Executar os requisitos de operação segura, exportação e restauração de backup em [operação segura do alfa](../alpha/01-operacao-segura.md) antes de receber dados pessoais.
+
+Cada incremento segue teste antes de código, PR por fatia, revisão e CI verde. Registrar evidência e data dos critérios satisfeitos; não confundir plano com implementação concluída.
+
+---
+
 ## Fase 0 — Correções
 
 ### 0.1 Isolar a suíte do Vitest da API local
@@ -101,3 +152,4 @@ Portions adapted from ezBookkeeping (https://github.com/mayswind/ezbookkeeping),
 2. `podman start klipper-pg-test` e `bundle exec rspec` verde.
 3. App local nas duas larguras, critérios de aceite da spec conferidos, screenshot no PR.
 4. CI verde → merge → CI do `main` verde → próximo PR.
+
