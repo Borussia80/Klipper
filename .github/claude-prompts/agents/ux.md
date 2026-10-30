@@ -34,7 +34,7 @@ Avalie:
 
 - `apps/klipper-web/pages/`, `apps/klipper-web/layouts/`,
   `apps/klipper-web/components/ui/`.
-- `ROADMAP_KLIPPER_WEALTH_OS.md` — não repita como novo o que já está
+- `ROADMAP.md` — prioridades e acompanhamento; `ROADMAP_KLIPPER_WEALTH_OS.md` — não repita como novo o que já está
   documentado como "Fora de escopo" ou pendência conhecida; confira se o
   status ainda bate.
 

@@ -99,8 +99,9 @@ hook — só roda em planos pagos).
 |---|---|
 | Contexto de sessão / arquitetura | `CLAUDE.md` |
 | Processo de desenvolvimento (TDD, F.I.R.S.T., SRP) | `CLAUDE-process.md` |
-| Roadmap de produto + backlog de segurança | `ROADMAP_KLIPPER_WEALTH_OS.md` |
-| Plano de execução da auditoria de 14/09/2026 | `PLANO_EXECUCAO_KLIPPER_2026-09-14.md` |
+| Roadmap consolidado e índice dos planos | [`ROADMAP.md`](ROADMAP.md) |
+| Histórico de produto e segurança | `ROADMAP_KLIPPER_WEALTH_OS.md` |
+| Auditoria de 14/09/2026 (histórico) | `PLANO_EXECUCAO_KLIPPER_2026-09-14.md` |
 | Feature Kakebo — especificação do ciclo mensal | `docs/KAKEBO.md` |
 | Auditorias de segurança | `docs/security/` |
 | ADRs | `docs/adrs/` |
