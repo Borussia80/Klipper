@@ -1,5 +1,7 @@
 # Plano de Execução Klipper
 
+> **Consulta histórica:** o acompanhamento consolidado está em [ROADMAP.md](ROADMAP.md). Status e prioridades deste documento refletem a data da análise; confirme no código antes de executar.
+
 **Base:** auditoria de 14 set 2026  
 **Escopo:** 17 frentes cobrindo 18 achados, organizadas por urgência de agir.  
 **Regra:** todo item segue Red → Green → Refactor; o teste vermelho vem antes do código.

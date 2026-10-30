@@ -39,7 +39,7 @@ Avalie:
   seus specs em `apps/klipper-api/spec/`.
 - `apps/klipper-web/composables/use*Kpis.ts` (`useAccountsKpis.ts`,
   `useBudgetKpis.ts`) e seus testes em `__tests__/`.
-- `ROADMAP_KLIPPER_WEALTH_OS.md` — lacunas e bugs financeiros já mapeados
+- `ROADMAP.md` — prioridades e acompanhamento; `ROADMAP_KLIPPER_WEALTH_OS.md` — lacunas e bugs financeiros já mapeados
   manualmente; não repita como "novo" o que já está lá como pendência
   conhecida, mas confira se o status descrito ainda bate com o código atual.
 

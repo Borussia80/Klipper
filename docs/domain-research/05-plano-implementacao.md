@@ -1,5 +1,7 @@
 # 05 — Plano de implementação do domínio
 
+> **Acompanhamento consolidado:** use [ROADMAP.md](../../ROADMAP.md) para prioridades e estado; este documento preserva as regras, dependências e critérios detalhados.
+
 Regras de sempre:
 - **Spec antes do código.** Código sem teste não entra.
 - Um PR por item, com merge um por vez, esperando o CI do `main`.

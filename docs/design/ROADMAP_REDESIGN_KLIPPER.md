@@ -1,5 +1,7 @@
 # Roadmap de Redesign Visual — Klipper
 
+> **Consulta histórica:** o acompanhamento consolidado está em [ROADMAP.md](../../ROADMAP.md). Status e prioridades deste documento refletem a data da análise; confirme no código antes de executar.
+
 **Gerado em:** 2026-07-10
 **Status (aferido em 2026-09-15):** Fatias 0, 1 e 2 **concluídas**; Fatia 3 **concluída
 exceto por uma tela**. O documento nunca teve suas fatias marcadas, então o status foi

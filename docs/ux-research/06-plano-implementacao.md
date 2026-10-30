@@ -1,5 +1,7 @@
 # 06 — Plano de implementação
 
+> **Acompanhamento consolidado:** use [ROADMAP.md](../../ROADMAP.md) para prioridades e estado; este documento preserva as regras, dependências e critérios detalhados.
+
 **Aprovado em 2026-10-17.** Direção visual náutica, sem mudança de paleta; cores de banco mantidas; "+" no centro da
 barra inferior mobile; dia de fechamento e de vencimento do cartão incluídos.
 

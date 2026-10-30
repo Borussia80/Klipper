@@ -1,5 +1,7 @@
 # Roadmap — Klipper Wealth OS
 
+> **Consulta histórica:** o acompanhamento consolidado está em [ROADMAP.md](ROADMAP.md). Status e prioridades deste documento refletem a data da análise; confirme no código antes de executar.
+
 **Gerado em:** 2026-07-06
 **Auditado em:** 2026-07-27 — as 6 lacunas abaixo foram confirmadas como implementadas
 (schema, serviços, endpoints e UI, todas com teste automatizado associado), via leitura

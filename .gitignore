@@ -21,14 +21,8 @@ build/
 .vscode/
 .idea/
 
-# Streamlit
+# Proteção de credenciais locais, inclusive diretórios legados
 .streamlit/secrets.toml
-
-# Next.js PWA (web/)
-web/.next/
-web/out/
-web/node_modules/
-web/.env.local
 
 # OS
 .DS_Store
@@ -42,11 +36,6 @@ dump_repo.py
 # Segurança — nunca commitar
 /ssh/
 /Modelo_Bancos/
-
-# Cruft legado (FastAPI + core/ substituídos por Rails, decisão de deletar fica para depois)
-/api/
-/tests/
-/spec/
 
 # Config local de ferramentas
 /.ai-memory.toml
