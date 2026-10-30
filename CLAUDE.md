@@ -84,3 +84,10 @@ Em checkout limpo, rode `npx nuxt prepare` em `apps/klipper-web` antes do Vitest
 
 Matemática ancora. Narrativa sem evidência não altera decisão.
 Código sem teste não entra. Não existe "adicionar teste depois".
+
+## FLUXO DE PRS — UMA DEMANDA POR VEZ
+
+Conclua o PR da demanda atual antes de iniciar a próxima: aguarde o CI e a revisão,
+resolva as pendências, integre após a revisão e aprovação necessárias e confirme o CI
+da `main`. Só então abra outra branch ou PR para a próxima demanda. Não acumule PRs
+em paralelo; isso reduz conflitos e mantém o estado de cada entrega verificável.
