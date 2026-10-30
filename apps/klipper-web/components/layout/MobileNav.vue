@@ -19,9 +19,8 @@
     </section>
 
     <nav class="mobile-nav" aria-label="Navegação mobile">
+    <template v-for="item in fixedItems" :key="item.to">
     <NuxtLink
-      v-for="item in fixedItems"
-      :key="item.to"
       :to="item.to"
       class="mobile-nav-item"
       :aria-label="item.label"
@@ -29,6 +28,17 @@
       <span class="mnav-icon" v-html="item.icon" aria-hidden="true" />
       <span class="mnav-label">{{ item.label }}</span>
     </NuxtLink>
+      <button
+        v-if="item.to === '/transacoes'"
+        type="button"
+        class="mobile-nav-item add-trigger"
+        aria-label="Novo lançamento"
+        @click="open('novo-lancamento')"
+      >
+        <span class="add-icon" aria-hidden="true">+</span>
+        <span class="mnav-label">Lançar</span>
+      </button>
+    </template>
       <button
         type="button"
         class="mobile-nav-item more-trigger"
@@ -46,6 +56,7 @@
 
 <script setup lang="ts">
 const moreOpen = ref(false)
+const { open } = useModal()
 
 const fixedItems = [
   {
@@ -63,14 +74,14 @@ const fixedItems = [
     label: 'Orçamento',
     icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><rect x="2" y="5" width="14" height="3" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="10" width="9" height="3" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>`,
   },
+]
+
+const moreItems = [
   {
     to: '/investimentos',
     label: 'Investimentos',
     icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><path d="M2 14l4-5 4 2 5-7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="4" r="1.5" fill="currentColor"/></svg>`,
   },
-]
-
-const moreItems = [
   {
     to: '/relatorios',
     label: 'Relatórios',
@@ -195,6 +206,24 @@ const moreItems = [
   transition: color 0.16s;
   padding: 6px 0;
   position: relative;
+}
+
+.add-trigger {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.add-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brass);
+  color: var(--bg);
+  font-size: 24px;
+  line-height: 1;
 }
 
 .mobile-nav-item.router-link-active {
