@@ -71,7 +71,39 @@ describe('ModalNovoLancamento', () => {
   afterEach(() => {
     wrapper?.unmount()
     wrapper = null
+    vi.restoreAllMocks()
     vi.useRealTimers()
+  })
+
+  it('pede confirmação antes de descartar um rascunho e preserva os dados ao cancelar', async () => {
+    const w = await mountModal()
+    await fillValidFields()
+    await body.get('button[aria-label="Fechar painel"]').trigger('click')
+    expect(body.text()).toContain('Descartar este lançamento?')
+    expect(document.activeElement).toBe(body.get('button[data-testid="manter-rascunho"]').element)
+    await body.get('button[data-testid="manter-rascunho"]').trigger('click')
+    expect(document.activeElement).toBe(body.get('input[aria-label="Valor do lançamento em reais"]').element)
+    expect(w.emitted('close')).toBeUndefined()
+    expect((body.get('input[aria-label="Valor do lançamento em reais"]').element as HTMLInputElement).value).toBe('50,00')
+    await body.get('button[aria-label="Fechar painel"]').trigger('click')
+    await body.get('button[data-testid="descartar-rascunho"]').trigger('click')
+    expect(w.emitted('close')).toHaveLength(1)
+  })
+
+  it('fecha sem confirmação quando o rascunho está vazio', async () => {
+    const w = await mountModal()
+    await body.get('button[aria-label="Fechar painel"]').trigger('click')
+    expect(body.text()).not.toContain('Descartar este lançamento?')
+    expect(w.emitted('close')).toHaveLength(1)
+  })
+
+  it('mantém o rascunho e explica o erro quando salvar falha', async () => {
+    await mountModal()
+    mockCreateTransaction.mockRejectedValueOnce(new Error('offline'))
+    await fillValidFields()
+    await body.get('button.cta').trigger('click')
+    await vi.waitFor(() => expect(body.text()).toContain('Seus dados continuam aqui'))
+    expect((body.get('input[aria-label="Valor do lançamento em reais"]').element as HTMLInputElement).value).toBe('50,00')
   })
 
   it('pré-preenche a data com o dia local de hoje', async () => {
