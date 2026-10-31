@@ -142,6 +142,14 @@ Nenhum código ou asset foi copiado. A observação por interface e a atomicidad
 
 Nenhum código, CSS, template, configuração ou asset do Cashew foi aberto. Sem login, sincronização ou conexão externa.
 
+## Sessão 11 — 2026-10-31 (Lote 1: Firefly III)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Firefly III | Execução pretendida na porta 4104 ou demo pública; servidor local sem resposta e navegador indisponível | F2 e F6 bloqueadas; sem dados criados nem evidência visual | **Não** |
+
+Nenhum código, CSS, template, migration, configuração ou documentação técnica interna do Firefly III foi aberto.
+
 ## Modelo para próximas sessões
 
 ```
