@@ -21,3 +21,22 @@
 - UXR-03: criar e excluir transferência confirma as duas pontas, preserva o total e restaura ambas no desfazer; o produto não permite deixar contrapartida órfã por acidente.
 - UXR-04: exclusão de movimento e de transferência fornece desfazer temporário e restaura os agregados financeiros afetados.
 - UXR-07: em 390 px, conta e categoria recentes permitem lançar despesa em até quatro toques depois de `+`, sem título obrigatório.
+
+
+## Lote 1 — 2026-10-31
+
+- Instrumentação: Playwright MCP e navegador manual indisponíveis; axe não executado.
+- Ambiente previsto: PWA oficial, somente com dados sintéticos locais, sem login ou sincronização. Não foi possível abri-la nesta sessão.
+- Nenhum dado de laboratório foi criado; não há capturas nem saldos observados nesta sessão. Nenhum código, CSS, template ou configuração do Cashew foi lido.
+
+| # | Estado inicial | Ação | Reação na tela | Reação nos dados (saldo, lista, orçamento) | Fonte | Regra extraída | Teste de aceite no Klipper |
+|---|---|---|---|---|---|---|---|
+| C3.3 | Não obtido | Criar transferência sintética | bloqueado: navegador indisponível; PWA não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| C3.4.1 | Não obtido | Editar destino em 1440 px | bloqueado: navegador indisponível; PWA não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| C3.4.2 | Não obtido | Editar destino em 390 px | bloqueado: navegador indisponível; PWA não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| C3.5 | Não obtido | Excluir uma ponta se houver escolha | bloqueado: navegador indisponível; PWA não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| C3.6 | Não obtido | Procurar restauração | bloqueado: navegador indisponível; PWA não observável nesta sessão | Saldos e lista não observados | — | — | — |
+
+### Testes de aceite novos ou alterados por UXR — lote 1
+
+Nenhum: não houve observação nova. As células da matriz permanecem inalteradas.
