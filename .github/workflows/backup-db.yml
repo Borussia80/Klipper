@@ -2,50 +2,63 @@ name: Backup do Postgres de produção
 
 on:
   schedule:
-    - cron: '0 3 * * 0' # domingo às 03:00 UTC
+    - cron: '0 3 * * *' # diariamente às 03:00 UTC
   workflow_dispatch: {}
+
+permissions:
+  contents: read
 
 jobs:
   backup:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Conferir configuração e destino privado
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+          GH_TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
+          BACKUP_REPO: ${{ vars.BACKUP_REPO }}
+        run: |
+          set -euo pipefail
+          for variable in DATABASE_URL AGE_RECIPIENT GH_TOKEN BACKUP_REPO; do
+            if [[ -z "${!variable//[[:space:]]/}" ]]; then
+              echo "::error::Configuração de backup ausente: $variable"
+              exit 1
+            fi
+          done
+          if [[ "$(gh repo view "$BACKUP_REPO" --json isPrivate --jq .isPrivate)" != true ]]; then
+            echo '::error::O repositório de destino precisa ser privado e acessível.'
+            exit 1
+          fi
+
       - name: Instalar postgresql-client e age
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends postgresql-client age
 
-      - name: Gerar dump e cifrar com age
+      - name: Gerar backup cifrado
         env:
           DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
           AGE_RECIPIENT: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
         run: |
           set -euo pipefail
-          TIMESTAMP=$(date -u +%Y%m%d-%H%M%S)
-          echo "TAG=backup-${TIMESTAMP}" >> "$GITHUB_ENV"
-          ASSET="klipper_${TIMESTAMP}.pgdump.age"
-          echo "ASSET=${ASSET}" >> "$GITHUB_ENV"
-          pg_dump "$DATABASE_URL" --format=custom --file=dump.pgdump
-          age --encrypt --recipient "$AGE_RECIPIENT" --output "$ASSET" dump.pgdump
-          rm -f dump.pgdump
+          TAG="backup-$(date -u +%Y%m%d-%H%M%S)-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          ASSET="klipper_${TAG}.pgdump.age"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "ASSET=$ASSET" >> "$GITHUB_ENV"
+          BACKUP_OUTPUT="$RUNNER_TEMP/$ASSET" bash scripts/backup/create-encrypted-backup.sh
 
-      - name: Publicar como Release no repositório privado de backups
+      - name: Publicar backup cifrado
         env:
           GH_TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
-        run: |
-          gh release create "$TAG" "$ASSET" \
-            --repo "${{ vars.BACKUP_REPO }}" \
-            --title "Backup $TAG" \
-            --notes "Backup automático do Postgres de produção (klipper-api), cifrado com age."
-
-      - name: Podar backups com mais de 12 semanas
-        env:
-          GH_TOKEN: ${{ secrets.BACKUP_REPO_TOKEN }}
+          BACKUP_REPO: ${{ vars.BACKUP_REPO }}
         run: |
           set -euo pipefail
-          CUTOFF=$(date -u -d '12 weeks ago' +%s)
-          gh release list --repo "${{ vars.BACKUP_REPO }}" --limit 200 --json tagName,createdAt \
-            | jq -r --argjson cutoff "$CUTOFF" '.[] | select((.createdAt | fromdateiso8601) < $cutoff) | .tagName' \
-            | while read -r tag; do
-                echo "Removendo release expirada: $tag"
-                gh release delete "$tag" --repo "${{ vars.BACKUP_REPO }}" --yes --cleanup-tag
-              done
+          gh release create "$TAG" "$RUNNER_TEMP/$ASSET" \
+            --repo "$BACKUP_REPO" \
+            --title "Backup $TAG" \
+            --notes 'Backup cifrado do Postgres do Klipper.'
+
+      # Poda suspensa até teste de restauração e revisão da retenção.
