@@ -134,6 +134,14 @@ Arquivos consultados no commit acima: `LICENSE.txt`, `packages/loot-core/src/ser
 
 Nenhum código ou asset foi copiado. A observação por interface e a atomicidade continuam não comprovadas. A leitura técnica torna esta sessão exposta a essa referência; regras de sala limpa permanecem aplicáveis.
 
+## Sessão 10 — 2026-10-31 (Lote 1: Cashew)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Cashew | PWA oficial pretendida; navegador indisponível | C3.3–C3.6 bloqueadas; sem dados criados nem evidência visual | **Não** |
+
+Nenhum código, CSS, template, configuração ou asset do Cashew foi aberto. Sem login, sincronização ou conexão externa.
+
 ## Modelo para próximas sessões
 
 ```
