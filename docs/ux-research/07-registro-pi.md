@@ -124,6 +124,16 @@ Essa autorização **não** transforma automaticamente a análise em *clean room
 
 Nenhuma cópia de código copyleft entrará no repositório sem revisão explícita de compatibilidade, atribuição e obrigações de distribuição. A implementação preferida continua sendo autoral, baseada em requisito funcional; o processo formal fica definido em `12-protocolo-de-proveniencia-e-clean-room.md`.
 
+## Sessão 9 — 2026-10-31 (Lote 1: Actual Budget)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Actual Budget | MIT confirmado em `LICENSE.txt`, commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc` | Leitura técnica de desfazer e transferência; servidor local 4105 sem resposta, navegador indisponível e execução bloqueada | **Sim — arquivos listados abaixo e citados nas linhas A2.C1/A3.C1** |
+
+Arquivos consultados no commit acima: `LICENSE.txt`, `packages/loot-core/src/server/undo.ts`, `packages/loot-core/src/platform/client/undo/index.ts`, `packages/desktop-client/src/undo/index.ts`, `packages/loot-core/src/server/transactions/transfer.ts`, `packages/loot-core/src/shared/transfer.ts`, `packages/loot-core/src/server/transactions/index.ts` e `packages/loot-core/src/server/transactions/app.ts`.
+
+Nenhum código ou asset foi copiado. A observação por interface e a atomicidade continuam não comprovadas. A leitura técnica torna esta sessão exposta a essa referência; regras de sala limpa permanecem aplicáveis.
+
 ## Modelo para próximas sessões
 
 ```
