@@ -19,3 +19,34 @@
 
 - UXR-06: reimportar arquivo com duplicata exata e quase duplicata não cria novas linhas; a interface explica a correspondência e deixa a decisão de exceção para a pessoa.
 - UXR-06: uma coluna sem semântica compatível não é descartada silenciosamente; a prévia a sinaliza antes da confirmação.
+
+
+## Lote 1 — 2026-10-31
+
+- Instrumentação: Playwright MCP e navegador manual indisponíveis; axe não executado.
+- Ambiente: servidor local 4105 não respondeu; demo pública não observada por falta de navegador.
+- Nenhum dado de laboratório foi criado; não há capturas nem saldos observados nesta sessão.
+- Fonte técnica: Actual Budget, licença MIT confirmada no arquivo LICENSE.txt, commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc`. Nenhum código foi copiado.
+
+| # | Estado inicial | Ação | Reação na tela | Reação nos dados (saldo, lista, orçamento) | Fonte | Regra extraída | Teste de aceite no Klipper |
+|---|---|---|---|---|---|---|---|
+| A2.2 | Não obtido | Excluir despesa | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A2.3 | Não obtido | Desfazer exclusão | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A2.4 | Não obtido | Editar valor | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A2.5 | Não obtido | Desfazer edição | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A2.6 | Não obtido | Desfazer duas alterações | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A2.7 | Não obtido | Recarregar e tentar desfazer | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A3.3 | Não obtido | Criar transferência | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A3.4 | Não obtido | Editar valor na ponta de destino | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A3.5 | Não obtido | Editar data na origem | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A3.6 | Não obtido | Excluir pela ponta de destino | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A3.7 | Não obtido | Desfazer exclusão | bloqueado: navegador indisponível; servidor local 4105 sem resposta; demo não observável nesta sessão | Saldos e lista não observados | — | — | — |
+| A2.C1 | Leitura técnica; sem execução | Examinar recuperação | — | Saldos não observados | código · `packages/loot-core/src/server/undo.ts@8fba0e8`, `packages/loot-core/src/platform/client/undo/index.ts@8fba0e8` e `packages/desktop-client/src/undo/index.ts@8fba0e8` | O histórico em memória agrupa alterações e conserva valores anteriores para revertê-las; há limite nominal de 20 grupos. A leitura não comprova o que acontece ao recarregar a página ou reiniciar o processo. | UXR-04: desfazer uma exclusão recompõe movimento, saldo e orçamento; verificar também o comportamento após recarga. |
+| A3.C1 | Leitura técnica; sem execução | Examinar contrapartida | — | Saldos não observados | código · `packages/loot-core/src/server/transactions/transfer.ts@8fba0e8`, `packages/loot-core/src/server/transactions/index.ts@8fba0e8`, `packages/loot-core/src/server/transactions/app.ts@8fba0e8` e `packages/loot-core/src/shared/transfer.ts@8fba0e8` | A criação vincula as pontas e a atualização examinada propaga o valor com sinal oposto. A leitura realizada não comprova atomicidade da gravação nem propagação de data em todos os fluxos. | UXR-03: alteração e exclusão mantêm as pontas coerentes; falha intermediária não deixa saldo parcial ou vínculo órfão. |
+
+### Testes de aceite novos ou alterados por UXR — lote 1
+
+- UXR-03: verificar edição pelas duas pontas, falha intermediária e recomposição do par.
+- UXR-04: verificar duas ações desfeitas em ordem e o comportamento após recarga, sem presumir o resultado do Actual.
+
+A leitura de código não altera as células O/P/N da matriz; todas as ações de interface permanecem bloqueadas.

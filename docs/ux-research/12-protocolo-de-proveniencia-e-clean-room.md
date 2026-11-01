@@ -21,7 +21,7 @@ Este documento descreve um procedimento de engenharia e rastreabilidade; não é
 | Cashew | UX observável | código não lido nesta pesquisa |
 | ezBookkeeping | técnica / MIT | leitura histórica registrada; qualquer reuso literal exige atribuição e revisão de compatibilidade |
 | Firefly III | UX observável | demonstração usada sem código nesta pesquisa |
-| Actual Budget | técnica / MIT | Lote 0 leu contrato de importação no commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc` e executou o CSV no servidor oficial local; não houve cópia |
+| Actual Budget | técnica / MIT | Leituras técnicas de importação, desfazer e transferência no commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc`; execução visual do lote 1 bloqueada. Fontes e histórico em `07-registro-pi.md`; não houve cópia |
 | Wealthfolio | UX observável | binário executado; código não lido nesta pesquisa |
 | Ghostfolio | técnica / AGPL-3.0, limitada | configuração distribuída foi inspecionada para configurar Redis; este contexto não é clean para implementar a partir de análise técnica do Ghostfolio |
 
