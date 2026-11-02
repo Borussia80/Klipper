@@ -104,7 +104,7 @@ const moreItems = [
   },
   {
     to: '/contas',
-    label: 'Carteiras',
+    label: 'Contas',
     icon: `<svg width="20" height="20" viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 8h14" stroke="currentColor" stroke-width="1.4"/><circle cx="5.5" cy="11" r="1" fill="currentColor"/></svg>`,
   },
 ]

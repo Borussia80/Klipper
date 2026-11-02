@@ -117,7 +117,7 @@
             <rect x="2" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/>
             <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/>
           </svg>
-          Carteiras
+          Contas
         </NuxtLink>
       </li>
       <li>

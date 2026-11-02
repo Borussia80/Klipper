@@ -64,3 +64,12 @@ describe('AppSidebar.vue — botão Criar', () => {
     expect(mockOpen).toHaveBeenCalledWith('novo-aporte', null)
   })
 })
+
+describe('AppSidebar navigation labels', () => {
+  it('labels the /contas navigation item as Contas', async () => {
+    const wrapper = await mountSuspended(AppSidebar)
+    const item = wrapper.get('a[href="/contas"]')
+
+    expect(item.text()).toBe('Contas')
+  })
+})
