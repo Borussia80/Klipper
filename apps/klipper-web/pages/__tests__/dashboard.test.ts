@@ -122,6 +122,8 @@ describe('dashboard.vue — hero do resultado do mês', () => {
 
 describe('dashboard.vue — totais operacionais mensais', () => {
   beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 9, 15))
     vi.clearAllMocks()
     transactions.value = [
       { ...debit('1200.00'), id: 1 },
@@ -141,6 +143,7 @@ describe('dashboard.vue — totais operacionais mensais', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     monthly.value = null
     wrapper?.unmount()
     wrapper = null
