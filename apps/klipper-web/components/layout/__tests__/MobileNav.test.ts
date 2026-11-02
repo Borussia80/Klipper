@@ -31,7 +31,7 @@ describe('MobileNav.vue', () => {
     expect(wrapper.get('a[href="/importar"]')).toBeTruthy()
     expect(wrapper.get('a[href="/portadores"]')).toBeTruthy()
     expect(wrapper.get('a[href="/configuracoes"]')).toBeTruthy()
-    expect(wrapper.get('a[href="/contas"]')).toBeTruthy()
+    expect(wrapper.get('a[href="/contas"]').text()).toBe('Contas')
     expect(wrapper.get('a[href="/investimentos"]')).toBeTruthy()
   })
 

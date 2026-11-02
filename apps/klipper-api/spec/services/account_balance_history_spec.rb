@@ -4,6 +4,16 @@ RSpec.describe AccountBalanceHistory do
   let(:user) { create(:user) }
   let(:account) { create(:account, user: user, opening_balance: 100, opening_balance_on: Date.new(2026, 10, 1)) }
 
+  it "excludes pre-opening movements when the range starts earlier" do
+    create(:transaction, user: user, account: account, amount: 90, occurred_on: Date.new(2026, 9, 30))
+    create(:transaction, user: user, account: account, amount: 20, occurred_on: Date.new(2026, 10, 1))
+    result = described_class.new(account, from: Date.new(2026, 9, 1), to: Date.new(2026, 10, 2)).call
+
+    expect(result[:closing_balance]).to eq(80)
+    expect(result[:entries].size).to eq(1)
+    expect(result[:closing_balance]).to eq(account.balance_at(Date.new(2026, 10, 2)))
+  end
+
   it "uses only effective entries and returns a running balance" do
     create(:transaction, user: user, account: account, amount: 20, transaction_type: "debit", occurred_on: Date.new(2026, 10, 2))
     create(:transaction, user: user, account: account, amount: 50, transaction_type: "credit", occurred_on: Date.new(2026, 10, 3))

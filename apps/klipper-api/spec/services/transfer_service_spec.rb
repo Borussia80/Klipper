@@ -2,8 +2,8 @@ require "rails_helper"
 
 RSpec.describe TransferService do
   let(:user) { create(:user) }
-  let(:source) { create(:account, user: user, opening_balance: 100) }
-  let(:destination) { create(:account, user: user, opening_balance: 10) }
+  let(:source) { create(:account, user: user, opening_balance: 100, opening_balance_on: Date.new(2026, 10, 1)) }
+  let(:destination) { create(:account, user: user, opening_balance: 10, opening_balance_on: Date.new(2026, 10, 1)) }
 
   it "creates both ledger entries atomically and links them" do
     result = described_class.new(user, source_account: source, destination_account: destination,

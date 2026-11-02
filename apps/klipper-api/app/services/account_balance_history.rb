@@ -23,7 +23,7 @@ class AccountBalanceHistory
 
   def transactions
     @account.transactions.booked.kept
-      .where(occurred_on: @from..@to)
+      .where(occurred_on: [ @from, @account.opening_balance_on ].max..@to)
       .order(:occurred_on, :id)
   end
 

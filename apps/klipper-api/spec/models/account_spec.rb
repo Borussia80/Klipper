@@ -73,6 +73,14 @@ RSpec.describe Account, type: :model do
   end
 
   describe "#balance_at" do
+    it "excludes movements before opening but includes the opening day (C-4)" do
+      account = create(:account, opening_balance: 500, opening_balance_on: Date.new(2026, 10, 10))
+      create(:transaction, user: account.user, account: account, amount: 90, occurred_on: Date.new(2026, 10, 9))
+      create(:transaction, user: account.user, account: account, amount: 20, occurred_on: Date.new(2026, 10, 10))
+
+      expect(account.balance_at(Date.new(2026, 10, 10))).to eq(480)
+    end
+
     it "returns nil before the opening balance date (C-4a)" do
       account = create(:account, opening_balance: 500, opening_balance_on: Date.new(2026, 10, 10))
 

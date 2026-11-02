@@ -8,6 +8,6 @@ class UserMailer < ApplicationMailer
   private
 
   def frontend_base_url
-    ENV.fetch("CORS_ORIGINS", "http://localhost:3001").split(",").first
+    ENV.fetch("CORS_ORIGINS", "http://localhost:3000").split(",").first
   end
 end
