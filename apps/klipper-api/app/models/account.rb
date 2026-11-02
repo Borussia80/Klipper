@@ -24,7 +24,7 @@ class Account < ApplicationRecord
   def balance_at(date)
     return nil if date < opening_balance_on
 
-    movements = transactions.booked.kept.where("occurred_on <= ?", date).sum(&:ledger_delta)
+    movements = transactions.booked.kept.where(occurred_on: opening_balance_on..date).sum(&:ledger_delta)
     opening_balance + movements
   end
 
