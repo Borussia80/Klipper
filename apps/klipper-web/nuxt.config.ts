@@ -1,3 +1,8 @@
+import { resolveApiRouting } from './config/apiRouting'
+import { APPLE_TOUCH_ICON, pwaManifest } from './config/pwaManifest'
+
+const apiRouting = resolveApiRouting(process.env)
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
@@ -7,10 +12,13 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:3001',
+      apiUrl: apiRouting.apiUrl,
       cookieSecure: '',
     },
   },
+
+  // Vazio fora da Vercel; lá encaminha /api/** à API (ver config/apiRouting.ts).
+  nitro: { routeRules: apiRouting.routeRules },
 
   modules: [
     // '@nuxt/image' removido: nenhum <NuxtImg>/<NuxtPicture>/useImage() no app
@@ -51,27 +59,21 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#0C1220' },
         { property: 'og:title', content: 'Klipper — Wealth OS' },
         { property: 'og:type', content: 'website' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-title', content: 'Klipper' },
       ],
+      link: [{ rel: 'apple-touch-icon', href: APPLE_TOUCH_ICON }],
     },
   },
 
   pwa: {
     registerType: 'autoUpdate',
-    manifest: {
-      name: 'Klipper — Wealth OS',
-      short_name: 'Klipper',
-      description: 'Seu sistema operacional financeiro pessoal',
-      theme_color: '#07121E',
-      background_color: '#07121E',
-      display: 'standalone',
-      orientation: 'portrait',
-      icons: [
-        { src: '/klipper-mark.png', sizes: '192x192', type: 'image/png' },
-        { src: '/klipper-mark.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
-      ],
-    },
+    manifest: pwaManifest,
     workbox: {
       navigateFallback: '/',
+      // Com o proxy da Vercel a API mora na mesma origem: uma navegação para
+      // /api/* (ex.: link aberto direto) não pode cair no index.html do SPA.
+      navigateFallbackDenylist: [/^\/api\//],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
       // SEC-16: /api/v1/* nunca é cacheado pelo Service Worker — são respostas
       // financeiras (saldos, transações, investimentos) e não devem persistir
