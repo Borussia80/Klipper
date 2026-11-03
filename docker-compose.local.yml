@@ -51,7 +51,7 @@ services:
       # Vazio de propósito: os composables já chamam apiFetch('/api/v1/...')
       # com o prefixo incluso — setar "/api" aqui gera path duplicado
       # (/api/api/v1/...) e a requisição nunca chega no Caddy.
-      NUXT_PUBLIC_API_URL: ""
+      NUXT_PUBLIC_API_BASE: ""
       NUXT_API_URL_INTERNAL: http://api:3001
       NUXT_PUBLIC_COOKIE_SECURE: "false"
     depends_on:

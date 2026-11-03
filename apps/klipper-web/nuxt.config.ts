@@ -12,7 +12,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiUrl: apiRouting.apiUrl,
+      apiBase: apiRouting.apiBase,
       cookieSecure: '',
     },
   },

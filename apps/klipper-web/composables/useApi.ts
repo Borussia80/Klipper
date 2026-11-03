@@ -22,7 +22,7 @@ export function useApi() {
   })
 
   const rawFetch = $fetch.create({
-    baseURL: config.public.apiUrl as string,
+    baseURL: config.public.apiBase as string,
     credentials: 'include',
     timeout: 15_000,
     retry: 2,

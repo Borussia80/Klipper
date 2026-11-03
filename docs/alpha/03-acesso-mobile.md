@@ -10,21 +10,24 @@ Se o front estiver em `*.vercel.app` e a API em `*.onrender.com`, os dois estão
 sites diferentes e o navegador não envia esse cookie nas chamadas `fetch`. O
 login funciona, mas a sessão cai quando o token de acesso expira (15 min).
 
-Com `KLIPPER_API_PROXY_TARGET` definido no build, o Nitro encaminha `/api/**` à
-API e o navegador só fala com a origem do front (ver
-`apps/klipper-web/config/apiRouting.ts`). O cookie passa a ser da origem do front
-e é enviado normalmente.
+No build da Vercel, o Nitro encaminha `/api/**` à API e o navegador só fala
+com a origem do front (ver `apps/klipper-web/config/apiRouting.ts`). O cookie
+passa a ser da origem do front e é enviado normalmente.
 
 ## Configuração
 
-Vercel (projeto com root em `apps/klipper-web`):
+Vercel (projeto com root em `apps/klipper-web`): nada novo. O destino do
+repasse é o `NUXT_PUBLIC_API_URL` que já existe no projeto
+(`https://klipper-api.onrender.com`, em Production). Ele só é lido no build;
+depois de alterá-lo, faça um novo deploy.
 
-| Variável | Valor |
+| Variável | Uso |
 |---|---|
-| `KLIPPER_API_PROXY_TARGET` | URL da API, por exemplo `https://klipper-api.onrender.com` (exige `https`) |
-| `NUXT_PUBLIC_API_URL` | **Não definir.** Se definida, sobrepõe a mesma origem em tempo de execução e volta o problema do cookie. |
+| `NUXT_PUBLIC_API_URL` | Num build da Vercel, se for `https`, vira o destino do repasse. Fora da Vercel, continua sendo a URL chamada direto pelo navegador. |
+| `KLIPPER_API_PROXY_TARGET` | Opcional. Força o destino do repasse em qualquer ambiente (exige `https`, exceto `localhost`). |
+| `NUXT_PUBLIC_API_BASE` | Sobrepõe em tempo de execução a base usada pelo navegador. Na Vercel, **não definir**: anularia a mesma origem. O perfil Docker usa `""`. |
 
-A variável é lida no build: depois de alterá-la, faça um novo deploy.
+O preview dos PRs não tem `NUXT_PUBLIC_API_URL` e continua sem API, como antes.
 
 Render (API): `RAILS_ALLOWED_HOSTS` precisa conter o host da própria API
 (`klipper-api.onrender.com`), porque o proxy envia esse `Host`. O `CORS_ORIGINS`
