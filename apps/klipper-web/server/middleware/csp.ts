@@ -8,7 +8,7 @@ export default defineEventHandler((event) => {
   const config = useRuntimeConfig(event)
   const isDev = process.env.NODE_ENV !== 'production'
 
-  const apiUrl = (config.public.apiUrl as string) || ''
+  const apiUrl = (config.public.apiBase as string) || ''
 
   let connectSrc = "'self'"
   if (apiUrl && !apiUrl.startsWith('/')) {
