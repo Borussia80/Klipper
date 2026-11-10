@@ -22,6 +22,7 @@ RSpec.describe "RAILS_ALLOWED_HOSTS declarado no render.yaml" do
     env = Rack::MockRequest.env_for(
       "https://klipper-api.onrender.com/api/v1/auth/sign_in",
       method: "POST",
+      "HTTP_HOST" => "klipper-api.onrender.com",
       "HTTP_X_FORWARDED_HOST" => forwarded_host
     )
     app.call(env).first
