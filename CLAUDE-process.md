@@ -69,7 +69,7 @@ Não é sprint separado. Acontece no passo **Refactor** de cada ciclo TDD.
 
 | Camada | Meta |
 |---|---|
-| Suite local (pytest) | < 10 s |
+| Suite local (RSpec/Vitest) | < 10 s |
 | CI completo (Actions) | < 3 min |
 | Review de PR | mesmo dia útil |
 | Deploy em produção | automático após merge em `main` |
@@ -78,6 +78,6 @@ Não é sprint separado. Acontece no passo **Refactor** de cada ciclo TDD.
 
 ## TEMPLATE DE NOVO MÓDULO
 
-Backend: `app/services/minha_regra.rb` + `spec/services/minha_regra_spec.rb`.
-Frontend: `composables/useMinhaRegra.ts` + `composables/__tests__/useMinhaRegra.test.ts`.
+Backend: `apps/klipper-api/app/services/minha_regra.rb` + `apps/klipper-api/spec/services/minha_regra_spec.rb`.
+Frontend: `apps/klipper-web/composables/useMinhaRegra.ts` + `apps/klipper-web/composables/__tests__/useMinhaRegra.test.ts`.
 Em ambos os casos, o teste de comportamento deve existir e falhar antes da implementação.

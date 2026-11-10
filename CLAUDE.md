@@ -6,7 +6,7 @@
 ## IDENTIDADE
 
 **Klipper** — Wealth Operating System pessoal de Roberto Milet.
-Stack: **SPA/PWA Nuxt 3.21 (Vercel) + API Rails 8 (PostgreSQL)**
+Stack: **SPA/PWA Nuxt 3.21.11 (Vercel) + API Rails 8 (PostgreSQL)**
 Prod: PWA em Vercel · Repo: https://github.com/Borussia80/Klipper
 Local: `/home/rmilet/Base/01-Projetos/11.01-Klipper`
 
@@ -14,7 +14,7 @@ Local: `/home/rmilet/Base/01-Projetos/11.01-Klipper`
 
 ```
 apps/
-  klipper-web/    ← Nuxt 3.21 (Vue 3, SPA, PWA) — frontend
+  klipper-web/    ← Nuxt 3.21.11 (Vue 3, SPA, PWA) — frontend
   klipper-api/    ← Rails 8 (PostgreSQL, JWT) — backend
   quebec-web/     ← Nuxt 3.21 — landing page institucional
 ```
@@ -32,8 +32,11 @@ apps/
 
 ## EXECUÇÃO LOCAL
 
+Em produção, o front fala com a API pelo proxy `/api/**` da Vercel; veja
+`docs/alpha/03-acesso-mobile.md`.
+
 ```bash
-# Frontend (Nuxt 3.21, SPA)
+# Frontend (Nuxt 3.21.11, SPA)
 cd apps/klipper-web
 npm run dev          # localhost:3000
 npm run test         # Vitest
@@ -46,7 +49,7 @@ TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/klipper_test" \
 
 ### Alfa local (uso real na própria máquina)
 
-Portas: **front 3000, API 3001** (os padrões do código já são esses). O Docker está desabilitado; o banco do alfa é
+Portas: **front 3000, API 3001** (a API usa `-p 3001` no comando abaixo). O Docker está desabilitado; o banco do alfa é
 um container Podman persistente, só em 127.0.0.1:
 
 ```bash

@@ -9,6 +9,12 @@ RSpec.describe AllowedHosts do
       )
     end
 
+    it "allows the forwarded frontend host with the production host allowlist" do
+      hosts = described_class.from_env("klipper-api.onrender.com,klipper.quebec.com.br,www.klipper.quebec.com.br,klipper-app.vercel.app")
+
+      expect(hosts).to include("klipper.quebec.com.br", "www.klipper.quebec.com.br", "klipper-app.vercel.app")
+    end
+
     it "ignores blank entries" do
       expect(described_class.from_env(" klipper-api.onrender.com, ,\t")).to eq([ "klipper-api.onrender.com" ])
     end
