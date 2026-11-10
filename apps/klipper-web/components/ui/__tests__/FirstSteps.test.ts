@@ -64,7 +64,7 @@ describe('FirstSteps.vue — primeiros passos do painel', () => {
       expect.stringContaining('Cadastrar a primeira conta'),
       expect.stringContaining('Cadastrar os cartões de crédito'),
       expect.stringContaining('Registrar a carteira de investimentos'),
-      expect.stringContaining('Definir o primeiro objetivo financeiro'),
+      expect.stringContaining('Criar o primeiro orçamento'),
     ])
     expect(block.text()).toContain('0 de 4 concluídos · 0%')
     expect(block.get('[role="progressbar"]').attributes('aria-valuenow')).toBe('0')
@@ -90,8 +90,8 @@ describe('FirstSteps.vue — primeiros passos do painel', () => {
     await cartao!.trigger('click')
     expect(mockOpen).toHaveBeenCalledWith('nova-conta', 'cartao')
 
-    const objetivo = block.findAll('button').find((b) => b.text() === 'Definir objetivo')
-    await objetivo!.trigger('click')
+    const orcamento = block.findAll('button').find((b) => b.text() === 'Criar orçamento')
+    await orcamento!.trigger('click')
     expect(mockOpen).toHaveBeenCalledWith('nova-categoria', null)
   })
 

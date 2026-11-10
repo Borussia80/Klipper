@@ -50,8 +50,8 @@ const etapas = computed<Etapa[]>(() => [
     done: investments.value.length > 0,
   },
   {
-    label: 'Definir o primeiro objetivo financeiro',
-    cta: 'Definir objetivo',
+    label: 'Criar o primeiro orçamento',
+    cta: 'Criar orçamento',
     modal: 'nova-categoria',
     done: budgets.value.length > 0,
   },
