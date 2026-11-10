@@ -29,9 +29,17 @@ depois de alterá-lo, faça um novo deploy.
 
 O preview dos PRs não tem `NUXT_PUBLIC_API_URL` e continua sem API, como antes.
 
-Render (API): `RAILS_ALLOWED_HOSTS` precisa conter o host da própria API
-(`klipper-api.onrender.com`), porque o proxy envia esse `Host`. O `CORS_ORIGINS`
+Render (API): `RAILS_ALLOWED_HOSTS` precisa conter `klipper-api.onrender.com`,
+`klipper.quebec.com.br`, `www.klipper.quebec.com.br` e
+`klipper-app.vercel.app`. O proxy Nitro envia o host do front em
+`X-Forwarded-Host`, que o HostAuthorization do Rails valida. Se os domínios do
+front faltarem, POSTs pelo proxy retornam 403 com corpo vazio, embora
+`/api/v1/health` responda 200 (rota excluída dessa validação). O `CORS_ORIGINS`
 deixa de ser usado pelo front, que agora faz chamadas de mesma origem.
+
+Diagnóstico: se a API aparece como `Live`, mas não responde, confira o log de
+boot do Render, especialmente falhas em `db:prepare` por `DATABASE_URL` inválida
+ou desatualizada.
 
 ## Limitação conhecida
 
