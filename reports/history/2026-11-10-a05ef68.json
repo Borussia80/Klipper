@@ -1,0 +1,202 @@
+{
+  "schema_version": "1.0.0",
+  "meta": {
+    "date": "2026-11-10T04:33:13.512Z",
+    "trigger": "workflow_run",
+    "depth": "fast",
+    "branch": "main",
+    "commit": "a05ef686abcda0a016ec23fec0e165d730f142b9",
+    "missing_agents": [
+      "architecture"
+    ]
+  },
+  "overall_score": 74,
+  "sections": [
+    {
+      "agent": "finance",
+      "name": "Domínio financeiro",
+      "score": 68,
+      "risk": "medium"
+    },
+    {
+      "agent": "security",
+      "name": "Segurança",
+      "score": 80,
+      "risk": "low"
+    }
+  ],
+  "findings": [
+    {
+      "natural_key": "instrument-readout-mislabeled-budget-ratio",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-web/components/ui/InstrumentReadout.vue:62 hardcoded '% da renda'; apps/klipper-web/pages/orcamento.vue:134 passa `budgetSpentRatio(totalSpent.value, totalAllocated.value)` (razão gasto/orçamento) como `spentRatio` para o mesmo componente que em pages/dashboard.vue:292 recebe `pctOfIncome(totalDebits.value, totalCredits.value)` (razão gasto/renda).",
+      "description": "InstrumentReadout continua com o rótulo fixo '% da renda' hardcoded, então orcamento.vue (que mede proporção do orçamento, não da renda) exibe um rótulo semanticamente errado para a métrica que de fato calcula — recorrência confirmada do finding já catalogado.",
+      "recommendation": "Tornar o rótulo da razão ('% da renda' / '% do orçamento') prop do InstrumentReadout, com cada página passando o texto correspondente ao que a razão de fato mede.",
+      "impact": 4,
+      "frequency": 6,
+      "reach": 5,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 60,
+      "id": "FIN-001",
+      "adr": null
+    },
+    {
+      "natural_key": "natureza-split-pct-zero-vs-nil-on-nonpositive-total",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/natureza_split_calculator.rb:53 — `pct: total.positive? ? (amount / total * 100).round(1) : 0.0`. Quando o total do mês (débitos regulares menos estornos, kind: refund) é zero ou negativo, toda natureza recebe pct 0.0, mesmo quando uma natureza específica tem `total` real e diferente de zero (ex: estorno de um mês anterior lançado neste mês, sem despesa nova na mesma natureza). spec/services/natureza_split_calculator_spec.rb:67-76 cobre só o caso total=0 por ausência de lançamento (0 débitos, 0 estornos); não há caso de teste com estorno líquido superando despesa líquida (total negativo). apps/klipper-web/composables/useDashboardKpis.ts:37-46 (`mapNaturezaSplitToBars`) repassa `pct` direto ao gráfico do dashboard sem tratamento adicional.",
+      "description": "NaturezaSplitCalculator usa 0.0 para 'sem base de cálculo válida' em pct por natureza, a mesma ambiguidade zero-vs-nil já catalogada em BudgetEngine (FIN-010) e evitada em PortfolioService/ReimbursementCoverageCalculator (que usam nil) — mas aqui, diferente do BudgetEngine (cujo caso zero é inatingível via fluxo normal porque a validação do model impede amount_limit<=0), o caminho é alcançável em uso real: a feature de estorno/reembolso (Lacuna 4) pode legitimamente lançar um crédito de estorno num mês sem despesa nova equivalente na mesma natureza, zerando ou negativando o total do mês e fazendo o donut do dashboard mostrar '0%' para todas as naturezas em vez de sinalizar base inválida.",
+      "recommendation": "Alinhar NaturezaSplitCalculator#by_natureza à mesma convenção nil já usada por PortfolioService/ReimbursementCoverageCalculator para proporção sem base válida (total <= 0), e adicionar teste com estorno líquido superando despesa líquida no mês (total negativo) além do caso já coberto de total zero por ausência de lançamento; ajustar mapNaturezaSplitToBars/dashboard para tratar pct nulo como estado distinto de 0%.",
+      "impact": 4,
+      "frequency": 3,
+      "reach": 5,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 30,
+      "id": "FIN-011",
+      "adr": null
+    },
+    {
+      "natural_key": "transaction-import-provenance-missing",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/bank_import/transaction_writer.rb — `write!` persiste a transação (linhas 11-46) sem gravar nenhuma referência ao lote/arquivo de origem; `AuditLog` (app/models/audit_log.rb, criado em imports_controller.rb:101) registra o evento IMPORT_DATA com checksum do arquivo, mas não existe FK de `transactions` para `audit_logs` nem coluna equivalente em `transactions` — não há como, a partir de uma transação em transacoes.vue, navegar até o lote de import que a criou.",
+      "description": "Uma transação importada via CSV/PDF continua sem poder ser rastreada de volta ao seu arquivo/lote de origem em nenhuma tela depois que o import é concluído — o AuditLog adicionado por SEC-20 registra que um import aconteceu, mas não liga cada transação individual a esse registro, então o requisito de rastreabilidade da seção financeira continua quebrado.",
+      "recommendation": "Persistir uma referência de origem (import_batch_id ou FK para o AuditLog já criado no confirm) na transação no momento do import, e expor essa proveniência em transacoes.vue.",
+      "impact": 5,
+      "frequency": 4,
+      "reach": 6,
+      "effort": 4,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 30,
+      "id": "FIN-008",
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-005.md"
+    },
+    {
+      "natural_key": "btg-extrato-debit-sign-assumption-untested",
+      "category": "finance",
+      "severity": "medium",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/pdf_adapters/btg_extrato_adapter.rb:15-19 — comentário do próprio arquivo: 'Confirmado apenas contra 1 relatório real com 5 lançamentos, todos RENDIMENTOS (crédito) ... Sem exemplo real de débito nessa conta corrente — assume-se que a coluna Movimentação R$ já usa o sinal correto na origem'. spec/services/pdf_adapters/btg_extrato_adapter_spec.rb não contém nenhum caso de débito real travando o sinal esperado.",
+      "description": "BtgExtratoAdapter propaga o sinal de 'Movimentação R$' sem inversão sob uma suposição documentada como não verificada contra nenhum débito real, e nenhum teste trava esse sinal — dado de patrimônio de importações BTG segue com risco não coberto de inversão silenciosa de sinal.",
+      "recommendation": "Ao surgir o primeiro extrato BTG real com um débito, adicionar teste travando o sinal esperado antes de continuar confiando esse import em relatórios de patrimônio; até lá, manter como risco aceito e documentado (já está), não silenciar.",
+      "impact": 7,
+      "frequency": 2,
+      "reach": 4,
+      "effort": 3,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 18.67,
+      "id": "FIN-005",
+      "adr": null
+    },
+    {
+      "natural_key": "web-apps-outdated-dev-transient-deps",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "medium",
+      "evidence": "`npm audit --json` em apps/klipper-web: 3 low / 29 moderate / 0 high / 0 critical (ex.: `esbuild` low recorrente; `minimatch` moderate — GHSA-g3hv-75wg-m249, ReDoS via globparts, puxado por `eslint`/`@typescript-eslint/typescript-estree`/`glob`, só em devDependencies). Em apps/quebec-web: 3 low / 10 moderate / 0 high / 0 critical. `devalue` (advisory anterior) não aparece mais no audit atual — já resolvido desde a última execução. .github/scripts/audit-gate.mjs bloqueia apenas `high`/`critical` (EXECOES vazia), então essas advisories moderate/low passam o CI por desenho, não por omissão. Lado Ruby (bundler-audit/brakeman) não pôde ser executado neste ambiente: `bundle` não está no PATH e as gems do Gemfile.lock não estão instaladas (`bundle check` lista rails/pg/puma/etc. como \"missing\"); inspeção manual do Gemfile.lock (rails 8.1.4.1, rack 3.2.8, nokogiri 1.19.6, jwt 3.3.0) não revelou nenhuma versão que eu possa afirmar com certeza estar associada a um CVE conhecido, daí finding_confidence medium e não high.",
+      "description": "Dependências de desenvolvimento/transitivas de ambos os frontends seguem com advisories moderate/low abertas (atualmente `esbuild` e a cadeia de `minimatch` via eslint/typescript-eslint); o lado Ruby não pôde ser auditado nesta execução por falta de `bundle`/gems instaladas no ambiente.",
+      "recommendation": "Rodar `npm audit fix` (ou atualizar `eslint`/`@nuxt/eslint` para a versão que resolve a cadeia do `minimatch`) em apps/klipper-web e apps/quebec-web. Garantir que o runner do agente de segurança tenha `bundle install` executado (ou gems vendorizadas) antes da próxima auditoria, para que `bin/bundler-audit` e `bin/brakeman` deixem de ser pulados.",
+      "impact": 2,
+      "frequency": 3,
+      "reach": 3,
+      "effort": 1,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 10.8,
+      "id": "SEC-003",
+      "adr": null
+    },
+    {
+      "natural_key": "password-reset-redemption-endpoint-unthrottled",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/config/initializers/rack_attack.rb:3-5 — a única regra por IP só dispara para `req.post?` e path exatamente igual a `/api/v1/auth/sign_in`, `/api/v1/auth/sign_up` ou `/api/v1/password_resets`; não cobre `req.patch?` nem o path com sufixo `:token`. apps/klipper-api/config/routes.rb — `patch \"password_resets/:token\", to: \"password_resets#update\"`. apps/klipper-api/app/controllers/api/v1/password_resets_controller.rb:16-27 (`update`) não aplica nenhum throttle próprio.",
+      "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset de senha) continua sem qualquer rate limiting, ao contrário de todas as outras rotas de autenticação não-autenticadas.",
+      "recommendation": "Adicionar uma regra de throttle no Rack::Attack para `req.patch? && req.path.start_with?(\"/api/v1/password_resets/\")`, por IP, espelhando a regra `auth/ip` existente em rack_attack.rb:3.",
+      "impact": 3,
+      "frequency": 2,
+      "reach": 2,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "security",
+      "priority_score": 6,
+      "id": "SEC-005",
+      "adr": null
+    },
+    {
+      "natural_key": "budget-engine-pct-used-zero-vs-nil-inconsistency",
+      "category": "finance",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-api/app/services/budget_engine.rb:16 — `pct = budget.amount_limit.positive? ? (spent / budget.amount_limit * 100).round(1) : 0.0`, divergindo da convenção nil já adotada em PortfolioService#allocation e ReimbursementCoverageCalculator#call. spec/services/budget_engine_spec.rb:59-62 cobre o caso só via `update_column` (bypassa validação); `Budget` valida `amount_limit > 0` no fluxo normal de criação.",
+      "description": "BudgetEngine#summary usa 0.0 para 'sem base de cálculo' em pct_used, divergindo da convenção nil já adotada em PortfolioService#allocation e ReimbursementCoverageCalculator#call para o mesmo tipo de razão sem denominador válido; o caminho é coberto por teste e inalcançável via fluxo normal do app (validação impede amount_limit <= 0), mas dado legado ou uma edição direta na base ainda produziria um card de orçamento mostrando '0% usado' em vez de sinalizar ausência de limite.",
+      "recommendation": "Alinhar BudgetEngine#summary à mesma convenção nil já usada por PortfolioService e ReimbursementCoverageCalculator para razão sem base válida, e ajustar orcamento.vue/UiBudgetCategoryCard para tratar pct_used nulo como estado distinto de 0%.",
+      "impact": 3,
+      "frequency": 1,
+      "reach": 3,
+      "effort": 2,
+      "adr_candidate": false,
+      "agent": "finance",
+      "priority_score": 4.5,
+      "id": "FIN-010",
+      "adr": null
+    },
+    {
+      "natural_key": "spa-access-token-cookie-js-readable",
+      "category": "security",
+      "severity": "low",
+      "model_confidence": "high",
+      "finding_confidence": "high",
+      "evidence": "apps/klipper-web/composables/useApi.ts:18-22 — `useCookie('klipper_token', { sameSite: 'lax', secure: cookieSecure, maxAge: 60 * 15 })`, sem `httpOnly` (impossível via `useCookie` do lado cliente). Contraste com apps/klipper-api/app/controllers/api/v1/auth_controller.rb:60-67, onde o refresh token É `httponly: true`. apps/klipper-web/server/middleware/csp.ts:29-31 aplica `script-src 'self' 'nonce-<nonce>'` em produção, o que reduz mas não elimina o risco residual de XSS ler o token. docs/adrs/proposed/ADR-2026-09-17-003.md ainda está em `proposed`, sem decisão formal.",
+      "description": "O access token da SPA continua exposto a JavaScript via cookie não-httpOnly, e a decisão arquitetural de aceitar esse risco (mitigado pela CSP com nonce) ou migrar para cookie HttpOnly + CSRF segue sem resolução formal.",
+      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar). Se aceitar, mover o ADR para `accepted` documentando a mitigação via CSP; nenhum sink de XSS explorável foi encontrado nesta auditoria em apps/klipper-web/server/middleware/csp.ts (script-src com nonce em produção), o que reduz o risco residual, mas não o elimina.",
+      "impact": 4,
+      "frequency": 1,
+      "reach": 2,
+      "effort": 4,
+      "adr_candidate": true,
+      "agent": "security",
+      "priority_score": 2,
+      "id": "SEC-006",
+      "adr": "docs/adrs/proposed/ADR-2026-09-17-003.md"
+    }
+  ],
+  "possible_regressions": [],
+  "trend": {
+    "overall_score": 18.67,
+    "sections": [
+      {
+        "agent": "finance",
+        "delta": 62
+      },
+      {
+        "agent": "security",
+        "delta": -4
+      }
+    ],
+    "baseline": {
+      "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+      "branch": "main",
+      "date": "2026-09-18T13:03:39.167Z",
+      "note": null
+    }
+  }
+}
