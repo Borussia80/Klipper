@@ -24,8 +24,8 @@ existe na versão travada no `package-lock.json` (conferido no código do preset
 
 O h3 descarta o `Host` do front e repassa os demais cabeçalhos. Entre eles vai
 o `x-forwarded-host`, que a Vercel preenche com o domínio que o visitante abriu:
-`klipper-app.vercel.app` no alias, ou `klipper-<hash>-….vercel.app` num link de
-deploy. O cookie do navegador vai à API, e o `set-cookie` da API volta sem
+`klipper.quebec.com.br` no domínio de produção, ou `klipper-<hash>-….vercel.app`
+num link de deploy. O cookie do navegador vai à API, e o `set-cookie` da API volta sem
 `Domain`. O teste `config/__tests__/apiProxyHeaders.test.ts` trava esse
 comportamento. Se uma atualização do Nitro (por exemplo, para o Nuxt 4) passar o
 repasse para o CDN, confira de novo esses três pontos. Um *rewrite* externo da
@@ -69,10 +69,15 @@ reavaliar isso.
 
 ## Instalar no celular
 
-Use o alias ou o domínio próprio, nunca o link de um deploy específico
-(`klipper-<hash>-….vercel.app`): esse host não está em `RAILS_ALLOWED_HOSTS` e
-o login recebe 403 com corpo vazio, registrado no log da API como
-`Blocked hosts`.
+Endereço: **https://klipper.quebec.com.br**. É o domínio do projeto `klipper`
+na Vercel (conferido em 2026-11-11).
+
+- Não use `klipper-app.vercel.app`: esse alias não aponta para o projeto
+  `klipper` e serve uma versão antiga do front em Next.js, sem relação com o
+  app atual. Ele continua em `RAILS_ALLOWED_HOSTS` só por histórico.
+- Não use o link de um deploy específico (`klipper-<hash>-….vercel.app`): esse
+  host não está em `RAILS_ALLOWED_HOSTS`, e o login recebe 403 com corpo vazio,
+  registrado no log da API como `Blocked hosts`.
 
 - Android (Chrome): abrir o endereço do front, menu ⋮ e depois "Instalar app".
 - iPhone (Safari): abrir o endereço, Compartilhar e depois "Adicionar à Tela de Início".

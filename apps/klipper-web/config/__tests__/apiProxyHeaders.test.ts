@@ -64,14 +64,14 @@ describe('proxy /api/** em tempo de execução (h3 proxyRequest)', () => {
     const response = await fetch(`${frontUrl}/api/v1/auth/refresh`, {
       method: 'POST',
       headers: {
-        'x-forwarded-host': 'klipper-app.vercel.app',
+        'x-forwarded-host': 'klipper.quebec.com.br',
         'x-forwarded-proto': 'https',
         cookie: 'refresh_token=old',
       },
     })
 
     expect(response.status).toBe(200)
-    expect(received['x-forwarded-host']).toBe('klipper-app.vercel.app')
+    expect(received['x-forwarded-host']).toBe('klipper.quebec.com.br')
     expect(received['x-forwarded-proto']).toBe('https')
     expect(received.cookie).toBe('refresh_token=old')
     // O Host do front não é reaproveitado: a API recebe o próprio host.
