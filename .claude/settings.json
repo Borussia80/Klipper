@@ -1,8 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "mcp__Neon__run_sql",
-      "mcp__Neon__run_sql_transaction",
       "mcp__Neon__describe_project",
       "mcp__Neon__list_projects",
       "mcp__Neon__get_database_tables",
@@ -11,7 +9,6 @@
       "mcp__Render__get_service",
       "mcp__Render__list_deploys",
       "mcp__Render__list_logs",
-      "mcp__Render__update_environment_variables",
       "mcp__Vercel__list_projects",
       "mcp__Vercel__list_deployments",
       "mcp__Vercel__get_deployment",
