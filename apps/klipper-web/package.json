@@ -18,7 +18,7 @@
     "@edusites/bancos-brasil": "^1.2.0",
     "@nuxt/fonts": "^0.14.0",
     "@phosphor-icons/vue": "^2.2.1",
-    "nuxt": "^3.15.4",
+    "nuxt": "^4.6.4",
     "unstorage": "^1.17.5"
   },
   "devDependencies": {
