@@ -75,11 +75,20 @@ describe('ModalNovoLancamento', () => {
     vi.useRealTimers()
   })
 
+  it('deixa o botão de salvar no rodapé fixo, ao alcance do polegar', async () => {
+    await mountModal()
+
+    expect(body.find('.drawer-footer button.cta').exists()).toBe(true)
+    expect(body.get('.drawer-body').find('button.cta').exists()).toBe(false)
+  })
+
   it('pede confirmação antes de descartar um rascunho e preserva os dados ao cancelar', async () => {
     const w = await mountModal()
     await fillValidFields()
     await body.get('button[aria-label="Fechar painel"]').trigger('click')
     expect(body.text()).toContain('Descartar este lançamento?')
+    // Durante a pergunta, o rodapé não oferece salvar um rascunho que a pessoa está decidindo descartar.
+    expect(body.find('button.cta').exists()).toBe(false)
     expect(document.activeElement).toBe(body.get('button[data-testid="manter-rascunho"]').element)
     await body.get('button[data-testid="manter-rascunho"]').trigger('click')
     expect(document.activeElement).toBe(body.get('input[aria-label="Valor do lançamento em reais"]').element)

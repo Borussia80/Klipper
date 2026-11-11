@@ -378,4 +378,10 @@ const colsCount = computed(() =>
 @media (max-width: 920px) {
   .kpi-grid, .cols { grid-template-columns: 1fr !important; }
 }
+
+@media (max-width: 768px) {
+  /* Alvo de 44 px no filtro de portador (doc 04 §5) */
+  .sel-wrap { padding-top: 0; padding-bottom: 0; }
+  .fi-sel { min-height: var(--tap); }
+}
 </style>

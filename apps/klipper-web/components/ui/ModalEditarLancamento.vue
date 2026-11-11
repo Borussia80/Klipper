@@ -122,16 +122,17 @@
       {{ error }}
     </div>
 
-    <!-- CTA -->
-    <button
-      class="btn btn-p cta"
-      type="button"
-      :disabled="isLoading || !isValid || !transaction"
-      @click="submit"
-    >
-      <span v-if="isLoading" class="btn-spinner" />
-      <span v-else>Salvar</span>
-    </button>
+    <template #footer>
+      <button
+        class="btn btn-p cta"
+        type="button"
+        :disabled="isLoading || !isValid || !transaction"
+        @click="submit"
+      >
+        <span v-if="isLoading" class="btn-spinner" />
+        <span v-else>Salvar</span>
+      </button>
+    </template>
 
   </UiBaseModal>
 </template>
@@ -320,9 +321,19 @@ input[type="date"] {
 
 /* ── CTA ────────────────────────────────────────────────── */
 .cta {
-  height: 40px;
+  height: 44px;
   width: 100%;
   font-size: 13px;
   font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  /* Alvo de 44 px (doc 04 §5) */
+  .tipo-btn { height: 44px; }
+  /* 16 px evita o zoom do Safari ao focar; 44 px de alvo */
+  .field {
+    font-size: 16px;
+    min-height: 44px;
+  }
 }
 </style>

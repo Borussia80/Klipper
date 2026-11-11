@@ -79,3 +79,18 @@ Uma referência não é uma especificação. A matriz registra comportamentos de
 O PR de pesquisa **não deve ser tratado como estudo fechado** enquanto os requisitos UXR-03, UXR-04, UXR-06 e UXR-12 estiverem sem ensaio. Ele pode ser mergeado somente como documentação de descoberta, com as lacunas preservadas; não como autorização para implementar ou declarar prontas as jornadas financeiras.
 
 Para iniciar implementação, cada história deve referenciar pelo menos um requisito UXR e trazer teste de aceitação correspondente. Para encerrar a pesquisa, atualizar esta matriz com data, ambiente, evidência e resultado de cada ciclo.
+
+## Evidência no Klipper
+
+### 2026-11-11 — fatia mobile 1: alvos de toque e ação ao alcance do polegar
+
+- **Requisitos:** doc 04 §5 (alvo ≥ 44 px, breakpoint 768 px), UXR-07 e spec 02 (aceite 4: Salvar visível sem rolar em 390 px), UXR-08 (sem rolagem lateral) e UXR-12 (diálogo navegável por teclado).
+- **Ambiente:** `nuxt dev` com a API interceptada por dados fictícios; Chromium real (Playwright) em 390×844 e 1440×900. Roteiro: `apps/klipper-web/e2e/mobile-touch.mjs` (`npm run test:mobile`).
+- **Antes (main em `e475071`):** 11 checagens falharam.
+  - Alvos entre 18 e 36 px em todas as telas.
+  - Salvar fora da tela na folha de lançamento.
+  - Campos com 14 px, que fazem o Safari dar zoom.
+  - "Mais" sem papel de diálogo, sem foco inicial e sem Esc.
+- **Depois:** as 20 checagens passam (390 px: Painel, Movimento, Orçamento, Contas, folha de lançamento e "Mais"; 1440 px: as quatro telas sem rolagem lateral).
+- **Ainda sem evidência:** leitor de tela, contraste medido e uso no aparelho físico (iOS e Android); gestos (fatia 2); revisão por tela (fatia 3).
+

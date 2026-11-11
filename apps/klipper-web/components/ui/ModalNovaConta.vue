@@ -61,16 +61,18 @@
       {{ error }}
     </div>
 
-    <button
-      class="btn btn-p"
-      style="height:40px;width:100%;font-size:13px;font-weight:600"
-      type="button"
-      :disabled="isLoading"
-      @click="submit"
-    >
-      <span v-if="isLoading" class="btn-spinner" />
-      <span v-else>Adicionar conta</span>
-    </button>
+    <template #footer>
+      <button
+        class="btn btn-p"
+        style="height:44px;width:100%;font-size:13px;font-weight:600"
+        type="button"
+        :disabled="isLoading"
+        @click="submit"
+      >
+        <span v-if="isLoading" class="btn-spinner" />
+        <span v-else>Adicionar conta</span>
+      </button>
+    </template>
   </UiBaseModal>
 </template>
 

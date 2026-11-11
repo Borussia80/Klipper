@@ -47,6 +47,7 @@ onUnmounted(() => {
         :aria-label="title"
         aria-labelledby="modal-title-id"
       >
+        <span class="drawer-grip" aria-hidden="true" />
         <!-- Header -->
         <div class="drawer-header">
           <div>
@@ -63,6 +64,11 @@ onUnmounted(() => {
         <!-- Scrollable body -->
         <div class="drawer-body">
           <slot />
+        </div>
+
+        <!-- Ação principal fixa: fora da rolagem, ao alcance do polegar (spec 02, UXR-07) -->
+        <div v-if="$slots.footer" class="drawer-footer">
+          <slot name="footer" />
         </div>
       </div>
     </Transition>
@@ -148,17 +154,62 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* Mobile: fullscreen drawer */
-@media (max-width: 640px) {
+/* Rodapé de ação: fica fora da área rolável */
+.drawer-footer {
+  flex-shrink: 0;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--bd);
+  background: var(--bg-frame);
+}
+
+.drawer-grip { display: none; }
+
+/* Mobile (breakpoint único de 768 px, doc 04): folha ancorada embaixo (spec 02) */
+@media (max-width: 768px) {
   .drawer {
     width: 100%;
     left: 0;
-    top: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    max-height: 92vh;
+    max-height: 92dvh;
     border-left: none;
-    border-top: none;
+    border-top: 1px solid var(--bd2);
+    border-radius: var(--r) var(--r) 0 0;
   }
   .drawer-backdrop {
     inset: 0;
+    z-index: 205; /* acima da barra inferior (200) */
   }
+  .drawer { z-index: 210; }
+  .drawer-grip {
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: 2px;
+    background: var(--t4);
+    flex-shrink: 0;
+  }
+  .drawer-header { padding: 12px 16px 16px; }
+  .drawer-body { padding: 0 16px 24px; }
+  .drawer-footer {
+    padding: 12px 16px 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .drawer-close {
+    width: 44px;
+    height: 44px;
+  }
+  .drawer-enter-from,
+  .drawer-leave-to {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-enter-active,
+  .drawer-leave-active { transition: none; }
 }
 </style>

@@ -341,4 +341,12 @@ function confirmDeleteBulk() {
     opacity: 1;
   }
 }
+
+@media (max-width: 768px) {
+  /* Alvo de 44 px (doc 04 §5) */
+  .tx-delete {
+    width: 44px;
+    height: 44px;
+  }
+}
 </style>

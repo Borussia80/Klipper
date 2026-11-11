@@ -1,17 +1,24 @@
 <template>
   <div class="mobile-nav-shell">
-    <div v-if="moreOpen" class="more-backdrop" aria-hidden="true" @click="moreOpen = false" />
-    <section v-if="moreOpen" class="more-sheet" aria-label="Mais páginas">
+    <div v-if="moreOpen" class="more-backdrop" aria-hidden="true" @click="closeMore" />
+    <section
+      v-if="moreOpen"
+      ref="sheetRef"
+      class="more-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mais páginas"
+    >
       <div class="more-sheet-header">
         <span>Mais</span>
-        <button type="button" class="more-close" aria-label="Fechar mais páginas" @click="moreOpen = false">×</button>
+        <button type="button" class="more-close" aria-label="Fechar mais páginas" @click="closeMore">×</button>
       </div>
       <NuxtLink
         v-for="item in moreItems"
         :key="item.to"
         :to="item.to"
         class="more-item"
-        @click="moreOpen = false"
+        @click="closeMore"
       >
         <span class="mnav-icon" v-html="item.icon" aria-hidden="true" />
         <span>{{ item.label }}</span>
@@ -45,7 +52,7 @@
         :class="{ active: moreOpen }"
         aria-label="Mais páginas"
         :aria-expanded="moreOpen"
-        @click="moreOpen = !moreOpen"
+        @click="toggleMore"
       >
         <span class="mnav-icon more-dots" aria-hidden="true">•••</span>
         <span class="mnav-label">Mais</span>
@@ -57,6 +64,40 @@
 <script setup lang="ts">
 const moreOpen = ref(false)
 const { open } = useModal()
+const route = useRoute()
+
+// UXR-12: "Mais" é um diálogo. O foco entra ao abrir, fica preso enquanto
+// aberto e volta ao gatilho ao fechar; Esc e a troca de página fecham.
+const sheetRef = ref<HTMLElement | null>(null)
+const { activate, deactivate } = useFocusTrap(sheetRef)
+let triggerEl: HTMLElement | null = null
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') closeMore()
+}
+
+function toggleMore() {
+  if (moreOpen.value) closeMore()
+  else openMore()
+}
+
+function openMore() {
+  triggerEl = document.activeElement as HTMLElement | null
+  moreOpen.value = true
+  document.addEventListener('keydown', onKeydown)
+  nextTick(() => activate())
+}
+
+function closeMore() {
+  if (!moreOpen.value) return
+  moreOpen.value = false
+  document.removeEventListener('keydown', onKeydown)
+  deactivate(triggerEl)
+  triggerEl = null
+}
+
+watch(() => route.fullPath, () => closeMore())
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 const fixedItems = [
   {
@@ -168,10 +209,15 @@ const moreItems = [
 }
 
 .more-close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px -10px 0;
   border: 0;
   background: transparent;
   color: var(--t3);
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
   cursor: pointer;
 }
@@ -180,7 +226,7 @@ const moreItems = [
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 42px;
+  min-height: 44px;
   padding: 8px 10px;
   border: 1px solid var(--bd);
   border-radius: 6px;
@@ -201,6 +247,8 @@ const moreItems = [
   align-items: center;
   justify-content: center;
   gap: 3px;
+  min-width: 44px;
+  min-height: 44px;
   color: var(--t3);
   text-decoration: none;
   transition: color 0.16s;
@@ -250,7 +298,7 @@ const moreItems = [
 
 .mnav-label {
   font-family: 'Inter', sans-serif;
-  font-size: 0.58rem;
+  font-size: 11px;
   letter-spacing: 0.02em;
 }
 

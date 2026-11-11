@@ -84,6 +84,13 @@ describe('ModalEditarLancamento', () => {
     vi.useRealTimers()
   })
 
+  it('deixa Salvar no rodapé fixo, ao alcance do polegar (UXR-07)', async () => {
+    await mountModal({ open: true, transaction: makeTransaction() })
+
+    expect(body.find('.drawer-footer button.cta').exists()).toBe(true)
+    expect(body.get('.drawer-body').find('button.cta').exists()).toBe(false)
+  })
+
   it('prefills fields from the transaction payload', async () => {
     await mountModal({ open: true, transaction: makeTransaction() })
 

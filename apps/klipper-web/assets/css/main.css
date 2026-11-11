@@ -251,9 +251,12 @@ kbd {
   .shell {
     grid-template-columns: 1fr;
     grid-template-rows: 48px 1fr;
+    /* dvh: no iOS, a barra de endereço não esconde o rodapé */
+    height: 100dvh;
   }
   .shell-nav   { display: none; }
   .shell-main  { grid-column: 1; grid-row: 2; padding-bottom: 60px; padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+
 }
 
 /* ── Button loading / disabled ── */
@@ -291,3 +294,31 @@ kbd {
   box-sizing: border-box;
 }
 .fi:focus { border-color: var(--blue); }
+
+/* ── Toque no celular (doc 04 §5: alvo mínimo de 44 px; breakpoint 768 px) ──
+   Fica no fim do arquivo para prevalecer sobre as regras-base acima. */
+@media (max-width: 768px) {
+  :root { --tap: 44px; }
+  .btn,
+  .pill { min-height: var(--tap); }
+  .btn-i,
+  .sel-chip,
+  .tap-target {
+    min-width: var(--tap);
+    min-height: var(--tap);
+    justify-content: center;
+  }
+  .tap-target {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* 16 px evita o zoom automático do Safari ao focar um campo */
+  .fi {
+    font-size: 16px;
+    min-height: var(--tap);
+  }
+  input,
+  select,
+  textarea { font-size: 16px; }
+}
