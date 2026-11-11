@@ -87,16 +87,18 @@
       {{ error }}
     </div>
 
-    <button
-      class="btn btn-p cta"
-      style="height:40px;width:100%;font-size:13px;font-weight:600"
-      type="button"
-      :disabled="isLoading"
-      @click="submit"
-    >
-      <span v-if="isLoading" class="btn-spinner" />
-      <span v-else>Criar categoria</span>
-    </button>
+    <template #footer>
+      <button
+        class="btn btn-p cta"
+        style="height:44px;width:100%;font-size:13px;font-weight:600"
+        type="button"
+        :disabled="isLoading"
+        @click="submit"
+      >
+        <span v-if="isLoading" class="btn-spinner" />
+        <span v-else>Criar categoria</span>
+      </button>
+    </template>
   </UiBaseModal>
 </template>
 

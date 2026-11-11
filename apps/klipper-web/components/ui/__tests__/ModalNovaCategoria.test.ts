@@ -64,6 +64,13 @@ describe('ModalNovaCategoria', () => {
     vi.useRealTimers()
   })
 
+  it('deixa Criar categoria no rodapé fixo, ao alcance do polegar (UXR-07)', async () => {
+    await mountModal()
+
+    expect(body.find('.drawer-footer button.cta').exists()).toBe(true)
+    expect(body.get('.drawer-body').find('button.cta').exists()).toBe(false)
+  })
+
   it('cria a categoria e em seguida o orçamento do mês corrente com o category_id retornado', async () => {
     const w = await mountModal()
     await fillValidFields()

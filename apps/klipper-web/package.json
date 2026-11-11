@@ -12,7 +12,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:mobile": "node e2e/mobile-touch.mjs"
   },
   "dependencies": {
     "@edusites/bancos-brasil": "^1.2.0",

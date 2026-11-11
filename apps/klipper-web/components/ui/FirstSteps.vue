@@ -148,4 +148,8 @@ onMounted(async () => {
   .fs-item { flex-wrap: wrap; }
   .fs-cta, .fs-done { margin-left: 30px; }
 }
+
+@media (max-width: 768px) {
+  .fs-hide { min-width: 44px; min-height: 44px; }
+}
 </style>

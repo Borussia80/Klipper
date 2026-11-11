@@ -49,7 +49,7 @@
               <div class="mono" style="font-size:15px;font-weight:500;color:var(--t1)">{{ acc.balance === null ? 'Sem saldo nesta data' : formatBRL(parseFloat(acc.balance)) }}</div>
               <NuxtLink :to="`/contas/${acc.id}`" style="font-size:11px;color:var(--blue)" @click.stop>Histórico</NuxtLink>
             </div>
-            <button type="button" style="display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t3)" :aria-label="`Excluir ${acc.name}`" @click.stop="confirmDelete(acc)"><UiAppIcon name="trash" :size="14" /></button>
+            <button type="button" class="tap-target" style="display:flex;align-items:center;justify-content:center;background:none;border:none;padding:2px;cursor:pointer;color:var(--t3)" :aria-label="`Excluir ${acc.name}`" @click.stop="confirmDelete(acc)"><UiAppIcon name="trash" :size="14" /></button>
           </div>
         </template>
 

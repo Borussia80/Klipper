@@ -38,7 +38,7 @@ const initials = computed(() => userName.value.split(/\s+/).filter(Boolean).slic
         <span class="connection-dot" aria-hidden="true" />
         Sem conexão
       </span>
-      <button class="btn btn-p" aria-label="Criar novo lançamento" @click="useModal().open('novo-lancamento')">
+      <button class="btn btn-p tb-cta" aria-label="Criar novo lançamento" @click="useModal().open('novo-lancamento')">
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
           <line x1="5.5" y1="1" x2="5.5" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
           <line x1="1" y1="5.5" x2="10" y2="5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -86,5 +86,18 @@ const initials = computed(() => userName.value.split(/\s+/).filter(Boolean).slic
   .tb-search-label,
   .tb-search-kbd { display: none; }
   .tb-cta-label { display: none; }
+  /* No celular, o "+" central da barra inferior é o único ponto de entrada (doc 10 §2) */
+  .tb-cta { display: none; }
+  /* Alvo de 44 px (doc 04 §5) */
+  .tb-search-btn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .btn-avatar {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 12px !important;
+  }
 }
 </style>

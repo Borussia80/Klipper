@@ -29,6 +29,16 @@ describe('ModalNovaConta.vue — tipo pré-escolhido', () => {
     wrapper = null
   })
 
+  it('deixa Adicionar conta no rodapé fixo, ao alcance do polegar (UXR-07)', async () => {
+    wrapper = await mountSuspended(ModalNovaConta, {
+      props: { open: true, presetTipo: null },
+      attachTo: document.body,
+    })
+
+    expect(body.get('.drawer-footer').text()).toContain('Adicionar conta')
+    expect(body.get('.drawer-body').text()).not.toContain('Adicionar conta')
+  })
+
   it('abre em cartão de crédito quando veio do item Novo cartão', async () => {
     wrapper = await mountSuspended(ModalNovaConta, {
       props: { open: false, presetTipo: 'cartao' },
