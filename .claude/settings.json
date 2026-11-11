@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Neon__describe_project",
+      "mcp__Neon__list_projects",
+      "mcp__Neon__get_database_tables",
+      "mcp__Neon__describe_table_schema",
+      "mcp__Render__list_services",
+      "mcp__Render__get_service",
+      "mcp__Render__list_deploys",
+      "mcp__Render__list_logs",
+      "mcp__Vercel__list_projects",
+      "mcp__Vercel__list_deployments",
+      "mcp__Vercel__get_deployment",
+      "mcp__Vercel__get_runtime_logs",
+      "mcp__Vercel__get_runtime_errors",
+      "mcp__Vercel__filter_project_envs"
+    ]
+  }
+}
