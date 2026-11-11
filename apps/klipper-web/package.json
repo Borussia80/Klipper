@@ -33,6 +33,7 @@
     "h3": "1.15.11",
     "happy-dom": "^21.0.4",
     "oxc-parser": "^0.150.0",
+    "playwright": "1.63.0",
     "prettier": "^3.9.6",
     "typescript": "^5.7.0",
     "vitest": "^5.0.0",

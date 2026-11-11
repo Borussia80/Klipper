@@ -10,7 +10,8 @@
 // O happy-dom do Vitest não mede layout; por isso esta checagem roda num
 // Chromium real contra `nuxt dev`, com a API interceptada por dados fictícios.
 //
-// Uso: com `npm run dev` no ar, `npm run test:mobile`.
+// Uso: com `npm run dev` no ar, `npm run test:mobile`. Em máquina nova, instale
+// o navegador uma vez: `npx playwright install chromium`.
 // Variáveis: BASE_URL (padrão http://localhost:3000) e SHOTS_DIR (se definida,
 // salva capturas em 2x nessa pasta).
 
