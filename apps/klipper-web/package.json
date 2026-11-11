@@ -16,28 +16,28 @@
     "test:mobile": "node e2e/mobile-touch.mjs"
   },
   "dependencies": {
-    "@edusites/bancos-brasil": "^1.2.0",
+    "@edusites/bancos-brasil": "^1.3.0",
     "@nuxt/fonts": "^0.14.0",
     "@phosphor-icons/vue": "^2.2.1",
     "nuxt": "^3.15.4",
-    "unstorage": "^1.17.5"
+    "unstorage": "^1.17.6"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.17.0",
-    "@nuxt/test-utils": "^4.3.2",
-    "@types/node": "^22.20.2",
+    "@nuxt/test-utils": "^4.4.0",
+    "@types/node": "^22.20.5",
     "@vite-pwa/nuxt": "^1.1.1",
-    "@vue/test-utils": "^2.5.0",
-    "eslint": "^10.10.0",
+    "@vue/test-utils": "^2.5.1",
+    "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "h3": "1.15.11",
     "happy-dom": "^21.0.4",
-    "oxc-parser": "^0.150.0",
-    "playwright": "1.63.0",
-    "prettier": "^3.9.6",
+    "oxc-parser": "^0.157.0",
+    "playwright": "1.65.0",
+    "prettier": "^3.9.10",
     "typescript": "^5.7.0",
-    "vitest": "^5.0.0",
-    "vue-tsc": "^3.3.11"
+    "vitest": "^5.1.0",
+    "vue-tsc": "^3.3.14"
   },
   "overrides": {
     "vue": "^3.5.40"
