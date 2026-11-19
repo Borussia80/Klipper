@@ -83,7 +83,7 @@ limite_disponível = limite − limite_usado
 14. **K-14.** Uma compra de `n` parcelas = 1 `installment_plan` (`total`, `n`, `taxa_am`, `first_statement_id`,
     `descrição`) + `n` lançamentos `debit`. Parcela 1 nasce `efetivado` na fatura da compra; parcelas 2..n nascem
     `previsto`, cada uma na fatura seguinte à anterior, todas com `occurred_on` = data da compra, com `installment_number`/`total` (já existem).
-    As parcelas previstas alimentam o comprometimento da receita futura (spec 22, CR-2a).
+    As parcelas previstas alimentam o comprometimento da receita futura (spec 22, CR-2, item a).
 15. **K-15.** **A parcela é contabilizada na fatura em que cai** (não no mês da compra; ver K-15a). Assim orçamento e natureza
     `cartao_parcelamento` mostram R$ 142,90 por mês, e não R$ 1.000 no mês da compra. É o que a importação de PDF já
     faz hoje (cada fatura traz a sua "03/07").

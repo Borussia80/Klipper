@@ -112,4 +112,4 @@ Os mesmos casos vão para `vetores/comprometimento.v1.json`, lidos pelo RSpec e 
 
 ## Alteração na spec 04
 
-Acrescentar ao fim da K-14: "As parcelas previstas alimentam o comprometimento da receita futura (spec 22, CR-2a)."
+Acrescentar ao fim da K-14: "As parcelas previstas alimentam o comprometimento da receita futura (spec 22, CR-2, item a)."
