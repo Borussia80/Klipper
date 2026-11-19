@@ -86,6 +86,57 @@ patrimônio(D) = Σ saldo(c, D) para c ativo     ← inclui o valor das posiçõ
     reescrever qualquer mês. Fica a regra do FIN-002: uma fórmula só (`NetWorthCalculator`), usada pelo snapshot e
     pela tela.
 
+## Recursos livres
+
+Indicador gerencial derivado, decidido em 19/11/2026 (ADR-2026-11-19-007, Q-D). **Não altera** C-3, C-5, a
+conciliação (C-7 a C-10), o patrimônio (C-14 a C-16), o orçamento por limite (spec 08) nem a K-15a (spec 04), e não
+cria lançamento.
+
+| Grandeza | Pergunta | Fonte |
+|---|---|---|
+| Saldo | Quanto dinheiro tenho? | C-3 |
+| Recursos livres | Quanto posso usar agora, consideradas as reservas e as faturas fechadas? | C-17 |
+| Margem livre estimada | Quanto da minha renda futura ainda posso comprometer? | spec 22, CR-5 |
+| Patrimônio líquido | Quanto efetivamente possuo, descontadas as dívidas? | C-14 a C-16 |
+
+17. **C-17.** **Recursos livres** em uma data D:
+
+    ```
+    livres = Σ saldo das contas líquidas
+           − Σ provisões constituídas                       (spec 21)
+           − Σ reservas de fatura                           (spec 21, PV-8)
+           − Σ max(0, saldo_devedor(f) − reservas(f))       para cada fatura f fechada e não quitada
+    ```
+
+    - **Contas líquidas:** corrente, poupança, carteira e investimento com resgate em D+0, pelo valor líquido do custo
+      de resgate (spec 11). Valor de mercado nunca entra.
+    - **Saldo devedor** da fatura = total − pagamentos identificados (spec 04). Inclui fatura vencida e fatura com
+      pagamento parcial.
+    - **Fatura aberta** não entra pelo total. Ela e as parcelas futuras aparecem como comprometimento (spec 22). Só a
+      parte já reservada por provisão entra, pelas reservas de fatura.
+    - **Crédito no cartão** (pagamento a maior) não aumenta os recursos livres: o `max(0, …)` o descarta.
+    - A cobertura por provisão é descontada uma única vez: a reserva da fatura f sai do termo dessa fatura.
+    - O resultado pode ser negativo e é mostrado assim, nunca truncado em zero.
+
+Casos de aceite da C-17, com saldo líquido de R$ 10.000,00 e fatura fechada F de R$ 3.000,00, salvo indicação:
+
+| # | Situação | Livres |
+|---|---|---|
+| 1 | Sem fatura, sem provisão | 10.000 |
+| 2 | F sem provisão | 7.000 |
+| 3 | F com reserva de 1.000 | 7.000 (1.000 da reserva + 2.000 descobertos) |
+| 4 | F com reserva de 3.000 | 7.000 |
+| 5 | F sem reserva + provisões de 2.000 para outras finalidades | 5.000 |
+| 6 | F vencida, sem pagamento | 7.000, com alerta de fatura vencida |
+| 7 | Pagamento parcial de 1.000 em F (saldo 9.000, devedor 2.000) | 7.000; pagar fatura não muda os livres |
+| 8 | Sem F; fatura aberta de 1.500 sem provisão | 10.000; a fatura aberta aparece na spec 22 |
+| 9 | Cartão com crédito de 200 (pago a maior) | 10.000 |
+| 10 | Sem F; compra de 2.000 na fatura aberta coberta por provisão (PV-8) | 8.000 |
+| 11 | Saldo 2.000; F de 3.000 sem provisão | −1.000 |
+
+Os mesmos casos vão para `vetores/recursos-livres.v1.json` (`FreeResourcesCalculator`), lidos pelo RSpec e pelo
+Vitest. Nenhum caso cria `Transaction`, altera saldo (C-3) ou patrimônio líquido (C-16).
+
 ## Exemplo resolvido
 
 Conta corrente com saldo inicial R$ 2.000,00 em 01/10. Lançamentos: 05/10 salário +5.000,00; 06/10 mercado
