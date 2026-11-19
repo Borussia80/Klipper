@@ -150,6 +150,62 @@ Nenhum código, CSS, template, configuração ou asset do Cashew foi aberto. Sem
 
 Nenhum código, CSS, template, migration, configuração ou documentação técnica interna do Firefly III foi aberto.
 
+## Sessão 12 — 2026-11-19 (M2: Tally mobile)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Tally | Repositório `IamAndelib/Tally-android`, versão 1.5.1, MIT confirmado no `LICENSE` do commit `9fa59f674605c164cd9b4db6be2ad3bf6313df04`; assets servidos em `127.0.0.1:4178` | `index.html` respondeu HTTP 200. A automação de navegador reportou `The browser access host is unavailable`; calculadora, grade, excluir/desfazer e empréstimo/a receber ficaram bloqueados, sem dados criados. Widget bloqueado: disponível somente no APK. | **Sim — análise técnica dos assets; sem cópia** |
+
+Arquivos consultados: `LICENSE`, `app/src/main/assets/index.html` e os módulos `calculator.js`, `state.js`, `loans.js` e `bridge.js`. A análise de código foi anotada separadamente do comportamento: nenhum fluxo foi marcado como observado e nenhuma célula da matriz 11 foi alterada. Não houve transcrição de código, CSS, assets ou texto de interface.
+
+## Sessão 13 — 2026-11-19 (M3/M4: Cashew mobile)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Cashew | PWA oficial, `https://budget-track.web.app/`, largura prevista 390 px | Navegador indisponível (`The browser access host is unavailable`); edição/exclusão de transferência e gestos ficaram bloqueados. C4.1 já executado em 2026-10-20 e não foi repetido. Nenhum dado sintético foi criado nesta sessão. | **Não** |
+
+Sem login, sincronização, dados pessoais, código ou captura. O relatório preserva C4.1 existente e registra apenas as lacunas novas em `relatorios/cashew.md`; a matriz 11 não muda sem reação observada.
+
+## Sessão 14 — 2026-11-19 (M5: Firefly III mobile)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Firefly III | Demonstração pública oficial prevista; 390 px e 1440 px conforme o F6 mobile do doc 13 | A automação de navegador não iniciou (`The browser access host is unavailable`); exclusão/recuperação ficaram bloqueadas, sem dados sintéticos. | **Não** |
+
+Nenhum código, CSS, template, migration, configuração ou documentação interna foi consultado. Nenhuma captura ou reação financeira foi registrada; ver `relatorios/firefly-iii.md`.
+
+## Sessão 15 — 2026-11-19 (M6: Sure, fatura fechada)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Sure | Containers locais pré-configurados; porta 4100 | Containers iniciados; o endpoint HTTP redirecionou para a entrada de sessão. Sem navegador (390 px/1440 px) não foi possível criar dados sintéticos nem observar a fatura fechada. | **Não** |
+
+Sem login, dados reais ou acesso a código/configuração. O relatório registra o bloqueio e mantém as células da matriz 11 inalteradas.
+
+## Sessão 16 — 2026-11-19 (M7: Klipper alfa local)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Klipper | `http://localhost:3000`, largura prevista 390 px | Conexão recusada; a condição de presença do alfa local não foi atendida. Nenhuma tarefa de interface foi iniciada e nenhum dado sintético foi criado. | **Não** |
+
+Sem código ou configuração consultados e sem prints. A matriz 11 permanece sem alteração nesta sessão; ver `relatorios/klipper.md`.
+
+## Sessão 17 — 2026-11-19 (M8: Finan+ documental)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Finan+ | Fichas públicas do F-Droid em português e inglês; sem execução | Versão publicada 1.11.0 (20), declaração GPL-3.0-or-later e afirmações públicas sobre backup automático com senha e criptografia AES-256-GCM/Android Keystore; alegações marcadas como não verificadas | **Não** |
+
+Nenhum APK foi instalado nem código consultado. Backup e criptografia não foram testados; detalhes em `relatorios/finan-plus.md`.
+
+## Sessão 18 — 2026-11-19 (M1: Kontto mobile)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Kontto | Execução manual em aparelho Android requerida | **bloqueado: requer aparelho Android; execução manual pelo Roberto**. Sem app, versão, licença ou interface consultados. | **Não** |
+
+Sem dados, prints ou medidas de interação. Ver `relatorios/kontto.md`.
+
 ## Modelo para próximas sessões
 
 ```

@@ -19,6 +19,7 @@ Este documento descreve um procedimento de engenharia e rastreabilidade; não é
 |---|---|---|
 | Sure | UX observável | código não lido nesta pesquisa |
 | Cashew | UX observável | código não lido nesta pesquisa |
+| Tally | técnica / MIT | `app/src/main/assets` do commit `9fa59f674605c164cd9b4db6be2ad3bf6313df04` foi consultado; a execução estática respondeu, mas a observação visual mobile ficou bloqueada. Não houve cópia. |
 | ezBookkeeping | técnica / MIT | leitura histórica registrada; qualquer reuso literal exige atribuição e revisão de compatibilidade |
 | Firefly III | UX observável | demonstração usada sem código nesta pesquisa |
 | Actual Budget | técnica / MIT | Leituras técnicas de importação, desfazer e transferência no commit `8fba0e87cf7a4cda6ab5ea8012477bd7051f6ebc`; execução visual do lote 1 bloqueada. Fontes e histórico em `07-registro-pi.md`; não houve cópia |

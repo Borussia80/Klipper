@@ -32,3 +32,18 @@
 ## Próxima rodada: crédito e dívida em mobile
 
 Cartão e financiamento foram verificados em 390 px. Ainda falta criar/fechar fatura com vencimento, testar a alocação explícita de principal/juros e cobrir edição, cancelamento e erro nesses dois tipos de conta.
+
+## Lote mobile M6 — fatura fechada — 2026-11-19
+
+- Licença / classe: AGPL-3.0 · UX observável / caixa-preta.
+- Ambiente: containers locais Sure (`web`, `worker`, Postgres e Redis); servidor iniciado na porta 4100. A resposta HTTP redirecionou para a entrada de sessão, sem inspeção visual.
+- Larguras previstas: 390 px para M6; 1440 px e 390 px conforme a tarefa S6 do doc 13.
+- Bloqueio: `The browser access host is unavailable`; não houve navegador para criar dados sintéticos nem consultar a fatura fechada.
+- Nenhum login foi iniciado, conta ou fatura foi criada, e não houve acesso a dados financeiros. Sem prints; duração, toques, erros de interação e foco não medidos. Nenhum código, CSS, asset, configuração ou texto de produto foi consultado.
+
+| # | Estado inicial | Ação | Reação na tela | Reação nos dados (fatura, saldo) | Fonte | Regra extraída | Teste de aceite no Klipper |
+|---|---|---|---|---|---|---|---|
+| M6.1 — 390 px | servidor responde, mas não há sessão de observação no navegador | Abrir fatura fechada sintética em mobile | bloqueado: navegador indisponível | ciclo, vencimento, pagamento e estado não observados | execução bloqueada | — | — |
+| M6.2 — 1440 px | servidor responde, mas não há sessão de observação no navegador | Abrir a mesma jornada em desktop para comparação exigida por S6 | bloqueado: navegador indisponível | ciclo, vencimento, pagamento e estado não observados | execução bloqueada | — | — |
+
+UXR afetados: UXR-01, UXR-02 e UXR-03. Sem reação nova para a matriz 11; o endpoint respondeu, mas isso não comprova comportamento da fatura. A stack local foi iniciada apenas para esta tentativa.
