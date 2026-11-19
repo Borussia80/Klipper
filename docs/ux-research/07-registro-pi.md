@@ -158,6 +158,14 @@ Nenhum código, CSS, template, migration, configuração ou documentação técn
 
 Arquivos consultados: `LICENSE`, `app/src/main/assets/index.html` e os módulos `calculator.js`, `state.js`, `loans.js` e `bridge.js`. A análise de código foi anotada separadamente do comportamento: nenhum fluxo foi marcado como observado e nenhuma célula da matriz 11 foi alterada. Não houve transcrição de código, CSS, assets ou texto de interface.
 
+## Sessão 13 — 2026-11-19 (M3/M4: Cashew mobile)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Cashew | PWA oficial, `https://budget-track.web.app/`, largura prevista 390 px | Navegador indisponível (`The browser access host is unavailable`); edição/exclusão de transferência e gestos ficaram bloqueados. C4.1 já executado em 2026-10-20 e não foi repetido. Nenhum dado sintético foi criado nesta sessão. | **Não** |
+
+Sem login, sincronização, dados pessoais, código ou captura. O relatório preserva C4.1 existente e registra apenas as lacunas novas em `relatorios/cashew.md`; a matriz 11 não muda sem reação observada.
+
 ## Modelo para próximas sessões
 
 ```

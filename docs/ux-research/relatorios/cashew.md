@@ -40,3 +40,22 @@
 ### Testes de aceite novos ou alterados por UXR — lote 1
 
 Nenhum: não houve observação nova. As células da matriz permanecem inalteradas.
+
+## Lote mobile M3/M4 — 2026-11-19
+
+- Ambiente previsto: PWA oficial `https://budget-track.web.app/`, sem login, com armazenamento local e dados sintéticos.
+- Largura: 390 px.
+- Bloqueio desta sessão: a automação de navegador retornou `The browser access host is unavailable`; a PWA não foi aberta.
+- Nenhum dado foi criado, editado ou excluído. Sem prints, saldos, duração, contagem nova de toques, erros de interação ou foco observados. Nenhum código/CSS/configuração foi consultado.
+- A observação C4.1 existente (três despesas, seis toques cada) não foi repetida. Ela permanece somente como evidência de 2026-10-20; este lote não acrescenta medida de lançamento rápido.
+
+| # | Estado inicial | Ação | Reação na tela | Reação nos dados (saldo, lista, orçamento) | Fonte | Regra extraída | Teste de aceite no Klipper |
+|---|---|---|---|---|---|---|---|
+| M3.1 / C3.4.2 | bloqueado: PWA não abriu | Editar a transferência sintética em 390 px | bloqueado: navegador indisponível | dois saldos e vínculo não observados | execução bloqueada | — | — |
+| M3.2 / C3.5 | bloqueado: PWA não abriu | Excluir a transferência e conferir as duas pontas | bloqueado: navegador indisponível | dois saldos, lista e vínculo não observados | execução bloqueada | — | — |
+| M4.1 | bloqueado: PWA não abriu | Observar gesto de arrastar dentro da tela e alternativa por botão | bloqueado: navegador indisponível | não observado | execução bloqueada | — | — |
+| M4.2 | bloqueado: PWA não abriu | Observar toque longo, descarte/undo e foco após fechar o fluxo | bloqueado: navegador indisponível | nenhum rascunho ou movimento criado | execução bloqueada | — | — |
+
+### Fechamento M3/M4
+
+UXR afetados: UXR-03, UXR-04, UXR-07 e UXR-08. Não há reação nova para inserir na matriz 11. M3.1 e M3.2 retomam lacunas previamente bloqueadas; M4 não replica a medição já registrada em C4.1.
