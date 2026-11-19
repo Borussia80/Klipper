@@ -150,6 +150,14 @@ Nenhum código, CSS, template, configuração ou asset do Cashew foi aberto. Sem
 
 Nenhum código, CSS, template, migration, configuração ou documentação técnica interna do Firefly III foi aberto.
 
+## Sessão 12 — 2026-11-19 (M2: Tally mobile)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Tally | Repositório `IamAndelib/Tally-android`, versão 1.5.1, MIT confirmado no `LICENSE` do commit `9fa59f674605c164cd9b4db6be2ad3bf6313df04`; assets servidos em `127.0.0.1:4178` | `index.html` respondeu HTTP 200. A automação de navegador reportou `The browser access host is unavailable`; calculadora, grade, excluir/desfazer e empréstimo/a receber ficaram bloqueados, sem dados criados. Widget bloqueado: disponível somente no APK. | **Sim — análise técnica dos assets; sem cópia** |
+
+Arquivos consultados: `LICENSE`, `app/src/main/assets/index.html` e os módulos `calculator.js`, `state.js`, `loans.js` e `bridge.js`. A análise de código foi anotada separadamente do comportamento: nenhum fluxo foi marcado como observado e nenhuma célula da matriz 11 foi alterada. Não houve transcrição de código, CSS, assets ou texto de interface.
+
 ## Modelo para próximas sessões
 
 ```
