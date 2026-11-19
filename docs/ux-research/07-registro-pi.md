@@ -190,6 +190,22 @@ Sem login, dados reais ou acesso a código/configuração. O relatório registra
 
 Sem código ou configuração consultados e sem prints. A matriz 11 permanece sem alteração nesta sessão; ver `relatorios/klipper.md`.
 
+## Sessão 17 — 2026-11-19 (M8: Finan+ documental)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Finan+ | Fichas públicas do F-Droid em português e inglês; sem execução | Versão publicada 1.11.0 (20), declaração GPL-3.0-or-later e afirmações públicas sobre backup automático com senha e criptografia AES-256-GCM/Android Keystore; alegações marcadas como não verificadas | **Não** |
+
+Nenhum APK foi instalado nem código consultado. Backup e criptografia não foram testados; detalhes em `relatorios/finan-plus.md`.
+
+## Sessão 18 — 2026-11-19 (M1: Kontto mobile)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Kontto | Execução manual em aparelho Android requerida | **bloqueado: requer aparelho Android; execução manual pelo Roberto**. Sem app, versão, licença ou interface consultados. | **Não** |
+
+Sem dados, prints ou medidas de interação. Ver `relatorios/kontto.md`.
+
 ## Modelo para próximas sessões
 
 ```
