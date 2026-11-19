@@ -166,6 +166,14 @@ Arquivos consultados: `LICENSE`, `app/src/main/assets/index.html` e os módulos 
 
 Sem login, sincronização, dados pessoais, código ou captura. O relatório preserva C4.1 existente e registra apenas as lacunas novas em `relatorios/cashew.md`; a matriz 11 não muda sem reação observada.
 
+## Sessão 14 — 2026-11-19 (M5: Firefly III mobile)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Firefly III | Demonstração pública oficial prevista; 390 px e 1440 px conforme o F6 mobile do doc 13 | A automação de navegador não iniciou (`The browser access host is unavailable`); exclusão/recuperação ficaram bloqueadas, sem dados sintéticos. | **Não** |
+
+Nenhum código, CSS, template, migration, configuração ou documentação interna foi consultado. Nenhuma captura ou reação financeira foi registrada; ver `relatorios/firefly-iii.md`.
+
 ## Modelo para próximas sessões
 
 ```
