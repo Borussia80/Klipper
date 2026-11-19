@@ -48,11 +48,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 8,
+      "occurrences": 9,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -92,6 +92,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
           "severity": "medium"
         }
       ],
@@ -142,7 +147,7 @@
       "id": "SEC-001",
       "category": "security",
       "natural_key": "quebec-web-nuxt-stale-lockfile-cves",
-      "status": "resolved",
+      "status": "open",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -151,25 +156,30 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-16T12:59:00.473Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
           "commit": "593ef37b872f2256d05df525607cb3850c5afe7d",
           "severity": "high"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "medium"
         }
       ],
-      "description": "apps/quebec-web's package-lock.json is stale and resolves nuxt/@nuxt/devtools to versions with multiple known high/critical CVEs (auth-bypass, SSR RCE, CPU exhaustion, and a critical unauthenticated dev-server RCE), while the sibling app klipper-web with the identical package.json semver range already resolves to a patched version.",
-      "recommendation": "Refresh apps/quebec-web/package-lock.json (npm update nuxt @nuxt/devtools, or delete lockfile + reinstall) to converge on the same patched Nuxt line already used by klipper-web, then re-run npm audit to confirm zero nuxt-related findings. Evidence unavailable on whether quebec-web's production deployment actually exercises Server Islands (no <NuxtIsland>/experimental component-island usage found in app code), so real-world exploitability of the RCE/auth-bypass advisories specifically is unconfirmed — but the vulnerable code ships regardless and the fix is a single low-effort dependency bump.",
-      "impact": 6,
-      "frequency": 8,
-      "reach": 3,
-      "effort": 1,
-      "priority_score": 144,
+      "description": "apps/quebec-web roda com `ssr: true` em Nuxt 3.21.11, versão afetada por CVEs moderados de divulgação da mensagem/dados de erros não tratados durante SSR e de bypass de route rules via barra codificada em rotas catch-all, sem uma página de erro customizada que contenha o vazamento — a mesma classe de risco da ocorrência anterior (SEC-001), reaberta por advisories publicados depois daquela correção.",
+      "recommendation": "Atualizar `nuxt` (e `@nuxt/schema`/`@nuxt/vite-builder`) em apps/quebec-web para a versão mais recente da linha 3.x ou migrar para 4.x, reexecutar `npm audit` para confirmar que os dois GHSA acima saem da lista, e adicionar um `error.vue` que não reflita `error.message`/`error.data` ao cliente quando `process.env.NODE_ENV === 'production'`.",
+      "impact": 4,
+      "frequency": 3,
+      "reach": 4,
+      "effort": 2,
+      "priority_score": 24,
       "adr_candidate": false
     },
     {
@@ -399,11 +409,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 7,
+      "occurrences": 8,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -439,15 +449,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "medium"
         }
       ],
-      "description": "Quatro componentes Vue de entrada/edição de dados financeiros continuam sem nenhuma cobertura de teste, direta ou indireta.",
-      "recommendation": "Adicionar testes de montagem para ModalNovaConta, ModalNovoMembro, ModalEditarReembolso e ModalMount seguindo o padrão já usado em ModalNovoLancamento.test.ts.",
-      "impact": 6,
-      "frequency": 5,
-      "reach": 6,
+      "description": "Um dos quatro componentes Vue de entrada/edição de dados financeiros apontados na última auditoria (ModalNovaConta) já ganhou cobertura de montagem; ModalNovoMembro, ModalEditarReembolso e ModalMount continuam sem nenhum teste, direto ou indireto.",
+      "recommendation": "Adicionar testes de montagem para ModalNovoMembro, ModalEditarReembolso e ModalMount seguindo o padrão já usado em ModalNovaConta.test.ts.",
+      "impact": 5,
+      "frequency": 4,
+      "reach": 5,
       "effort": 3,
-      "priority_score": 60,
+      "priority_score": 33.33,
       "adr_candidate": false
     },
     {
@@ -463,11 +478,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 7,
+      "occurrences": 8,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -503,15 +518,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "low"
         }
       ],
-      "description": "`devalue` (nova advisory moderate desde a última auditoria) e `esbuild` (low, recorrente) seguem desatualizados em devDependencies transitivas de ambos os frontends; o lado Ruby não pôde ser verificado neste ambiente por falta de bundler instalado.",
-      "recommendation": "Rodar `npm audit fix` (ou atualizar a versão de `nuxt`/`vite` que resolve `devalue` e `esbuild`) em apps/klipper-web e apps/quebec-web. O gate de CI já existente (`npm audit --audit-level=high`) não bloqueia essas duas advisories de propósito (moderate/low ficam abaixo do limiar) — se o apetite de risco mudar, baixar o `--audit-level` para `moderate` nos workflows.",
+      "description": "Dependências de build/dev (não o `nuxt` em si, tratado separadamente para apps/quebec-web) seguem desatualizadas em devDependencies transitivas de ambos os frontends; nesta execução foi possível, pela primeira vez, instalar o bundler compatível e confirmar que o lado Ruby de apps/klipper-api está livre de CVEs conhecidos.",
+      "recommendation": "Rodar `npm audit fix` (ou atualizar a versão de `vite`/`eslint`/`@typescript-eslint`) em apps/klipper-web e apps/quebec-web. O gate de CI já existente (`npm audit --audit-level=high`) não bloqueia essas advisories de propósito (moderate/low ficam abaixo do limiar) — se o apetite de risco mudar, baixar o `--audit-level` para `moderate` nos workflows. Para o lado Ruby, considerar vendorizar/cachear o bundler compatível (4.0.14) no runner de CI/auditoria para não depender de instalação ad hoc a cada execução.",
       "impact": 2,
       "frequency": 3,
-      "reach": 3,
+      "reach": 2,
       "effort": 1,
-      "priority_score": 10.8,
+      "priority_score": 12,
       "adr_candidate": false
     },
     {
@@ -527,11 +547,11 @@
         "date": "2026-09-16T12:59:00.473Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 7,
+      "occurrences": 8,
       "severity_history": [
         {
           "date": "2026-09-16T12:59:00.473Z",
@@ -567,15 +587,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "low"
         }
       ],
-      "description": "Quatro páginas centrais do Wealth OS (dashboard, contas, orçamento, portadores) continuam sem nenhum teste de página, embora investimentos já tenha sido corrigido desde a última auditoria.",
-      "recommendation": "Adicionar testes de página para dashboard, contas, orcamento e portadores seguindo o padrão já usado em relatorios.test.ts e transacoes.test.ts.",
-      "impact": 6,
-      "frequency": 5,
-      "reach": 6,
-      "effort": 4,
-      "priority_score": 45,
+      "description": "Três das quatro páginas centrais do Wealth OS apontadas na última auditoria (dashboard, contas, orçamento) já ganharam teste de página; só portadores continua sem nenhum.",
+      "recommendation": "Adicionar teste de página para portadores.vue seguindo o padrão já usado em dashboard.test.ts e orcamento.test.ts.",
+      "impact": 2,
+      "frequency": 2,
+      "reach": 2,
+      "effort": 1,
+      "priority_score": 8,
       "adr_candidate": false
     },
     {
@@ -702,11 +727,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -737,6 +762,11 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "low"
         }
       ],
       "description": "ModalNovoLancamento e ModalEditarLancamento compartilham a lógica de formulário via useLancamentoForm, mas o template de apresentação e o CSS scoped inteiro continuam duplicados quase byte a byte entre os dois arquivos.",
@@ -810,11 +840,11 @@
         "date": "2026-09-16T23:22:35.676Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-16T23:22:35.676Z",
@@ -845,6 +875,11 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "low"
         }
       ],
       "description": "PATCH /api/v1/password_resets/:token (redenção do token de reset de senha) continua sem qualquer rate limiting, ao contrário de todas as outras rotas de autenticação não-autenticadas.",
@@ -860,7 +895,7 @@
       "id": "FIN-004",
       "category": "finance",
       "natural_key": "dashboard-hero-spent-ratio-conflates-no-income-with-zero",
-      "status": "open",
+      "status": "not_seen_last_run",
       "component": null,
       "adr": null,
       "first_seen": {
@@ -928,11 +963,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 5,
+      "occurrences": 6,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -958,10 +993,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "high"
         }
       ],
-      "description": "O componente-base compartilhado por todos os modais do app (Escape para fechar, focus trap e restauração de foco ao gatilho) não tem nenhuma cobertura de teste, direta ou indireta.",
-      "recommendation": "Adicionar um teste de montagem para BaseModal.vue (ou para useFocusTrap.ts isoladamente com jsdom) cobrindo: Escape emite close, Tab no último elemento focável volta ao primeiro (e vice-versa com Shift+Tab), e o foco retorna ao elemento que disparou a abertura ao fechar.",
+      "description": "O componente-base compartilhado por todos os modais do app ganhou um arquivo de teste desde a última auditoria, mas ele cobre apenas o layout do rodapé — o focus trap em si (Escape para fechar, Tab/Shift+Tab circulando entre os elementos focáveis, restauração de foco ao gatilho ao fechar) permanece sem nenhuma cobertura, direta ou indireta.",
+      "recommendation": "Estender components/ui/__tests__/BaseModal.test.ts (ou criar composables/__tests__/useFocusTrap.test.ts) cobrindo: Escape emite close, Tab no último elemento focável volta ao primeiro (e vice-versa com Shift+Tab), e o foco retorna ao elemento que disparou a abertura ao fechar.",
       "impact": 6,
       "frequency": 4,
       "reach": 7,
@@ -982,11 +1022,11 @@
         "date": "2026-09-17T03:45:43.333Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 6,
+      "occurrences": 7,
       "severity_history": [
         {
           "date": "2026-09-17T03:45:43.333Z",
@@ -1016,6 +1056,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
           "severity": "medium"
         }
       ],
@@ -1080,11 +1125,11 @@
         "date": "2026-09-17T09:59:23.653Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T09:59:23.653Z",
@@ -1105,10 +1150,15 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "low"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "low"
         }
       ],
       "description": "O access token da SPA continua exposto a JavaScript via cookie não-httpOnly, e a decisão arquitetural de aceitar esse risco (mitigado pela CSP com nonce) ou migrar para cookie HttpOnly + CSRF segue sem resolução formal.",
-      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar). Se aceitar, mover o ADR para `accepted` documentando a mitigação via CSP; nenhum sink de XSS explorável foi encontrado nesta auditoria em apps/klipper-web/server/middleware/csp.ts (script-src com nonce em produção), o que reduz o risco residual, mas não o elimina.",
+      "recommendation": "Decidir explicitamente o ADR-2026-09-17-003 (aceitar ou implementar). Se aceitar, mover o ADR para `accepted` documentando a mitigação via CSP; nenhum sink de XSS explorável foi encontrado nesta auditoria em apps/klipper-web/server/middleware/csp.ts (script-src com nonce em produção, style-src ainda com 'unsafe-inline'), o que reduz o risco residual, mas não o elimina.",
       "impact": 4,
       "frequency": 1,
       "reach": 2,
@@ -1168,11 +1218,11 @@
         "date": "2026-09-17T10:49:00.167Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 4,
+      "occurrences": 5,
       "severity_history": [
         {
           "date": "2026-09-17T10:49:00.167Z",
@@ -1192,6 +1242,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
           "severity": "medium"
         }
       ],
@@ -1256,11 +1311,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1270,6 +1325,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "high"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
           "severity": "high"
         }
       ],
@@ -1329,11 +1389,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1343,6 +1403,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
           "severity": "medium"
         }
       ],
@@ -1368,11 +1433,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1383,15 +1448,20 @@
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
           "severity": "medium"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "low"
         }
       ],
-      "description": "O padrão visual de campo com select (label, wrapper, seta customizada) é reimplementado em CSS scoped duplicado em pelo menos três modais de entidade diferentes dos de lançamento, então qualquer ajuste visual (ex: acessibilidade do caret, espaçamento) precisa ser replicado manualmente em cada arquivo e tende a divergir.",
+      "description": "O padrão visual de campo com select (label, wrapper, seta customizada) continua reimplementado em CSS scoped duplicado, agora observável em pelo menos cinco modais de entidade diferentes (um a mais que na última auditoria), então qualquer ajuste visual precisa ser replicado manualmente em cada arquivo e tende a divergir.",
       "recommendation": "Extrair um componente BaseSelectField.vue (ou classes utilitárias globais em assets/css) reutilizado por todos os modais de criação/edição de entidade, seguindo a mesma motivação já reconhecida para o par de modais de lançamento.",
       "impact": 3,
-      "frequency": 3,
+      "frequency": 4,
       "reach": 4,
       "effort": 4,
-      "priority_score": 9,
+      "priority_score": 12,
       "adr_candidate": false
     },
     {
@@ -1407,11 +1477,11 @@
         "date": "2026-09-17T19:54:53.368Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 2,
+      "occurrences": 3,
       "severity_history": [
         {
           "date": "2026-09-17T19:54:53.368Z",
@@ -1421,6 +1491,11 @@
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "low"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
           "severity": "low"
         }
       ],
@@ -1446,15 +1521,20 @@
         "date": "2026-09-18T13:03:39.167Z"
       },
       "last_seen": {
-        "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
         "branch": "main",
-        "date": "2026-09-18T13:03:39.167Z"
+        "date": "2026-11-19T23:17:21.078Z"
       },
-      "occurrences": 1,
+      "occurrences": 2,
       "severity_history": [
         {
           "date": "2026-09-18T13:03:39.167Z",
           "commit": "0593a8efe386b0a598ffae5ecab85d18d4dd7a65",
+          "severity": "low"
+        },
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
           "severity": "low"
         }
       ],
@@ -1465,6 +1545,40 @@
       "reach": 3,
       "effort": 2,
       "priority_score": 4.5,
+      "adr_candidate": false
+    },
+    {
+      "id": "ARCH-016",
+      "category": "architecture",
+      "natural_key": "transfers-controller-no-request-spec",
+      "status": "open",
+      "component": null,
+      "adr": null,
+      "first_seen": {
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+        "branch": "main",
+        "date": "2026-11-19T23:17:21.078Z"
+      },
+      "last_seen": {
+        "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+        "branch": "main",
+        "date": "2026-11-19T23:17:21.078Z"
+      },
+      "occurrences": 1,
+      "severity_history": [
+        {
+          "date": "2026-11-19T23:17:21.078Z",
+          "commit": "b0468204fa20236860ce1d01f1e1805eb2a421b1",
+          "severity": "high"
+        }
+      ],
+      "description": "TransfersController — a única rota que move dinheiro entre duas contas do usuário (debit+credit) — não tem nenhum request spec, enquanto todo outro controller da API tem um; os códigos de status (201/404/422), o rescue de TransferService::InvalidTransfer e o parâmetro de contas escopado a current_user só são verificados hoje por leitura de código, nunca por teste de integração.",
+      "recommendation": "Adicionar spec/requests/api/v1/transfers_spec.rb cobrindo create (201 com debit+credit, 422 em InvalidTransfer/RecordInvalid, 404 em conta de outro usuário) e update (200, 422, 404 em transferência inexistente), seguindo o padrão já usado em spec/requests/api/v1/accounts_spec.rb.",
+      "impact": 7,
+      "frequency": 4,
+      "reach": 10,
+      "effort": 3,
+      "priority_score": 93.33,
       "adr_candidate": false
     }
   ]
