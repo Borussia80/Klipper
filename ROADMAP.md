@@ -53,6 +53,10 @@ Cada status abaixo deve ser reconciliado com código, testes e decisões antes d
 | D6–D8 | Recorrências, regras e aprendizado, orçamento e ritmo. | A verificar; ver specs e ordem do domínio. |
 | Patrimônio | Posições, preço de mercado, desempenho, projeção e runway dependem dos contratos e dados confiáveis. Módulo P depois de D1–D8 e dos cenários P0 aprovados. | Planejado / a verificar. |
 | Kakebo | Ciclo mensal e resumo por pilar, começando pela persistência no backend. | Especificado, pendente segundo [spec](docs/KAKEBO.md) e [roadmap histórico](ROADMAP_KLIPPER_WEALTH_OS.md#feature-de-produto--método-kakebo). |
+| Domínios financeiros | Cinco domínios (Budget, Cash Flow, Debt, Planning, Wealth); orçamento continua em modo limite, sem envelope. | Proposto em [ADR 007](docs/adrs/proposed/ADR-2026-11-19-007.md); decisões Q-A a Q-D registradas. |
+| Recursos livres (C-17) | Saldo líquido menos provisões, reservas de fatura e faturas fechadas não quitadas. Depende de D2 e D4. | Especificado na [spec 02](docs/domain-research/03-specs/02-contas-saldos-patrimonio.md#recursos-livres); pendente. |
+| Provisionamento voluntário | Reservar dinheiro existente para uma finalidade, sem despesa nem transferência. Depende de C-17 e D4. | Especificado na [spec 21](docs/domain-research/03-specs/21-provisionamento-voluntario.md); pendente. |
+| Comprometimento da receita futura | Indicadores de dívida e renda por mês e simulação de compra parcelada. Depende de D4, specs 05, 19 e 21. | Especificado na [spec 22](docs/domain-research/03-specs/22-comprometimento-da-receita-futura.md); pendente. |
 
 Detalhes, critérios e decisões: [D0–D8 e módulo P](docs/domain-research/05-plano-implementacao.md#sprints), [specs de domínio](docs/domain-research/03-specs/), [fronteira patrimonial](docs/domain-research/03-specs/20-fronteira-do-nucleo-e-modulo-patrimonio.md) e [Kakebo](docs/KAKEBO.md).
 
