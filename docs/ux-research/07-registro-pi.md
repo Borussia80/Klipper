@@ -174,6 +174,14 @@ Sem login, sincronização, dados pessoais, código ou captura. O relatório pre
 
 Nenhum código, CSS, template, migration, configuração ou documentação interna foi consultado. Nenhuma captura ou reação financeira foi registrada; ver `relatorios/firefly-iii.md`.
 
+## Sessão 15 — 2026-11-19 (M6: Sure, fatura fechada)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Sure | Containers locais pré-configurados; porta 4100 | Containers iniciados; o endpoint HTTP redirecionou para a entrada de sessão. Sem navegador (390 px/1440 px) não foi possível criar dados sintéticos nem observar a fatura fechada. | **Não** |
+
+Sem login, dados reais ou acesso a código/configuração. O relatório registra o bloqueio e mantém as células da matriz 11 inalteradas.
+
 ## Modelo para próximas sessões
 
 ```
