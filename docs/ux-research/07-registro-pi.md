@@ -182,6 +182,14 @@ Nenhum código, CSS, template, migration, configuração ou documentação inter
 
 Sem login, dados reais ou acesso a código/configuração. O relatório registra o bloqueio e mantém as células da matriz 11 inalteradas.
 
+## Sessão 16 — 2026-11-19 (M7: Klipper alfa local)
+
+| App | Fonte/ambiente | Evidência e escopo | Código aberto? |
+|---|---|---|---|
+| Klipper | `http://localhost:3000`, largura prevista 390 px | Conexão recusada; a condição de presença do alfa local não foi atendida. Nenhuma tarefa de interface foi iniciada e nenhum dado sintético foi criado. | **Não** |
+
+Sem código ou configuração consultados e sem prints. A matriz 11 permanece sem alteração nesta sessão; ver `relatorios/klipper.md`.
+
 ## Modelo para próximas sessões
 
 ```
